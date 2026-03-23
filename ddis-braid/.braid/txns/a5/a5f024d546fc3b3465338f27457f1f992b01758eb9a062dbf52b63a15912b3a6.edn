@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774283954/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-WITNESS: Witness suggestion as scored context block + braid witness confirm command"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6924f07b685cd1e75a103057195eb578670774f0a4f64d815e0a53102549f3f0" :a :db/ident :v :task/t-89f8062b :op :assert}
+   {:e #blake3 "6924f07b685cd1e75a103057195eb578670774f0a4f64d815e0a53102549f3f0" :a :task/created-at :v 1774283953 :op :assert}
+   {:e #blake3 "6924f07b685cd1e75a103057195eb578670774f0a4f64d815e0a53102549f3f0" :a :task/description :v "CONTEXT: 237 INVs lack L2+ witnesses. The witness gap is a UAQ instance (Insight 15). Proposed witness pairings should appear as scored context blocks in braid status. The agent confirms with one command. APPROACH: Two parts: (A) WITNESS SUGGESTION BLOCK: In methodology_context_blocks (context.rs), add a new block source: unwitnessed_inv_suggestions(store). Implementation: (1) Get unwitnessed INVs from witness::completeness_guard(store). (2) Get trace links from :impl/implements datoms for each unwitnessed INV. (3) For each trace link, extract the source file and test function (if any). (4) For INVs with a test-bearing trace link, create a ContextBlock: content = 'suggest: {test_fn} → {inv_id} (alpha={alpha:.2}) — confirm: braid witness confirm {inv_id}', tokens = ~20, precedence = Methodology, attention = Some(AcquisitionScore with impact = 1.0/total_unwitnessed, relevance = 1.0, novelty = 1/sqrt(times_suggested), confidence = name_overlap_score, cost based on tokens). (5) Return top-1 suggestion (budget-constrained). (B) WITNESS CONFIRM COMMAND: Add braid witness confirm <INV-ID> [test_fn] subcommand. Implementation: (1) Find the INV entity and the test entity. (2) Create an FBW at L2 depth linking them. (3) Transact. (4) Report: 'Confirmed: {test_fn} witnesses {inv_id}. Coverage: {new_count}/{total} ({pct}%).' ACCEPTANCE: (A) braid status on store with unwitnessed INVs shows a suggestion line. (B) braid witness confirm creates a valid L2 FBW. (C) After confirm, the INV no longer appears in witness completeness gaps. (D) The suggestion block competes for budget with other blocks. (E) Multiple status calls suggest different INVs (novelty decay). DEPENDS-ON: UAQ-3 (all blocks must carry AcquisitionScore). FILE: crates/braid-kernel/src/context.rs + crates/braid/src/commands/witness.rs" :op :assert}
+   {:e #blake3 "6924f07b685cd1e75a103057195eb578670774f0a4f64d815e0a53102549f3f0" :a :task/id :v "t-89f8062b" :op :assert}
+   {:e #blake3 "6924f07b685cd1e75a103057195eb578670774f0a4f64d815e0a53102549f3f0" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6924f07b685cd1e75a103057195eb578670774f0a4f64d815e0a53102549f3f0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6924f07b685cd1e75a103057195eb578670774f0a4f64d815e0a53102549f3f0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6924f07b685cd1e75a103057195eb578670774f0a4f64d815e0a53102549f3f0" :a :task/title :v "UAQ-WITNESS: Witness suggestion as scored context block + braid witness confirm command" :op :assert}
+   {:e #blake3 "6924f07b685cd1e75a103057195eb578670774f0a4f64d815e0a53102549f3f0" :a :task/title-l0 :v "UAQ-WITNESS" :op :assert}
+   {:e #blake3 "6924f07b685cd1e75a103057195eb578670774f0a4f64d815e0a53102549f3f0" :a :task/title-l1 :v "UAQ-WITNESS: Witness suggestion as scored context block + braid witness confi..." :op :assert}
+   {:e #blake3 "6924f07b685cd1e75a103057195eb578670774f0a4f64d815e0a53102549f3f0" :a :task/traces-to :v #blake3 "63fdb4626d4e9cf91ec10c9527cadce8d67aed3ec8d4975d672b226ee9553a9d" :op :assert}
+   {:e #blake3 "6924f07b685cd1e75a103057195eb578670774f0a4f64d815e0a53102549f3f0" :a :task/traces-to :v #blake3 "8e2b78c5e255903e75329a90fca078f8fed5341e4d4d90864b8a9d884201101c" :op :assert}
+   {:e #blake3 "6924f07b685cd1e75a103057195eb578670774f0a4f64d815e0a53102549f3f0" :a :task/type :v :task.type/task :op :assert}
+ ]}
