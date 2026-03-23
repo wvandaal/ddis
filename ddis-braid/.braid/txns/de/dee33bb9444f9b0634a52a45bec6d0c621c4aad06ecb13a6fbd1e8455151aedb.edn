@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774274709/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-TEST: Universal Acquisition Function test suite — unit + proptest + E2E"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2f4fa48436681a16ad176ec26ce305429cf004c62c1d10a890930c9911680b34" :a :db/ident :v :task/t-24d77add :op :assert}
+   {:e #blake3 "2f4fa48436681a16ad176ec26ce305429cf004c62c1d10a890930c9911680b34" :a :task/created-at :v 1774274708 :op :assert}
+   {:e #blake3 "2f4fa48436681a16ad176ec26ce305429cf004c62c1d10a890930c9911680b34" :a :task/description :v "CONTEXT: The UAQ unification needs comprehensive testing to verify the algebraic properties and backward compatibility. UNIT: (1) AcquisitionScore::from_factors(1.0, 1.0, 1.0, 1.0).composite == 1.0. (2) AcquisitionScore with any zero factor has composite == 0.0 (veto property). (3) composite is monotonically increasing in each factor when others held constant. (4) novelty = 1/sqrt(N): N=0->1.0, N=1->1.0, N=4->0.5, N=100->0.1. (5) TaskRouting.acquisition_score populated with all 4 non-zero factors. (6) Context blocks sorted by composite within precedence tier. (7) System-precedence blocks never reordered regardless of score. (8) Per-type CalibrationReport produces correct breakdown. PROPTEST: (9) For random (impact, relevance, novelty, confidence) in [0,1]^4, composite in [0,1]. (10) For two scores where all factors of A dominate B, A.composite >= B.composite. (11) Presentation count increment preserves novelty monotonic decrease. E2E: (12) scripts/e2e_acquisition_function.sh — init store, add tasks, run status 3x, verify block ordering evolves, verify hypothesis predictions recorded for all types, verify calibration report shows per-type breakdown. FAILURE DIAGNOSTICS: Each assertion logs: item_type, impact, relevance, novelty, confidence, composite, expected_rank, actual_rank. FILE: crates/braid-kernel/tests/acquisition.rs + scripts/e2e_acquisition_function.sh" :op :assert}
+   {:e #blake3 "2f4fa48436681a16ad176ec26ce305429cf004c62c1d10a890930c9911680b34" :a :task/id :v "t-24d77add" :op :assert}
+   {:e #blake3 "2f4fa48436681a16ad176ec26ce305429cf004c62c1d10a890930c9911680b34" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "2f4fa48436681a16ad176ec26ce305429cf004c62c1d10a890930c9911680b34" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2f4fa48436681a16ad176ec26ce305429cf004c62c1d10a890930c9911680b34" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2f4fa48436681a16ad176ec26ce305429cf004c62c1d10a890930c9911680b34" :a :task/title :v "UAQ-TEST: Universal Acquisition Function test suite — unit + proptest + E2E" :op :assert}
+   {:e #blake3 "2f4fa48436681a16ad176ec26ce305429cf004c62c1d10a890930c9911680b34" :a :task/title-l0 :v "UAQ-TEST" :op :assert}
+   {:e #blake3 "2f4fa48436681a16ad176ec26ce305429cf004c62c1d10a890930c9911680b34" :a :task/title-l1 :v "UAQ-TEST: Universal Acquisition Function test suite — unit + proptest + E2E" :op :assert}
+   {:e #blake3 "2f4fa48436681a16ad176ec26ce305429cf004c62c1d10a890930c9911680b34" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "2f4fa48436681a16ad176ec26ce305429cf004c62c1d10a890930c9911680b34" :a :task/type :v :task.type/test :op :assert}
+ ]}

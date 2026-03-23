@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774274580/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Universal Acquisition Function — unify five optimization systems into A(t,x) (ADR-FOUNDATION-025)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5c7800e37d3ca7db982d92d143954a361bfa8175eb3b63f40d29db8afaf12334" :a :db/ident :v :task/t-e1f23954 :op :assert}
+   {:e #blake3 "5c7800e37d3ca7db982d92d143954a361bfa8175eb3b63f40d29db8afaf12334" :a :task/created-at :v 1774274579 :op :assert}
+   {:e #blake3 "5c7800e37d3ca7db982d92d143954a361bfa8175eb3b63f40d29db8afaf12334" :a :task/description :v "CONTEXT: Braid has five independent optimization systems that don't share information and calibrate independently. The Universal Acquisition Function A(t,x) = impact * relevance * novelty * confidence unifies all five into one parameterized function. This subsumes the ATT-2..7 pipeline, makes calibration 5x faster, and enables meaningful external dog-food by generating unified learning data from the first command. RATIONALE: ADR-FOUNDATION-025. The three-primitive formalism (morphisms, reconciliation, acquisition function) identifies A(t) as one of three foundational operations. Currently unimplemented — the hypothesis ledger and attention mechanism are two independent approximations of it. APPROACH: 6 implementation tasks: (1) ADR crystallization (DONE), (2) AcquisitionScore type replaces AttentionScore, (3) Unified task+block scoring in routing.rs, (4) Per-item-type hypothesis recording, (5) Confidence factor from calibration data, (6) Wire into ACP rendering. ACCEPTANCE: (A) One scoring function for all recommendation types. (B) Mean prediction error decreases with unified calibration data. (C) ATT-2..7 tasks closeable as subsumed. (D) External dog-food produces unified calibration data." :op :assert}
+   {:e #blake3 "5c7800e37d3ca7db982d92d143954a361bfa8175eb3b63f40d29db8afaf12334" :a :task/id :v "t-e1f23954" :op :assert}
+   {:e #blake3 "5c7800e37d3ca7db982d92d143954a361bfa8175eb3b63f40d29db8afaf12334" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "5c7800e37d3ca7db982d92d143954a361bfa8175eb3b63f40d29db8afaf12334" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5c7800e37d3ca7db982d92d143954a361bfa8175eb3b63f40d29db8afaf12334" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5c7800e37d3ca7db982d92d143954a361bfa8175eb3b63f40d29db8afaf12334" :a :task/title :v "EPIC: Universal Acquisition Function — unify five optimization systems into A(t,x) (ADR-FOUNDATION-025)" :op :assert}
+   {:e #blake3 "5c7800e37d3ca7db982d92d143954a361bfa8175eb3b63f40d29db8afaf12334" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "5c7800e37d3ca7db982d92d143954a361bfa8175eb3b63f40d29db8afaf12334" :a :task/title-l1 :v "EPIC: Universal Acquisition Function — unify five optimization systems into..." :op :assert}
+   {:e #blake3 "5c7800e37d3ca7db982d92d143954a361bfa8175eb3b63f40d29db8afaf12334" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "5c7800e37d3ca7db982d92d143954a361bfa8175eb3b63f40d29db8afaf12334" :a :task/traces-to :v #blake3 "ad60b8da5363fe01d73c6a00bacdff66892e55036a2b02767b4f5c265ebca0f3" :op :assert}
+   {:e #blake3 "5c7800e37d3ca7db982d92d143954a361bfa8175eb3b63f40d29db8afaf12334" :a :task/type :v :task.type/epic :op :assert}
+ ]}

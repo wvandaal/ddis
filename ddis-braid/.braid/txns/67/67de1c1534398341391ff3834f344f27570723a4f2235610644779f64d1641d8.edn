@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774274633/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-3: Context block scoring — methodology_context_blocks returns blocks with AcquisitionScore"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3e0b6f65223eb07362cc9574512c7c463bc4e7ab28ae4ab697a2a4dfed8b750b" :a :db/ident :v :task/t-44afae2f :op :assert}
+   {:e #blake3 "3e0b6f65223eb07362cc9574512c7c463bc4e7ab28ae4ab697a2a4dfed8b750b" :a :task/created-at :v 1774274632 :op :assert}
+   {:e #blake3 "3e0b6f65223eb07362cc9574512c7c463bc4e7ab28ae4ab697a2a4dfed8b750b" :a :task/description :v "CONTEXT: methodology_context_blocks in context.rs creates ContextBlock entries with attention: None. These blocks need AcquisitionScore so they compete in the same ranking space as tasks. APPROACH: (1) For each context block type (coherence, boundaries, tasks, M(t), gaps, hypothesis), define a canonical block_label string. (2) Query :attention/presentation-count for each label from store. (3) Compute AcquisitionScore: impact = block's informational density (how much F(S)-relevant data it contains), relevance = 1.0 for methodology blocks when in-progress task matches, novelty = 1/sqrt(presentation_count), confidence = 1.0 (bootstrap, will calibrate from outcomes). (4) Set ContextBlock.attention = Some(score). (5) In ActionProjection::project(), sort context blocks by acquisition_score.composite (highest first) WITHIN each precedence tier, then by precedence across tiers. System-precedence blocks always come first regardless of score. ACCEPTANCE: (A) Every context block has Some(AcquisitionScore). (B) Block ordering changes across sessions as presentation counts accumulate. (C) Novel blocks (never presented) rank above frequently-presented blocks within same precedence. (D) System-precedence blocks are never reordered. DEPENDS-ON: UAQ-1, UAQ-2. FILE: crates/braid-kernel/src/context.rs + crates/braid-kernel/src/budget.rs (project method)" :op :assert}
+   {:e #blake3 "3e0b6f65223eb07362cc9574512c7c463bc4e7ab28ae4ab697a2a4dfed8b750b" :a :task/id :v "t-44afae2f" :op :assert}
+   {:e #blake3 "3e0b6f65223eb07362cc9574512c7c463bc4e7ab28ae4ab697a2a4dfed8b750b" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "3e0b6f65223eb07362cc9574512c7c463bc4e7ab28ae4ab697a2a4dfed8b750b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3e0b6f65223eb07362cc9574512c7c463bc4e7ab28ae4ab697a2a4dfed8b750b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3e0b6f65223eb07362cc9574512c7c463bc4e7ab28ae4ab697a2a4dfed8b750b" :a :task/title :v "UAQ-3: Context block scoring — methodology_context_blocks returns blocks with AcquisitionScore" :op :assert}
+   {:e #blake3 "3e0b6f65223eb07362cc9574512c7c463bc4e7ab28ae4ab697a2a4dfed8b750b" :a :task/title-l0 :v "UAQ-3" :op :assert}
+   {:e #blake3 "3e0b6f65223eb07362cc9574512c7c463bc4e7ab28ae4ab697a2a4dfed8b750b" :a :task/title-l1 :v "UAQ-3: Context block scoring — methodology_context_blocks returns blocks wi..." :op :assert}
+   {:e #blake3 "3e0b6f65223eb07362cc9574512c7c463bc4e7ab28ae4ab697a2a4dfed8b750b" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "3e0b6f65223eb07362cc9574512c7c463bc4e7ab28ae4ab697a2a4dfed8b750b" :a :task/type :v :task.type/task :op :assert}
+ ]}

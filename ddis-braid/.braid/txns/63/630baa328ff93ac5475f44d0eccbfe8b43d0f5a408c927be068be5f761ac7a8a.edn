@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774274691/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-6: Presentation tracking — record counts and close the feedback loop"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c4e8c17b6c143750de106d416fe09e43a094182e15b9b64fabe6f4e2239a65a2" :a :db/ident :v :task/t-05445296 :op :assert}
+   {:e #blake3 "c4e8c17b6c143750de106d416fe09e43a094182e15b9b64fabe6f4e2239a65a2" :a :task/created-at :v 1774274690 :op :assert}
+   {:e #blake3 "c4e8c17b6c143750de106d416fe09e43a094182e15b9b64fabe6f4e2239a65a2" :a :task/description :v "CONTEXT: After UAQ-1..5, the presentation count datoms need to be recorded when blocks and tasks are presented to the agent. This closes the feedback loop. APPROACH: (1) In every CLI command that produces ACP output (status, seed, harvest, next), after rendering, increment :attention/presentation-count for each presented context block. (2) Record which blocks were INCLUDED (presented) vs OMITTED (budget-cut). (3) Omitted blocks get their novelty preserved (presentation count NOT incremented). (4) For task recommendations: record the recommended task entity in :action/recommended-entity (existing RFL-2 infrastructure). (5) On next command, classify_action_outcome determines if the recommendation was followed — this feeds back as the 'actual' value for block and task hypotheses. ACCEPTANCE: (A) :attention/presentation-count increments for presented blocks. (B) Omitted blocks do NOT get count incremented (novelty preserved). (C) After 5 commands, braid status output ordering visibly differs from session 1. (D) The feedback loop runs automatically — no explicit user action needed. DEPENDS-ON: UAQ-3 (blocks must have AcquisitionScore). FILE: crates/braid/src/commands/status.rs + crates/braid/src/commands/seed.rs + crates/braid/src/main.rs" :op :assert}
+   {:e #blake3 "c4e8c17b6c143750de106d416fe09e43a094182e15b9b64fabe6f4e2239a65a2" :a :task/id :v "t-05445296" :op :assert}
+   {:e #blake3 "c4e8c17b6c143750de106d416fe09e43a094182e15b9b64fabe6f4e2239a65a2" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c4e8c17b6c143750de106d416fe09e43a094182e15b9b64fabe6f4e2239a65a2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c4e8c17b6c143750de106d416fe09e43a094182e15b9b64fabe6f4e2239a65a2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c4e8c17b6c143750de106d416fe09e43a094182e15b9b64fabe6f4e2239a65a2" :a :task/title :v "UAQ-6: Presentation tracking — record counts and close the feedback loop" :op :assert}
+   {:e #blake3 "c4e8c17b6c143750de106d416fe09e43a094182e15b9b64fabe6f4e2239a65a2" :a :task/title-l0 :v "UAQ-6" :op :assert}
+   {:e #blake3 "c4e8c17b6c143750de106d416fe09e43a094182e15b9b64fabe6f4e2239a65a2" :a :task/title-l1 :v "UAQ-6: Presentation tracking — record counts and close the feedback loop" :op :assert}
+   {:e #blake3 "c4e8c17b6c143750de106d416fe09e43a094182e15b9b64fabe6f4e2239a65a2" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "c4e8c17b6c143750de106d416fe09e43a094182e15b9b64fabe6f4e2239a65a2" :a :task/type :v :task.type/task :op :assert}
+ ]}

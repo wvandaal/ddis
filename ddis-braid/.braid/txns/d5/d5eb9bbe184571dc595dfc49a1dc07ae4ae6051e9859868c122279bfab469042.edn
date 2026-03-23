@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774274598/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-1: Replace AttentionScore with AcquisitionScore — unified 4-factor scoring type"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d5f422e51c2f26dff4e2d26a54d06c5f181d49b006714fb756a14359c834201a" :a :db/ident :v :task/t-fc784b83 :op :assert}
+   {:e #blake3 "d5f422e51c2f26dff4e2d26a54d06c5f181d49b006714fb756a14359c834201a" :a :task/created-at :v 1774274597 :op :assert}
+   {:e #blake3 "d5f422e51c2f26dff4e2d26a54d06c5f181d49b006714fb756a14359c834201a" :a :task/description :v "CONTEXT: AttentionScore (budget.rs) has {surprisal, hebbian_boost, learned_weight, composite}. This is a special case of the acquisition function. Replace with AcquisitionScore = {impact, relevance, novelty, confidence, composite} that generalizes to ALL recommendation types. APPROACH: (1) Rename AttentionScore to AcquisitionScore in budget.rs. (2) Replace fields: surprisal->novelty (same semantics, general name), hebbian_boost absorbed into relevance, learned_weight->confidence. Add impact field. (3) Update from_presentation_count to from_factors(impact, relevance, novelty, confidence). (4) composite = impact * relevance * novelty * confidence (product, not sum — each factor is a gate). (5) Update all ContextBlock constructors that use AttentionScore (already None everywhere from ATT-1). (6) Update lib.rs re-export: AttentionScore->AcquisitionScore. ACCEPTANCE: (A) No type named AttentionScore in codebase. (B) AcquisitionScore has exactly 5 fields. (C) composite = product of 4 factors. (D) All tests pass. (E) All ContextBlock.attention fields now typed Option<AcquisitionScore>. ALGEBRAIC: composite is monotonically increasing in each factor when others held constant. Product composition means any zero factor vetoes the item. FILE: crates/braid-kernel/src/budget.rs + crates/braid-kernel/src/lib.rs" :op :assert}
+   {:e #blake3 "d5f422e51c2f26dff4e2d26a54d06c5f181d49b006714fb756a14359c834201a" :a :task/id :v "t-fc784b83" :op :assert}
+   {:e #blake3 "d5f422e51c2f26dff4e2d26a54d06c5f181d49b006714fb756a14359c834201a" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "d5f422e51c2f26dff4e2d26a54d06c5f181d49b006714fb756a14359c834201a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d5f422e51c2f26dff4e2d26a54d06c5f181d49b006714fb756a14359c834201a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d5f422e51c2f26dff4e2d26a54d06c5f181d49b006714fb756a14359c834201a" :a :task/title :v "UAQ-1: Replace AttentionScore with AcquisitionScore — unified 4-factor scoring type" :op :assert}
+   {:e #blake3 "d5f422e51c2f26dff4e2d26a54d06c5f181d49b006714fb756a14359c834201a" :a :task/title-l0 :v "UAQ-1" :op :assert}
+   {:e #blake3 "d5f422e51c2f26dff4e2d26a54d06c5f181d49b006714fb756a14359c834201a" :a :task/title-l1 :v "UAQ-1: Replace AttentionScore with AcquisitionScore — unified 4-factor scor..." :op :assert}
+   {:e #blake3 "d5f422e51c2f26dff4e2d26a54d06c5f181d49b006714fb756a14359c834201a" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "d5f422e51c2f26dff4e2d26a54d06c5f181d49b006714fb756a14359c834201a" :a :task/type :v :task.type/task :op :assert}
+ ]}

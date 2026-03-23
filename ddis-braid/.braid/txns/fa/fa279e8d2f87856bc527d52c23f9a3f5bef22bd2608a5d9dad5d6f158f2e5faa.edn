@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774274652/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-4: Per-type hypothesis recording — extend ledger for task + block + boundary predictions"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "99e007b57a251e1bb3820e637e054d9b76577b0fa84d0348657cbced3d20fc67" :a :db/ident :v :task/t-f911f269 :op :assert}
+   {:e #blake3 "99e007b57a251e1bb3820e637e054d9b76577b0fa84d0348657cbced3d20fc67" :a :task/created-at :v 1774274651 :op :assert}
+   {:e #blake3 "99e007b57a251e1bb3820e637e054d9b76577b0fa84d0348657cbced3d20fc67" :a :task/description :v "CONTEXT: record_hypotheses in routing.rs records predictions for task recommendations only. For unified calibration, it must also record predictions for context block presentations and boundary measurements. APPROACH: (1) Add :hypothesis/item-type (String, One) attribute to schema.rs layer 2. Values: 'task', 'block', 'boundary'. (2) Extend record_hypotheses to accept an item_type parameter. (3) Create record_block_hypotheses: when ACP presents a context block, record a hypothesis that the block will influence the agent's next action. predicted = acquisition_score.composite, actual = 1.0 if agent's next command references block content, 0.0 otherwise. (4) Create record_boundary_hypothesis: when F(S) is computed, record a hypothesis for each boundary. predicted = boundary weight contribution, actual = measured coverage delta. (5) In compute_calibration_metrics, group by :hypothesis/item-type for per-type error reporting. ACCEPTANCE: (A) :hypothesis/item-type exists in schema. (B) Hypotheses recorded for all three types. (C) CalibrationReport includes per-type breakdown. (D) Mean error computable per type AND overall. DEPENDS-ON: UAQ-1 (AcquisitionScore type). FILE: crates/braid-kernel/src/schema.rs + crates/braid-kernel/src/routing.rs" :op :assert}
+   {:e #blake3 "99e007b57a251e1bb3820e637e054d9b76577b0fa84d0348657cbced3d20fc67" :a :task/id :v "t-f911f269" :op :assert}
+   {:e #blake3 "99e007b57a251e1bb3820e637e054d9b76577b0fa84d0348657cbced3d20fc67" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "99e007b57a251e1bb3820e637e054d9b76577b0fa84d0348657cbced3d20fc67" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "99e007b57a251e1bb3820e637e054d9b76577b0fa84d0348657cbced3d20fc67" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "99e007b57a251e1bb3820e637e054d9b76577b0fa84d0348657cbced3d20fc67" :a :task/title :v "UAQ-4: Per-type hypothesis recording — extend ledger for task + block + boundary predictions" :op :assert}
+   {:e #blake3 "99e007b57a251e1bb3820e637e054d9b76577b0fa84d0348657cbced3d20fc67" :a :task/title-l0 :v "UAQ-4" :op :assert}
+   {:e #blake3 "99e007b57a251e1bb3820e637e054d9b76577b0fa84d0348657cbced3d20fc67" :a :task/title-l1 :v "UAQ-4: Per-type hypothesis recording — extend ledger for task + block + bou..." :op :assert}
+   {:e #blake3 "99e007b57a251e1bb3820e637e054d9b76577b0fa84d0348657cbced3d20fc67" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "99e007b57a251e1bb3820e637e054d9b76577b0fa84d0348657cbced3d20fc67" :a :task/traces-to :v #blake3 "aaf898dc3d16c961c21592757ed873d54cbd5e8ce59afa177b6c67b7bc9286d8" :op :assert}
+   {:e #blake3 "99e007b57a251e1bb3820e637e054d9b76577b0fa84d0348657cbced3d20fc67" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774274729/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: External Dog-Food — validate UAQ hypothesis on non-braid project"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f49bbac15d097d02de32822a03d0ea67f7665ed175cf03c8d134513781bd7f49" :a :db/ident :v :task/t-bf3df52e :op :assert}
+   {:e #blake3 "f49bbac15d097d02de32822a03d0ea67f7665ed175cf03c8d134513781bd7f49" :a :task/created-at :v 1774274728 :op :assert}
+   {:e #blake3 "f49bbac15d097d02de32822a03d0ea67f7665ed175cf03c8d134513781bd7f49" :a :task/description :v "CONTEXT: Braid has been used only on itself for 36 sessions. The thesis 'infrastructure for organizational learning' is unverified for any other domain. The UAQ provides unified calibration — the external dog-food is the experiment that tests whether unified A(t,x) converges faster than independent systems. RATIONALE: The largest model-reality discrepancy in the project. Braid's own axiology says: observe reality, compare to model, reduce discrepancy. The model says 'braid works for any domain.' Reality says 'braid has been tested on one domain.' PROTOCOL: (1) Pick a real project (../ddis-cli/ Go CLI or fresh project). (2) braid init with UAQ-enabled build. (3) Work 3 sessions recording every recommendation event. (4) Measure: mean prediction error across ALL types, F(S) convergence rate, productive action rate. PREDICTION: UAQ reaches mean_error below 0.15 in 3 sessions. FALSIFICATION: mean_error above 0.20 after 3 sessions means composition formula needs revision. DEPENDS-ON: UAQ-1..6 (acquisition function must be implemented first)." :op :assert}
+   {:e #blake3 "f49bbac15d097d02de32822a03d0ea67f7665ed175cf03c8d134513781bd7f49" :a :task/id :v "t-bf3df52e" :op :assert}
+   {:e #blake3 "f49bbac15d097d02de32822a03d0ea67f7665ed175cf03c8d134513781bd7f49" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "f49bbac15d097d02de32822a03d0ea67f7665ed175cf03c8d134513781bd7f49" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f49bbac15d097d02de32822a03d0ea67f7665ed175cf03c8d134513781bd7f49" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f49bbac15d097d02de32822a03d0ea67f7665ed175cf03c8d134513781bd7f49" :a :task/title :v "EPIC: External Dog-Food — validate UAQ hypothesis on non-braid project" :op :assert}
+   {:e #blake3 "f49bbac15d097d02de32822a03d0ea67f7665ed175cf03c8d134513781bd7f49" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "f49bbac15d097d02de32822a03d0ea67f7665ed175cf03c8d134513781bd7f49" :a :task/title-l1 :v "EPIC: External Dog-Food — validate UAQ hypothesis on non-braid project" :op :assert}
+   {:e #blake3 "f49bbac15d097d02de32822a03d0ea67f7665ed175cf03c8d134513781bd7f49" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "f49bbac15d097d02de32822a03d0ea67f7665ed175cf03c8d134513781bd7f49" :a :task/type :v :task.type/epic :op :assert}
+ ]}

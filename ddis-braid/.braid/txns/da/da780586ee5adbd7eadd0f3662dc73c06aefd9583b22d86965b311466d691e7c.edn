@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774274615/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-2: Unified task scoring — compute_routing returns AcquisitionScore with all 4 factors"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6bc8eda9fcc13a90f8fec26a5deb4e0d517d610b8f056c1a8d5302680c64de7a" :a :db/ident :v :task/t-16abc78c :op :assert}
+   {:e #blake3 "6bc8eda9fcc13a90f8fec26a5deb4e0d517d610b8f056c1a8d5302680c64de7a" :a :task/created-at :v 1774274614 :op :assert}
+   {:e #blake3 "6bc8eda9fcc13a90f8fec26a5deb4e0d517d610b8f056c1a8d5302680c64de7a" :a :task/description :v "CONTEXT: compute_routing in routing.rs returns TaskRouting with a flat impact score. This needs to return AcquisitionScore with all four factors populated. APPROACH: (1) Add AcquisitionScore field to TaskRouting struct (alongside existing impact for backward compat). (2) In compute_routing, after computing impact, compute: novelty = 1/sqrt(presentation_count) from attention datoms for this task entity, relevance = session_boost * spec_anchor_factor (already computed separately), confidence = 1.0 - per-boundary mean_error from calibration data (CalibrationReport). (3) Set composite = impact * relevance * novelty * confidence. (4) compute_routing_from_store wires the store queries for presentation_count and calibration. (5) The returned TaskRouting now carries full AcquisitionScore. ACCEPTANCE: (A) TaskRouting has acquisition_score: AcquisitionScore field. (B) Top-recommended task has highest composite score, not just highest impact. (C) Tasks seen many times rank lower (novelty decay). (D) Tasks with high-confidence boundary predictions rank higher. DEPENDS-ON: UAQ-1 (AcquisitionScore type must exist). FILE: crates/braid-kernel/src/routing.rs" :op :assert}
+   {:e #blake3 "6bc8eda9fcc13a90f8fec26a5deb4e0d517d610b8f056c1a8d5302680c64de7a" :a :task/id :v "t-16abc78c" :op :assert}
+   {:e #blake3 "6bc8eda9fcc13a90f8fec26a5deb4e0d517d610b8f056c1a8d5302680c64de7a" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "6bc8eda9fcc13a90f8fec26a5deb4e0d517d610b8f056c1a8d5302680c64de7a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6bc8eda9fcc13a90f8fec26a5deb4e0d517d610b8f056c1a8d5302680c64de7a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6bc8eda9fcc13a90f8fec26a5deb4e0d517d610b8f056c1a8d5302680c64de7a" :a :task/title :v "UAQ-2: Unified task scoring — compute_routing returns AcquisitionScore with all 4 factors" :op :assert}
+   {:e #blake3 "6bc8eda9fcc13a90f8fec26a5deb4e0d517d610b8f056c1a8d5302680c64de7a" :a :task/title-l0 :v "UAQ-2" :op :assert}
+   {:e #blake3 "6bc8eda9fcc13a90f8fec26a5deb4e0d517d610b8f056c1a8d5302680c64de7a" :a :task/title-l1 :v "UAQ-2: Unified task scoring — compute_routing returns AcquisitionScore with..." :op :assert}
+   {:e #blake3 "6bc8eda9fcc13a90f8fec26a5deb4e0d517d610b8f056c1a8d5302680c64de7a" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "6bc8eda9fcc13a90f8fec26a5deb4e0d517d610b8f056c1a8d5302680c64de7a" :a :task/type :v :task.type/task :op :assert}
+ ]}

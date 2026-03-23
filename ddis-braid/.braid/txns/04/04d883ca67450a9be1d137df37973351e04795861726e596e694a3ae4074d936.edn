@@ -1,0 +1,28 @@
+{:tx/id #hlc "1774274559/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-025 \"Universal Acquisition Function — unify all recommendation decisions through A(t,x)\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2e1f969a06de45e6f1bd4b3439854872a643b26ed5b42fdb57ba012e70960a0a" :a :db/doc :v "Violated if any recommendation decision requires information not in the four factors. A fifth factor indicates incomplete decomposition." :op :assert}
+   {:e #blake3 "740228b5ace796ea893d8329749c4c82330970debd496bb40254f5be39efece0" :a :db/ident :v :task/t-7bd86a52 :op :assert}
+   {:e #blake3 "740228b5ace796ea893d8329749c4c82330970debd496bb40254f5be39efece0" :a :task/created-at :v 1774274558 :op :assert}
+   {:e #blake3 "740228b5ace796ea893d8329749c4c82330970debd496bb40254f5be39efece0" :a :task/id :v "t-7bd86a52" :op :assert}
+   {:e #blake3 "740228b5ace796ea893d8329749c4c82330970debd496bb40254f5be39efece0" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "740228b5ace796ea893d8329749c4c82330970debd496bb40254f5be39efece0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "740228b5ace796ea893d8329749c4c82330970debd496bb40254f5be39efece0" :a :task/title :v "Implement ADR-FOUNDATION-025: Universal Acquisition Function — unify all recommendation decisions through A(t,x)" :op :assert}
+   {:e #blake3 "740228b5ace796ea893d8329749c4c82330970debd496bb40254f5be39efece0" :a :task/traces-to :v #blake3 "ad60b8da5363fe01d73c6a00bacdff66892e55036a2b02767b4f5c265ebca0f3" :op :assert}
+   {:e #blake3 "740228b5ace796ea893d8329749c4c82330970debd496bb40254f5be39efece0" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "ad60b8da5363fe01d73c6a00bacdff66892e55036a2b02767b4f5c265ebca0f3" :a :adr/decision :v "All recommendation decisions unified through A(t,x) = impact * relevance * novelty * confidence. AcquisitionScore replaces AttentionScore. Five ranking systems collapse to sort_by(acquisition_score). Hypothesis ledger records item type for per-type calibration." :op :assert}
+   {:e #blake3 "ad60b8da5363fe01d73c6a00bacdff66892e55036a2b02767b4f5c265ebca0f3" :a :adr/problem :v "Five independent optimization systems (R(t), ACP, F(S) boundaries, ceremony, harvest urgency) each with separate weights and calibration. They don't share information, can contradict, and calibrate 5x slower than a unified system." :op :assert}
+   {:e #blake3 "ad60b8da5363fe01d73c6a00bacdff66892e55036a2b02767b4f5c265ebca0f3" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "ad60b8da5363fe01d73c6a00bacdff66892e55036a2b02767b4f5c265ebca0f3" :a :comonad/falsification :v #blake3 "2e1f969a06de45e6f1bd4b3439854872a643b26ed5b42fdb57ba012e70960a0a" :op :assert}
+   {:e #blake3 "ad60b8da5363fe01d73c6a00bacdff66892e55036a2b02767b4f5c265ebca0f3" :a :db/doc :v "Universal Acquisition Function — unify all recommendation decisions through A(t,x)" :op :assert}
+   {:e #blake3 "ad60b8da5363fe01d73c6a00bacdff66892e55036a2b02767b4f5c265ebca0f3" :a :db/ident :v :spec/adr-foundation-025 :op :assert}
+   {:e #blake3 "ad60b8da5363fe01d73c6a00bacdff66892e55036a2b02767b4f5c265ebca0f3" :a :element/traces-to :v "ADR-FOUNDATION-019" :op :assert}
+   {:e #blake3 "ad60b8da5363fe01d73c6a00bacdff66892e55036a2b02767b4f5c265ebca0f3" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "ad60b8da5363fe01d73c6a00bacdff66892e55036a2b02767b4f5c265ebca0f3" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "ad60b8da5363fe01d73c6a00bacdff66892e55036a2b02767b4f5c265ebca0f3" :a :spec/falsification :v "Violated if any recommendation decision requires information not in the four factors. A fifth factor indicates incomplete decomposition." :op :assert}
+   {:e #blake3 "ad60b8da5363fe01d73c6a00bacdff66892e55036a2b02767b4f5c265ebca0f3" :a :spec/id :v "ADR-FOUNDATION-025" :op :assert}
+   {:e #blake3 "ad60b8da5363fe01d73c6a00bacdff66892e55036a2b02767b4f5c265ebca0f3" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+ ]}

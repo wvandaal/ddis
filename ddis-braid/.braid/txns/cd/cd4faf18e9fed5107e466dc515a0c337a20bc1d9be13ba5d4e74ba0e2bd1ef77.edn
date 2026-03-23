@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774274674/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-5: Empirical confidence factor — wire calibration metrics into AcquisitionScore"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "556d1f67702330e38a4f8c546ee049c839b0548a7a09551ce908619e947b04c5" :a :db/ident :v :task/t-66588778 :op :assert}
+   {:e #blake3 "556d1f67702330e38a4f8c546ee049c839b0548a7a09551ce908619e947b04c5" :a :task/created-at :v 1774274673 :op :assert}
+   {:e #blake3 "556d1f67702330e38a4f8c546ee049c839b0548a7a09551ce908619e947b04c5" :a :task/description :v "CONTEXT: The confidence factor in AcquisitionScore should reflect empirical prediction accuracy per boundary and per item type. Currently boundary calibration exists (HL-CALIBRATE) but isn't wired into the acquisition score. APPROACH: (1) In UAQ-2 and UAQ-3, the confidence factor starts at 1.0 (bootstrap). (2) After UAQ-4 provides per-type calibration data, compute confidence = 1.0 - mean_error(item_type, boundary) using compute_calibration_metrics. (3) For tasks: confidence = 1.0 - task-type mean error. (4) For blocks: confidence = 1.0 - block-type mean error. (5) For boundaries: confidence = 1.0 - boundary-specific mean error from HL-CALIBRATE data. (6) Wire into AcquisitionScore::from_factors calls in routing.rs and context.rs. (7) The confidence factor creates a SELF-IMPROVING loop: better predictions -> higher confidence -> those items ranked higher -> more calibration data -> even better predictions. ACCEPTANCE: (A) Confidence factor reflects empirical accuracy, not static 1.0. (B) After 10+ calibration events per type, confidence differs from 1.0. (C) Items with historically accurate predictions rank higher than items with poor prediction history. DEPENDS-ON: UAQ-4 (per-type hypothesis recording must exist). FILE: crates/braid-kernel/src/routing.rs + crates/braid-kernel/src/context.rs" :op :assert}
+   {:e #blake3 "556d1f67702330e38a4f8c546ee049c839b0548a7a09551ce908619e947b04c5" :a :task/id :v "t-66588778" :op :assert}
+   {:e #blake3 "556d1f67702330e38a4f8c546ee049c839b0548a7a09551ce908619e947b04c5" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "556d1f67702330e38a4f8c546ee049c839b0548a7a09551ce908619e947b04c5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "556d1f67702330e38a4f8c546ee049c839b0548a7a09551ce908619e947b04c5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "556d1f67702330e38a4f8c546ee049c839b0548a7a09551ce908619e947b04c5" :a :task/title :v "UAQ-5: Empirical confidence factor — wire calibration metrics into AcquisitionScore" :op :assert}
+   {:e #blake3 "556d1f67702330e38a4f8c546ee049c839b0548a7a09551ce908619e947b04c5" :a :task/title-l0 :v "UAQ-5" :op :assert}
+   {:e #blake3 "556d1f67702330e38a4f8c546ee049c839b0548a7a09551ce908619e947b04c5" :a :task/title-l1 :v "UAQ-5: Empirical confidence factor — wire calibration metrics into Acquisit..." :op :assert}
+   {:e #blake3 "556d1f67702330e38a4f8c546ee049c839b0548a7a09551ce908619e947b04c5" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "556d1f67702330e38a4f8c546ee049c839b0548a7a09551ce908619e947b04c5" :a :task/type :v :task.type/task :op :assert}
+ ]}
