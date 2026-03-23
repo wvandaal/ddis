@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774234408/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "EXT-2 RE-FALSIFICATION: 7/10 on rr-cli (was 3/10). All 5 fixes verified. Remaining: --verbose no-op, harvest urgency fires too early, project root not persisted, misleading seed inject error, divergence counter grows monotonically."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9f3176677bea478baa3d21c104ae10627957cd8a2d97ebdc167c4883980a4ba7" :a :db/doc :v "EXT-2 RE-FALSIFICATION: 7/10 on rr-cli (was 3/10). All 5 fixes verified. Remaining: --verbose no-op, harvest urgency fires too early, project root not persisted, misleading seed inject error, divergence counter grows monotonically." :op :assert}
+   {:e #blake3 "9f3176677bea478baa3d21c104ae10627957cd8a2d97ebdc167c4883980a4ba7" :a :db/ident :v :observation/ext-2-re-falsification-710-on-rr-cli-was-310-all-5-fix :op :assert}
+   {:e #blake3 "9f3176677bea478baa3d21c104ae10627957cd8a2d97ebdc167c4883980a4ba7" :a :exploration/body :v "EXT-2 RE-FALSIFICATION: 7/10 on rr-cli (was 3/10). All 5 fixes verified. Remaining: --verbose no-op, harvest urgency fires too early, project root not persisted, misleading seed inject error, divergence counter grows monotonically." :op :assert}
+   {:e #blake3 "9f3176677bea478baa3d21c104ae10627957cd8a2d97ebdc167c4883980a4ba7" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "9f3176677bea478baa3d21c104ae10627957cd8a2d97ebdc167c4883980a4ba7" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "9f3176677bea478baa3d21c104ae10627957cd8a2d97ebdc167c4883980a4ba7" :a :exploration/content-hash :v #bytes "54a9bb50a68b973aa5c926bab49a70842066615930fcbb18caaf647f56ea564e" :op :assert}
+   {:e #blake3 "9f3176677bea478baa3d21c104ae10627957cd8a2d97ebdc167c4883980a4ba7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "9f3176677bea478baa3d21c104ae10627957cd8a2d97ebdc167c4883980a4ba7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "9f3176677bea478baa3d21c104ae10627957cd8a2d97ebdc167c4883980a4ba7" :a :exploration/source-session :v #blake3 "1774b91ea25fdd8fc041ac05738b098957b87f967f743a4a2bde5395eebc69b3" :op :assert}
+ ]}
