@@ -1192,6 +1192,21 @@ fn build_verbose(
         tx_since_harvest, harvest_warning
     ));
 
+    // HL-4: Calibration metrics in verbose status
+    let cal = braid_kernel::guidance::compute_calibration_metrics(store);
+    if cal.total_hypotheses > 0 {
+        let trend_str = match cal.trend {
+            braid_kernel::guidance::CalibrationTrend::Improving => "improving",
+            braid_kernel::guidance::CalibrationTrend::Stable => "stable",
+            braid_kernel::guidance::CalibrationTrend::Degrading => "degrading",
+            braid_kernel::guidance::CalibrationTrend::Insufficient => "insufficient data",
+        };
+        out.push_str(&format!(
+            "hypotheses: {}/{} completed, mean error {:.3}, trend: {}\n",
+            cal.completed_hypotheses, cal.total_hypotheses, cal.mean_error, trend_str
+        ));
+    }
+
     // Trace staleness (SC-2)
     let ts = trace_staleness(store, path);
     out.push_str(&format_trace_line(&ts));
