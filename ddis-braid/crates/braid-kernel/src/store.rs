@@ -4572,4 +4572,408 @@ mod tests {
             mag
         );
     }
+
+    // -----------------------------------------------------------------------
+    // Frontier sync tests for multi-store merge (TG-3)
+    // Witnesses: INV-STORE-004 (Commutativity), INV-STORE-007 (Monotonicity),
+    //            INV-MERGE-001 (Merge Is Set Union), INV-STORE-016 (Frontier
+    //            Computability), INV-STORE-003 (Content-Addressable Identity)
+    // -----------------------------------------------------------------------
+
+    // Verifies: INV-MERGE-001 — Merge of disjoint stores is set union
+    // Verifies: INV-STORE-016 — Frontier includes entries from both agents
+    #[test]
+    fn test_frontier_merge_disjoint() {
+        let mut store_a = Store::genesis();
+        let mut store_b = Store::genesis();
+
+        let agent_a = AgentId::from_name("agent-alpha");
+        let agent_b = AgentId::from_name("agent-beta");
+
+        // Agent A transacts into store A
+        let ea = EntityId::from_ident(":test/disjoint-a");
+        let tx_a = Transaction::new(agent_a, ProvenanceType::Observed, "alpha data")
+            .assert(
+                ea,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("alpha document".into()),
+            )
+            .commit(&store_a)
+            .unwrap();
+        let receipt_a = store_a.transact(tx_a).unwrap();
+
+        // Agent B transacts into store B
+        let eb = EntityId::from_ident(":test/disjoint-b");
+        let tx_b = Transaction::new(agent_b, ProvenanceType::Observed, "beta data")
+            .assert(
+                eb,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("beta document".into()),
+            )
+            .commit(&store_b)
+            .unwrap();
+        let receipt_b = store_b.transact(tx_b).unwrap();
+
+        let genesis_count = Store::genesis().len();
+        let a_unique = store_a.len() - genesis_count;
+        let b_unique = store_b.len() - genesis_count;
+
+        // Merge B into A
+        let merge_receipt = store_a.merge(&store_b);
+
+        // The merged store must contain all datoms from both stores
+        assert_eq!(
+            store_a.len(),
+            genesis_count + a_unique + b_unique,
+            "merged store should contain genesis + unique datoms from both stores"
+        );
+        assert!(
+            merge_receipt.new_datoms > 0,
+            "merge of disjoint stores must add new datoms"
+        );
+
+        // Frontier must include entries from both transacting agents
+        let frontier = store_a.frontier();
+        assert!(
+            frontier.contains_key(&agent_a),
+            "frontier must contain agent_a after merge"
+        );
+        assert!(
+            frontier.contains_key(&agent_b),
+            "frontier must contain agent_b after merge"
+        );
+        assert_eq!(
+            frontier.max_tx_for(&agent_a),
+            Some(receipt_a.tx_id),
+            "agent_a frontier must match its transaction"
+        );
+        assert_eq!(
+            frontier.max_tx_for(&agent_b),
+            Some(receipt_b.tx_id),
+            "agent_b frontier must match its transaction"
+        );
+
+        // Both entities must be queryable
+        assert!(
+            !store_a.entity_datoms(ea).is_empty(),
+            "entity from store_a must be present after merge"
+        );
+        assert!(
+            !store_a.entity_datoms(eb).is_empty(),
+            "entity from store_b must be present after merge"
+        );
+    }
+
+    // Verifies: INV-STORE-003 — Content-addressable identity deduplicates
+    // Verifies: INV-MERGE-001 — Merge is set union (duplicates absorbed)
+    #[test]
+    fn test_frontier_merge_overlapping() {
+        let mut store_a = Store::genesis();
+        let mut store_b = Store::genesis();
+
+        let agent = AgentId::from_name("shared-agent");
+
+        // Both stores transact the SAME datom (same entity, attribute, value)
+        // from the same agent — content-addressable identity means identical facts
+        // produce one datom in the merged store.
+        let shared_entity = EntityId::from_ident(":test/overlapping-shared");
+
+        let tx_a = Transaction::new(agent, ProvenanceType::Observed, "shared assertion")
+            .assert(
+                shared_entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("shared doc".into()),
+            )
+            .commit(&store_a)
+            .unwrap();
+        store_a.transact(tx_a).unwrap();
+
+        let tx_b = Transaction::new(agent, ProvenanceType::Observed, "shared assertion")
+            .assert(
+                shared_entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("shared doc".into()),
+            )
+            .commit(&store_b)
+            .unwrap();
+        store_b.transact(tx_b).unwrap();
+
+        // Both stores have the same agent — but the TxIds will differ because
+        // each store has its own HLC clock. The datoms are not byte-identical
+        // (different tx fields), so we verify the set union property: the merged
+        // store should be SMALLER than the arithmetic sum.
+
+        let a_count = store_a.len();
+        let b_count = store_b.len();
+        let genesis_count = Store::genesis().len();
+
+        // Merge B into A
+        let merge_receipt = store_a.merge(&store_b);
+
+        // Genesis datoms overlap perfectly (deterministic, INV-STORE-008).
+        // The genesis overlap means merged count < a_count + b_count.
+        assert!(
+            store_a.len() < a_count + b_count,
+            "merged store must be smaller than sum due to genesis deduplication: {} < {} + {}",
+            store_a.len(),
+            a_count,
+            b_count,
+        );
+        assert!(
+            merge_receipt.duplicate_datoms > 0,
+            "genesis datoms must be detected as duplicates"
+        );
+
+        // Genesis datoms are the overlap: duplicate count should be at least genesis_count
+        assert!(
+            merge_receipt.duplicate_datoms >= genesis_count,
+            "at least {} genesis datoms should be duplicates, got {}",
+            genesis_count,
+            merge_receipt.duplicate_datoms,
+        );
+    }
+
+    // Verifies: INV-STORE-001 — Retractions are new datoms (append-only)
+    // Verifies: INV-MERGE-001 — Merge propagates retractions via set union
+    #[test]
+    fn test_frontier_merge_with_retraction() {
+        let mut store_a = Store::genesis();
+        let mut store_b = Store::genesis();
+
+        let agent = AgentId::from_name("retract-agent");
+        let entity = EntityId::from_ident(":test/retractable");
+        let attr = Attribute::from_keyword(":db/doc");
+        let val = Value::String("will be retracted".into());
+
+        // Store A: assert a datom
+        let tx_assert = Transaction::new(agent, ProvenanceType::Observed, "assert")
+            .assert(entity, attr.clone(), val.clone())
+            .commit(&store_a)
+            .unwrap();
+        store_a.transact(tx_assert).unwrap();
+
+        // Store B: assert the same datom AND retract it
+        let tx_assert_b = Transaction::new(agent, ProvenanceType::Observed, "assert in B")
+            .assert(entity, attr.clone(), val.clone())
+            .commit(&store_b)
+            .unwrap();
+        store_b.transact(tx_assert_b).unwrap();
+
+        let tx_retract = Transaction::new(agent, ProvenanceType::Observed, "retract in B")
+            .retract(entity, attr.clone(), val.clone())
+            .commit(&store_b)
+            .unwrap();
+        store_b.transact(tx_retract).unwrap();
+
+        // Before merge: store A has a live value, store B also has a live value
+        // (LIVE view tracks LWW assertions — retractions are separate datoms,
+        // not deletions from the append-only store).
+        assert!(
+            store_a.live_value(entity, &attr).is_some(),
+            "store_a should have a live value before merge"
+        );
+
+        let a_before_merge = store_a.len();
+
+        // Merge B into A — the retraction datom propagates via set union
+        store_a.merge(&store_b);
+
+        // The merged store must have MORE datoms than before (retraction datom added).
+        // INV-STORE-001: retractions are new datoms, the store only grows.
+        assert!(
+            store_a.len() > a_before_merge,
+            "INV-STORE-007: merge must not lose datoms; retraction datom must be added"
+        );
+
+        // Both the assertion and retraction datoms must exist in the merged store.
+        // INV-STORE-001: append-only — both Assert and Retract coexist.
+        let entity_datoms = store_a.entity_datoms(entity);
+        let has_assert = entity_datoms
+            .iter()
+            .any(|d| d.attribute == attr && d.op == Op::Assert);
+        let has_retract = entity_datoms
+            .iter()
+            .any(|d| d.attribute == attr && d.op == Op::Retract);
+        assert!(
+            has_assert,
+            "merged store must contain the assertion datom"
+        );
+        assert!(
+            has_retract,
+            "merged store must contain the retraction datom — retractions propagate via set union"
+        );
+    }
+
+    // Verifies: INV-STORE-007 — Monotonicity: merge never loses datoms
+    // Verifies: INV-STORE-016 — Frontier correctness after trivial merge
+    #[test]
+    fn test_frontier_merge_empty_into_populated() {
+        let mut populated = Store::genesis();
+        let empty = Store::genesis();
+
+        let agent = AgentId::from_name("pop-agent");
+
+        // Populate the store with several transactions
+        let e1 = EntityId::from_ident(":test/pop-one");
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "first entry")
+            .assert(
+                e1,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("first".into()),
+            )
+            .commit(&populated)
+            .unwrap();
+        populated.transact(tx1).unwrap();
+
+        let e2 = EntityId::from_ident(":test/pop-two");
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "second entry")
+            .assert(
+                e2,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("second".into()),
+            )
+            .commit(&populated)
+            .unwrap();
+        let receipt2 = populated.transact(tx2).unwrap();
+
+        let populated_count = populated.len();
+        let populated_frontier = Frontier::current(&populated);
+
+        // Merge the empty (genesis-only) store into the populated store
+        let merge_receipt = populated.merge(&empty);
+
+        // No data loss: count must be unchanged
+        assert_eq!(
+            populated.len(),
+            populated_count,
+            "merging empty store must not lose datoms"
+        );
+
+        // All genesis datoms from the empty store are already in populated — pure duplicates
+        assert_eq!(
+            merge_receipt.new_datoms, 0,
+            "merging genesis-only store should add zero new datoms"
+        );
+        assert_eq!(
+            merge_receipt.duplicate_datoms,
+            empty.len(),
+            "all datoms from genesis-only store should be duplicates"
+        );
+
+        // Frontier must be unchanged: the populated agent is still there at its latest tx
+        let post_frontier = Frontier::current(&populated);
+        assert_eq!(
+            post_frontier.max_tx_for(&agent),
+            populated_frontier.max_tx_for(&agent),
+            "frontier for pop-agent must be unchanged after merging empty store"
+        );
+        assert_eq!(
+            post_frontier.max_tx_for(&agent),
+            Some(receipt2.tx_id),
+            "frontier must still point to the last transaction"
+        );
+
+        // Both entities must remain queryable
+        assert!(
+            !populated.entity_datoms(e1).is_empty(),
+            "entity e1 must survive merge with empty store"
+        );
+        assert!(
+            !populated.entity_datoms(e2).is_empty(),
+            "entity e2 must survive merge with empty store"
+        );
+    }
+
+    // Verifies: INV-MERGE-001 — Set union merges all attributes for shared entities
+    // Verifies: INV-STORE-004 — Commutativity with concurrent attribute writes
+    #[test]
+    fn test_frontier_concurrent_transactions() {
+        let mut store_a = Store::genesis();
+        let mut store_b = Store::genesis();
+
+        let agent_a = AgentId::from_name("concurrent-alpha");
+        let agent_b = AgentId::from_name("concurrent-beta");
+
+        // Both stores operate on the SAME entity but different attributes.
+        // This simulates concurrent work by two agents on the same entity.
+        let shared_entity = EntityId::from_ident(":test/concurrent-entity");
+
+        // Agent A sets :db/doc on the shared entity
+        let tx_a = Transaction::new(agent_a, ProvenanceType::Observed, "alpha writes doc")
+            .assert(
+                shared_entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("documented by alpha".into()),
+            )
+            .commit(&store_a)
+            .unwrap();
+        store_a.transact(tx_a).unwrap();
+
+        // Agent B sets :db/ident on the shared entity
+        let tx_b = Transaction::new(agent_b, ProvenanceType::Observed, "beta writes ident")
+            .assert(
+                shared_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":test/concurrent-entity".into()),
+            )
+            .commit(&store_b)
+            .unwrap();
+        store_b.transact(tx_b).unwrap();
+
+        // Merge B into A
+        store_a.merge(&store_b);
+
+        // The entity must have BOTH attributes after merge (union of concurrent writes)
+        let doc_value = store_a.live_value(shared_entity, &Attribute::from_keyword(":db/doc"));
+        let ident_value =
+            store_a.live_value(shared_entity, &Attribute::from_keyword(":db/ident"));
+
+        assert!(
+            doc_value.is_some(),
+            "shared entity must have :db/doc after merge (from store_a)"
+        );
+        assert!(
+            ident_value.is_some(),
+            "shared entity must have :db/ident after merge (from store_b)"
+        );
+
+        assert_eq!(
+            doc_value,
+            Some(&Value::String("documented by alpha".into())),
+            ":db/doc must be the value from agent alpha"
+        );
+        assert_eq!(
+            ident_value,
+            Some(&Value::Keyword(":test/concurrent-entity".into())),
+            ":db/ident must be the value from agent beta"
+        );
+
+        // Frontier must include both agents
+        let frontier = store_a.frontier();
+        assert!(
+            frontier.contains_key(&agent_a),
+            "frontier must contain agent_a after concurrent merge"
+        );
+        assert!(
+            frontier.contains_key(&agent_b),
+            "frontier must contain agent_b after concurrent merge"
+        );
+
+        // Verify commutativity: merging A into B should produce the same datom set
+        let mut store_b_copy = store_b.clone_store();
+        store_b_copy.merge(&store_a);
+
+        // Both merge directions should converge to the same entity state
+        let doc_b = store_b_copy.live_value(shared_entity, &Attribute::from_keyword(":db/doc"));
+        let ident_b =
+            store_b_copy.live_value(shared_entity, &Attribute::from_keyword(":db/ident"));
+        assert_eq!(
+            doc_value, doc_b,
+            "INV-STORE-004: commutativity — :db/doc must match regardless of merge direction"
+        );
+        assert_eq!(
+            ident_value, ident_b,
+            "INV-STORE-004: commutativity — :db/ident must match regardless of merge direction"
+        );
+    }
 }

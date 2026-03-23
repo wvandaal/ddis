@@ -49,6 +49,7 @@ pub mod proposal;
 pub mod proptest_strategies;
 pub mod query;
 pub mod resolution;
+pub mod routing;
 pub mod schema;
 pub mod seed;
 pub mod signal;
