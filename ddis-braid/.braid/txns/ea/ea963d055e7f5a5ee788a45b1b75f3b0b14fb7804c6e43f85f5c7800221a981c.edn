@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774300844/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3d5e9546"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :task/close-reason :v "Implemented Session 038: novelty_from_count extracted to budget.rs, 3 inline formulas replaced. Commit 717af5af." :op :assert}
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :task/closed-at :v 1774300843 :op :assert}
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :task/status :v :task.status/closed :op :assert}
+ ]}

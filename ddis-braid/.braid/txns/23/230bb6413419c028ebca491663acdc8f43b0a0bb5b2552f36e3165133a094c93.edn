@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774300850/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a6768e84"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :task/close-reason :v "Implemented Session 038: codebase_snapshot scoped to project dir, not git root. Also added multi-language source extensions. Commit 717af5af." :op :assert}
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :task/closed-at :v 1774300849 :op :assert}
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :task/status :v :task.status/closed :op :assert}
+ ]}

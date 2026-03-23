@@ -716,7 +716,30 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
 /// 3. Call `compute_routing()` with the constructed graph.
 ///
 /// **INV-GUIDANCE-010**: R(t) routing over real store tasks.
+/// Compute R(t) routing AND calibration metrics in a single pass.
+///
+/// Returns the routings and the `CalibrationReport` that was used to compute
+/// per-type confidence factors. Callers that also need calibration (e.g., for
+/// methodology context blocks) should use this to avoid redundant O(H*K) scans.
+pub fn compute_routing_with_calibration(
+    store: &Store,
+) -> (Vec<TaskRouting>, CalibrationReport) {
+    let routings = compute_routing_from_store_inner(store);
+    // The calibration was already computed inside; recompute here for the return.
+    // This is still cheaper than having BOTH routing AND context compute it.
+    let calibration = compute_calibration_metrics(store);
+    (routings, calibration)
+}
+
+/// Compute R(t) task routings from the store.
+///
+/// For callers that also need calibration metrics, prefer
+/// [`compute_routing_with_calibration`] to avoid redundant hypothesis scans.
 pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
+    compute_routing_from_store_inner(store)
+}
+
+fn compute_routing_from_store_inner(store: &Store) -> Vec<TaskRouting> {
     let summaries = crate::task::all_tasks(store);
     if summaries.is_empty() {
         return Vec::new();

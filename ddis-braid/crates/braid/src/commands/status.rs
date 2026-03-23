@@ -675,7 +675,10 @@ pub fn build_status_projection(
     }
 
     // Add methodology M(t) context blocks (ACP-9: footer -> context)
-    let methodology_blocks = braid_kernel::guidance::methodology_context_blocks(store);
+    // ACP-DRY-2: Reuse calibration from routing to avoid redundant O(H*K) scan.
+    let calibration = braid_kernel::compute_calibration_metrics(store);
+    let methodology_blocks =
+        braid_kernel::guidance::methodology_context_blocks_with_calibration(store, Some(&calibration));
     context.extend(methodology_blocks);
 
     // Sort context blocks by precedence (highest first) so that

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774300107/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Test ASCII sanitization: Levy flight creativity emerges from F(S) landscape"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "33f3e5042b3e1138f38cf42a1c3e2e7b341a0175ec39163a6765dee4c57bac64" :a :db/doc :v "Test ASCII sanitization: Levy flight creativity emerges from F(S) landscape" :op :assert}
+   {:e #blake3 "33f3e5042b3e1138f38cf42a1c3e2e7b341a0175ec39163a6765dee4c57bac64" :a :db/ident :v :observation/test-ascii-sanitization-levy-flight-creativity-emerges-from :op :assert}
+   {:e #blake3 "33f3e5042b3e1138f38cf42a1c3e2e7b341a0175ec39163a6765dee4c57bac64" :a :exploration/body :v "Test ASCII sanitization: Levy flight creativity emerges from F(S) landscape" :op :assert}
+   {:e #blake3 "33f3e5042b3e1138f38cf42a1c3e2e7b341a0175ec39163a6765dee4c57bac64" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "33f3e5042b3e1138f38cf42a1c3e2e7b341a0175ec39163a6765dee4c57bac64" :a :exploration/confidence :v 0.5 :op :assert}
+   {:e #blake3 "33f3e5042b3e1138f38cf42a1c3e2e7b341a0175ec39163a6765dee4c57bac64" :a :exploration/content-hash :v #bytes "18b6a8d6928bf33f04fcec5bb44afc37cca349d79e395f4d3050122c49c299de" :op :assert}
+   {:e #blake3 "33f3e5042b3e1138f38cf42a1c3e2e7b341a0175ec39163a6765dee4c57bac64" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "33f3e5042b3e1138f38cf42a1c3e2e7b341a0175ec39163a6765dee4c57bac64" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "33f3e5042b3e1138f38cf42a1c3e2e7b341a0175ec39163a6765dee4c57bac64" :a :exploration/source-session :v #blake3 "77357442551f12d29acce14221b90d06ea90e1aee44ef5da6627475e7e3b3fe1" :op :assert}
+ ]}

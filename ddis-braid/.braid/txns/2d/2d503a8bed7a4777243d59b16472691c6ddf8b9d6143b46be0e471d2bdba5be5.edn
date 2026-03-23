@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774300853/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e6bd03fa"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c3175f48090874ed2f5febda46008738b3b1f70b6f3ec9d8c47cc15994741b2e" :a :task/close-reason :v "Implemented Session 038: slug_from_text uses is_ascii_alphanumeric, Attribute::validate rejects non-ASCII. Commit 717af5af." :op :assert}
+   {:e #blake3 "c3175f48090874ed2f5febda46008738b3b1f70b6f3ec9d8c47cc15994741b2e" :a :task/closed-at :v 1774300852 :op :assert}
+   {:e #blake3 "c3175f48090874ed2f5febda46008738b3b1f70b6f3ec9d8c47cc15994741b2e" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "c3175f48090874ed2f5febda46008738b3b1f70b6f3ec9d8c47cc15994741b2e" :a :task/status :v :task.status/closed :op :assert}
+ ]}

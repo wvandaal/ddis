@@ -267,7 +267,31 @@ pub fn extract_block_labels(blocks: &[crate::budget::ContextBlock], budget: usiz
 ///
 /// The footer's next-action is NOT included here — that's the Action layer,
 /// provided by compute_action_from_store().
+/// Build methodology context blocks, reusing a pre-computed `CalibrationReport`.
+///
+/// When the caller has already computed calibration (e.g., via
+/// [`compute_routing_with_calibration`]), pass it here to skip the redundant
+/// O(H*K) hypothesis scan. Passing `None` computes calibration on demand.
+pub fn methodology_context_blocks_with_calibration(
+    store: &Store,
+    calibration: Option<&CalibrationReport>,
+) -> Vec<crate::budget::ContextBlock> {
+    methodology_context_blocks_inner(store, calibration)
+}
+
+/// Build methodology Context blocks for ACP projections (ACP-9).
+///
+/// Convenience wrapper that computes calibration on demand. For callers
+/// that also compute routing, prefer [`methodology_context_blocks_with_calibration`]
+/// to avoid redundant hypothesis scans (ACP-DRY-2).
 pub fn methodology_context_blocks(store: &Store) -> Vec<crate::budget::ContextBlock> {
+    methodology_context_blocks_inner(store, None)
+}
+
+fn methodology_context_blocks_inner(
+    store: &Store,
+    precomputed_calibration: Option<&CalibrationReport>,
+) -> Vec<crate::budget::ContextBlock> {
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
 
@@ -296,7 +320,15 @@ pub fn methodology_context_blocks(store: &Store) -> Vec<crate::budget::ContextBl
     // UAQ-3/UAQ-5: Score methodology blocks with AcquisitionScore.
     // Each block gets a canonical label for presentation-count tracking.
     // UAQ-5: Use per-type calibration for confidence factor.
-    let calibration = compute_calibration_metrics(store);
+    // ACP-DRY-2: Reuse pre-computed calibration when available.
+    let owned_calibration;
+    let calibration = match precomputed_calibration {
+        Some(c) => c,
+        None => {
+            owned_calibration = compute_calibration_metrics(store);
+            &owned_calibration
+        }
+    };
     let block_confidence = calibration
         .per_type_accuracy
         .get("block")
