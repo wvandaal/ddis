@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774306396/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PERF-2b: Routing result disk cache. After PERF-2a deduplicates routing to 1 call, cache the result to .braid/.cache/routing.bin. Cache valid while txn_fingerprint matches (same as store.bin). On second status call without new txns: deserialize routing from cache instead of O(tasks*datoms) recomputation. APPROACH: (1) Add Serialize/Deserialize to TaskRouting and all nested types. (2) After compute_routing_with_calibration, check routing.bin cache freshness. (3) If fresh, deserialize. If stale, compute + write cache. (4) RoutingCache struct: { txn_fingerprint, routings: Vec<TaskRouting>, calibration: CalibrationReport, created_at }. ACCEPTANCE: (A) First status: computes routing (~12s), writes cache. (B) Second status (no new txns): <2s (cache hit). (C) After new txn: recompute + re-cache. (D) Routing values identical from cache vs fresh computation. FILE: crates/braid/src/layout.rs + crates/braid/src/commands/status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :db/ident :v :task/t-7aa2c3ae :op :assert}
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :task/acceptance :v "(A) First status: computes routing (~12s), writes cache. (B) Second status (no new txns): <2s (cache hit). (C) After new txn: recompute + re-cache. (D) Routing values identical from cache vs fresh computation." :op :assert}
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :task/approach :v "(1) Add Serialize/Deserialize to TaskRouting and all nested types. (2) After compute_routing_with_calibration, check routing.bin cache freshness. (3) If fresh, deserialize. If stale, compute + write cache. (4) RoutingCache struct: { txn_fingerprint, routings: Vec<TaskRouting>, calibration: CalibrationReport, created_at }." :op :assert}
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :task/body :v "APPROACH: (1) Add Serialize/Deserialize to TaskRouting and all nested types. (2) After compute_routing_with_calibration, check routing.bin cache freshness. (3) If fresh, deserialize. If stale, compute + write cache. (4) RoutingCache struct: { txn_fingerprint, routings: Vec<TaskRouting>, calibration: CalibrationReport, created_at }. ACCEPTANCE: (A) First status: computes routing (~12s), writes cache. (B) Second status (no new txns): <2s (cache hit). (C) After new txn: recompute + re-cache. (D) Routing values identical from cache vs fresh computation. FILE: crates/braid/src/layout.rs + crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :task/created-at :v 1774306395 :op :assert}
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :task/files :v "crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :task/files :v "crates/braid/src/layout.rs" :op :assert}
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :task/id :v "t-7aa2c3ae" :op :assert}
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :task/title :v "PERF-2b: Routing result disk cache. After PERF-2a deduplicates routing to 1 call, cache the result to .braid/.cache/routing.bin. Cache valid while txn_fingerprint matches (same as store.bin). On second status call without new txns: deserialize routing from cache instead of O(tasks*datoms) recomputation" :op :assert}
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :task/title-l0 :v "PERF-2b" :op :assert}
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :task/title-l1 :v "PERF-2b: Routing result disk cache" :op :assert}
+   {:e #blake3 "477db280feda9dcab04199dc4628b96999086a00ed80e346046e13a9f1ae5e64" :a :task/type :v :task.type/task :op :assert}
+ ]}

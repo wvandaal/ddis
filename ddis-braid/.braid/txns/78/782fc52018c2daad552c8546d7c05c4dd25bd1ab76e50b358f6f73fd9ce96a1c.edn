@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774306322/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7f0ca8de"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "344d0154970c47b830e520b4701f4c1ba046c0612a484746fba826f110d85df5" :a :task/close-reason :v "ALREADY IMPLEMENTED. Binary store cache exists in layout.rs (load_store fast path + incremental path). Verified: store.bin is 65MB, task list takes 1.4s from cache. The real bottleneck is compute_routing_from_store (O(tasks*datoms)), not store loading." :op :assert}
+   {:e #blake3 "344d0154970c47b830e520b4701f4c1ba046c0612a484746fba826f110d85df5" :a :task/closed-at :v 1774306321 :op :assert}
+   {:e #blake3 "344d0154970c47b830e520b4701f4c1ba046c0612a484746fba826f110d85df5" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "344d0154970c47b830e520b4701f4c1ba046c0612a484746fba826f110d85df5" :a :task/status :v :task.status/closed :op :assert}
+ ]}

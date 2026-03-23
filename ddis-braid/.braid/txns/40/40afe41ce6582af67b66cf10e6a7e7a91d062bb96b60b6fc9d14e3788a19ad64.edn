@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774306435/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "CRITICAL DIAGNOSTIC: braid status 30s bottleneck is NOT store loading (store.bin cache already works, task list = 1.4s). The bottleneck is compute_routing_from_store called 3x per status, each O(tasks*datoms) = O(256*70K) ~ 10s. Three call sites: (1) compute_action_from_store in build_status_projection, (2) derive_actions in build_json, (3) compute_routing_from_store in build_verbose. Fix: PERF-2a deduplicates to 1 call (30s->12s), PERF-2b caches routing to disk (12s->2s on repeat), PERF-4 daemon keeps routing hot (<100ms)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ad29cdd967e8682968734eae11b9fa2d5c740acd24a5cddd7c144f61ad431ef8" :a :db/doc :v "CRITICAL DIAGNOSTIC: braid status 30s bottleneck is NOT store loading (store.bin cache already works, task list = 1.4s). The bottleneck is compute_routing_from_store called 3x per status, each O(tasks*datoms) = O(256*70K) ~ 10s. Three call sites: (1) compute_action_from_store in build_status_projection, (2) derive_actions in build_json, (3) compute_routing_from_store in build_verbose. Fix: PERF-2a deduplicates to 1 call (30s->12s), PERF-2b caches routing to disk (12s->2s on repeat), PERF-4 daemon keeps routing hot (<100ms)." :op :assert}
+   {:e #blake3 "ad29cdd967e8682968734eae11b9fa2d5c740acd24a5cddd7c144f61ad431ef8" :a :db/ident :v :observation/critical-diagnostic-braid-status-30s-bottleneck-is-not-stor :op :assert}
+   {:e #blake3 "ad29cdd967e8682968734eae11b9fa2d5c740acd24a5cddd7c144f61ad431ef8" :a :exploration/body :v "CRITICAL DIAGNOSTIC: braid status 30s bottleneck is NOT store loading (store.bin cache already works, task list = 1.4s). The bottleneck is compute_routing_from_store called 3x per status, each O(tasks*datoms) = O(256*70K) ~ 10s. Three call sites: (1) compute_action_from_store in build_status_projection, (2) derive_actions in build_json, (3) compute_routing_from_store in build_verbose. Fix: PERF-2a deduplicates to 1 call (30s->12s), PERF-2b caches routing to disk (12s->2s on repeat), PERF-4 daemon keeps routing hot (<100ms)." :op :assert}
+   {:e #blake3 "ad29cdd967e8682968734eae11b9fa2d5c740acd24a5cddd7c144f61ad431ef8" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "ad29cdd967e8682968734eae11b9fa2d5c740acd24a5cddd7c144f61ad431ef8" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "ad29cdd967e8682968734eae11b9fa2d5c740acd24a5cddd7c144f61ad431ef8" :a :exploration/content-hash :v #bytes "fb72c720050cf88df4e6f7a1e055086c9e9ecc9fbf70c8c6b20e8d8d11d1bc96" :op :assert}
+   {:e #blake3 "ad29cdd967e8682968734eae11b9fa2d5c740acd24a5cddd7c144f61ad431ef8" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "ad29cdd967e8682968734eae11b9fa2d5c740acd24a5cddd7c144f61ad431ef8" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "ad29cdd967e8682968734eae11b9fa2d5c740acd24a5cddd7c144f61ad431ef8" :a :exploration/source-session :v #blake3 "da84b6ae7dff324982c915e0483f0681bfb6f28ca8dd9b6c84897f0340592fb3" :op :assert}
+ ]}

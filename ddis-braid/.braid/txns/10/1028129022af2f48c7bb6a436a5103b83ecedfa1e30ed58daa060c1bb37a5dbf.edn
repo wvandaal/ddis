@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774306331/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b38f580d"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/close-reason :v "ALREADY IMPLEMENTED. Incremental tx loading exists in layout.rs:522-577. POLICY-6 path loads cached store + delta transactions (O(k) where k = new txns since cache). The bottleneck is compute_routing_from_store, not store loading." :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/closed-at :v 1774306330 :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/status :v :task.status/closed :op :assert}
+ ]}
