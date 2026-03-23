@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774245350/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-6-TEST: Unit + integration tests for Bayesian calibration. (A) UNIT: No completed hypotheses → learned_weight = 1.0 (uninformative prior). (B) UNIT: After 5 closures where 'boundaries' block was always presented → boundaries weight > 1.0. (C) UNIT: After 5 closures where 'harvest' block was never followed by action → harvest weight < 1.0. (D) INTEGRATION: Create hypotheses via harvest, close tasks via done, verify :attention/learned-weight datoms updated. (E) PROPERTY-BASED: learned_weight is always in (0, 10] — bounded above and below (never zero, never infinite). (F) PROPERTY-BASED: calibration_count monotonically increases with each outcome data point. DEPENDS-ON: ATT-6. FILE: crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "85fae1b2f0bd64f4fe680b6e6f88d44f33bb776ea6c630eb09f68d4cf86f4255" :a :db/ident :v :task/t-de7ba6ee :op :assert}
+   {:e #blake3 "85fae1b2f0bd64f4fe680b6e6f88d44f33bb776ea6c630eb09f68d4cf86f4255" :a :task/created-at :v 1774245349 :op :assert}
+   {:e #blake3 "85fae1b2f0bd64f4fe680b6e6f88d44f33bb776ea6c630eb09f68d4cf86f4255" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "85fae1b2f0bd64f4fe680b6e6f88d44f33bb776ea6c630eb09f68d4cf86f4255" :a :task/id :v "t-de7ba6ee" :op :assert}
+   {:e #blake3 "85fae1b2f0bd64f4fe680b6e6f88d44f33bb776ea6c630eb09f68d4cf86f4255" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "85fae1b2f0bd64f4fe680b6e6f88d44f33bb776ea6c630eb09f68d4cf86f4255" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "85fae1b2f0bd64f4fe680b6e6f88d44f33bb776ea6c630eb09f68d4cf86f4255" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "85fae1b2f0bd64f4fe680b6e6f88d44f33bb776ea6c630eb09f68d4cf86f4255" :a :task/title :v "ATT-6-TEST: Unit + integration tests for Bayesian calibration. (A) UNIT: No completed hypotheses → learned_weight = 1.0 (uninformative prior). (B) UNIT: After 5 closures where 'boundaries' block was always presented → boundaries weight > 1.0. (C) UNIT: After 5 closures where 'harvest' block was never followed by action → harvest weight < 1.0. (D) INTEGRATION: Create hypotheses via harvest, close tasks via done, verify :attention/learned-weight datoms updated. (E) PROPERTY-BASED: learned_weight is always in (0, 10] — bounded above and below (never zero, never infinite). (F) PROPERTY-BASED: calibration_count monotonically increases with each outcome data point. DEPENDS-ON: ATT-6. FILE: crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "85fae1b2f0bd64f4fe680b6e6f88d44f33bb776ea6c630eb09f68d4cf86f4255" :a :task/title-l0 :v "ATT-6-TEST" :op :assert}
+   {:e #blake3 "85fae1b2f0bd64f4fe680b6e6f88d44f33bb776ea6c630eb09f68d4cf86f4255" :a :task/title-l1 :v "ATT-6-TEST: Unit + integration tests for Bayesian calibration" :op :assert}
+   {:e #blake3 "85fae1b2f0bd64f4fe680b6e6f88d44f33bb776ea6c630eb09f68d4cf86f4255" :a :task/type :v :task.type/test :op :assert}
+ ]}

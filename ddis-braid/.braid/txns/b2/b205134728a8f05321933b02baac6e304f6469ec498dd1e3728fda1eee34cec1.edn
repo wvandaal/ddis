@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774245321/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-2-TEST: Unit + integration tests for session presentation counter. (A) UNIT: surprisal(1)=1.0, surprisal(4)=0.5, surprisal(9)=0.33 — verify 1/sqrt(N) formula. (B) UNIT: presentation_count defaults to 0 for unseen labels. (C) INTEGRATION: create store with active session, call status 5 times, verify presentation counts are persisted as datoms on the session entity and increment monotonically. (D) INTEGRATION: start new session, verify all counts reset to 0. (E) PROPERTY-BASED: for any N > 0, surprisal(N) < surprisal(N-1) (strict monotonic decrease). (F) PROPERTY-BASED: surprisal(N) > 0 for all N (never reaches exactly zero — information is never completely worthless). DEPENDS-ON: ATT-2. FILE: crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "30655763fbbc26de166ff7e1257bc038e415ae34f0ea1dd63c81d0a236762190" :a :db/ident :v :task/t-a6266d2b :op :assert}
+   {:e #blake3 "30655763fbbc26de166ff7e1257bc038e415ae34f0ea1dd63c81d0a236762190" :a :task/created-at :v 1774245320 :op :assert}
+   {:e #blake3 "30655763fbbc26de166ff7e1257bc038e415ae34f0ea1dd63c81d0a236762190" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "30655763fbbc26de166ff7e1257bc038e415ae34f0ea1dd63c81d0a236762190" :a :task/id :v "t-a6266d2b" :op :assert}
+   {:e #blake3 "30655763fbbc26de166ff7e1257bc038e415ae34f0ea1dd63c81d0a236762190" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "30655763fbbc26de166ff7e1257bc038e415ae34f0ea1dd63c81d0a236762190" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "30655763fbbc26de166ff7e1257bc038e415ae34f0ea1dd63c81d0a236762190" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "30655763fbbc26de166ff7e1257bc038e415ae34f0ea1dd63c81d0a236762190" :a :task/title :v "ATT-2-TEST: Unit + integration tests for session presentation counter. (A) UNIT: surprisal(1)=1.0, surprisal(4)=0.5, surprisal(9)=0.33 — verify 1/sqrt(N) formula. (B) UNIT: presentation_count defaults to 0 for unseen labels. (C) INTEGRATION: create store with active session, call status 5 times, verify presentation counts are persisted as datoms on the session entity and increment monotonically. (D) INTEGRATION: start new session, verify all counts reset to 0. (E) PROPERTY-BASED: for any N > 0, surprisal(N) < surprisal(N-1) (strict monotonic decrease). (F) PROPERTY-BASED: surprisal(N) > 0 for all N (never reaches exactly zero — information is never completely worthless). DEPENDS-ON: ATT-2. FILE: crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "30655763fbbc26de166ff7e1257bc038e415ae34f0ea1dd63c81d0a236762190" :a :task/title-l0 :v "ATT-2-TEST" :op :assert}
+   {:e #blake3 "30655763fbbc26de166ff7e1257bc038e415ae34f0ea1dd63c81d0a236762190" :a :task/title-l1 :v "ATT-2-TEST: Unit + integration tests for session presentation counter" :op :assert}
+   {:e #blake3 "30655763fbbc26de166ff7e1257bc038e415ae34f0ea1dd63c81d0a236762190" :a :task/type :v :task.type/test :op :assert}
+ ]}

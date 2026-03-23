@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774245340/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-5-TEST: Unit + E2E tests for verbose-request Hebbian feedback. (A) UNIT: detect_verbose_after_compressed(prev=status, curr=status --verbose) returns true. (B) UNIT: detect_verbose_after_compressed(prev=query, curr=status --verbose) returns false (no prior compressed status). (C) UNIT: hebbian_boost decays by 0.5x when session changes. (D) E2E: run 'braid status' then 'braid status --verbose', verify :attention/hebbian-boost datoms created for omitted block labels. (E) E2E: run status again, verify boosted blocks rank higher than before the verbose request. (F) E2E: start new session, verify boost is decayed (not zeroed — gradual forgetting, not amnesia). DEPENDS-ON: ATT-5. FILE: crates/braid-kernel/src/guidance.rs + scripts/e2e_hebbian_feedback.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "19c44ba461a4cc5e2da90acae0f6b98d1303869474c4fbb172e467604d0a6ddf" :a :db/ident :v :task/t-be4f1c0a :op :assert}
+   {:e #blake3 "19c44ba461a4cc5e2da90acae0f6b98d1303869474c4fbb172e467604d0a6ddf" :a :task/created-at :v 1774245339 :op :assert}
+   {:e #blake3 "19c44ba461a4cc5e2da90acae0f6b98d1303869474c4fbb172e467604d0a6ddf" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "19c44ba461a4cc5e2da90acae0f6b98d1303869474c4fbb172e467604d0a6ddf" :a :task/files :v "scripts/e2e_hebbian_feedback.sh" :op :assert}
+   {:e #blake3 "19c44ba461a4cc5e2da90acae0f6b98d1303869474c4fbb172e467604d0a6ddf" :a :task/id :v "t-be4f1c0a" :op :assert}
+   {:e #blake3 "19c44ba461a4cc5e2da90acae0f6b98d1303869474c4fbb172e467604d0a6ddf" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "19c44ba461a4cc5e2da90acae0f6b98d1303869474c4fbb172e467604d0a6ddf" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "19c44ba461a4cc5e2da90acae0f6b98d1303869474c4fbb172e467604d0a6ddf" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "19c44ba461a4cc5e2da90acae0f6b98d1303869474c4fbb172e467604d0a6ddf" :a :task/title :v "ATT-5-TEST: Unit + E2E tests for verbose-request Hebbian feedback. (A) UNIT: detect_verbose_after_compressed(prev=status, curr=status --verbose) returns true. (B) UNIT: detect_verbose_after_compressed(prev=query, curr=status --verbose) returns false (no prior compressed status). (C) UNIT: hebbian_boost decays by 0.5x when session changes. (D) E2E: run 'braid status' then 'braid status --verbose', verify :attention/hebbian-boost datoms created for omitted block labels. (E) E2E: run status again, verify boosted blocks rank higher than before the verbose request. (F) E2E: start new session, verify boost is decayed (not zeroed — gradual forgetting, not amnesia). DEPENDS-ON: ATT-5. FILE: crates/braid-kernel/src/guidance.rs + scripts/e2e_hebbian_feedback.sh" :op :assert}
+   {:e #blake3 "19c44ba461a4cc5e2da90acae0f6b98d1303869474c4fbb172e467604d0a6ddf" :a :task/title-l0 :v "ATT-5-TEST" :op :assert}
+   {:e #blake3 "19c44ba461a4cc5e2da90acae0f6b98d1303869474c4fbb172e467604d0a6ddf" :a :task/title-l1 :v "ATT-5-TEST: Unit + E2E tests for verbose-request Hebbian feedback" :op :assert}
+   {:e #blake3 "19c44ba461a4cc5e2da90acae0f6b98d1303869474c4fbb172e467604d0a6ddf" :a :task/type :v :task.type/test :op :assert}
+ ]}

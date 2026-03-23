@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774245401/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-GUIDANCE: Unify guidance footer with attention budget — the guidance footer has 5 compression levels (Full/Compressed/Minimal/HarvestOnly/BasinToken) selected by k*_eff. Replace hardcoded level selection with attention-scored block projection: the footer is a mini-ACP with its own context blocks (M(t) components, next action, harvest signal). Apply the same surprisal × relevance × actionability scoring. At high k*, show all footer blocks. At low k*, show only the highest-attention blocks. The transition between levels becomes continuous instead of 5 discrete steps. ACCEPTANCE: (A) Footer content changes based on session phase (not just k* level). (B) Repeated methodology components decay in the footer. (C) Action-relevant footer blocks rank above generic methodology. (D) BasinToken mode still produces minimal output. TRACES: INV-ATTENTION-005. DEPENDS-ON: ATT-4. FILE: crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c530be2e50a54a1c89fe93afd994c0f326d95913eca189e80fb8a838c8ccff9d" :a :db/ident :v :task/t-4bf31334 :op :assert}
+   {:e #blake3 "c530be2e50a54a1c89fe93afd994c0f326d95913eca189e80fb8a838c8ccff9d" :a :task/acceptance :v "(A) Footer content changes based on session phase (not just k* level). (B) Repeated methodology components decay in the footer. (C) Action-relevant footer blocks rank above generic methodology. (D) BasinToken mode still produces minimal output. TRACES: INV-ATTENTION-005. DEPENDS-ON: ATT-4." :op :assert}
+   {:e #blake3 "c530be2e50a54a1c89fe93afd994c0f326d95913eca189e80fb8a838c8ccff9d" :a :task/body :v "ACCEPTANCE: (A) Footer content changes based on session phase (not just k* level). (B) Repeated methodology components decay in the footer. (C) Action-relevant footer blocks rank above generic methodology. (D) BasinToken mode still produces minimal output. TRACES: INV-ATTENTION-005. DEPENDS-ON: ATT-4. FILE: crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "c530be2e50a54a1c89fe93afd994c0f326d95913eca189e80fb8a838c8ccff9d" :a :task/created-at :v 1774245400 :op :assert}
+   {:e #blake3 "c530be2e50a54a1c89fe93afd994c0f326d95913eca189e80fb8a838c8ccff9d" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "c530be2e50a54a1c89fe93afd994c0f326d95913eca189e80fb8a838c8ccff9d" :a :task/id :v "t-4bf31334" :op :assert}
+   {:e #blake3 "c530be2e50a54a1c89fe93afd994c0f326d95913eca189e80fb8a838c8ccff9d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "c530be2e50a54a1c89fe93afd994c0f326d95913eca189e80fb8a838c8ccff9d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c530be2e50a54a1c89fe93afd994c0f326d95913eca189e80fb8a838c8ccff9d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c530be2e50a54a1c89fe93afd994c0f326d95913eca189e80fb8a838c8ccff9d" :a :task/title :v "ATT-GUIDANCE: Unify guidance footer with attention budget — the guidance footer has 5 compression levels (Full/Compressed/Minimal/HarvestOnly/BasinToken) selected by k*_eff. Replace hardcoded level selection with attention-scored block projection: the footer is a mini-ACP with its own context blocks (M(t) components, next action, harvest signal). Apply the same surprisal × relevance × actionability scoring. At high k*, show all footer blocks. At low k*, show only the highest-attention blocks. The transition between levels becomes continuous instead of 5 discrete steps" :op :assert}
+   {:e #blake3 "c530be2e50a54a1c89fe93afd994c0f326d95913eca189e80fb8a838c8ccff9d" :a :task/title-l0 :v "ATT-GUIDANCE" :op :assert}
+   {:e #blake3 "c530be2e50a54a1c89fe93afd994c0f326d95913eca189e80fb8a838c8ccff9d" :a :task/title-l1 :v "ATT-GUIDANCE: Unify guidance footer with attention budget — the guidance fo..." :op :assert}
+   {:e #blake3 "c530be2e50a54a1c89fe93afd994c0f326d95913eca189e80fb8a838c8ccff9d" :a :task/traces-to :v #blake3 "d0f97e55b268b47908bc437fdc3f5d5b8c2ee201c6bd23ba76fc2f32b2ae42d0" :op :assert}
+   {:e #blake3 "c530be2e50a54a1c89fe93afd994c0f326d95913eca189e80fb8a838c8ccff9d" :a :task/type :v :task.type/task :op :assert}
+ ]}

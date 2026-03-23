@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774245246/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "ADR-024 OBSERVATION 12: FLAG DEFAULTS AS LEARNABLE PRIORS. --confidence defaults to 0.8. If the LLM overrides to 0.9 in 70% of calls, the default is fighting the user. Detection: track per-flag override frequency via :cli/flag-override datoms. When override_rate > 0.6 for the same value, the default is wrong. Action: adjust default to modal value. This is OBSERVER-4 (calibration) applied to the CLI's parameter space. Each default is a depth-0 hypothesis that can be challenged by usage data."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cab370056d685a35da466204a8fca98f64d16909f48979c33727f25c3d04c22a" :a :db/doc :v "ADR-024 OBSERVATION 12: FLAG DEFAULTS AS LEARNABLE PRIORS. --confidence defaults to 0.8. If the LLM overrides to 0.9 in 70% of calls, the default is fighting the user. Detection: track per-flag override frequency via :cli/flag-override datoms. When override_rate > 0.6 for the same value, the default is wrong. Action: adjust default to modal value. This is OBSERVER-4 (calibration) applied to the CLI's parameter space. Each default is a depth-0 hypothesis that can be challenged by usage data." :op :assert}
+   {:e #blake3 "cab370056d685a35da466204a8fca98f64d16909f48979c33727f25c3d04c22a" :a :db/ident :v :observation/adr-024-observation-12-flag-defaults-as-learnable-priors :op :assert}
+   {:e #blake3 "cab370056d685a35da466204a8fca98f64d16909f48979c33727f25c3d04c22a" :a :exploration/body :v "ADR-024 OBSERVATION 12: FLAG DEFAULTS AS LEARNABLE PRIORS. --confidence defaults to 0.8. If the LLM overrides to 0.9 in 70% of calls, the default is fighting the user. Detection: track per-flag override frequency via :cli/flag-override datoms. When override_rate > 0.6 for the same value, the default is wrong. Action: adjust default to modal value. This is OBSERVER-4 (calibration) applied to the CLI's parameter space. Each default is a depth-0 hypothesis that can be challenged by usage data." :op :assert}
+   {:e #blake3 "cab370056d685a35da466204a8fca98f64d16909f48979c33727f25c3d04c22a" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "cab370056d685a35da466204a8fca98f64d16909f48979c33727f25c3d04c22a" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "cab370056d685a35da466204a8fca98f64d16909f48979c33727f25c3d04c22a" :a :exploration/content-hash :v #bytes "2af5e030dfb6842c8e3fa6c17684cb32c1fbfe441c45bc0f6dea231fc21c0b8f" :op :assert}
+   {:e #blake3 "cab370056d685a35da466204a8fca98f64d16909f48979c33727f25c3d04c22a" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "cab370056d685a35da466204a8fca98f64d16909f48979c33727f25c3d04c22a" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "cab370056d685a35da466204a8fca98f64d16909f48979c33727f25c3d04c22a" :a :exploration/source-session :v #blake3 "1645ba242a3287f0786f6bee126be4b5abcfb886bb3dcbe0beb483b3a7c216f4" :op :assert}
+ ]}

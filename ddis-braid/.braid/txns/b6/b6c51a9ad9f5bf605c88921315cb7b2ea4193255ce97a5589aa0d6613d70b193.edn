@@ -1,0 +1,14 @@
+{:tx/id #hlc "1774245450/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "99945487095407d47e519d93a19debea10a3f5b469c859836ac027901846e37f" :a :db/ident :v :recon/trace-f1ccabb279fccc40 :op :assert}
+   {:e #blake3 "99945487095407d47e519d93a19debea10a3f5b469c859836ac027901846e37f" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "99945487095407d47e519d93a19debea10a3f5b469c859836ac027901846e37f" :a :recon/trace-neighborhood :v "ATTENTION" :op :assert}
+   {:e #blake3 "99945487095407d47e519d93a19debea10a3f5b469c859836ac027901846e37f" :a :recon/trace-neighbors :v ":task/t-5498e890" :op :assert}
+   {:e #blake3 "99945487095407d47e519d93a19debea10a3f5b469c859836ac027901846e37f" :a :recon/trace-neighbors :v ":task/t-c2002057" :op :assert}
+   {:e #blake3 "99945487095407d47e519d93a19debea10a3f5b469c859836ac027901846e37f" :a :recon/trace-neighbors :v ":task/t-d09437a5" :op :assert}
+   {:e #blake3 "99945487095407d47e519d93a19debea10a3f5b469c859836ac027901846e37f" :a :recon/trace-refs :v "INV-ATTENTION-002" :op :assert}
+ ]}

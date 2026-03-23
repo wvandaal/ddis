@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774245297/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-0: Attention schema — Layer 2 attribute group for learned attention state. 6 attributes: :attention/block-label (String One) — canonical label for a context block type (e.g. 'coherence', 'boundaries', 'tasks'). :attention/presentation-count (Long One) — times this block label was presented in current session. :attention/last-presented (Instant One) — wall-clock of most recent presentation. :attention/hebbian-boost (Double One) — accumulated boost from verbose-request signals, decays 0.5x per session. :attention/learned-weight (Double One, default 1.0) — Bayesian-calibrated weight from outcome correlation. :attention/calibration-count (Long One) — number of outcome data points informing the weight. All attributes on session-scoped entities keyed by block label. ACCEPTANCE: (A) All 6 attributes in Layer 2. (B) Schema evolution tx installs them. (C) Existing tests pass (layer count updated). TRACES: ADR-FOUNDATION-024, INV-ATTENTION-002. FILE: crates/braid-kernel/src/schema.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :db/ident :v :task/t-d09437a5 :op :assert}
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :task/acceptance :v "(A) All 6 attributes in Layer 2. (B) Schema evolution tx installs them. (C) Existing tests pass (layer count updated). TRACES: ADR-FOUNDATION-024, INV-ATTENTION-002." :op :assert}
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :task/body :v "ACCEPTANCE: (A) All 6 attributes in Layer 2. (B) Schema evolution tx installs them. (C) Existing tests pass (layer count updated). TRACES: ADR-FOUNDATION-024, INV-ATTENTION-002. FILE: crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :task/created-at :v 1774245296 :op :assert}
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :task/files :v "crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :task/id :v "t-d09437a5" :op :assert}
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :task/title :v "ATT-0: Attention schema — Layer 2 attribute group for learned attention state. 6 attributes: :attention/block-label (String One) — canonical label for a context block type (e.g. 'coherence', 'boundaries', 'tasks'). :attention/presentation-count (Long One) — times this block label was presented in current session. :attention/last-presented (Instant One) — wall-clock of most recent presentation. :attention/hebbian-boost (Double One) — accumulated boost from verbose-request signals, decays 0.5x per session. :attention/learned-weight (Double One, default 1.0) — Bayesian-calibrated weight from outcome correlation. :attention/calibration-count (Long One) — number of outcome data points informing the weight. All attributes on session-scoped entities keyed by block label" :op :assert}
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :task/title-l0 :v "ATT-0" :op :assert}
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :task/title-l1 :v "ATT-0: Attention schema — Layer 2 attribute group for learned attention state" :op :assert}
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :task/traces-to :v #blake3 "1cb369fe06dba2b423f2cd46d80225e053ca84d6b5861450227e3a12c41531f4" :op :assert}
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :task/traces-to :v #blake3 "9dfbd929fea3a757246d4f15e7f578fa0a3442b2c97a76526a640740fa44fdb0" :op :assert}
+   {:e #blake3 "84f3fabd5e079bbdc61433bcbbe906b32746fe13eb636dba433a2dddc0fb549e" :a :task/type :v :task.type/task :op :assert}
+ ]}

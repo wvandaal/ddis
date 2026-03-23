@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774245331/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-3-TEST: Unit tests for task-conditioned relevance scoring. (A) No active task → all blocks get relevance=0.5 (uninformative prior). (B) Active task tracing to INV-STORE-* → block containing 'store:' gets relevance > 0.7. (C) Active task tracing to INV-BILATERAL-* → block containing 'boundaries:' gets relevance > 0.7, 'harvest:' gets relevance < 0.5. (D) Relevance is in [0,1] for all inputs (bounded). (E) Relevance is deterministic given same store state + active task (no randomness). (F) PROPERTY-BASED: relevance(block, task) == relevance(block, task) for repeated calls (pure function). DEPENDS-ON: ATT-3. FILE: crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "59069545f8bab72f9289ec5122e0c0d7390083aabcfbea99c2da107d7e634306" :a :db/ident :v :task/t-edc9c8fd :op :assert}
+   {:e #blake3 "59069545f8bab72f9289ec5122e0c0d7390083aabcfbea99c2da107d7e634306" :a :task/created-at :v 1774245330 :op :assert}
+   {:e #blake3 "59069545f8bab72f9289ec5122e0c0d7390083aabcfbea99c2da107d7e634306" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "59069545f8bab72f9289ec5122e0c0d7390083aabcfbea99c2da107d7e634306" :a :task/id :v "t-edc9c8fd" :op :assert}
+   {:e #blake3 "59069545f8bab72f9289ec5122e0c0d7390083aabcfbea99c2da107d7e634306" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "59069545f8bab72f9289ec5122e0c0d7390083aabcfbea99c2da107d7e634306" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "59069545f8bab72f9289ec5122e0c0d7390083aabcfbea99c2da107d7e634306" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "59069545f8bab72f9289ec5122e0c0d7390083aabcfbea99c2da107d7e634306" :a :task/title :v "ATT-3-TEST: Unit tests for task-conditioned relevance scoring. (A) No active task → all blocks get relevance=0.5 (uninformative prior). (B) Active task tracing to INV-STORE-* → block containing 'store:' gets relevance > 0.7. (C) Active task tracing to INV-BILATERAL-* → block containing 'boundaries:' gets relevance > 0.7, 'harvest:' gets relevance < 0.5. (D) Relevance is in [0,1] for all inputs (bounded). (E) Relevance is deterministic given same store state + active task (no randomness). (F) PROPERTY-BASED: relevance(block, task) == relevance(block, task) for repeated calls (pure function). DEPENDS-ON: ATT-3. FILE: crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "59069545f8bab72f9289ec5122e0c0d7390083aabcfbea99c2da107d7e634306" :a :task/title-l0 :v "ATT-3-TEST" :op :assert}
+   {:e #blake3 "59069545f8bab72f9289ec5122e0c0d7390083aabcfbea99c2da107d7e634306" :a :task/title-l1 :v "ATT-3-TEST: Unit tests for task-conditioned relevance scoring" :op :assert}
+   {:e #blake3 "59069545f8bab72f9289ec5122e0c0d7390083aabcfbea99c2da107d7e634306" :a :task/type :v :task.type/test :op :assert}
+ ]}
