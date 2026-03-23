@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774302428/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-eae39095"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :task/close-reason :v "Implemented Session 038: Universal tracking in maybe_inject_footer. Removed status.rs dedicated tracking. Commit ffb4a86b." :op :assert}
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :task/closed-at :v 1774302427 :op :assert}
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :task/status :v :task.status/closed :op :assert}
+ ]}

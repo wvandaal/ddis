@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774302434/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-0988fa40"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a91801c1bc0e6ca069ae0a9caddcaa93480c3e6de0d1ba584d23d377678ce38d" :a :task/close-reason :v "Implemented Session 038: Tool detection requires marker file + binary. No false-positive cargo in Go. Commit ffb4a86b." :op :assert}
+   {:e #blake3 "a91801c1bc0e6ca069ae0a9caddcaa93480c3e6de0d1ba584d23d377678ce38d" :a :task/closed-at :v 1774302433 :op :assert}
+   {:e #blake3 "a91801c1bc0e6ca069ae0a9caddcaa93480c3e6de0d1ba584d23d377678ce38d" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "a91801c1bc0e6ca069ae0a9caddcaa93480c3e6de0d1ba584d23d377678ce38d" :a :task/status :v :task.status/closed :op :assert}
+ ]}
