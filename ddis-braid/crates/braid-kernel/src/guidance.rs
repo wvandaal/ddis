@@ -2354,8 +2354,8 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
         transact_turns: txns_since,
         spec_language_turns: total_spec.min(session_turn_count.max(1)),
         query_type_count: if session_turn_count > 0 { 1 } else { 0 },
-        // FIX-NAG: On fresh stores (<5 txns), nothing to harvest yet — don't nag.
-        harvest_quality: if has_recent_harvest || session_turn_count < 5 {
+        // FIX-NAG: On fresh stores (<10 txns), nothing to harvest yet — don't nag.
+        harvest_quality: if has_recent_harvest || session_turn_count < 10 {
             0.7
         } else {
             0.0
@@ -2547,9 +2547,10 @@ pub fn classify_action_outcome(
 ///
 /// Returns urgency in [0, 1+]. Values > 1.0 mean OVERDUE.
 pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
-    // FIX-NAG: Fresh stores (<5 txns) have nothing worth harvesting yet.
+    // FIX-NAG: Fresh stores (<10 txns) have nothing worth harvesting yet.
+    // Genesis + init detection + session auto-start generate ~5-8 system txns.
     // But always honor the k_eff emergency signal (signal_4).
-    let is_fresh = count_txns_since_last_harvest(store) < 5
+    let is_fresh = count_txns_since_last_harvest(store) < 10
         && last_harvest_wall_time(store) == 0;
 
     let velocity = tx_velocity(store);
