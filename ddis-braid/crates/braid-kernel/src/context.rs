@@ -79,6 +79,38 @@ impl GuidanceContext {
 }
 
 // ---------------------------------------------------------------------------
+// Block presentation count (UAQ-3)
+// ---------------------------------------------------------------------------
+
+/// Look up the presentation count for a named context block type.
+///
+/// Queries `:attention/block-label` → `:attention/presentation-count` from the store.
+/// Returns 0 if no attention entity exists for this label (novel block).
+fn block_presentation_count(store: &Store, label: &str) -> u64 {
+    let label_attr = Attribute::from_keyword(":attention/block-label");
+    let count_attr = Attribute::from_keyword(":attention/presentation-count");
+
+    // Find the attention entity for this label
+    store
+        .attribute_datoms(&label_attr)
+        .iter()
+        .filter(|d| d.op == Op::Assert)
+        .find(|d| matches!(&d.value, Value::String(s) if s == label))
+        .and_then(|d| {
+            // Found the entity — now get its presentation count
+            store
+                .entity_datoms(d.entity)
+                .iter()
+                .find(|ed| ed.attribute == count_attr && ed.op == Op::Assert)
+                .and_then(|ed| match &ed.value {
+                    Value::Long(n) => Some(*n as u64),
+                    _ => None,
+                })
+        })
+        .unwrap_or(0)
+}
+
+// ---------------------------------------------------------------------------
 // ACP Methodology Context Blocks (ACP-9, INV-BUDGET-009)
 // ---------------------------------------------------------------------------
 
@@ -116,14 +148,30 @@ pub fn methodology_context_blocks(store: &Store) -> Vec<crate::budget::ContextBl
         check("harvest", score.components.harvest_quality, 0.4, "harvest"),
     );
 
+    // UAQ-3: Score methodology blocks with AcquisitionScore.
+    // Each block gets a canonical label for presentation-count tracking.
+    let score_block = |label: &str, impact: f64| -> Option<crate::budget::AcquisitionScore> {
+        let count = block_presentation_count(store, label);
+        let novelty = 1.0 / (count.max(1) as f64).sqrt();
+        Some(crate::budget::AcquisitionScore::from_factors(
+            crate::budget::ObservationKind::ContextBlock,
+            impact,
+            1.0, // methodology blocks always relevant
+            novelty,
+            1.0, // bootstrap confidence
+            crate::budget::ObservationCost::from_tokens(20),
+        ))
+    };
+
     let mut blocks = vec![crate::budget::ContextBlock {
         precedence: crate::budget::OutputPrecedence::Methodology,
         content: m_line,
         tokens: 20,
-        attention: None,
+        attention: score_block("methodology", 0.8),
     }];
 
     // Store state context
+    let store_tokens = 8;
     blocks.push(crate::budget::ContextBlock {
         precedence: crate::budget::OutputPrecedence::Ambient,
         content: format!(
@@ -131,8 +179,8 @@ pub fn methodology_context_blocks(store: &Store) -> Vec<crate::budget::ContextBl
             store.len(),
             store.frontier().len()
         ),
-        tokens: 8,
-        attention: None,
+        tokens: store_tokens,
+        attention: score_block("store-state", 0.3),
     });
 
     blocks

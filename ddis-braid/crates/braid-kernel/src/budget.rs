@@ -767,7 +767,21 @@ impl ActionProjection {
         let mut remaining = context_budget;
         let mut omitted: Vec<&str> = Vec::new();
 
-        for block in &self.context {
+        // UAQ-3: Sort blocks by precedence (highest first), then by acquisition
+        // score (highest composite first) within each precedence tier.
+        // System-precedence blocks always come first regardless of score.
+        let mut sorted: Vec<&ContextBlock> = self.context.iter().collect();
+        sorted.sort_by(|a, b| {
+            b.precedence.cmp(&a.precedence).then_with(|| {
+                let score_a = a.attention.as_ref().map(|s| s.composite()).unwrap_or(0.0);
+                let score_b = b.attention.as_ref().map(|s| s.composite()).unwrap_or(0.0);
+                score_b
+                    .partial_cmp(&score_a)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+        });
+
+        for block in &sorted {
             if block.tokens <= remaining {
                 out.push_str(&block.content);
                 out.push('\n');
