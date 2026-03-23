@@ -32,6 +32,7 @@ pub mod census;
 pub mod coherence;
 pub mod compiler;
 pub mod config;
+pub mod context;
 pub mod datom;
 pub mod deliberation;
 pub mod error;
