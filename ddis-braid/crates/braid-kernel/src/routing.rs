@@ -12,6 +12,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use crate::budget::{AcquisitionScore, ObservationCost, ObservationKind};
 use crate::datom::{Attribute, EntityId, Op, Value};
 use crate::methodology::{count_txns_since_last_harvest, last_harvest_wall_time};
 use crate::store::Store;
@@ -194,6 +195,11 @@ pub struct TaskRouting {
     pub impact: f64,
     /// Individual metric scores.
     pub metrics: RoutingMetrics,
+    /// UAQ acquisition score (ADR-FOUNDATION-025).
+    /// Populated by `compute_routing_from_store` with all four factors.
+    /// `compute_routing` (pure graph algorithm) sets defaults that
+    /// `compute_routing_from_store` enriches with store-derived signals.
+    pub acquisition_score: AcquisitionScore,
 }
 
 /// Individual R(t) routing metrics.
@@ -667,11 +673,24 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
             // Apply type multiplier and urgency decay as post-factors
             let impact = base_impact * tm * ud;
 
+            // UAQ-2: Initialize acquisition score with graph-derived impact.
+            // Novelty, relevance, confidence default to 1.0 here; enriched
+            // by compute_routing_from_store with store-derived signals.
+            let acquisition_score = AcquisitionScore::from_factors(
+                ObservationKind::Task,
+                impact,
+                1.0, // relevance: enriched in compute_routing_from_store
+                1.0, // novelty: enriched in compute_routing_from_store
+                1.0, // confidence: enriched in compute_routing_from_store
+                ObservationCost::zero(), // cost: enriched in compute_routing_from_store
+            );
+
             TaskRouting {
                 entity: task.entity,
                 label: task.label.clone(),
                 impact,
                 metrics,
+                acquisition_score,
             }
         })
         .collect();
@@ -843,10 +862,49 @@ pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
         }
     }
 
-    // Re-sort after applying all post-factors
+    // UAQ-2: Enrich acquisition scores with store-derived signals.
+    // Factors: impact (already from R(t)), relevance (session × spec anchor),
+    // novelty (1/sqrt(presentation_count)), confidence (1.0 - calibration error).
+    let calibration = compute_calibration_metrics(store);
+    let confidence_factor = if calibration.completed_hypotheses >= 5 {
+        (1.0 - calibration.mean_error).clamp(0.1, 1.0)
+    } else {
+        1.0 // uninformative prior when insufficient data
+    };
+
+    let attention_attr = Attribute::from_keyword(":attention/presentation-count");
+    for r in &mut routings {
+        // Novelty from presentation count (how many times this task was recommended)
+        let presentation_count = store
+            .entity_datoms(r.entity)
+            .iter()
+            .find(|d| d.attribute == attention_attr && d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                Value::Long(n) => Some(*n as u64),
+                _ => None,
+            })
+            .unwrap_or(0);
+        let novelty = 1.0 / (presentation_count.max(1) as f64).sqrt();
+
+        // Relevance = session_boost × spec_anchor (both already computed)
+        let relevance = (r.metrics.session_boost * r.metrics.spec_anchor).min(1.0);
+
+        // Recompute acquisition score with enriched factors
+        r.acquisition_score = AcquisitionScore::from_factors(
+            ObservationKind::Task,
+            r.impact,
+            relevance,
+            novelty,
+            confidence_factor,
+            ObservationCost::zero(), // tasks don't have token cost
+        );
+    }
+
+    // Re-sort by alpha (acquisition score), falling back to impact for ties
     routings.sort_by(|a, b| {
-        b.impact
-            .partial_cmp(&a.impact)
+        b.acquisition_score
+            .composite()
+            .partial_cmp(&a.acquisition_score.composite())
             .unwrap_or(std::cmp::Ordering::Equal)
     });
     routings
