@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774275090/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-7: Ceremony as acquisition function — learned ceremony level recommendation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :db/ident :v :task/t-7b147c9c :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/created-at :v 1774275089 :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/description :v "CONTEXT: Ceremony level (CeremonyLevel in methodology.rs) is one of the five systems that should be unified under A(t,x). Currently ceremony_level(k_eff, change_type) uses static k_eff thresholds. Under UAQ, ceremony is a RECOMMENDATION: 'how much methodology should the agent follow right now?' This is scored like any other item. APPROACH: (1) Model ceremony levels as items in the acquisition function. Each ceremony level (Full, Standard, Minimal) gets an AcquisitionScore. impact = methodology value of this level (Full=1.0, Standard=0.7, Minimal=0.3), relevance = match between change_type and ceremony level (novel design + Full = 1.0, known bug + Minimal = 1.0), novelty = inverse of how often this level was recommended recently (prevent ceremony fatigue), confidence = calibrated from outcomes (did Full ceremony sessions have better F(S) improvement than Minimal?). (2) The highest-scoring ceremony level is the recommendation. (3) This replaces the static threshold function with a learned one. (4) Record ceremony hypotheses: predict that recommended ceremony level leads to better session outcomes. Measure at harvest. ACCEPTANCE: (A) ceremony_level function returns the AcquisitionScore-ranked best level, not a static mapping. (B) Ceremony recommendation adapts based on session outcome history. (C) ceremony_level is deterministic for same inputs. (D) Full ceremony never recommended when k_eff is below 0.15 (harvest emergency overrides). DEPENDS-ON: UAQ-1 (AcquisitionScore type), UAQ-5 (confidence from calibration). ALGEBRAIC: The ceremony recommendation forms a total order over {Full, Standard, Minimal}. The acquisition function selects the maximum. FILE: crates/braid-kernel/src/methodology.rs" :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/id :v "t-7b147c9c" :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/title :v "UAQ-7: Ceremony as acquisition function — learned ceremony level recommendation" :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/title-l0 :v "UAQ-7" :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/title-l1 :v "UAQ-7: Ceremony as acquisition function — learned ceremony level recommenda..." :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/traces-to :v #blake3 "1cc609151c648fe69aa4fd6a018382f9239278f8e2288523f05e63f761c5341a" :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/type :v :task.type/task :op :assert}
+ ]}

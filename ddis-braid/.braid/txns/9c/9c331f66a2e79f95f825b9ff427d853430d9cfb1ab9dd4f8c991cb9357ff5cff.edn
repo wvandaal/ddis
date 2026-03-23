@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774275230/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-SUBSUME: Close ATT-2..7 as subsumed by UAQ — verify each feature covered"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f19109bbc99d14974c463af28405498c2e0d204056b0753c04f3edcf4965a1ef" :a :db/ident :v :task/t-f86bcab5 :op :assert}
+   {:e #blake3 "f19109bbc99d14974c463af28405498c2e0d204056b0753c04f3edcf4965a1ef" :a :task/created-at :v 1774275229 :op :assert}
+   {:e #blake3 "f19109bbc99d14974c463af28405498c2e0d204056b0753c04f3edcf4965a1ef" :a :task/description :v "CONTEXT: The ATT-2 through ATT-7 tasks (Hebbian feedback, task relevance, Bayesian calibration, decay learning, meta-calibration, CLI interface learning) are subsumed by the UAQ. Each ATT feature is a special case of A(t,x): ATT-2 Hebbian = relevance factor boosted by verbose signals. ATT-3 task relevance = relevance factor conditioned on active task. ATT-5 Bayesian calibration = confidence factor from hypothesis outcomes. ATT-6 decay learning = novelty factor decay rate as calibratable parameter. ATT-7 interface learning = meta-calibration of composition weights. APPROACH: After UAQ-3 (block scoring) and UAQ-5 (empirical confidence) are complete, verify each ATT feature is covered: (1) Check that verbose-request signals feed into the relevance factor (ATT-2 equivalent). (2) Check that task-conditioned scoring is in the relevance factor (ATT-3 equivalent). (3) Check that outcome calibration feeds into confidence (ATT-5 equivalent). (4) Close each ATT task with reason 'subsumed by UAQ — [specific UAQ task] covers this'. ACCEPTANCE: (A) ATT-2, ATT-3, ATT-5, ATT-6, ATT-7 tasks closed. (B) Each closure has a specific UAQ task reference. (C) No functionality lost — every ATT feature is demonstrably present in UAQ. DEPENDS-ON: UAQ-3, UAQ-5." :op :assert}
+   {:e #blake3 "f19109bbc99d14974c463af28405498c2e0d204056b0753c04f3edcf4965a1ef" :a :task/id :v "t-f86bcab5" :op :assert}
+   {:e #blake3 "f19109bbc99d14974c463af28405498c2e0d204056b0753c04f3edcf4965a1ef" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f19109bbc99d14974c463af28405498c2e0d204056b0753c04f3edcf4965a1ef" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f19109bbc99d14974c463af28405498c2e0d204056b0753c04f3edcf4965a1ef" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f19109bbc99d14974c463af28405498c2e0d204056b0753c04f3edcf4965a1ef" :a :task/title :v "UAQ-SUBSUME: Close ATT-2..7 as subsumed by UAQ — verify each feature covered" :op :assert}
+   {:e #blake3 "f19109bbc99d14974c463af28405498c2e0d204056b0753c04f3edcf4965a1ef" :a :task/title-l0 :v "UAQ-SUBSUME" :op :assert}
+   {:e #blake3 "f19109bbc99d14974c463af28405498c2e0d204056b0753c04f3edcf4965a1ef" :a :task/title-l1 :v "UAQ-SUBSUME: Close ATT-2..7 as subsumed by UAQ — verify each feature covered" :op :assert}
+   {:e #blake3 "f19109bbc99d14974c463af28405498c2e0d204056b0753c04f3edcf4965a1ef" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "f19109bbc99d14974c463af28405498c2e0d204056b0753c04f3edcf4965a1ef" :a :task/type :v :task.type/task :op :assert}
+ ]}

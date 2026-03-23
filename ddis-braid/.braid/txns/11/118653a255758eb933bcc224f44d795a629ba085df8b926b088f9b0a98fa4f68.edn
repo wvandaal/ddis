@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774275168/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DOGFOOD-1: External project setup — init braid on Go CLI with measurement baseline"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9ea72a72d06ba05d8951369d5c403d91621a55218661e2a16a6e61bd8ead127f" :a :db/ident :v :task/t-0bee0f20 :op :assert}
+   {:e #blake3 "9ea72a72d06ba05d8951369d5c403d91621a55218661e2a16a6e61bd8ead127f" :a :task/created-at :v 1774275167 :op :assert}
+   {:e #blake3 "9ea72a72d06ba05d8951369d5c403d91621a55218661e2a16a6e61bd8ead127f" :a :task/description :v "CONTEXT: Before the external dog-food sessions, we need a project to dog-food ON and a measurement protocol. APPROACH: (1) Select project: ../ddis-cli/ (Go CLI, 62.5K LOC, known domain) OR a fresh project (validates zero-knowledge onboarding). Recommendation: Go CLI first (known domain = controlled experiment), then fresh project if Go CLI succeeds. (2) Build braid release with UAQ-enabled code. (3) Run braid init in the target project directory. (4) Verify: braid status produces meaningful output on first run (not empty store syndrome). (5) Create a measurement baseline: record initial F(S), initial mean prediction error (should be 1.0/bootstrap), initial task count. ACCEPTANCE: (A) External project has braid store initialized. (B) braid status produces non-trivial output. (C) Baseline measurements recorded as datoms in braid's OWN store (meta-tracking). FILE: The external project directory." :op :assert}
+   {:e #blake3 "9ea72a72d06ba05d8951369d5c403d91621a55218661e2a16a6e61bd8ead127f" :a :task/id :v "t-0bee0f20" :op :assert}
+   {:e #blake3 "9ea72a72d06ba05d8951369d5c403d91621a55218661e2a16a6e61bd8ead127f" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "9ea72a72d06ba05d8951369d5c403d91621a55218661e2a16a6e61bd8ead127f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9ea72a72d06ba05d8951369d5c403d91621a55218661e2a16a6e61bd8ead127f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9ea72a72d06ba05d8951369d5c403d91621a55218661e2a16a6e61bd8ead127f" :a :task/title :v "DOGFOOD-1: External project setup — init braid on Go CLI with measurement baseline" :op :assert}
+   {:e #blake3 "9ea72a72d06ba05d8951369d5c403d91621a55218661e2a16a6e61bd8ead127f" :a :task/title-l0 :v "DOGFOOD-1" :op :assert}
+   {:e #blake3 "9ea72a72d06ba05d8951369d5c403d91621a55218661e2a16a6e61bd8ead127f" :a :task/title-l1 :v "DOGFOOD-1: External project setup — init braid on Go CLI with measurement b..." :op :assert}
+   {:e #blake3 "9ea72a72d06ba05d8951369d5c403d91621a55218661e2a16a6e61bd8ead127f" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "9ea72a72d06ba05d8951369d5c403d91621a55218661e2a16a6e61bd8ead127f" :a :task/type :v :task.type/task :op :assert}
+ ]}

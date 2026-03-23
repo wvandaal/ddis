@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774275107/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-8: Harvest urgency as acquisition function — learned harvest timing"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "755a38240f5fdd619de487d0493fbaaebb2ee5143438451e343b98f830a02bd4" :a :db/ident :v :task/t-15861543 :op :assert}
+   {:e #blake3 "755a38240f5fdd619de487d0493fbaaebb2ee5143438451e343b98f830a02bd4" :a :task/created-at :v 1774275106 :op :assert}
+   {:e #blake3 "755a38240f5fdd619de487d0493fbaaebb2ee5143438451e343b98f830a02bd4" :a :task/description :v "CONTEXT: harvest_urgency_multi in methodology.rs uses 4 signals combined via max(). Under UAQ, harvest timing is a RECOMMENDATION: 'should the agent harvest now?' This is scored like any other item. APPROACH: (1) Model the harvest-now action as an item. AcquisitionScore: impact = urgency_multi (how much coherence is at risk if we don't harvest), relevance = 1.0 (always relevant), novelty = 1.0 (harvesting is always a unique event), confidence = calibrated from past harvest timing outcomes (did harvesting at this urgency level preserve more knowledge than not harvesting?). (2) The harvest recommendation competes with task recommendations in the unified ranking. If harvest scores higher than the top task, the system recommends harvesting instead of working. (3) This replaces the static urgency threshold with a learned threshold. (4) The harvest warning in the footer becomes: 'next action: braid harvest --commit (score: 0.87, above top task score 0.72)' — quantified competition. ACCEPTANCE: (A) Harvest recommendation appears in the same ranked list as task recommendations. (B) Harvest timing adapts based on outcome history. (C) False-positive harvest warnings (NAG bug class) are eliminated by calibration. (D) harvest_urgency_multi is still available as the impact input — not replaced. DEPENDS-ON: UAQ-1, UAQ-5. FILE: crates/braid-kernel/src/methodology.rs + crates/braid-kernel/src/routing.rs" :op :assert}
+   {:e #blake3 "755a38240f5fdd619de487d0493fbaaebb2ee5143438451e343b98f830a02bd4" :a :task/id :v "t-15861543" :op :assert}
+   {:e #blake3 "755a38240f5fdd619de487d0493fbaaebb2ee5143438451e343b98f830a02bd4" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "755a38240f5fdd619de487d0493fbaaebb2ee5143438451e343b98f830a02bd4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "755a38240f5fdd619de487d0493fbaaebb2ee5143438451e343b98f830a02bd4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "755a38240f5fdd619de487d0493fbaaebb2ee5143438451e343b98f830a02bd4" :a :task/title :v "UAQ-8: Harvest urgency as acquisition function — learned harvest timing" :op :assert}
+   {:e #blake3 "755a38240f5fdd619de487d0493fbaaebb2ee5143438451e343b98f830a02bd4" :a :task/title-l0 :v "UAQ-8" :op :assert}
+   {:e #blake3 "755a38240f5fdd619de487d0493fbaaebb2ee5143438451e343b98f830a02bd4" :a :task/title-l1 :v "UAQ-8: Harvest urgency as acquisition function — learned harvest timing" :op :assert}
+   {:e #blake3 "755a38240f5fdd619de487d0493fbaaebb2ee5143438451e343b98f830a02bd4" :a :task/traces-to :v #blake3 "1cc609151c648fe69aa4fd6a018382f9239278f8e2288523f05e63f761c5341a" :op :assert}
+   {:e #blake3 "755a38240f5fdd619de487d0493fbaaebb2ee5143438451e343b98f830a02bd4" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "755a38240f5fdd619de487d0493fbaaebb2ee5143438451e343b98f830a02bd4" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774275211/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DOGFOOD-3: Analysis and verdict — empirical validation of UAQ hypothesis"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aeac43651d4abc5f37c5179ccc955b80a9ed57ad5fa159ba923cb7e1765177dc" :a :db/ident :v :task/t-fe646c79 :op :assert}
+   {:e #blake3 "aeac43651d4abc5f37c5179ccc955b80a9ed57ad5fa159ba923cb7e1765177dc" :a :task/created-at :v 1774275210 :op :assert}
+   {:e #blake3 "aeac43651d4abc5f37c5179ccc955b80a9ed57ad5fa159ba923cb7e1765177dc" :a :task/description :v "CONTEXT: After 3 external sessions, analyze the data and draw conclusions. This is the empirical verdict on the UAQ hypothesis. APPROACH: (1) Collect all calibration data from external store. (2) Compute: mean_error trend across sessions, per-type error breakdown, composition quality (product vs what we'd get with weighted-sum on same data). (3) Compare to braid self-development baseline: 36 sessions to reach mean_error 0.224. External should reach < 0.15 in 3 sessions if UAQ hypothesis is correct. (4) Identify: what worked (which recommendation types had lowest error?), what failed (which had highest?), what surprised us (unexpected patterns?). (5) Crystallize findings as ADR-FOUNDATION-026 (UAQ Empirical Validation). Include: yes/no verdict, evidence, adjustments needed. (6) If verdict is NO: document why, identify which of the four factors failed, propose architectural revision. (7) If verdict is YES: plan Phase E (daemon, active observer) with confidence that the core architecture is validated. ACCEPTANCE: (A) ADR-FOUNDATION-026 crystallized with empirical data. (B) Clear yes/no verdict on UAQ hypothesis. (C) If yes: next phase planned. If no: revision path documented. DEPENDS-ON: DOGFOOD-2." :op :assert}
+   {:e #blake3 "aeac43651d4abc5f37c5179ccc955b80a9ed57ad5fa159ba923cb7e1765177dc" :a :task/id :v "t-fe646c79" :op :assert}
+   {:e #blake3 "aeac43651d4abc5f37c5179ccc955b80a9ed57ad5fa159ba923cb7e1765177dc" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "aeac43651d4abc5f37c5179ccc955b80a9ed57ad5fa159ba923cb7e1765177dc" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "aeac43651d4abc5f37c5179ccc955b80a9ed57ad5fa159ba923cb7e1765177dc" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "aeac43651d4abc5f37c5179ccc955b80a9ed57ad5fa159ba923cb7e1765177dc" :a :task/title :v "DOGFOOD-3: Analysis and verdict — empirical validation of UAQ hypothesis" :op :assert}
+   {:e #blake3 "aeac43651d4abc5f37c5179ccc955b80a9ed57ad5fa159ba923cb7e1765177dc" :a :task/title-l0 :v "DOGFOOD-3" :op :assert}
+   {:e #blake3 "aeac43651d4abc5f37c5179ccc955b80a9ed57ad5fa159ba923cb7e1765177dc" :a :task/title-l1 :v "DOGFOOD-3: Analysis and verdict — empirical validation of UAQ hypothesis" :op :assert}
+   {:e #blake3 "aeac43651d4abc5f37c5179ccc955b80a9ed57ad5fa159ba923cb7e1765177dc" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "aeac43651d4abc5f37c5179ccc955b80a9ed57ad5fa159ba923cb7e1765177dc" :a :task/type :v :task.type/task :op :assert}
+ ]}

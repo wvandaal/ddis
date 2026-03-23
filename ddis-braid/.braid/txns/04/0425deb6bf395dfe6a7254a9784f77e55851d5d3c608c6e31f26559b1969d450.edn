@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774275127/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-9: Composition operator empirical validation — product vs weighted-sum A/B test"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9fda67c48e664e48fa2f8b11795234c0d138fdc17a74f189d6421ed14deb2c5a" :a :db/ident :v :task/t-f63665e2 :op :assert}
+   {:e #blake3 "9fda67c48e664e48fa2f8b11795234c0d138fdc17a74f189d6421ed14deb2c5a" :a :task/created-at :v 1774275126 :op :assert}
+   {:e #blake3 "9fda67c48e664e48fa2f8b11795234c0d138fdc17a74f189d6421ed14deb2c5a" :a :task/description :v "CONTEXT: The acquisition function uses product composition: A = impact * relevance * novelty * confidence. This is asserted but not empirically validated. Alternative: weighted sum A = w1*impact + w2*relevance + w3*novelty + w4*confidence. Product has the veto property (any zero factor zeroes the result). Weighted sum has the compensation property (high score in one factor can compensate low in another). QUESTION: Which composition is better for real-world recommendations? APPROACH: (1) Implement BOTH compositions behind a feature flag or config datom :policy/acquisition-composition with values 'product' or 'weighted-sum'. Default: product. (2) During external dog-food, run 2 sessions with product, 2 with weighted-sum. (3) Measure: mean prediction error, productive action rate, F(S) convergence per composition. (4) The winner becomes the default. Record as ADR-FOUNDATION-026 (Composition Operator Selection). FORMAL JUSTIFICATION for product as default: Each factor represents a NECESSARY condition for information value. Relevance AND novelty AND impact AND confidence must all be non-zero. This is a conjunctive requirement. Product is the natural operator for conjunctive requirements (AND maps to multiplication in probability). Weighted sum would be appropriate for disjunctive requirements (OR). ACCEPTANCE: (A) Both compositions are selectable. (B) Empirical comparison data from external dog-food. (C) ADR-FOUNDATION-026 crystallized with winner and evidence. DEPENDS-ON: UAQ-1 (type must support both). FILE: crates/braid-kernel/src/budget.rs (AcquisitionScore::composite computation)" :op :assert}
+   {:e #blake3 "9fda67c48e664e48fa2f8b11795234c0d138fdc17a74f189d6421ed14deb2c5a" :a :task/id :v "t-f63665e2" :op :assert}
+   {:e #blake3 "9fda67c48e664e48fa2f8b11795234c0d138fdc17a74f189d6421ed14deb2c5a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9fda67c48e664e48fa2f8b11795234c0d138fdc17a74f189d6421ed14deb2c5a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9fda67c48e664e48fa2f8b11795234c0d138fdc17a74f189d6421ed14deb2c5a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9fda67c48e664e48fa2f8b11795234c0d138fdc17a74f189d6421ed14deb2c5a" :a :task/title :v "UAQ-9: Composition operator empirical validation — product vs weighted-sum A/B test" :op :assert}
+   {:e #blake3 "9fda67c48e664e48fa2f8b11795234c0d138fdc17a74f189d6421ed14deb2c5a" :a :task/title-l0 :v "UAQ-9" :op :assert}
+   {:e #blake3 "9fda67c48e664e48fa2f8b11795234c0d138fdc17a74f189d6421ed14deb2c5a" :a :task/title-l1 :v "UAQ-9: Composition operator empirical validation — product vs weighted-sum..." :op :assert}
+   {:e #blake3 "9fda67c48e664e48fa2f8b11795234c0d138fdc17a74f189d6421ed14deb2c5a" :a :task/traces-to :v #blake3 "1cc609151c648fe69aa4fd6a018382f9239278f8e2288523f05e63f761c5341a" :op :assert}
+   {:e #blake3 "9fda67c48e664e48fa2f8b11795234c0d138fdc17a74f189d6421ed14deb2c5a" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "9fda67c48e664e48fa2f8b11795234c0d138fdc17a74f189d6421ed14deb2c5a" :a :task/type :v :task.type/task :op :assert}
+ ]}

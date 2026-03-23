@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774275067/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-FOUNDATION-010 \"Acquisition Function Composition — A(t,x) is the unique scoring function for all recommendation types\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "108f452aea5be3844ebb07f19be9996224fe58415e7a2b551e37ad974f8342e6" :a :db/ident :v :task/t-fc8f377d :op :assert}
+   {:e #blake3 "108f452aea5be3844ebb07f19be9996224fe58415e7a2b551e37ad974f8342e6" :a :task/created-at :v 1774275066 :op :assert}
+   {:e #blake3 "108f452aea5be3844ebb07f19be9996224fe58415e7a2b551e37ad974f8342e6" :a :task/id :v "t-fc8f377d" :op :assert}
+   {:e #blake3 "108f452aea5be3844ebb07f19be9996224fe58415e7a2b551e37ad974f8342e6" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "108f452aea5be3844ebb07f19be9996224fe58415e7a2b551e37ad974f8342e6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "108f452aea5be3844ebb07f19be9996224fe58415e7a2b551e37ad974f8342e6" :a :task/title :v "Implement INV-FOUNDATION-010: Acquisition Function Composition — A(t,x) is the unique scoring function for all recommendation types" :op :assert}
+   {:e #blake3 "108f452aea5be3844ebb07f19be9996224fe58415e7a2b551e37ad974f8342e6" :a :task/traces-to :v #blake3 "969df6df554cbe7477d8bba8ee5bc7b4801b307d500e9ec28fee31a30e268e14" :op :assert}
+   {:e #blake3 "108f452aea5be3844ebb07f19be9996224fe58415e7a2b551e37ad974f8342e6" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "969df6df554cbe7477d8bba8ee5bc7b4801b307d500e9ec28fee31a30e268e14" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "969df6df554cbe7477d8bba8ee5bc7b4801b307d500e9ec28fee31a30e268e14" :a :comonad/falsification :v #blake3 "9b104aa572ec6e23c44e298951997f8c20f6707d112d0ba985f546b5d1a101cf" :op :assert}
+   {:e #blake3 "969df6df554cbe7477d8bba8ee5bc7b4801b307d500e9ec28fee31a30e268e14" :a :db/doc :v "Acquisition Function Composition — A(t,x) is the unique scoring function for all recommendation types" :op :assert}
+   {:e #blake3 "969df6df554cbe7477d8bba8ee5bc7b4801b307d500e9ec28fee31a30e268e14" :a :db/ident :v :spec/inv-foundation-010 :op :assert}
+   {:e #blake3 "969df6df554cbe7477d8bba8ee5bc7b4801b307d500e9ec28fee31a30e268e14" :a :element/traces-to :v "ADR-FOUNDATION-025" :op :assert}
+   {:e #blake3 "969df6df554cbe7477d8bba8ee5bc7b4801b307d500e9ec28fee31a30e268e14" :a :spec/confidence :v 0.88 :op :assert}
+   {:e #blake3 "969df6df554cbe7477d8bba8ee5bc7b4801b307d500e9ec28fee31a30e268e14" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "969df6df554cbe7477d8bba8ee5bc7b4801b307d500e9ec28fee31a30e268e14" :a :spec/falsification :v "Violated if two items x,y with identical factor values produce different scores, or if increasing one factor while holding others fixed decreases the score, or if a non-zero factor combination produces zero score when no individual factor is zero." :op :assert}
+   {:e #blake3 "969df6df554cbe7477d8bba8ee5bc7b4801b307d500e9ec28fee31a30e268e14" :a :spec/id :v "INV-FOUNDATION-010" :op :assert}
+   {:e #blake3 "969df6df554cbe7477d8bba8ee5bc7b4801b307d500e9ec28fee31a30e268e14" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "969df6df554cbe7477d8bba8ee5bc7b4801b307d500e9ec28fee31a30e268e14" :a :spec/statement :v "For any item x (task, context block, boundary, ceremony level, harvest trigger) at time t, the acquisition score A(t,x) = f(impact(x), relevance(x,task_t), novelty(x,session_t), confidence(x,history_t)) where f is a composition operator satisfying: (1) Monotonicity — A is monotonically non-decreasing in each factor when others held constant. (2) Veto — if any factor is zero, A is zero. (3) Determinism — same inputs produce same output. (4) Commutativity of factor ordering — f(a,b,c,d) = f(perm(a,b,c,d)) for any permutation." :op :assert}
+   {:e #blake3 "9b104aa572ec6e23c44e298951997f8c20f6707d112d0ba985f546b5d1a101cf" :a :db/doc :v "Violated if two items x,y with identical factor values produce different scores, or if increasing one factor while holding others fixed decreases the score, or if a non-zero factor combination produces zero score when no individual factor is zero." :op :assert}
+ ]}
