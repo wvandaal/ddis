@@ -560,13 +560,29 @@ impl ActionProjection {
     pub fn project(&self, context_budget: usize) -> String {
         let mut out = format!("{}\n", self.action);
         let mut remaining = context_budget;
+        let mut omitted: Vec<&str> = Vec::new();
 
         for block in &self.context {
             if block.tokens <= remaining {
                 out.push_str(&block.content);
                 out.push('\n');
                 remaining = remaining.saturating_sub(block.tokens);
+            } else {
+                // Extract a short label from the block content for the omission summary.
+                // Uses the prefix before the first ':' or space, capped at 20 chars.
+                let label = block
+                    .content
+                    .split_once(':')
+                    .map(|(prefix, _)| prefix.trim())
+                    .or_else(|| block.content.split_whitespace().next())
+                    .unwrap_or("...");
+                omitted.push(label);
             }
+        }
+
+        // Pyramid disclosure: tell the LLM what was omitted and how to access it.
+        if !omitted.is_empty() {
+            out.push_str(&format!("[+{} omitted: {}]\n", omitted.len(), omitted.join(", ")));
         }
 
         if !self.evidence_pointer.is_empty() {
@@ -2130,14 +2146,14 @@ mod tests {
         let at_15 = proj.project(15);
         let at_50 = proj.project(50);
 
-        // Budget=5: includes BLOCK-A (5 tokens)
+        // Budget=5: includes BLOCK-A (5 tokens), discloses omitted B+C
         assert!(at_5.contains("BLOCK-A"), "budget=5 should include BLOCK-A");
         assert!(
-            !at_5.contains("BLOCK-B"),
-            "budget=5 should not include BLOCK-B"
+            at_5.contains("[+2 omitted:"),
+            "budget=5 should disclose 2 omitted blocks"
         );
 
-        // Budget=15: includes BLOCK-A + BLOCK-B
+        // Budget=15: includes BLOCK-A + BLOCK-B, discloses omitted C
         assert!(
             at_15.contains("BLOCK-A"),
             "budget=15 should include BLOCK-A"
@@ -2147,11 +2163,11 @@ mod tests {
             "budget=15 should include BLOCK-B"
         );
         assert!(
-            !at_15.contains("BLOCK-C"),
-            "budget=15 should not include BLOCK-C"
+            at_15.contains("[+1 omitted:"),
+            "budget=15 should disclose 1 omitted block"
         );
 
-        // Budget=50: includes all blocks
+        // Budget=50: includes all blocks, no omission disclosure
         assert!(
             at_50.contains("BLOCK-A"),
             "budget=50 should include BLOCK-A"
@@ -2163,6 +2179,10 @@ mod tests {
         assert!(
             at_50.contains("BLOCK-C"),
             "budget=50 should include BLOCK-C"
+        );
+        assert!(
+            !at_50.contains("[+"),
+            "budget=50 should have no omission disclosure"
         );
     }
 
