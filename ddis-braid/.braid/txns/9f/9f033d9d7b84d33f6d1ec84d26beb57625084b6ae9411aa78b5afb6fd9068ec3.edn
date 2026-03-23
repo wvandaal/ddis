@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774228770/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXT-3: ACFS observer ensemble — register cass, cm, and braid itself as extractors. :extractor/cass (command: cass search --robot, produces: :session/*, category: :category/history). :extractor/cm (command: cm context --json, produces: :methodology/*, category: :category/behavior). :extractor/braid-self (command: braid status --format json, produces: :coherence/*, category: :category/self-knowledge). The flywheel IS the observation apparatus. FILE: crates/braid/src/commands/init.rs (add to meta-extractor)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2e954fa2ba7185deebcc578f82bfd8e2a4d275defeedf84b7709724643d0aff0" :a :db/ident :v :task/t-2fa60ecb :op :assert}
+   {:e #blake3 "2e954fa2ba7185deebcc578f82bfd8e2a4d275defeedf84b7709724643d0aff0" :a :task/created-at :v 1774228769 :op :assert}
+   {:e #blake3 "2e954fa2ba7185deebcc578f82bfd8e2a4d275defeedf84b7709724643d0aff0" :a :task/files :v "crates/braid/src/commands/init.rs (add to meta-extractor)" :op :assert}
+   {:e #blake3 "2e954fa2ba7185deebcc578f82bfd8e2a4d275defeedf84b7709724643d0aff0" :a :task/id :v "t-2fa60ecb" :op :assert}
+   {:e #blake3 "2e954fa2ba7185deebcc578f82bfd8e2a4d275defeedf84b7709724643d0aff0" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "2e954fa2ba7185deebcc578f82bfd8e2a4d275defeedf84b7709724643d0aff0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2e954fa2ba7185deebcc578f82bfd8e2a4d275defeedf84b7709724643d0aff0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2e954fa2ba7185deebcc578f82bfd8e2a4d275defeedf84b7709724643d0aff0" :a :task/title :v "EXT-3: ACFS observer ensemble — register cass, cm, and braid itself as extractors. :extractor/cass (command: cass search --robot, produces: :session/*, category: :category/history). :extractor/cm (command: cm context --json, produces: :methodology/*, category: :category/behavior). :extractor/braid-self (command: braid status --format json, produces: :coherence/*, category: :category/self-knowledge). The flywheel IS the observation apparatus. FILE: crates/braid/src/commands/init.rs (add to meta-extractor)" :op :assert}
+   {:e #blake3 "2e954fa2ba7185deebcc578f82bfd8e2a4d275defeedf84b7709724643d0aff0" :a :task/title-l0 :v "EXT-3" :op :assert}
+   {:e #blake3 "2e954fa2ba7185deebcc578f82bfd8e2a4d275defeedf84b7709724643d0aff0" :a :task/title-l1 :v "EXT-3: ACFS observer ensemble — register cass, cm, and braid itself as extr..." :op :assert}
+   {:e #blake3 "2e954fa2ba7185deebcc578f82bfd8e2a4d275defeedf84b7709724643d0aff0" :a :task/type :v :task.type/task :op :assert}
+ ]}

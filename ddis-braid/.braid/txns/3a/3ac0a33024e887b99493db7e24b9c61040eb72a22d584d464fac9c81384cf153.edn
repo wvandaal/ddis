@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774228772/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CACHE-BUG: Task creation writes txn file but incremental cache doesn't pick up new files on same-process reload. Tasks persist on disk but aren't visible until cache is invalidated (rm .braid/.cache/store.bin). Root cause: read_index_cache_with_hashes() delta-apply computes hash set from cached meta.json, but new txns written AFTER cache load don't appear in the delta. FIX: either (1) invalidate cache when write_tx() is called, or (2) track latest-write-timestamp and re-check on load. FILE: crates/braid/src/layout.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2ca601a477b1b0a09e2d1821e88d3f12d2e040f9b0c710446a89373d602b8d2b" :a :db/ident :v :task/t-03fd2cd5 :op :assert}
+   {:e #blake3 "2ca601a477b1b0a09e2d1821e88d3f12d2e040f9b0c710446a89373d602b8d2b" :a :task/created-at :v 1774228771 :op :assert}
+   {:e #blake3 "2ca601a477b1b0a09e2d1821e88d3f12d2e040f9b0c710446a89373d602b8d2b" :a :task/files :v "crates/braid/src/layout.rs" :op :assert}
+   {:e #blake3 "2ca601a477b1b0a09e2d1821e88d3f12d2e040f9b0c710446a89373d602b8d2b" :a :task/id :v "t-03fd2cd5" :op :assert}
+   {:e #blake3 "2ca601a477b1b0a09e2d1821e88d3f12d2e040f9b0c710446a89373d602b8d2b" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "2ca601a477b1b0a09e2d1821e88d3f12d2e040f9b0c710446a89373d602b8d2b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2ca601a477b1b0a09e2d1821e88d3f12d2e040f9b0c710446a89373d602b8d2b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2ca601a477b1b0a09e2d1821e88d3f12d2e040f9b0c710446a89373d602b8d2b" :a :task/title :v "CACHE-BUG: Task creation writes txn file but incremental cache doesn't pick up new files on same-process reload. Tasks persist on disk but aren't visible until cache is invalidated (rm .braid/.cache/store.bin). Root cause: read_index_cache_with_hashes() delta-apply computes hash set from cached meta.json, but new txns written AFTER cache load don't appear in the delta. FIX: either (1) invalidate cache when write_tx() is called, or (2) track latest-write-timestamp and re-check on load. FILE: crates/braid/src/layout.rs" :op :assert}
+   {:e #blake3 "2ca601a477b1b0a09e2d1821e88d3f12d2e040f9b0c710446a89373d602b8d2b" :a :task/title-l0 :v "CACHE-BUG" :op :assert}
+   {:e #blake3 "2ca601a477b1b0a09e2d1821e88d3f12d2e040f9b0c710446a89373d602b8d2b" :a :task/title-l1 :v "CACHE-BUG: Task creation writes txn file but incremental cache doesn't pick u..." :op :assert}
+   {:e #blake3 "2ca601a477b1b0a09e2d1821e88d3f12d2e040f9b0c710446a89373d602b8d2b" :a :task/type :v :task.type/bug :op :assert}
+ ]}

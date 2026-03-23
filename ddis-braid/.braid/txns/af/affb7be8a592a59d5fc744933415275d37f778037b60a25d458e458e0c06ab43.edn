@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774228766/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXT-1: External Utility boundary (E-component) — add 8th F(S) component measuring outcomes the system cannot game. Three signals: (1) user follow-through rate (did the agent do what braid next recommended? tracked via :hypothesis/followed Boolean), (2) external test outcomes (did cargo test pass/fail AFTER implementing the recommendation? tracked via CI extractor), (3) cross-project transfer (does a calibrated policy improve F(S) on a DIFFERENT project?). The E-component can only be satisfied by real-world outcomes, not internal datom manipulation. Weight: 0.10 (same as H and U). When E-data is unavailable (cold start), component is unmeasured (not penalized). FILE: crates/braid-kernel/src/bilateral.rs + policy.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0c5adb9af2f3c139a77478a8338408cea622bc22b1582b7abbf857c9bed8a513" :a :db/ident :v :task/t-339cabd5 :op :assert}
+   {:e #blake3 "0c5adb9af2f3c139a77478a8338408cea622bc22b1582b7abbf857c9bed8a513" :a :task/created-at :v 1774228765 :op :assert}
+   {:e #blake3 "0c5adb9af2f3c139a77478a8338408cea622bc22b1582b7abbf857c9bed8a513" :a :task/files :v "crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "0c5adb9af2f3c139a77478a8338408cea622bc22b1582b7abbf857c9bed8a513" :a :task/id :v "t-339cabd5" :op :assert}
+   {:e #blake3 "0c5adb9af2f3c139a77478a8338408cea622bc22b1582b7abbf857c9bed8a513" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "0c5adb9af2f3c139a77478a8338408cea622bc22b1582b7abbf857c9bed8a513" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0c5adb9af2f3c139a77478a8338408cea622bc22b1582b7abbf857c9bed8a513" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0c5adb9af2f3c139a77478a8338408cea622bc22b1582b7abbf857c9bed8a513" :a :task/title :v "EXT-1: External Utility boundary (E-component) — add 8th F(S) component measuring outcomes the system cannot game. Three signals: (1) user follow-through rate (did the agent do what braid next recommended? tracked via :hypothesis/followed Boolean), (2) external test outcomes (did cargo test pass/fail AFTER implementing the recommendation? tracked via CI extractor), (3) cross-project transfer (does a calibrated policy improve F(S) on a DIFFERENT project?). The E-component can only be satisfied by real-world outcomes, not internal datom manipulation. Weight: 0.10 (same as H and U). When E-data is unavailable (cold start), component is unmeasured (not penalized). FILE: crates/braid-kernel/src/bilateral.rs + policy.rs" :op :assert}
+   {:e #blake3 "0c5adb9af2f3c139a77478a8338408cea622bc22b1582b7abbf857c9bed8a513" :a :task/title-l0 :v "EXT-1" :op :assert}
+   {:e #blake3 "0c5adb9af2f3c139a77478a8338408cea622bc22b1582b7abbf857c9bed8a513" :a :task/title-l1 :v "EXT-1: External Utility boundary (E-component) — add 8th F(S) component mea..." :op :assert}
+   {:e #blake3 "0c5adb9af2f3c139a77478a8338408cea622bc22b1582b7abbf857c9bed8a513" :a :task/type :v :task.type/task :op :assert}
+ ]}

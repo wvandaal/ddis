@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774228768/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXT-2: Cross-project validation protocol — deploy braid on a non-braid project (React app, data pipeline, or research repo). Measure: (1) does braid init detect language correctly, (2) does braid extract produce meaningful component datoms, (3) does braid observe capture useful knowledge, (4) does braid status provide actionable guidance, (5) does the human find it useful (qualitative). This is THE ultimate falsification test for C8 substrate independence. If braid only works on braid, the architecture is overfitted. FILE: scripts/e2e_cross_project.sh + docs/validation/"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5e810f37e46d484b7113346f92cd2c03e1bcda723f773ca263d9183c9594a6d6" :a :db/ident :v :task/t-cfcd5329 :op :assert}
+   {:e #blake3 "5e810f37e46d484b7113346f92cd2c03e1bcda723f773ca263d9183c9594a6d6" :a :task/created-at :v 1774228767 :op :assert}
+   {:e #blake3 "5e810f37e46d484b7113346f92cd2c03e1bcda723f773ca263d9183c9594a6d6" :a :task/files :v "docs/validation/" :op :assert}
+   {:e #blake3 "5e810f37e46d484b7113346f92cd2c03e1bcda723f773ca263d9183c9594a6d6" :a :task/files :v "scripts/e2e_cross_project.sh" :op :assert}
+   {:e #blake3 "5e810f37e46d484b7113346f92cd2c03e1bcda723f773ca263d9183c9594a6d6" :a :task/id :v "t-cfcd5329" :op :assert}
+   {:e #blake3 "5e810f37e46d484b7113346f92cd2c03e1bcda723f773ca263d9183c9594a6d6" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5e810f37e46d484b7113346f92cd2c03e1bcda723f773ca263d9183c9594a6d6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5e810f37e46d484b7113346f92cd2c03e1bcda723f773ca263d9183c9594a6d6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5e810f37e46d484b7113346f92cd2c03e1bcda723f773ca263d9183c9594a6d6" :a :task/title :v "EXT-2: Cross-project validation protocol — deploy braid on a non-braid project (React app, data pipeline, or research repo). Measure: (1) does braid init detect language correctly, (2) does braid extract produce meaningful component datoms, (3) does braid observe capture useful knowledge, (4) does braid status provide actionable guidance, (5) does the human find it useful (qualitative). This is THE ultimate falsification test for C8 substrate independence. If braid only works on braid, the architecture is overfitted. FILE: scripts/e2e_cross_project.sh + docs/validation/" :op :assert}
+   {:e #blake3 "5e810f37e46d484b7113346f92cd2c03e1bcda723f773ca263d9183c9594a6d6" :a :task/title-l0 :v "EXT-2" :op :assert}
+   {:e #blake3 "5e810f37e46d484b7113346f92cd2c03e1bcda723f773ca263d9183c9594a6d6" :a :task/title-l1 :v "EXT-2: Cross-project validation protocol — deploy braid on a non-braid proj..." :op :assert}
+   {:e #blake3 "5e810f37e46d484b7113346f92cd2c03e1bcda723f773ca263d9183c9594a6d6" :a :task/type :v :task.type/task :op :assert}
+ ]}
