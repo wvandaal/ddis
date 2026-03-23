@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774302075/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-238ea707"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :task/close-reason :v "Implemented Session 038: ContextBlock::new_scored added to budget.rs, 89 attention:None replaced across 15 files by 3 parallel agents. 2 intentional None preserved (test + doc). Commit 669a432c." :op :assert}
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :task/closed-at :v 1774302074 :op :assert}
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :task/status :v :task.status/closed :op :assert}
+ ]}
