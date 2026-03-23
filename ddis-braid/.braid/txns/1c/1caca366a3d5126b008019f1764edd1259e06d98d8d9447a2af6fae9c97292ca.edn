@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774252989/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :derived
+ :tx/rationale "HL-3: hypothesis outcome for t-c50b4184"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "58aff77b6381bd851fd960d2de8411a862d0b6a71a57acc2a80154f38a7ce69e" :a :hypothesis/actual :v 0.0000006239782356365353 :op :assert}
+   {:e #blake3 "58aff77b6381bd851fd960d2de8411a862d0b6a71a57acc2a80154f38a7ce69e" :a :hypothesis/completed :v #inst 1774252988 :op :assert}
+   {:e #blake3 "58aff77b6381bd851fd960d2de8411a862d0b6a71a57acc2a80154f38a7ce69e" :a :hypothesis/error :v 0.1081366284381306 :op :assert}
+ ]}
