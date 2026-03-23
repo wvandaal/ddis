@@ -11,6 +11,7 @@
 
 use std::path::Path;
 
+use braid_kernel::bilateral::set_depth_datom;
 use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, Value};
 use braid_kernel::layout::TxFile;
 use braid_kernel::proposal;
@@ -119,7 +120,10 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         ));
     }
 
-    if let Some(fals) = args.falsification {
+    // DC-3: Auto-depth on spec create.
+    // With --falsification: depth=1 (HYPOTHESIS) + falsification criterion entity.
+    // Without: depth=0 (OPINION) + C6 warning.
+    let c6_warning = if let Some(fals) = args.falsification {
         datoms.push(Datom::new(
             entity,
             Attribute::from_keyword(":spec/falsification"),
@@ -127,7 +131,39 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
             tx_id,
             Op::Assert,
         ));
-    }
+
+        // Create falsification criterion entity (same pattern as challenge.rs)
+        let crit_entity = EntityId::from_ident(&format!(
+            ":falsification/{}-{}",
+            args.id.to_lowercase().replace('/', "-"),
+            fals.chars()
+                .take(30)
+                .collect::<String>()
+                .replace(' ', "-")
+        ));
+        datoms.push(Datom::new(
+            crit_entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String(fals.to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":comonad/falsification"),
+            Value::Ref(crit_entity),
+            tx_id,
+            Op::Assert,
+        ));
+
+        // Depth 1 = HYPOTHESIS
+        datoms.push(set_depth_datom(&entity, 1, tx_id));
+        false
+    } else {
+        // Depth 0 = OPINION (no falsification condition)
+        datoms.push(set_depth_datom(&entity, 0, tx_id));
+        true
+    };
 
     if let Some(prob) = args.problem {
         datoms.push(Datom::new(
@@ -265,9 +301,16 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
     } else {
         String::new()
     };
+    let depth = if c6_warning { 0 } else { 1 };
+    let depth_label = if c6_warning { "OPINION" } else { "HYPOTHESIS" };
+    let c6_line = if c6_warning {
+        "\n\u{26a0} C6: no falsification condition \u{2014} entity starts at depth 0 (OPINION)\n"
+    } else {
+        ""
+    };
     let human = format!(
-        "created: {} ({}, namespace={}){task_suffix}\nstore: +{} datoms ({} total)\n\nnext: braid trace --commit (to link implementations) | ref: C5 traceability\n",
-        ident, element_type, namespace, datom_count, total,
+        "created: {} ({}, namespace={}, depth={} {}){task_suffix}\nstore: +{} datoms ({} total)\n{c6_line}\nnext: braid trace --commit (to link implementations) | ref: C5 traceability\n",
+        ident, element_type, namespace, depth, depth_label, datom_count, total,
     );
 
     let mut json = serde_json::json!({
@@ -278,6 +321,9 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         "datom_count": datom_count,
         "store_total": total,
         "auto_task_id": auto_task_id,
+        "comonad_depth": depth,
+        "comonad_depth_label": depth_label,
+        "c6_warning": c6_warning,
     });
 
     // ACP: after creating a spec element, check store state

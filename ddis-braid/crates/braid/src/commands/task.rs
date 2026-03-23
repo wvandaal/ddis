@@ -1277,6 +1277,96 @@ pub fn close(
         }
     }
 
+    // HL-3: Match hypothesis outcomes — close the calibration loop.
+    // For each closed task, find the :hypothesis/action datom referencing it,
+    // then record :hypothesis/actual (ΔF(S)), /error, /completed.
+    {
+        let hyp_action_attr = Attribute::from_keyword(":hypothesis/action");
+        let hyp_actual_attr = Attribute::from_keyword(":hypothesis/actual");
+        let now_wall = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
+        for id in &closed_ids {
+            if let Some(task_entity) = find_task_by_id(&store, id) {
+                // Find hypotheses that predicted this task's outcome
+                // Scan :hypothesis/action datoms for Ref(task_entity)
+                let matching_hypotheses: Vec<braid_kernel::EntityId> = store
+                    .attribute_datoms(&hyp_action_attr)
+                    .iter()
+                    .filter(|d| {
+                        d.op == Op::Assert
+                            && matches!(&d.value, Value::Ref(r) if *r == task_entity)
+                    })
+                    .map(|d| d.entity)
+                    .collect();
+
+                for hyp_entity in matching_hypotheses {
+                    // Skip if already completed (has :hypothesis/actual)
+                    let already_completed = store
+                        .entity_datoms(hyp_entity)
+                        .iter()
+                        .any(|d| d.attribute == hyp_actual_attr && d.op == Op::Assert);
+                    if already_completed {
+                        continue;
+                    }
+
+                    // Get predicted ΔF(S) from the hypothesis
+                    let predicted = store
+                        .entity_datoms(hyp_entity)
+                        .iter()
+                        .find(|d| {
+                            d.attribute.as_str() == ":hypothesis/predicted"
+                                && d.op == Op::Assert
+                        })
+                        .and_then(|d| match &d.value {
+                            Value::Double(v) => Some(v.into_inner()),
+                            _ => None,
+                        })
+                        .unwrap_or(0.0);
+
+                    let error = (predicted - actual_delta).abs();
+
+                    // Transact outcome datoms
+                    let outcome_tx = super::write::next_tx_id(&store, agent_id);
+                    let outcome_datoms = vec![
+                        Datom::new(
+                            hyp_entity,
+                            Attribute::from_keyword(":hypothesis/actual"),
+                            Value::Double(ordered_float::OrderedFloat(actual_delta)),
+                            outcome_tx,
+                            Op::Assert,
+                        ),
+                        Datom::new(
+                            hyp_entity,
+                            Attribute::from_keyword(":hypothesis/error"),
+                            Value::Double(ordered_float::OrderedFloat(error)),
+                            outcome_tx,
+                            Op::Assert,
+                        ),
+                        Datom::new(
+                            hyp_entity,
+                            Attribute::from_keyword(":hypothesis/completed"),
+                            Value::Instant(now_wall),
+                            outcome_tx,
+                            Op::Assert,
+                        ),
+                    ];
+                    let outcome_file = braid_kernel::layout::TxFile {
+                        tx_id: outcome_tx,
+                        agent: agent_id,
+                        provenance: ProvenanceType::Derived,
+                        rationale: format!("HL-3: hypothesis outcome for {id}"),
+                        causal_predecessors: vec![],
+                        datoms: outcome_datoms,
+                    };
+                    let _ = layout.write_tx(&outcome_file);
+                }
+            }
+        }
+    }
+
     let json = serde_json::json!({
         "closed": closed_ids,
         "count": closed_ids.len(),
