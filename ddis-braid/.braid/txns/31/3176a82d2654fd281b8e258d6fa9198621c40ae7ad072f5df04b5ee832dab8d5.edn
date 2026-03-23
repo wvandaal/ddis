@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774310257/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ACP-TRACK-2: Re-enable universal presentation tracking via daemon. ACP-TRACK-1 was descoped to status.rs-only because loading the full store in maybe_inject_footer is O(N) = 30s+. Once the daemon keeps the store hot in memory, universal tracking becomes cheap. APPROACH: (1) When daemon is running, maybe_inject_footer sends tracking request via Unix socket instead of loading store. (2) Daemon processes tracking in <1ms (store already in memory). (3) All 16+ ACP commands now track presentations. (4) When daemon is NOT running, fall back to status.rs-only tracking (current behavior). ACCEPTANCE: (A) With daemon: all commands track presentations (verify via W-alpha query). (B) Without daemon: only status tracks (existing behavior preserved). (C) Tracking latency with daemon: <5ms per command. DEPENDS-ON: PERF-4 (daemon). FILE: crates/braid/src/commands/mod.rs + crates/braid/src/daemon.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :db/ident :v :task/t-c0650b3c :op :assert}
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :task/acceptance :v "(A) With daemon: all commands track presentations (verify via W-alpha query). (B) Without daemon: only status tracks (existing behavior preserved). (C) Tracking latency with daemon: <5ms per command. DEPENDS-ON: PERF-4 (daemon)." :op :assert}
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :task/approach :v "(1) When daemon is running, maybe_inject_footer sends tracking request via Unix socket instead of loading store. (2) Daemon processes tracking in <1ms (store already in memory). (3) All 16+ ACP commands now track presentations. (4) When daemon is NOT running, fall back to status.rs-only tracking (current behavior)." :op :assert}
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :task/body :v "APPROACH: (1) When daemon is running, maybe_inject_footer sends tracking request via Unix socket instead of loading store. (2) Daemon processes tracking in <1ms (store already in memory). (3) All 16+ ACP commands now track presentations. (4) When daemon is NOT running, fall back to status.rs-only tracking (current behavior). ACCEPTANCE: (A) With daemon: all commands track presentations (verify via W-alpha query). (B) Without daemon: only status tracks (existing behavior preserved). (C) Tracking latency with daemon: <5ms per command. DEPENDS-ON: PERF-4 (daemon). FILE: crates/braid/src/commands/mod.rs + crates/braid/src/daemon.rs" :op :assert}
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :task/created-at :v 1774310256 :op :assert}
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :task/files :v "crates/braid/src/commands/mod.rs" :op :assert}
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :task/files :v "crates/braid/src/daemon.rs" :op :assert}
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :task/id :v "t-c0650b3c" :op :assert}
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :task/title :v "ACP-TRACK-2: Re-enable universal presentation tracking via daemon. ACP-TRACK-1 was descoped to status.rs-only because loading the full store in maybe_inject_footer is O(N) = 30s+. Once the daemon keeps the store hot in memory, universal tracking becomes cheap" :op :assert}
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :task/title-l0 :v "ACP-TRACK-2" :op :assert}
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :task/title-l1 :v "ACP-TRACK-2: Re-enable universal presentation tracking via daemon" :op :assert}
+   {:e #blake3 "caf8b3463e93090dbf8f8a17b0a6a25cdb755ed53eb8e083e8334e0b8b42c4f0" :a :task/type :v :task.type/task :op :assert}
+ ]}

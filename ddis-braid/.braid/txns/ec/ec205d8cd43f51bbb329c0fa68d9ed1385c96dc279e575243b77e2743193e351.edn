@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774310217/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b332bdd3d7a674f40e08f1f335fa131a28559e6f0a79944136d5f81082047ff0" :a :db/ident :v :recon/trace-446cc586224b4b90 :op :assert}
+   {:e #blake3 "b332bdd3d7a674f40e08f1f335fa131a28559e6f0a79944136d5f81082047ff0" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "b332bdd3d7a674f40e08f1f335fa131a28559e6f0a79944136d5f81082047ff0" :a :recon/trace-neighborhood :v "FOUNDATION" :op :assert}
+   {:e #blake3 "b332bdd3d7a674f40e08f1f335fa131a28559e6f0a79944136d5f81082047ff0" :a :recon/trace-neighbors :v ":task/t-034c8992" :op :assert}
+   {:e #blake3 "b332bdd3d7a674f40e08f1f335fa131a28559e6f0a79944136d5f81082047ff0" :a :recon/trace-neighbors :v ":task/t-06215eb2" :op :assert}
+   {:e #blake3 "b332bdd3d7a674f40e08f1f335fa131a28559e6f0a79944136d5f81082047ff0" :a :recon/trace-neighbors :v ":task/t-136cbef9" :op :assert}
+   {:e #blake3 "b332bdd3d7a674f40e08f1f335fa131a28559e6f0a79944136d5f81082047ff0" :a :recon/trace-neighbors :v ":task/t-308df6f1" :op :assert}
+   {:e #blake3 "b332bdd3d7a674f40e08f1f335fa131a28559e6f0a79944136d5f81082047ff0" :a :recon/trace-neighbors :v ":task/t-5c8eab95" :op :assert}
+   {:e #blake3 "b332bdd3d7a674f40e08f1f335fa131a28559e6f0a79944136d5f81082047ff0" :a :recon/trace-neighbors :v ":task/t-7007ba04" :op :assert}
+   {:e #blake3 "b332bdd3d7a674f40e08f1f335fa131a28559e6f0a79944136d5f81082047ff0" :a :recon/trace-neighbors :v ":task/t-a13782e8" :op :assert}
+   {:e #blake3 "b332bdd3d7a674f40e08f1f335fa131a28559e6f0a79944136d5f81082047ff0" :a :recon/trace-neighbors :v ":task/t-cd974c3c" :op :assert}
+   {:e #blake3 "b332bdd3d7a674f40e08f1f335fa131a28559e6f0a79944136d5f81082047ff0" :a :recon/trace-neighbors :v ":task/t-e656e270" :op :assert}
+   {:e #blake3 "b332bdd3d7a674f40e08f1f335fa131a28559e6f0a79944136d5f81082047ff0" :a :recon/trace-refs :v "ADR-FOUNDATION-030" :op :assert}
+   {:e #blake3 "b332bdd3d7a674f40e08f1f335fa131a28559e6f0a79944136d5f81082047ff0" :a :recon/trace-refs :v "INV-FOUNDATION-014" :op :assert}
+ ]}
