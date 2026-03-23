@@ -253,30 +253,8 @@ pub fn run(
     let projection =
         build_status_projection(path, &store, &hashes, tx_since_harvest, &snapshot);
 
-    // UAQ-6: Record presentation counts for blocks that survive budget.
-    // Uses Navigate strategy budget (the agent-mode ceiling) to determine
-    // which blocks were "presented". Omitted blocks preserve their novelty.
-    {
-        let budget = braid_kernel::ActivationStrategy::Navigate.max_context_tokens();
-        let labels = braid_kernel::extract_block_labels(&projection.context, budget);
-        if !labels.is_empty() {
-            let label_refs: Vec<&str> = labels.iter().map(|s| s.as_str()).collect();
-            let agent = braid_kernel::datom::AgentId::from_name("braid:attention");
-            let tx = crate::commands::write::next_tx_id(&store, agent);
-            let datoms = braid_kernel::record_block_presentations(&store, &label_refs, tx);
-            if !datoms.is_empty() {
-                let tx_file = braid_kernel::layout::TxFile {
-                    tx_id: tx,
-                    agent,
-                    provenance: braid_kernel::datom::ProvenanceType::Derived,
-                    rationale: "UAQ-6: presentation count tracking".to_string(),
-                    causal_predecessors: vec![],
-                    datoms,
-                };
-                let _ = layout.write_tx(&tx_file); // best-effort
-            }
-        }
-    }
+    // ACP-TRACK-1: Presentation tracking moved to maybe_inject_footer (mod.rs).
+    // All ACP commands now get universal tracking via the _acp JSON field.
 
     // Build human representation
     let human = if verbose {

@@ -330,7 +330,18 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         || lower.starts_with("bug:")
         || lower.starts_with("fix:");
     if !args.no_auto_crystallize && has_action_lang && auto_crystallized.is_none() {
-        let task_title = braid_kernel::task::short_title(args.text).to_string();
+        let task_title_full = braid_kernel::task::short_title(args.text).to_string();
+        // EXT-BUG-3: Truncate to ~80 chars on word boundary for readable task listings.
+        // Full observation text goes into :task/body.
+        let task_title = if task_title_full.len() > 80 {
+            let truncated = &task_title_full[..80];
+            match truncated.rfind(' ') {
+                Some(pos) if pos > 20 => task_title_full[..pos].to_string(),
+                _ => truncated.to_string(),
+            }
+        } else {
+            task_title_full.clone()
+        };
         if task_title.len() >= 5 {
             let task_id = braid_kernel::task::generate_task_id(&task_title);
             let task_ident = format!(":task/{task_id}");
@@ -358,6 +369,16 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
                     tx_id,
                     Op::Assert,
                 ));
+                // EXT-BUG-3: Store full text in :task/body when title was truncated.
+                if task_title_full.len() > 80 {
+                    datoms.push(Datom::new(
+                        task_entity,
+                        Attribute::from_keyword(":task/body"),
+                        Value::String(args.text.to_string()),
+                        tx_id,
+                        Op::Assert,
+                    ));
+                }
                 datoms.push(Datom::new(
                     task_entity,
                     Attribute::from_keyword(":task/status"),

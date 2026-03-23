@@ -500,13 +500,29 @@ fn detect_environment(project_root: &Path) -> Detection {
     // LOC estimate (fast: count .rs/.go/.ts/.py files)
     let total_loc = estimate_loc(project_root);
 
-    // Tool availability
+    // Tool availability — scoped to project directory (EXT-BUG-5).
+    // Only report a build tool as available if its marker file exists in the
+    // project root. Using `which cargo` or `command -v cargo` is wrong: it
+    // finds braid's own toolchain even in a Go-only project.
+    // Git is the exception — it is language-independent.
     let tools = vec![
         ("git", tool_available("git")),
-        ("cargo", tool_available("cargo")),
-        ("go", tool_available("go")),
-        ("npm", tool_available("npm")),
-        ("bun", tool_available("bun")),
+        (
+            "cargo",
+            project_root.join("Cargo.toml").is_file() && tool_available("cargo"),
+        ),
+        (
+            "go",
+            project_root.join("go.mod").is_file() && tool_available("go"),
+        ),
+        (
+            "npm",
+            project_root.join("package.json").is_file() && tool_available("npm"),
+        ),
+        (
+            "bun",
+            project_root.join("package.json").is_file() && tool_available("bun"),
+        ),
     ];
 
     Detection {
