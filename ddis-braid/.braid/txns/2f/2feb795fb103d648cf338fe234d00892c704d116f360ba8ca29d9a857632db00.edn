@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774244842/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-1: AttentionScore struct + ContextBlock extension — add AttentionScore { score: f64, reason: String } to budget.rs. Extend ContextBlock with attention: Option<AttentionScore>. Update project() to render [a=X.XX reason] suffix when present, include scores in omission disclosure line. Update all ContextBlock construction sites with attention: None for backward compat. ACCEPTANCE: (A) ContextBlock compiles with optional attention field. (B) project() renders score suffix when Some. (C) project() omits suffix when None. (D) Omission disclosure includes attention scores. (E) All existing tests pass unchanged. TRACES: INV-ATTENTION-001, NEG-ATTENTION-002. FILE: crates/braid-kernel/src/budget.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :db/ident :v :task/t-691d9bfc :op :assert}
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :task/acceptance :v "(A) ContextBlock compiles with optional attention field. (B) project() renders score suffix when Some. (C) project() omits suffix when None. (D) Omission disclosure includes attention scores. (E) All existing tests pass unchanged. TRACES: INV-ATTENTION-001, NEG-ATTENTION-002." :op :assert}
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :task/body :v "ACCEPTANCE: (A) ContextBlock compiles with optional attention field. (B) project() renders score suffix when Some. (C) project() omits suffix when None. (D) Omission disclosure includes attention scores. (E) All existing tests pass unchanged. TRACES: INV-ATTENTION-001, NEG-ATTENTION-002. FILE: crates/braid-kernel/src/budget.rs" :op :assert}
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :task/created-at :v 1774244841 :op :assert}
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :task/files :v "crates/braid-kernel/src/budget.rs" :op :assert}
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :task/id :v "t-691d9bfc" :op :assert}
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :task/title :v "ATT-1: AttentionScore struct + ContextBlock extension — add AttentionScore { score: f64, reason: String } to budget.rs. Extend ContextBlock with attention: Option<AttentionScore>. Update project() to render [a=X.XX reason] suffix when present, include scores in omission disclosure line. Update all ContextBlock construction sites with attention: None for backward compat" :op :assert}
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :task/title-l0 :v "ATT-1" :op :assert}
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :task/title-l1 :v "ATT-1: AttentionScore struct + ContextBlock extension — add AttentionScore..." :op :assert}
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :task/traces-to :v #blake3 "f2559d59473a8fc81e5926e5e825e465cfa9d9bd1dfd2814492c6cbcdb930244" :op :assert}
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :task/traces-to :v #blake3 "fc27944f66d126bc5fa8c9ff2fccd24c0f0d7debcdcd73ff85e4ee383bef98dd" :op :assert}
+   {:e #blake3 "b027f9250ef114b32be0e898773a7f20aad0070111f407bed26e27922d12092b" :a :task/type :v :task.type/task :op :assert}
+ ]}

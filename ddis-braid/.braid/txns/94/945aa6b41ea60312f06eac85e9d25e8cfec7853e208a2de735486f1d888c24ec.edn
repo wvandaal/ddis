@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774244728/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Learned Attention (ADR-FOUNDATION-024) — Braid as self-calibrating attention mechanism between store and LLM. Three phases: (1) Session-aware surprisal replaces static precedence, (2) Verbose-request Hebbian feedback trains block weights, (3) Outcome-correlated Bayesian calibration via HL pipeline. Unifies ACP output, seed assembly, guidance footer, and R(t) routing into one acquisition function A(t). The CLI is the Markov blanket — a learned boundary optimizing information transfer. Prerequisite: pyramid disclosure (DONE). Dependencies: HL-1..4 (DONE), ACP precedence sort (DONE). Spec: ADR-FOUNDATION-024 (to be crystallized). Falsification: A(t) should outperform static precedence on 'productive action rate after presentation' metric."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "49b30cbfc64ad62f5b8d9bb694cf98581d5954b1bb3a24c7faee4ccadd088597" :a :db/ident :v :task/t-f4f61841 :op :assert}
+   {:e #blake3 "49b30cbfc64ad62f5b8d9bb694cf98581d5954b1bb3a24c7faee4ccadd088597" :a :task/created-at :v 1774244727 :op :assert}
+   {:e #blake3 "49b30cbfc64ad62f5b8d9bb694cf98581d5954b1bb3a24c7faee4ccadd088597" :a :task/id :v "t-f4f61841" :op :assert}
+   {:e #blake3 "49b30cbfc64ad62f5b8d9bb694cf98581d5954b1bb3a24c7faee4ccadd088597" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "49b30cbfc64ad62f5b8d9bb694cf98581d5954b1bb3a24c7faee4ccadd088597" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "49b30cbfc64ad62f5b8d9bb694cf98581d5954b1bb3a24c7faee4ccadd088597" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "49b30cbfc64ad62f5b8d9bb694cf98581d5954b1bb3a24c7faee4ccadd088597" :a :task/title :v "EPIC: Learned Attention (ADR-FOUNDATION-024) — Braid as self-calibrating attention mechanism between store and LLM. Three phases: (1) Session-aware surprisal replaces static precedence, (2) Verbose-request Hebbian feedback trains block weights, (3) Outcome-correlated Bayesian calibration via HL pipeline. Unifies ACP output, seed assembly, guidance footer, and R(t) routing into one acquisition function A(t). The CLI is the Markov blanket — a learned boundary optimizing information transfer. Prerequisite: pyramid disclosure (DONE). Dependencies: HL-1..4 (DONE), ACP precedence sort (DONE). Spec: ADR-FOUNDATION-024 (to be crystallized). Falsification: A(t) should outperform static precedence on 'productive action rate after presentation' metric." :op :assert}
+   {:e #blake3 "49b30cbfc64ad62f5b8d9bb694cf98581d5954b1bb3a24c7faee4ccadd088597" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "49b30cbfc64ad62f5b8d9bb694cf98581d5954b1bb3a24c7faee4ccadd088597" :a :task/title-l1 :v "EPIC: Learned Attention (ADR-FOUNDATION-024) — Braid as self-calibrating at..." :op :assert}
+   {:e #blake3 "49b30cbfc64ad62f5b8d9bb694cf98581d5954b1bb3a24c7faee4ccadd088597" :a :task/type :v :task.type/epic :op :assert}
+ ]}

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774244890/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-5: Verbose-request Hebbian feedback — detect the pattern 'budget-constrained status followed by --verbose status' within the same session. When detected, record which blocks were omitted in the compressed output and boost their precedence for subsequent presentations. Implementation: in the RFL pipeline (main.rs post-command processing), check if current command is status --verbose and previous command was status (compressed). If so, transact :attention/hebbian-signal datoms for the omitted block labels with a +0.3 boost. The boost decays by 0.5× per session. ACCEPTANCE: (A) verbose-after-compressed pattern detected correctly. (B) Omitted blocks receive measurable boost in next status output. (C) Boost decays across sessions. (D) No boost when --verbose is first status command (no prior compressed output). TRACES: INV-ATTENTION-004. DEPENDS-ON: ATT-4. FILE: crates/braid/src/main.rs + crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :db/ident :v :task/t-0e674715 :op :assert}
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :task/acceptance :v "(A) verbose-after-compressed pattern detected correctly. (B) Omitted blocks receive measurable boost in next status output. (C) Boost decays across sessions. (D) No boost when --verbose is first status command (no prior compressed output). TRACES: INV-ATTENTION-004. DEPENDS-ON: ATT-4." :op :assert}
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :task/body :v "ACCEPTANCE: (A) verbose-after-compressed pattern detected correctly. (B) Omitted blocks receive measurable boost in next status output. (C) Boost decays across sessions. (D) No boost when --verbose is first status command (no prior compressed output). TRACES: INV-ATTENTION-004. DEPENDS-ON: ATT-4. FILE: crates/braid/src/main.rs + crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :task/created-at :v 1774244889 :op :assert}
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :task/files :v "crates/braid/src/main.rs" :op :assert}
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :task/id :v "t-0e674715" :op :assert}
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :task/title :v "ATT-5: Verbose-request Hebbian feedback — detect the pattern 'budget-constrained status followed by --verbose status' within the same session. When detected, record which blocks were omitted in the compressed output and boost their precedence for subsequent presentations. Implementation: in the RFL pipeline (main.rs post-command processing), check if current command is status --verbose and previous command was status (compressed). If so, transact :attention/hebbian-signal datoms for the omitted block labels with a +0.3 boost. The boost decays by 0.5× per session" :op :assert}
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :task/title-l0 :v "ATT-5" :op :assert}
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :task/title-l1 :v "ATT-5: Verbose-request Hebbian feedback — detect the pattern 'budget-constr..." :op :assert}
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :task/traces-to :v #blake3 "abc7e2b2de073f537c71eb7ef946208df3f7ff70e07109beb926c40246dd64f9" :op :assert}
+   {:e #blake3 "85f5bbc0b169c43b840d7dcf23ad1d94f06b0656c686caa3a0089e7546a6ea70" :a :task/type :v :task.type/task :op :assert}
+ ]}

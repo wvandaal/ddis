@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774244864/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-3: Task-conditioned relevance scoring — compute per-block relevance conditioned on the active in-progress task. Uses existing spec_anchor_factor infrastructure: for each context block, check if its content relates to the active task's spec refs via VAET index. Relevance = 1.0 if block content matches task's spec namespace, 0.5 for adjacent namespaces, 0.3 default. ACCEPTANCE: (A) Block about 'boundaries: spec<->impl' scores higher when active task traces to INV-BILATERAL-*. (B) Block about 'harvest' scores lower when active task is implementation work. (C) No active task = all relevance scores 0.5 (uninformative). (D) Deterministic given same store state and active task. TRACES: INV-ATTENTION-003. DEPENDS-ON: ATT-2. FILE: crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0e11d1145a47ec95a12c733514386e7fa9245c8343caac96ee37b69efbd9e588" :a :db/ident :v :task/t-806402c8 :op :assert}
+   {:e #blake3 "0e11d1145a47ec95a12c733514386e7fa9245c8343caac96ee37b69efbd9e588" :a :task/acceptance :v "(A) Block about 'boundaries: spec<->impl' scores higher when active task traces to INV-BILATERAL-*. (B) Block about 'harvest' scores lower when active task is implementation work. (C) No active task = all relevance scores 0.5 (uninformative). (D) Deterministic given same store state and active task. TRACES: INV-ATTENTION-003. DEPENDS-ON: ATT-2." :op :assert}
+   {:e #blake3 "0e11d1145a47ec95a12c733514386e7fa9245c8343caac96ee37b69efbd9e588" :a :task/body :v "ACCEPTANCE: (A) Block about 'boundaries: spec<->impl' scores higher when active task traces to INV-BILATERAL-*. (B) Block about 'harvest' scores lower when active task is implementation work. (C) No active task = all relevance scores 0.5 (uninformative). (D) Deterministic given same store state and active task. TRACES: INV-ATTENTION-003. DEPENDS-ON: ATT-2. FILE: crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "0e11d1145a47ec95a12c733514386e7fa9245c8343caac96ee37b69efbd9e588" :a :task/created-at :v 1774244863 :op :assert}
+   {:e #blake3 "0e11d1145a47ec95a12c733514386e7fa9245c8343caac96ee37b69efbd9e588" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "0e11d1145a47ec95a12c733514386e7fa9245c8343caac96ee37b69efbd9e588" :a :task/id :v "t-806402c8" :op :assert}
+   {:e #blake3 "0e11d1145a47ec95a12c733514386e7fa9245c8343caac96ee37b69efbd9e588" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "0e11d1145a47ec95a12c733514386e7fa9245c8343caac96ee37b69efbd9e588" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0e11d1145a47ec95a12c733514386e7fa9245c8343caac96ee37b69efbd9e588" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0e11d1145a47ec95a12c733514386e7fa9245c8343caac96ee37b69efbd9e588" :a :task/title :v "ATT-3: Task-conditioned relevance scoring — compute per-block relevance conditioned on the active in-progress task. Uses existing spec_anchor_factor infrastructure: for each context block, check if its content relates to the active task's spec refs via VAET index. Relevance = 1.0 if block content matches task's spec namespace, 0.5 for adjacent namespaces, 0.3 default" :op :assert}
+   {:e #blake3 "0e11d1145a47ec95a12c733514386e7fa9245c8343caac96ee37b69efbd9e588" :a :task/title-l0 :v "ATT-3" :op :assert}
+   {:e #blake3 "0e11d1145a47ec95a12c733514386e7fa9245c8343caac96ee37b69efbd9e588" :a :task/title-l1 :v "ATT-3: Task-conditioned relevance scoring — compute per-block relevance con..." :op :assert}
+   {:e #blake3 "0e11d1145a47ec95a12c733514386e7fa9245c8343caac96ee37b69efbd9e588" :a :task/traces-to :v #blake3 "d5a843feb98c5b0b767dbfc0ee6aa102e397920ffa0a1c0c873fca498f109c20" :op :assert}
+   {:e #blake3 "0e11d1145a47ec95a12c733514386e7fa9245c8343caac96ee37b69efbd9e588" :a :task/type :v :task.type/task :op :assert}
+ ]}

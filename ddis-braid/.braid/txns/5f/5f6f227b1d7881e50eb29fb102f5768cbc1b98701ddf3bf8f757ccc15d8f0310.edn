@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774244877/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-4: Composite attention scoring in build_status_projection — wire surprisal (ATT-2) and relevance (ATT-3) into build_status_projection(). For each ContextBlock, compute: attention = surprisal × relevance × actionability. Actionability = 1.0 if block contains the R(t) recommended command string, 0.5 if block relates to recommended task's spec refs, 0.3 otherwise. Attach AttentionScore to each block. Sort blocks by attention score descending (replacing the current precedence sort). ACCEPTANCE: (A) First presentation of a status shows all blocks at full surprisal. (B) Fifth repetition shows same blocks with reduced scores. (C) Blocks related to active task rank higher than unrelated blocks. (D) Output visually shows [a=X.XX reason] on each line. TRACES: INV-ATTENTION-001, NEG-ATTENTION-001. DEPENDS-ON: ATT-2, ATT-3. FILE: crates/braid/src/commands/status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :db/ident :v :task/t-c0fb3f3e :op :assert}
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :task/acceptance :v "(A) First presentation of a status shows all blocks at full surprisal. (B) Fifth repetition shows same blocks with reduced scores. (C) Blocks related to active task rank higher than unrelated blocks. (D) Output visually shows [a=X.XX reason] on each line. TRACES: INV-ATTENTION-001, NEG-ATTENTION-001. DEPENDS-ON: ATT-2, ATT-3." :op :assert}
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :task/body :v "ACCEPTANCE: (A) First presentation of a status shows all blocks at full surprisal. (B) Fifth repetition shows same blocks with reduced scores. (C) Blocks related to active task rank higher than unrelated blocks. (D) Output visually shows [a=X.XX reason] on each line. TRACES: INV-ATTENTION-001, NEG-ATTENTION-001. DEPENDS-ON: ATT-2, ATT-3. FILE: crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :task/created-at :v 1774244876 :op :assert}
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :task/files :v "crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :task/id :v "t-c0fb3f3e" :op :assert}
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :task/title :v "ATT-4: Composite attention scoring in build_status_projection — wire surprisal (ATT-2) and relevance (ATT-3) into build_status_projection(). For each ContextBlock, compute: attention = surprisal × relevance × actionability. Actionability = 1.0 if block contains the R(t) recommended command string, 0.5 if block relates to recommended task's spec refs, 0.3 otherwise. Attach AttentionScore to each block. Sort blocks by attention score descending (replacing the current precedence sort)" :op :assert}
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :task/title-l0 :v "ATT-4" :op :assert}
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :task/title-l1 :v "ATT-4: Composite attention scoring in build_status_projection — wire surpri..." :op :assert}
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :task/traces-to :v #blake3 "5a065c6da2057004e6b288ca5d382c62008129f3c759b60ff92b1463cb5d0e35" :op :assert}
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :task/traces-to :v #blake3 "f2559d59473a8fc81e5926e5e825e465cfa9d9bd1dfd2814492c6cbcdb930244" :op :assert}
+   {:e #blake3 "f9c9ee6236cfe94c646e677b04155b17694e45d24ac63f2e4acde7161cb4d5c3" :a :task/type :v :task.type/task :op :assert}
+ ]}

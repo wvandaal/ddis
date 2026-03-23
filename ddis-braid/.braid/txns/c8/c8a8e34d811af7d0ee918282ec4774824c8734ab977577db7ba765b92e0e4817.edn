@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774244820/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0a73c519a3eec6f781131e63b98783309473fee47377045c3417dc6beda98511" :a :db/ident :v :recon/trace-62037454719a68b6 :op :assert}
+   {:e #blake3 "0a73c519a3eec6f781131e63b98783309473fee47377045c3417dc6beda98511" :a :recon/trace-command :v "spec" :op :assert}
+   {:e #blake3 "0a73c519a3eec6f781131e63b98783309473fee47377045c3417dc6beda98511" :a :recon/trace-neighborhood :v "ATTENTION" :op :assert}
+   {:e #blake3 "0a73c519a3eec6f781131e63b98783309473fee47377045c3417dc6beda98511" :a :recon/trace-neighbors :v ":task/t-0f3f89a8" :op :assert}
+   {:e #blake3 "0a73c519a3eec6f781131e63b98783309473fee47377045c3417dc6beda98511" :a :recon/trace-refs :v "NEG-ATTENTION-001" :op :assert}
+ ]}

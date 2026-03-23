@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774244782/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9d4a17e68280d60816c486993c7b594f1b89050cfd8580658b0aa3d2abaa473e" :a :db/ident :v :recon/trace-0e8f837e99a43f15 :op :assert}
+   {:e #blake3 "9d4a17e68280d60816c486993c7b594f1b89050cfd8580658b0aa3d2abaa473e" :a :recon/trace-command :v "spec" :op :assert}
+   {:e #blake3 "9d4a17e68280d60816c486993c7b594f1b89050cfd8580658b0aa3d2abaa473e" :a :recon/trace-neighborhood :v "ATTENTION" :op :assert}
+   {:e #blake3 "9d4a17e68280d60816c486993c7b594f1b89050cfd8580658b0aa3d2abaa473e" :a :recon/trace-neighbors :v ":task/t-c2002057" :op :assert}
+   {:e #blake3 "9d4a17e68280d60816c486993c7b594f1b89050cfd8580658b0aa3d2abaa473e" :a :recon/trace-refs :v "INV-ATTENTION-002" :op :assert}
+ ]}

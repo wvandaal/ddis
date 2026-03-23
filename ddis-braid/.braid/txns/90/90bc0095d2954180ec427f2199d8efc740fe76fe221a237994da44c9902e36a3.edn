@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774244913/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-1-TEST: Unit tests for AttentionScore rendering — (A) project() with attention=None renders block without suffix. (B) project() with attention=Some renders [a=X.XX reason]. (C) Omission disclosure includes attention scores from omitted blocks. (D) project(MAX) renders all blocks with scores, no omission line. (E) project(0) renders only action + full omission disclosure with all scores. (F) Attention scores survive JSON round-trip via to_json(). Property-based: for any Vec<ContextBlock> with random attention scores, project output line count = included blocks + (1 if omitted) + (1 if evidence_pointer). FILE: crates/braid-kernel/src/budget.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "375602c2af268ec8a8bbfdc97a9bb4222c883cd8ecca03c797d77a0ae800a881" :a :db/ident :v :task/t-59e6529e :op :assert}
+   {:e #blake3 "375602c2af268ec8a8bbfdc97a9bb4222c883cd8ecca03c797d77a0ae800a881" :a :task/created-at :v 1774244912 :op :assert}
+   {:e #blake3 "375602c2af268ec8a8bbfdc97a9bb4222c883cd8ecca03c797d77a0ae800a881" :a :task/files :v "crates/braid-kernel/src/budget.rs" :op :assert}
+   {:e #blake3 "375602c2af268ec8a8bbfdc97a9bb4222c883cd8ecca03c797d77a0ae800a881" :a :task/id :v "t-59e6529e" :op :assert}
+   {:e #blake3 "375602c2af268ec8a8bbfdc97a9bb4222c883cd8ecca03c797d77a0ae800a881" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "375602c2af268ec8a8bbfdc97a9bb4222c883cd8ecca03c797d77a0ae800a881" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "375602c2af268ec8a8bbfdc97a9bb4222c883cd8ecca03c797d77a0ae800a881" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "375602c2af268ec8a8bbfdc97a9bb4222c883cd8ecca03c797d77a0ae800a881" :a :task/title :v "ATT-1-TEST: Unit tests for AttentionScore rendering — (A) project() with attention=None renders block without suffix. (B) project() with attention=Some renders [a=X.XX reason]. (C) Omission disclosure includes attention scores from omitted blocks. (D) project(MAX) renders all blocks with scores, no omission line. (E) project(0) renders only action + full omission disclosure with all scores. (F) Attention scores survive JSON round-trip via to_json(). Property-based: for any Vec<ContextBlock> with random attention scores, project output line count = included blocks + (1 if omitted) + (1 if evidence_pointer). FILE: crates/braid-kernel/src/budget.rs" :op :assert}
+   {:e #blake3 "375602c2af268ec8a8bbfdc97a9bb4222c883cd8ecca03c797d77a0ae800a881" :a :task/title-l0 :v "ATT-1-TEST" :op :assert}
+   {:e #blake3 "375602c2af268ec8a8bbfdc97a9bb4222c883cd8ecca03c797d77a0ae800a881" :a :task/title-l1 :v "ATT-1-TEST: Unit tests for AttentionScore rendering — (A) project() with at..." :op :assert}
+   {:e #blake3 "375602c2af268ec8a8bbfdc97a9bb4222c883cd8ecca03c797d77a0ae800a881" :a :task/type :v :task.type/test :op :assert}
+ ]}

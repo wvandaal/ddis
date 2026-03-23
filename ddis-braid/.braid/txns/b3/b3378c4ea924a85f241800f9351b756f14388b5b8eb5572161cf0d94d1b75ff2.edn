@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774244797/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-ATTENTION-004 \"Verbose-Request Hebbian Signal: when braid status --verbose follows a budget-constrained status within the same session, the omitted blocks from the compressed output receive a precedence boost for subsequent presentations\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "784ee25042a114051c134ab02f19141326c9e796b431842b69e05572b27cb753" :a :db/doc :v "A verbose request after compressed output has no measurable effect on subsequent block ordering in the same session" :op :assert}
+   {:e #blake3 "9b3792ee17f703a6b96fde888860756d226ad3c6227a42fffcef17e834b9de6d" :a :db/ident :v :task/t-9c33cf7b :op :assert}
+   {:e #blake3 "9b3792ee17f703a6b96fde888860756d226ad3c6227a42fffcef17e834b9de6d" :a :task/created-at :v 1774244796 :op :assert}
+   {:e #blake3 "9b3792ee17f703a6b96fde888860756d226ad3c6227a42fffcef17e834b9de6d" :a :task/id :v "t-9c33cf7b" :op :assert}
+   {:e #blake3 "9b3792ee17f703a6b96fde888860756d226ad3c6227a42fffcef17e834b9de6d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "9b3792ee17f703a6b96fde888860756d226ad3c6227a42fffcef17e834b9de6d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9b3792ee17f703a6b96fde888860756d226ad3c6227a42fffcef17e834b9de6d" :a :task/title :v "Implement INV-ATTENTION-004: Verbose-Request Hebbian Signal: when braid status --verbose follows a budget-constrained status within the same session, the omitted blocks from the compressed output receive a precedence boost for subsequent presentations" :op :assert}
+   {:e #blake3 "9b3792ee17f703a6b96fde888860756d226ad3c6227a42fffcef17e834b9de6d" :a :task/traces-to :v #blake3 "abc7e2b2de073f537c71eb7ef946208df3f7ff70e07109beb926c40246dd64f9" :op :assert}
+   {:e #blake3 "9b3792ee17f703a6b96fde888860756d226ad3c6227a42fffcef17e834b9de6d" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "abc7e2b2de073f537c71eb7ef946208df3f7ff70e07109beb926c40246dd64f9" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "abc7e2b2de073f537c71eb7ef946208df3f7ff70e07109beb926c40246dd64f9" :a :comonad/falsification :v #blake3 "784ee25042a114051c134ab02f19141326c9e796b431842b69e05572b27cb753" :op :assert}
+   {:e #blake3 "abc7e2b2de073f537c71eb7ef946208df3f7ff70e07109beb926c40246dd64f9" :a :db/doc :v "Verbose-Request Hebbian Signal: when braid status --verbose follows a budget-constrained status within the same session, the omitted blocks from the compressed output receive a precedence boost for subsequent presentations" :op :assert}
+   {:e #blake3 "abc7e2b2de073f537c71eb7ef946208df3f7ff70e07109beb926c40246dd64f9" :a :db/ident :v :spec/inv-attention-004 :op :assert}
+   {:e #blake3 "abc7e2b2de073f537c71eb7ef946208df3f7ff70e07109beb926c40246dd64f9" :a :element/traces-to :v "ADR-FOUNDATION-024" :op :assert}
+   {:e #blake3 "abc7e2b2de073f537c71eb7ef946208df3f7ff70e07109beb926c40246dd64f9" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "abc7e2b2de073f537c71eb7ef946208df3f7ff70e07109beb926c40246dd64f9" :a :spec/falsification :v "A verbose request after compressed output has no measurable effect on subsequent block ordering in the same session" :op :assert}
+   {:e #blake3 "abc7e2b2de073f537c71eb7ef946208df3f7ff70e07109beb926c40246dd64f9" :a :spec/id :v "INV-ATTENTION-004" :op :assert}
+   {:e #blake3 "abc7e2b2de073f537c71eb7ef946208df3f7ff70e07109beb926c40246dd64f9" :a :spec/namespace :v :spec.ns/ATTENTION :op :assert}
+ ]}

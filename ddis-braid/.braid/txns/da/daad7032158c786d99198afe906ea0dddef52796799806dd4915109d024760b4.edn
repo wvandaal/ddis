@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774244763/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-024 \"Braid as Learned Attention — the CLI is the projection head of a self-calibrating attention mechanism\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "574dbb60dc1b2b244bbfe14bb277fb40e64a6bfe9f360fd1725cd062475eaa0b" :a :db/doc :v "Attention budget fails to outperform static precedence on productive-action rate over 50+ sessions" :op :assert}
+   {:e #blake3 "76ded4e4c506fa7bcd6590192f14c2bbbc87fc9234ee99436bc9a92b0e4e8c39" :a :db/ident :v :task/t-c8db4bb1 :op :assert}
+   {:e #blake3 "76ded4e4c506fa7bcd6590192f14c2bbbc87fc9234ee99436bc9a92b0e4e8c39" :a :task/created-at :v 1774244762 :op :assert}
+   {:e #blake3 "76ded4e4c506fa7bcd6590192f14c2bbbc87fc9234ee99436bc9a92b0e4e8c39" :a :task/id :v "t-c8db4bb1" :op :assert}
+   {:e #blake3 "76ded4e4c506fa7bcd6590192f14c2bbbc87fc9234ee99436bc9a92b0e4e8c39" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "76ded4e4c506fa7bcd6590192f14c2bbbc87fc9234ee99436bc9a92b0e4e8c39" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "76ded4e4c506fa7bcd6590192f14c2bbbc87fc9234ee99436bc9a92b0e4e8c39" :a :task/title :v "Implement ADR-FOUNDATION-024: Braid as Learned Attention — the CLI is the projection head of a self-calibrating attention mechanism" :op :assert}
+   {:e #blake3 "76ded4e4c506fa7bcd6590192f14c2bbbc87fc9234ee99436bc9a92b0e4e8c39" :a :task/traces-to :v #blake3 "9dfbd929fea3a757246d4f15e7f578fa0a3442b2c97a76526a640740fa44fdb0" :op :assert}
+   {:e #blake3 "76ded4e4c506fa7bcd6590192f14c2bbbc87fc9234ee99436bc9a92b0e4e8c39" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "9dfbd929fea3a757246d4f15e7f578fa0a3442b2c97a76526a640740fa44fdb0" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "9dfbd929fea3a757246d4f15e7f578fa0a3442b2c97a76526a640740fa44fdb0" :a :comonad/falsification :v #blake3 "574dbb60dc1b2b244bbfe14bb277fb40e64a6bfe9f360fd1725cd062475eaa0b" :op :assert}
+   {:e #blake3 "9dfbd929fea3a757246d4f15e7f578fa0a3442b2c97a76526a640740fa44fdb0" :a :db/doc :v "Braid as Learned Attention — the CLI is the projection head of a self-calibrating attention mechanism" :op :assert}
+   {:e #blake3 "9dfbd929fea3a757246d4f15e7f578fa0a3442b2c97a76526a640740fa44fdb0" :a :db/ident :v :spec/adr-foundation-024 :op :assert}
+   {:e #blake3 "9dfbd929fea3a757246d4f15e7f578fa0a3442b2c97a76526a640740fa44fdb0" :a :element/traces-to :v "SEED" :op :assert}
+   {:e #blake3 "9dfbd929fea3a757246d4f15e7f578fa0a3442b2c97a76526a640740fa44fdb0" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "9dfbd929fea3a757246d4f15e7f578fa0a3442b2c97a76526a640740fa44fdb0" :a :spec/falsification :v "Attention budget fails to outperform static precedence on productive-action rate over 50+ sessions" :op :assert}
+   {:e #blake3 "9dfbd929fea3a757246d4f15e7f578fa0a3442b2c97a76526a640740fa44fdb0" :a :spec/id :v "ADR-FOUNDATION-024" :op :assert}
+   {:e #blake3 "9dfbd929fea3a757246d4f15e7f578fa0a3442b2c97a76526a640740fa44fdb0" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+ ]}

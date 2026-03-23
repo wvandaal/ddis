@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774244788/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-ATTENTION-003 \"Task-Conditioned Relevance: block attention scores are modulated by the active in-progress task's spec refs via VAET index lookup\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a15155a251166c8fe9168309dc40db0b1ddb69c41405d6df97d5f78fb635d36b" :a :db/doc :v "Two sessions with different active tasks produce identical attention score orderings for all context blocks" :op :assert}
+   {:e #blake3 "d5a843feb98c5b0b767dbfc0ee6aa102e397920ffa0a1c0c873fca498f109c20" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "d5a843feb98c5b0b767dbfc0ee6aa102e397920ffa0a1c0c873fca498f109c20" :a :comonad/falsification :v #blake3 "a15155a251166c8fe9168309dc40db0b1ddb69c41405d6df97d5f78fb635d36b" :op :assert}
+   {:e #blake3 "d5a843feb98c5b0b767dbfc0ee6aa102e397920ffa0a1c0c873fca498f109c20" :a :db/doc :v "Task-Conditioned Relevance: block attention scores are modulated by the active in-progress task's spec refs via VAET index lookup" :op :assert}
+   {:e #blake3 "d5a843feb98c5b0b767dbfc0ee6aa102e397920ffa0a1c0c873fca498f109c20" :a :db/ident :v :spec/inv-attention-003 :op :assert}
+   {:e #blake3 "d5a843feb98c5b0b767dbfc0ee6aa102e397920ffa0a1c0c873fca498f109c20" :a :element/traces-to :v "ADR-FOUNDATION-024" :op :assert}
+   {:e #blake3 "d5a843feb98c5b0b767dbfc0ee6aa102e397920ffa0a1c0c873fca498f109c20" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "d5a843feb98c5b0b767dbfc0ee6aa102e397920ffa0a1c0c873fca498f109c20" :a :spec/falsification :v "Two sessions with different active tasks produce identical attention score orderings for all context blocks" :op :assert}
+   {:e #blake3 "d5a843feb98c5b0b767dbfc0ee6aa102e397920ffa0a1c0c873fca498f109c20" :a :spec/id :v "INV-ATTENTION-003" :op :assert}
+   {:e #blake3 "d5a843feb98c5b0b767dbfc0ee6aa102e397920ffa0a1c0c873fca498f109c20" :a :spec/namespace :v :spec.ns/ATTENTION :op :assert}
+   {:e #blake3 "f4d79a038826f6af6670c733574d0e86236d90cab0c54f3a53f5779bbf597ff9" :a :db/ident :v :task/t-cc6b06d0 :op :assert}
+   {:e #blake3 "f4d79a038826f6af6670c733574d0e86236d90cab0c54f3a53f5779bbf597ff9" :a :task/created-at :v 1774244787 :op :assert}
+   {:e #blake3 "f4d79a038826f6af6670c733574d0e86236d90cab0c54f3a53f5779bbf597ff9" :a :task/id :v "t-cc6b06d0" :op :assert}
+   {:e #blake3 "f4d79a038826f6af6670c733574d0e86236d90cab0c54f3a53f5779bbf597ff9" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "f4d79a038826f6af6670c733574d0e86236d90cab0c54f3a53f5779bbf597ff9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f4d79a038826f6af6670c733574d0e86236d90cab0c54f3a53f5779bbf597ff9" :a :task/title :v "Implement INV-ATTENTION-003: Task-Conditioned Relevance: block attention scores are modulated by the active in-progress task's spec refs via VAET index lookup" :op :assert}
+   {:e #blake3 "f4d79a038826f6af6670c733574d0e86236d90cab0c54f3a53f5779bbf597ff9" :a :task/traces-to :v #blake3 "d5a843feb98c5b0b767dbfc0ee6aa102e397920ffa0a1c0c873fca498f109c20" :op :assert}
+   {:e #blake3 "f4d79a038826f6af6670c733574d0e86236d90cab0c54f3a53f5779bbf597ff9" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774244780/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-ATTENTION-002 \"Surprisal Decay: a context block presented N times in the same session has surprisal weight 1/sqrt(N), monotonically decreasing with repetition\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "11273d242da3205f42d64c59ecd8e36ef340831d5c24cfd8db2fc74cbf46fcf9" :a :db/doc :v "A block presented 10 times in one session has equal or higher attention score than when first presented" :op :assert}
+   {:e #blake3 "1132841bdf1a21f9709acf8a7c6ae14533ca4fa058bd463dad8c0e53894a740a" :a :db/ident :v :task/t-c2002057 :op :assert}
+   {:e #blake3 "1132841bdf1a21f9709acf8a7c6ae14533ca4fa058bd463dad8c0e53894a740a" :a :task/created-at :v 1774244779 :op :assert}
+   {:e #blake3 "1132841bdf1a21f9709acf8a7c6ae14533ca4fa058bd463dad8c0e53894a740a" :a :task/id :v "t-c2002057" :op :assert}
+   {:e #blake3 "1132841bdf1a21f9709acf8a7c6ae14533ca4fa058bd463dad8c0e53894a740a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "1132841bdf1a21f9709acf8a7c6ae14533ca4fa058bd463dad8c0e53894a740a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1132841bdf1a21f9709acf8a7c6ae14533ca4fa058bd463dad8c0e53894a740a" :a :task/title :v "Implement INV-ATTENTION-002: Surprisal Decay: a context block presented N times in the same session has surprisal weight 1/sqrt(N), monotonically decreasing with repetition" :op :assert}
+   {:e #blake3 "1132841bdf1a21f9709acf8a7c6ae14533ca4fa058bd463dad8c0e53894a740a" :a :task/traces-to :v #blake3 "1cb369fe06dba2b423f2cd46d80225e053ca84d6b5861450227e3a12c41531f4" :op :assert}
+   {:e #blake3 "1132841bdf1a21f9709acf8a7c6ae14533ca4fa058bd463dad8c0e53894a740a" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "1cb369fe06dba2b423f2cd46d80225e053ca84d6b5861450227e3a12c41531f4" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "1cb369fe06dba2b423f2cd46d80225e053ca84d6b5861450227e3a12c41531f4" :a :comonad/falsification :v #blake3 "11273d242da3205f42d64c59ecd8e36ef340831d5c24cfd8db2fc74cbf46fcf9" :op :assert}
+   {:e #blake3 "1cb369fe06dba2b423f2cd46d80225e053ca84d6b5861450227e3a12c41531f4" :a :db/doc :v "Surprisal Decay: a context block presented N times in the same session has surprisal weight 1/sqrt(N), monotonically decreasing with repetition" :op :assert}
+   {:e #blake3 "1cb369fe06dba2b423f2cd46d80225e053ca84d6b5861450227e3a12c41531f4" :a :db/ident :v :spec/inv-attention-002 :op :assert}
+   {:e #blake3 "1cb369fe06dba2b423f2cd46d80225e053ca84d6b5861450227e3a12c41531f4" :a :element/traces-to :v "ADR-FOUNDATION-024" :op :assert}
+   {:e #blake3 "1cb369fe06dba2b423f2cd46d80225e053ca84d6b5861450227e3a12c41531f4" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "1cb369fe06dba2b423f2cd46d80225e053ca84d6b5861450227e3a12c41531f4" :a :spec/falsification :v "A block presented 10 times in one session has equal or higher attention score than when first presented" :op :assert}
+   {:e #blake3 "1cb369fe06dba2b423f2cd46d80225e053ca84d6b5861450227e3a12c41531f4" :a :spec/id :v "INV-ATTENTION-002" :op :assert}
+   {:e #blake3 "1cb369fe06dba2b423f2cd46d80225e053ca84d6b5861450227e3a12c41531f4" :a :spec/namespace :v :spec.ns/ATTENTION :op :assert}
+ ]}

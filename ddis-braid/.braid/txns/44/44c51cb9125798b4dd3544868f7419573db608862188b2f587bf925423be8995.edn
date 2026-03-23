@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774244819/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: NEG-ATTENTION-001 \"No Static Precedence as Final Authority: the hardcoded OutputPrecedence enum (System=4..Ambient=0) must not be the sole determinant of block ordering in any output mode. Dynamic attention scoring must be the primary ordering mechanism, with static precedence as the bootstrap prior only.\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1f7eff748cf85944d31be1bff8705ce27d3e8f7c184bb946b975e837af71d86a" :a :db/ident :v :task/t-0f3f89a8 :op :assert}
+   {:e #blake3 "1f7eff748cf85944d31be1bff8705ce27d3e8f7c184bb946b975e837af71d86a" :a :task/created-at :v 1774244818 :op :assert}
+   {:e #blake3 "1f7eff748cf85944d31be1bff8705ce27d3e8f7c184bb946b975e837af71d86a" :a :task/id :v "t-0f3f89a8" :op :assert}
+   {:e #blake3 "1f7eff748cf85944d31be1bff8705ce27d3e8f7c184bb946b975e837af71d86a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "1f7eff748cf85944d31be1bff8705ce27d3e8f7c184bb946b975e837af71d86a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1f7eff748cf85944d31be1bff8705ce27d3e8f7c184bb946b975e837af71d86a" :a :task/title :v "Implement NEG-ATTENTION-001: No Static Precedence as Final Authority: the hardcoded OutputPrecedence enum (System=4..Ambient=0) must not be the sole determinant of block ordering in any output mode. Dynamic attention scoring must be the primary ordering mechanism, with static precedence as the bootstrap prior only" :op :assert}
+   {:e #blake3 "1f7eff748cf85944d31be1bff8705ce27d3e8f7c184bb946b975e837af71d86a" :a :task/traces-to :v #blake3 "5a065c6da2057004e6b288ca5d382c62008129f3c759b60ff92b1463cb5d0e35" :op :assert}
+   {:e #blake3 "1f7eff748cf85944d31be1bff8705ce27d3e8f7c184bb946b975e837af71d86a" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "5a065c6da2057004e6b288ca5d382c62008129f3c759b60ff92b1463cb5d0e35" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "5a065c6da2057004e6b288ca5d382c62008129f3c759b60ff92b1463cb5d0e35" :a :comonad/falsification :v #blake3 "80e7e99f1adc80b8e8be1f73e3a0fb0c589797f83f9bdf764f339b6070ac6802" :op :assert}
+   {:e #blake3 "5a065c6da2057004e6b288ca5d382c62008129f3c759b60ff92b1463cb5d0e35" :a :db/doc :v "No Static Precedence as Final Authority: the hardcoded OutputPrecedence enum (System=4..Ambient=0) must not be the sole determinant of block ordering in any output mode. Dynamic attention scoring must be the primary ordering mechanism, with static precedence as the bootstrap prior only." :op :assert}
+   {:e #blake3 "5a065c6da2057004e6b288ca5d382c62008129f3c759b60ff92b1463cb5d0e35" :a :db/ident :v :spec/neg-attention-001 :op :assert}
+   {:e #blake3 "5a065c6da2057004e6b288ca5d382c62008129f3c759b60ff92b1463cb5d0e35" :a :element/traces-to :v "ADR-FOUNDATION-024" :op :assert}
+   {:e #blake3 "5a065c6da2057004e6b288ca5d382c62008129f3c759b60ff92b1463cb5d0e35" :a :spec/element-type :v :spec.type/negative-case :op :assert}
+   {:e #blake3 "5a065c6da2057004e6b288ca5d382c62008129f3c759b60ff92b1463cb5d0e35" :a :spec/falsification :v "Any output mode orders blocks solely by the static OutputPrecedence enum with no dynamic modulation" :op :assert}
+   {:e #blake3 "5a065c6da2057004e6b288ca5d382c62008129f3c759b60ff92b1463cb5d0e35" :a :spec/id :v "NEG-ATTENTION-001" :op :assert}
+   {:e #blake3 "5a065c6da2057004e6b288ca5d382c62008129f3c759b60ff92b1463cb5d0e35" :a :spec/namespace :v :spec.ns/ATTENTION :op :assert}
+   {:e #blake3 "80e7e99f1adc80b8e8be1f73e3a0fb0c589797f83f9bdf764f339b6070ac6802" :a :db/doc :v "Any output mode orders blocks solely by the static OutputPrecedence enum with no dynamic modulation" :op :assert}
+ ]}

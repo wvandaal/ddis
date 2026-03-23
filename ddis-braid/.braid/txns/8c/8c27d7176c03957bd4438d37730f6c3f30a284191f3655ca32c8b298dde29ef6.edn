@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774244773/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-ATTENTION-001 \"Attention Score Transparency: every ACP context block carries a visible attention score [a=X.XX reason] computed from surprisal, relevance, and actionability\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b4021e71b651991b9c8dcf5fae2c194058bc5cfc827e45c7ff6317b9ab377432" :a :db/ident :v :task/t-663df0a1 :op :assert}
+   {:e #blake3 "b4021e71b651991b9c8dcf5fae2c194058bc5cfc827e45c7ff6317b9ab377432" :a :task/created-at :v 1774244772 :op :assert}
+   {:e #blake3 "b4021e71b651991b9c8dcf5fae2c194058bc5cfc827e45c7ff6317b9ab377432" :a :task/id :v "t-663df0a1" :op :assert}
+   {:e #blake3 "b4021e71b651991b9c8dcf5fae2c194058bc5cfc827e45c7ff6317b9ab377432" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "b4021e71b651991b9c8dcf5fae2c194058bc5cfc827e45c7ff6317b9ab377432" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b4021e71b651991b9c8dcf5fae2c194058bc5cfc827e45c7ff6317b9ab377432" :a :task/title :v "Implement INV-ATTENTION-001: Attention Score Transparency: every ACP context block carries a visible attention score [a=X.XX reason] computed from surprisal, relevance, and actionability" :op :assert}
+   {:e #blake3 "b4021e71b651991b9c8dcf5fae2c194058bc5cfc827e45c7ff6317b9ab377432" :a :task/traces-to :v #blake3 "f2559d59473a8fc81e5926e5e825e465cfa9d9bd1dfd2814492c6cbcdb930244" :op :assert}
+   {:e #blake3 "b4021e71b651991b9c8dcf5fae2c194058bc5cfc827e45c7ff6317b9ab377432" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "ee464ea2df7e098704a4eef56c1299d46d8d4d17faf8776ba9ac937eef919528" :a :db/doc :v "Any ACP output renders a context block without its attention score when attention scoring is enabled" :op :assert}
+   {:e #blake3 "f2559d59473a8fc81e5926e5e825e465cfa9d9bd1dfd2814492c6cbcdb930244" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "f2559d59473a8fc81e5926e5e825e465cfa9d9bd1dfd2814492c6cbcdb930244" :a :comonad/falsification :v #blake3 "ee464ea2df7e098704a4eef56c1299d46d8d4d17faf8776ba9ac937eef919528" :op :assert}
+   {:e #blake3 "f2559d59473a8fc81e5926e5e825e465cfa9d9bd1dfd2814492c6cbcdb930244" :a :db/doc :v "Attention Score Transparency: every ACP context block carries a visible attention score [a=X.XX reason] computed from surprisal, relevance, and actionability" :op :assert}
+   {:e #blake3 "f2559d59473a8fc81e5926e5e825e465cfa9d9bd1dfd2814492c6cbcdb930244" :a :db/ident :v :spec/inv-attention-001 :op :assert}
+   {:e #blake3 "f2559d59473a8fc81e5926e5e825e465cfa9d9bd1dfd2814492c6cbcdb930244" :a :element/traces-to :v "ADR-FOUNDATION-024" :op :assert}
+   {:e #blake3 "f2559d59473a8fc81e5926e5e825e465cfa9d9bd1dfd2814492c6cbcdb930244" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "f2559d59473a8fc81e5926e5e825e465cfa9d9bd1dfd2814492c6cbcdb930244" :a :spec/falsification :v "Any ACP output renders a context block without its attention score when attention scoring is enabled" :op :assert}
+   {:e #blake3 "f2559d59473a8fc81e5926e5e825e465cfa9d9bd1dfd2814492c6cbcdb930244" :a :spec/id :v "INV-ATTENTION-001" :op :assert}
+   {:e #blake3 "f2559d59473a8fc81e5926e5e825e465cfa9d9bd1dfd2814492c6cbcdb930244" :a :spec/namespace :v :spec.ns/ATTENTION :op :assert}
+ ]}

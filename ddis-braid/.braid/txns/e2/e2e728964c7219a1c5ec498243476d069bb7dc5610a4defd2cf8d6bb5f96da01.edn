@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774244925/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-4-TEST: E2E test for attention-scored status output — scripts/e2e_attention_scoring.sh. (A) Fresh session: all blocks have surprisal=1.0. (B) After 5 status calls: blocks show decreasing surprisal (grep for a= values, verify monotonic decrease). (C) With an active in-progress task tracing to INV-STORE-*: store-related blocks rank higher. (D) Pyramid disclosure line includes attention scores for omitted blocks. (E) --format agent and --format human both show scores. (F) --format json includes attention scores in _acp.context_blocks[].attention. 10 checks, all must pass."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "36793462a3e05dcdf354fa20eabca2eb8db2fbdc39f49d9f5108ca19b56af790" :a :db/ident :v :task/t-11696781 :op :assert}
+   {:e #blake3 "36793462a3e05dcdf354fa20eabca2eb8db2fbdc39f49d9f5108ca19b56af790" :a :task/created-at :v 1774244924 :op :assert}
+   {:e #blake3 "36793462a3e05dcdf354fa20eabca2eb8db2fbdc39f49d9f5108ca19b56af790" :a :task/id :v "t-11696781" :op :assert}
+   {:e #blake3 "36793462a3e05dcdf354fa20eabca2eb8db2fbdc39f49d9f5108ca19b56af790" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "36793462a3e05dcdf354fa20eabca2eb8db2fbdc39f49d9f5108ca19b56af790" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "36793462a3e05dcdf354fa20eabca2eb8db2fbdc39f49d9f5108ca19b56af790" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "36793462a3e05dcdf354fa20eabca2eb8db2fbdc39f49d9f5108ca19b56af790" :a :task/title :v "ATT-4-TEST: E2E test for attention-scored status output — scripts/e2e_attention_scoring.sh. (A) Fresh session: all blocks have surprisal=1.0. (B) After 5 status calls: blocks show decreasing surprisal (grep for a= values, verify monotonic decrease). (C) With an active in-progress task tracing to INV-STORE-*: store-related blocks rank higher. (D) Pyramid disclosure line includes attention scores for omitted blocks. (E) --format agent and --format human both show scores. (F) --format json includes attention scores in _acp.context_blocks[].attention. 10 checks, all must pass." :op :assert}
+   {:e #blake3 "36793462a3e05dcdf354fa20eabca2eb8db2fbdc39f49d9f5108ca19b56af790" :a :task/title-l0 :v "ATT-4-TEST" :op :assert}
+   {:e #blake3 "36793462a3e05dcdf354fa20eabca2eb8db2fbdc39f49d9f5108ca19b56af790" :a :task/title-l1 :v "ATT-4-TEST: E2E test for attention-scored status output — scripts/e2e_atten..." :op :assert}
+   {:e #blake3 "36793462a3e05dcdf354fa20eabca2eb8db2fbdc39f49d9f5108ca19b56af790" :a :task/type :v :task.type/test :op :assert}
+ ]}

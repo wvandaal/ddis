@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774244827/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: NEG-ATTENTION-002 \"No Hidden Omission: when budget constraints cause context blocks to be omitted, the omission must NEVER be silent. Every omitted block must appear in a disclosure line with its label and attention score. The LLM must always know what it does not know.\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "214b6cef6eb3f2e88a0d0513a5e4366fa173b41b9e6233e1a2f4bdc281002938" :a :db/ident :v :task/t-beb71c3a :op :assert}
+   {:e #blake3 "214b6cef6eb3f2e88a0d0513a5e4366fa173b41b9e6233e1a2f4bdc281002938" :a :task/created-at :v 1774244826 :op :assert}
+   {:e #blake3 "214b6cef6eb3f2e88a0d0513a5e4366fa173b41b9e6233e1a2f4bdc281002938" :a :task/id :v "t-beb71c3a" :op :assert}
+   {:e #blake3 "214b6cef6eb3f2e88a0d0513a5e4366fa173b41b9e6233e1a2f4bdc281002938" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "214b6cef6eb3f2e88a0d0513a5e4366fa173b41b9e6233e1a2f4bdc281002938" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "214b6cef6eb3f2e88a0d0513a5e4366fa173b41b9e6233e1a2f4bdc281002938" :a :task/title :v "Implement NEG-ATTENTION-002: No Hidden Omission: when budget constraints cause context blocks to be omitted, the omission must NEVER be silent. Every omitted block must appear in a disclosure line with its label and attention score. The LLM must always know what it does not know" :op :assert}
+   {:e #blake3 "214b6cef6eb3f2e88a0d0513a5e4366fa173b41b9e6233e1a2f4bdc281002938" :a :task/traces-to :v #blake3 "fc27944f66d126bc5fa8c9ff2fccd24c0f0d7debcdcd73ff85e4ee383bef98dd" :op :assert}
+   {:e #blake3 "214b6cef6eb3f2e88a0d0513a5e4366fa173b41b9e6233e1a2f4bdc281002938" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "22fa08592cfa04b9f078bde186b2af989ca666e11c4082b8250cdda5b351f21e" :a :db/doc :v "Any budget-constrained output omits a context block without including it in the pyramid disclosure line" :op :assert}
+   {:e #blake3 "fc27944f66d126bc5fa8c9ff2fccd24c0f0d7debcdcd73ff85e4ee383bef98dd" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "fc27944f66d126bc5fa8c9ff2fccd24c0f0d7debcdcd73ff85e4ee383bef98dd" :a :comonad/falsification :v #blake3 "22fa08592cfa04b9f078bde186b2af989ca666e11c4082b8250cdda5b351f21e" :op :assert}
+   {:e #blake3 "fc27944f66d126bc5fa8c9ff2fccd24c0f0d7debcdcd73ff85e4ee383bef98dd" :a :db/doc :v "No Hidden Omission: when budget constraints cause context blocks to be omitted, the omission must NEVER be silent. Every omitted block must appear in a disclosure line with its label and attention score. The LLM must always know what it does not know." :op :assert}
+   {:e #blake3 "fc27944f66d126bc5fa8c9ff2fccd24c0f0d7debcdcd73ff85e4ee383bef98dd" :a :db/ident :v :spec/neg-attention-002 :op :assert}
+   {:e #blake3 "fc27944f66d126bc5fa8c9ff2fccd24c0f0d7debcdcd73ff85e4ee383bef98dd" :a :element/traces-to :v "ADR-FOUNDATION-024" :op :assert}
+   {:e #blake3 "fc27944f66d126bc5fa8c9ff2fccd24c0f0d7debcdcd73ff85e4ee383bef98dd" :a :spec/element-type :v :spec.type/negative-case :op :assert}
+   {:e #blake3 "fc27944f66d126bc5fa8c9ff2fccd24c0f0d7debcdcd73ff85e4ee383bef98dd" :a :spec/falsification :v "Any budget-constrained output omits a context block without including it in the pyramid disclosure line" :op :assert}
+   {:e #blake3 "fc27944f66d126bc5fa8c9ff2fccd24c0f0d7debcdcd73ff85e4ee383bef98dd" :a :spec/id :v "NEG-ATTENTION-002" :op :assert}
+   {:e #blake3 "fc27944f66d126bc5fa8c9ff2fccd24c0f0d7debcdcd73ff85e4ee383bef98dd" :a :spec/namespace :v :spec.ns/ATTENTION :op :assert}
+ ]}

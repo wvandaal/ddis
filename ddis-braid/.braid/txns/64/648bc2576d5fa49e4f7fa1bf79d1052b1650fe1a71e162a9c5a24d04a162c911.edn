@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774244809/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-ATTENTION-005 \"Acquisition Function Unification: ACP output projection, seed assembly, guidance footer, and R(t) task routing are all instances of the same attention-weighted projection A(block|context) = surprisal × relevance × actionability\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "196b3a6a92f2123fae1c50348b899f7dd08889f0d5a0eae6c704a299bf959f1d" :a :db/ident :v :task/t-819c07c6 :op :assert}
+   {:e #blake3 "196b3a6a92f2123fae1c50348b899f7dd08889f0d5a0eae6c704a299bf959f1d" :a :task/created-at :v 1774244808 :op :assert}
+   {:e #blake3 "196b3a6a92f2123fae1c50348b899f7dd08889f0d5a0eae6c704a299bf959f1d" :a :task/id :v "t-819c07c6" :op :assert}
+   {:e #blake3 "196b3a6a92f2123fae1c50348b899f7dd08889f0d5a0eae6c704a299bf959f1d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "196b3a6a92f2123fae1c50348b899f7dd08889f0d5a0eae6c704a299bf959f1d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "196b3a6a92f2123fae1c50348b899f7dd08889f0d5a0eae6c704a299bf959f1d" :a :task/title :v "Implement INV-ATTENTION-005: Acquisition Function Unification: ACP output projection, seed assembly, guidance footer, and R(t) task routing are all instances of the same attention-weighted projection A(block|context) = surprisal × relevance × actionability" :op :assert}
+   {:e #blake3 "196b3a6a92f2123fae1c50348b899f7dd08889f0d5a0eae6c704a299bf959f1d" :a :task/traces-to :v #blake3 "d0f97e55b268b47908bc437fdc3f5d5b8c2ee201c6bd23ba76fc2f32b2ae42d0" :op :assert}
+   {:e #blake3 "196b3a6a92f2123fae1c50348b899f7dd08889f0d5a0eae6c704a299bf959f1d" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "45f64cd8d837f3a7f570d926c5dc22889765cf9aa4c1a348acc18f42d38d5cb5" :a :db/doc :v "Any two of {ACP, seed, guidance, R(t)} use fundamentally different relevance scoring mechanisms that cannot be expressed as parameterizations of a single attention function" :op :assert}
+   {:e #blake3 "d0f97e55b268b47908bc437fdc3f5d5b8c2ee201c6bd23ba76fc2f32b2ae42d0" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "d0f97e55b268b47908bc437fdc3f5d5b8c2ee201c6bd23ba76fc2f32b2ae42d0" :a :comonad/falsification :v #blake3 "45f64cd8d837f3a7f570d926c5dc22889765cf9aa4c1a348acc18f42d38d5cb5" :op :assert}
+   {:e #blake3 "d0f97e55b268b47908bc437fdc3f5d5b8c2ee201c6bd23ba76fc2f32b2ae42d0" :a :db/doc :v "Acquisition Function Unification: ACP output projection, seed assembly, guidance footer, and R(t) task routing are all instances of the same attention-weighted projection A(block|context) = surprisal × relevance × actionability" :op :assert}
+   {:e #blake3 "d0f97e55b268b47908bc437fdc3f5d5b8c2ee201c6bd23ba76fc2f32b2ae42d0" :a :db/ident :v :spec/inv-attention-005 :op :assert}
+   {:e #blake3 "d0f97e55b268b47908bc437fdc3f5d5b8c2ee201c6bd23ba76fc2f32b2ae42d0" :a :element/traces-to :v "ADR-FOUNDATION-024" :op :assert}
+   {:e #blake3 "d0f97e55b268b47908bc437fdc3f5d5b8c2ee201c6bd23ba76fc2f32b2ae42d0" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "d0f97e55b268b47908bc437fdc3f5d5b8c2ee201c6bd23ba76fc2f32b2ae42d0" :a :spec/falsification :v "Any two of {ACP, seed, guidance, R(t)} use fundamentally different relevance scoring mechanisms that cannot be expressed as parameterizations of a single attention function" :op :assert}
+   {:e #blake3 "d0f97e55b268b47908bc437fdc3f5d5b8c2ee201c6bd23ba76fc2f32b2ae42d0" :a :spec/id :v "INV-ATTENTION-005" :op :assert}
+   {:e #blake3 "d0f97e55b268b47908bc437fdc3f5d5b8c2ee201c6bd23ba76fc2f32b2ae42d0" :a :spec/namespace :v :spec.ns/ATTENTION :op :assert}
+ ]}

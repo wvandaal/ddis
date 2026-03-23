@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774244902/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-6: Outcome-correlated Bayesian calibration — extend the HL-3 hypothesis outcome matching to correlate block presentations with action outcomes. When a task closes (HL-3 fires), look up which blocks were presented in the status outputs that preceded the productive action. Blocks that preceded successful closures get attention weight reinforcement. Blocks that preceded no action get weight decay. Uses existing :hypothesis/actual + /error datoms. New schema: :attention/block-label (String), :attention/weight (Double, default 1.0), :attention/calibration-count (Long). ACCEPTANCE: (A) After 10 task closures, blocks consistently shown before closures have weight > 1.0. (B) Blocks never followed by action have weight < 1.0. (C) Weights persist across sessions via datoms. (D) CalibrationReport extended with attention_weights section. TRACES: INV-ATTENTION-005. DEPENDS-ON: ATT-5. FILE: crates/braid-kernel/src/guidance.rs + crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :db/ident :v :task/t-7f9b9849 :op :assert}
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :task/acceptance :v "(A) After 10 task closures, blocks consistently shown before closures have weight > 1.0. (B) Blocks never followed by action have weight < 1.0. (C) Weights persist across sessions via datoms. (D) CalibrationReport extended with attention_weights section. TRACES: INV-ATTENTION-005. DEPENDS-ON: ATT-5." :op :assert}
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :task/body :v "ACCEPTANCE: (A) After 10 task closures, blocks consistently shown before closures have weight > 1.0. (B) Blocks never followed by action have weight < 1.0. (C) Weights persist across sessions via datoms. (D) CalibrationReport extended with attention_weights section. TRACES: INV-ATTENTION-005. DEPENDS-ON: ATT-5. FILE: crates/braid-kernel/src/guidance.rs + crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :task/created-at :v 1774244901 :op :assert}
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :task/files :v "crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :task/id :v "t-7f9b9849" :op :assert}
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :task/title :v "ATT-6: Outcome-correlated Bayesian calibration — extend the HL-3 hypothesis outcome matching to correlate block presentations with action outcomes. When a task closes (HL-3 fires), look up which blocks were presented in the status outputs that preceded the productive action. Blocks that preceded successful closures get attention weight reinforcement. Blocks that preceded no action get weight decay. Uses existing :hypothesis/actual + /error datoms. New schema: :attention/block-label (String), :attention/weight (Double, default 1.0), :attention/calibration-count (Long)" :op :assert}
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :task/title-l0 :v "ATT-6" :op :assert}
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :task/title-l1 :v "ATT-6: Outcome-correlated Bayesian calibration — extend the HL-3 hypothesis..." :op :assert}
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :task/traces-to :v #blake3 "d0f97e55b268b47908bc437fdc3f5d5b8c2ee201c6bd23ba76fc2f32b2ae42d0" :op :assert}
+   {:e #blake3 "07a554244d2a5ed24558ba2f6467aed25633593bafe95cd181b5583087cdd65b" :a :task/type :v :task.type/task :op :assert}
+ ]}

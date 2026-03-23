@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774244852/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-2: Session presentation counter — track per-block-label presentation count within a session. HashMap<String, usize> stored on SessionWorkingSet or a new SessionAttention struct. Incremented each time project() renders a block. Provides the surprisal input: surprisal = 1.0 / sqrt(presentation_count). ACCEPTANCE: (A) Presentation count persists across commands within a session. (B) New session resets counts to 0. (C) surprisal(first) = 1.0, surprisal(fourth) = 0.5. (D) Counts stored as session-scoped datoms for harvest retrospective. TRACES: INV-ATTENTION-002. DEPENDS-ON: ATT-1. FILE: crates/braid-kernel/src/guidance.rs + crates/braid/src/commands/status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :db/ident :v :task/t-5498e890 :op :assert}
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :task/acceptance :v "(A) Presentation count persists across commands within a session. (B) New session resets counts to 0. (C) surprisal(first) = 1.0, surprisal(fourth) = 0.5. (D) Counts stored as session-scoped datoms for harvest retrospective. TRACES: INV-ATTENTION-002. DEPENDS-ON: ATT-1." :op :assert}
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :task/body :v "ACCEPTANCE: (A) Presentation count persists across commands within a session. (B) New session resets counts to 0. (C) surprisal(first) = 1.0, surprisal(fourth) = 0.5. (D) Counts stored as session-scoped datoms for harvest retrospective. TRACES: INV-ATTENTION-002. DEPENDS-ON: ATT-1. FILE: crates/braid-kernel/src/guidance.rs + crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :task/created-at :v 1774244851 :op :assert}
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :task/files :v "crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :task/id :v "t-5498e890" :op :assert}
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :task/title :v "ATT-2: Session presentation counter — track per-block-label presentation count within a session. HashMap<String, usize> stored on SessionWorkingSet or a new SessionAttention struct. Incremented each time project() renders a block. Provides the surprisal input: surprisal = 1.0 / sqrt(presentation_count)" :op :assert}
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :task/title-l0 :v "ATT-2" :op :assert}
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :task/title-l1 :v "ATT-2: Session presentation counter — track per-block-label presentation co..." :op :assert}
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :task/traces-to :v #blake3 "1cb369fe06dba2b423f2cd46d80225e053ca84d6b5861450227e3a12c41531f4" :op :assert}
+   {:e #blake3 "e0edbb5210fe9b5f97afe49b7123a22b863093fd0355fde4220220bcbc1567ca" :a :task/type :v :task.type/task :op :assert}
+ ]}
