@@ -486,11 +486,16 @@ pub fn build_status_projection(
         let boundary_parts: Vec<String> = evals
             .iter()
             .map(|e| {
-                let gap_count = e.divergences.len();
-                if gap_count > 0 {
-                    format!("{} {:.2} ({} gaps)", e.name, e.relation.coverage, gap_count)
+                // FIX-VACUOUS: empty boundaries show "not measured" instead of vacuous 1.00
+                if e.relation.source_total == 0 && e.relation.target_total == 0 {
+                    format!("{} (not measured)", e.name)
                 } else {
-                    format!("{} {:.2}", e.name, e.relation.coverage)
+                    let gap_count = e.divergences.len();
+                    if gap_count > 0 {
+                        format!("{} {:.2} ({} gaps)", e.name, e.relation.coverage, gap_count)
+                    } else {
+                        format!("{} {:.2}", e.name, e.relation.coverage)
+                    }
                 }
             })
             .collect();
@@ -713,11 +718,16 @@ fn build_terse(
         let boundary_parts: Vec<String> = evals
             .iter()
             .map(|e| {
-                let gap_count = e.divergences.len();
-                if gap_count > 0 {
-                    format!("{} {:.2} ({} gaps)", e.name, e.relation.coverage, gap_count)
+                // FIX-VACUOUS: empty boundaries show "not measured" instead of vacuous 1.00
+                if e.relation.source_total == 0 && e.relation.target_total == 0 {
+                    format!("{} (not measured)", e.name)
                 } else {
-                    format!("{} {:.2}", e.name, e.relation.coverage)
+                    let gap_count = e.divergences.len();
+                    if gap_count > 0 {
+                        format!("{} {:.2} ({} gaps)", e.name, e.relation.coverage, gap_count)
+                    } else {
+                        format!("{} {:.2}", e.name, e.relation.coverage)
+                    }
                 }
             })
             .collect();

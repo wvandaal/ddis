@@ -42,17 +42,22 @@ pub fn run(
 
     let mut out = String::new();
 
-    // Determine project root (parent of .braid/)
-    let parent = path.parent().unwrap_or(Path::new("."));
-    // When path is ".braid", parent is "" — normalize to "."
-    let parent = if parent.as_os_str().is_empty() {
-        Path::new(".")
+    // Determine project root.
+    // When -p is absolute, the store lives outside cwd — project root is cwd.
+    // When -p is relative (default ".braid"), project root is the parent dir.
+    let project_root = if path.is_absolute() {
+        std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."))
     } else {
+        let parent = path.parent().unwrap_or(Path::new("."));
+        let parent = if parent.as_os_str().is_empty() {
+            Path::new(".")
+        } else {
+            parent
+        };
         parent
+            .canonicalize()
+            .unwrap_or_else(|_| parent.to_path_buf())
     };
-    let project_root = parent
-        .canonicalize()
-        .unwrap_or_else(|_| parent.to_path_buf());
 
     // --- Detection phase ---
     let detection = detect_environment(&project_root);

@@ -2165,7 +2165,7 @@ pub fn modulate_actions(actions: &mut Vec<GuidanceAction>, methodology_score: f6
             summary: format!(
                 "Drift signal active (M={methodology_score:.2}). Verify coherence before next task."
             ),
-            command: Some("braid guidance --verbose".into()),
+            command: Some("braid status --verbose".into()),
             relates_to: vec!["INV-GUIDANCE-003".into()],
         });
     }
@@ -2354,7 +2354,12 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
         transact_turns: txns_since,
         spec_language_turns: total_spec.min(session_turn_count.max(1)),
         query_type_count: if session_turn_count > 0 { 1 } else { 0 },
-        harvest_quality: if has_recent_harvest { 0.7 } else { 0.0 },
+        // FIX-NAG: On fresh stores (<5 txns), nothing to harvest yet — don't nag.
+        harvest_quality: if has_recent_harvest || session_turn_count < 5 {
+            0.7
+        } else {
+            0.0
+        },
         history: vec![],
         harvest_is_recent,
     }
@@ -2542,6 +2547,11 @@ pub fn classify_action_outcome(
 ///
 /// Returns urgency in [0, 1+]. Values > 1.0 mean OVERDUE.
 pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
+    // FIX-NAG: Fresh stores (<5 txns) have nothing worth harvesting yet.
+    // But always honor the k_eff emergency signal (signal_4).
+    let is_fresh = count_txns_since_last_harvest(store) < 5
+        && last_harvest_wall_time(store) == 0;
+
     let velocity = tx_velocity(store);
     let threshold = dynamic_threshold(velocity);
     let last_harvest_wall = last_harvest_wall_time(store);
@@ -2602,8 +2612,13 @@ pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
     // Signal 4: k_eff critical (Q(t) < 0.15) (unchanged — emergency)
     let signal_4 = if k_eff < 0.15 { 1.5 } else { 0.0 };
 
-    // Urgency = max of all signals
-    signal_1.max(signal_2).max(signal_3).max(signal_4)
+    // Urgency = max of all signals.
+    // FIX-NAG: On fresh stores, only the k_eff emergency (signal_4) fires.
+    if is_fresh {
+        signal_4
+    } else {
+        signal_1.max(signal_2).max(signal_3).max(signal_4)
+    }
 }
 
 // ---------------------------------------------------------------------------

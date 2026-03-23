@@ -219,7 +219,7 @@ pub fn run(
         }
         if !filtered.is_empty() {
             out.push_str(&format!(
-                "  ({} below threshold {:.1}, use --verbose for details)\n",
+                "  ({} below threshold {:.1}, skipped)\n",
                 filtered.len(),
                 confidence_floor,
             ));
@@ -1031,7 +1031,7 @@ fn build_harvest_output(
     let projection = braid_kernel::ActionProjection {
         action,
         context: context_blocks,
-        evidence_pointer: "details: braid harvest --verbose".to_string(),
+        evidence_pointer: "details: braid harvest --commit".to_string(),
     };
 
     // Agent output uses ACP Navigate projection
