@@ -607,6 +607,21 @@ impl ObservationCost {
 // Acquisition score (ADR-FOUNDATION-025, ADR-FOUNDATION-028, ADR-FOUNDATION-029)
 // ---------------------------------------------------------------------------
 
+/// Compute novelty from presentation count using 1/√N decay.
+///
+/// Algebraic properties:
+/// - `novelty_from_count(0) == 1.0` (maximum novelty for unseen items)
+/// - Monotonically decreasing in N
+/// - Approaches 0 as N → ∞
+/// - `novelty_from_count(4) == 0.5` (half-life at N=4)
+///
+/// The floor at N=1 prevents division by zero while ensuring the first
+/// presentation still scores at maximum novelty (an item seen once is
+/// still novel — the decay starts on the second presentation).
+pub fn novelty_from_count(count: u64) -> f64 {
+    1.0 / (count.max(1) as f64).sqrt()
+}
+
 /// Cost-aware acquisition score for ranking observations.
 ///
 /// Implements the Bayesian optimal experiment design criterion from
@@ -679,7 +694,7 @@ impl AcquisitionScore {
     /// - relevance = 1.0, confidence = 1.0 (defaults)
     /// - cost = zero (no cost info available from old callers)
     pub fn from_presentation_count(count: u64, hebbian_boost: f64, learned_weight: f64) -> Self {
-        let novelty = 1.0 / (count.max(1) as f64).sqrt();
+        let novelty = novelty_from_count(count);
         let impact = novelty * learned_weight + hebbian_boost;
         Self::from_factors(
             ObservationKind::ContextBlock,

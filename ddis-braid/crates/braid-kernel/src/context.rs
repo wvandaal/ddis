@@ -155,8 +155,19 @@ pub fn record_block_presentations(
                 (d.entity, count)
             });
 
-        let (entity, new_count) = match existing {
-            Some((e, count)) => (e, count + 1),
+        let (entity, old_count, old_last) = match existing {
+            Some((e, count)) => {
+                // Read existing last-presented for retraction
+                let last = store
+                    .entity_datoms(e)
+                    .iter()
+                    .find(|ed| ed.attribute == last_attr && ed.op == Op::Assert)
+                    .and_then(|ed| match &ed.value {
+                        Value::Instant(ts) => Some(*ts),
+                        _ => None,
+                    });
+                (e, Some(count), last)
+            }
             None => {
                 // Create new attention entity
                 let e = EntityId::from_ident(&format!(":attention/{}", label));
@@ -167,11 +178,22 @@ pub fn record_block_presentations(
                     tx,
                     Op::Assert,
                 ));
-                (e, 1)
+                (e, None, None)
             }
         };
 
-        // Assert new count (retract old if exists, assert new)
+        let new_count = old_count.map_or(1, |c| c + 1);
+
+        // Retract old count before asserting new (C1: retractions are new datoms)
+        if let Some(old) = old_count {
+            datoms.push(Datom::new(
+                entity,
+                count_attr.clone(),
+                Value::Long(old),
+                tx,
+                Op::Retract,
+            ));
+        }
         datoms.push(Datom::new(
             entity,
             count_attr.clone(),
@@ -180,7 +202,16 @@ pub fn record_block_presentations(
             Op::Assert,
         ));
 
-        // Update last-presented timestamp
+        // Retract old timestamp before asserting new
+        if let Some(old_ts) = old_last {
+            datoms.push(Datom::new(
+                entity,
+                last_attr.clone(),
+                Value::Instant(old_ts),
+                tx,
+                Op::Retract,
+            ));
+        }
         datoms.push(Datom::new(
             entity,
             last_attr.clone(),
@@ -279,7 +310,7 @@ pub fn methodology_context_blocks(store: &Store) -> Vec<crate::budget::ContextBl
         });
     let score_block = |label: &str, impact: f64, tokens: usize| -> Option<crate::budget::AcquisitionScore> {
         let count = block_presentation_count(store, label);
-        let novelty = 1.0 / (count.max(1) as f64).sqrt();
+        let novelty = crate::budget::novelty_from_count(count);
         Some(crate::budget::AcquisitionScore::from_factors(
             crate::budget::ObservationKind::ContextBlock,
             impact,

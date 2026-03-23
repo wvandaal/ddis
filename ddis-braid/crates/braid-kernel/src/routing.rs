@@ -891,7 +891,7 @@ pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
                 _ => None,
             })
             .unwrap_or(0);
-        let novelty = 1.0 / (presentation_count.max(1) as f64).sqrt();
+        let novelty = crate::budget::novelty_from_count(presentation_count);
 
         // Relevance = session_boost × spec_anchor (both already computed)
         let relevance = (r.metrics.session_boost * r.metrics.spec_anchor).min(1.0);

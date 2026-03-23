@@ -62,7 +62,7 @@ fn slug_from_text(text: &str) -> String {
         .chars()
         .take(60)
         .map(|c| {
-            if c.is_alphanumeric() {
+            if c.is_ascii_alphanumeric() {
                 c.to_ascii_lowercase()
             } else if c == ' ' || c == '_' || c == '-' {
                 '-'

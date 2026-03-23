@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774298976/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Non-ASCII characters in observation text (e.g., é in LÉVY) pass through slug_from_text via is_alphanumeric() (Unicode-aware, not ASCII-only) and become invalid EDN keywords, corrupting the store. Root cause: slug_from_text uses c.is_alphanumeric() instead of c.is_ascii_alphanumeric(). Defense in depth: Attribute::validate() also lacks ASCII check. Two-layer fix needed: (1) slug sanitization, (2) attribute validation."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "790defd8721925f64bc273da840c15f2fb3af5fe5c05cfbd23d6ca6f5f37d239" :a :db/doc :v "Non-ASCII characters in observation text (e.g., é in LÉVY) pass through slug_from_text via is_alphanumeric() (Unicode-aware, not ASCII-only) and become invalid EDN keywords, corrupting the store. Root cause: slug_from_text uses c.is_alphanumeric() instead of c.is_ascii_alphanumeric(). Defense in depth: Attribute::validate() also lacks ASCII check. Two-layer fix needed: (1) slug sanitization, (2) attribute validation." :op :assert}
+   {:e #blake3 "790defd8721925f64bc273da840c15f2fb3af5fe5c05cfbd23d6ca6f5f37d239" :a :db/ident :v :observation/non-ascii-characters-in-observation-text-eg-e-in-levy-p :op :assert}
+   {:e #blake3 "790defd8721925f64bc273da840c15f2fb3af5fe5c05cfbd23d6ca6f5f37d239" :a :exploration/body :v "Non-ASCII characters in observation text (e.g., é in LÉVY) pass through slug_from_text via is_alphanumeric() (Unicode-aware, not ASCII-only) and become invalid EDN keywords, corrupting the store. Root cause: slug_from_text uses c.is_alphanumeric() instead of c.is_ascii_alphanumeric(). Defense in depth: Attribute::validate() also lacks ASCII check. Two-layer fix needed: (1) slug sanitization, (2) attribute validation." :op :assert}
+   {:e #blake3 "790defd8721925f64bc273da840c15f2fb3af5fe5c05cfbd23d6ca6f5f37d239" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "790defd8721925f64bc273da840c15f2fb3af5fe5c05cfbd23d6ca6f5f37d239" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "790defd8721925f64bc273da840c15f2fb3af5fe5c05cfbd23d6ca6f5f37d239" :a :exploration/content-hash :v #bytes "196d5cc091cb5a99535b800f150165b38a367b1c12959471705d2d81bc11617b" :op :assert}
+   {:e #blake3 "790defd8721925f64bc273da840c15f2fb3af5fe5c05cfbd23d6ca6f5f37d239" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "790defd8721925f64bc273da840c15f2fb3af5fe5c05cfbd23d6ca6f5f37d239" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "790defd8721925f64bc273da840c15f2fb3af5fe5c05cfbd23d6ca6f5f37d239" :a :exploration/source-session :v #blake3 "77357442551f12d29acce14221b90d06ea90e1aee44ef5da6627475e7e3b3fe1" :op :assert}
+   {:e #blake3 "c3175f48090874ed2f5febda46008738b3b1f70b6f3ec9d8c47cc15994741b2e" :a :db/ident :v :task/t-e6bd03fa :op :assert}
+   {:e #blake3 "c3175f48090874ed2f5febda46008738b3b1f70b6f3ec9d8c47cc15994741b2e" :a :task/created-at :v 1774298975 :op :assert}
+   {:e #blake3 "c3175f48090874ed2f5febda46008738b3b1f70b6f3ec9d8c47cc15994741b2e" :a :task/id :v "t-e6bd03fa" :op :assert}
+   {:e #blake3 "c3175f48090874ed2f5febda46008738b3b1f70b6f3ec9d8c47cc15994741b2e" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "c3175f48090874ed2f5febda46008738b3b1f70b6f3ec9d8c47cc15994741b2e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c3175f48090874ed2f5febda46008738b3b1f70b6f3ec9d8c47cc15994741b2e" :a :task/title :v "Non-ASCII characters in observation text (e.g., é in LÉVY) pass through slug_from_text via is_alphanumeric() (Unicode-aware, not ASCII-only) and become invalid EDN keywords, corrupting the store. Root cause: slug_from_text uses c.is_alphanumeric() instead of c.is_ascii_alphanumeric(). Defense in depth: Attribute::validate() also lacks ASCII check. Two-layer fix needed: (1) slug sanitization, (2) attribute validation" :op :assert}
+   {:e #blake3 "c3175f48090874ed2f5febda46008738b3b1f70b6f3ec9d8c47cc15994741b2e" :a :task/type :v :task.type/task :op :assert}
+ ]}

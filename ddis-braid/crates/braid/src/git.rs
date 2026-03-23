@@ -261,12 +261,19 @@ pub fn top_modified_files(path: &Path, since: u64, limit: usize) -> Vec<(String,
 /// This gives an incoming agent a map of the codebase — which files
 /// are large, where the code lives, and how well-tested it is.
 pub fn codebase_snapshot(path: &Path) -> Option<String> {
-    let root = detect_git_root(path)?;
+    // C8-FIX-1: Scope to project directory (where .braid lives), not git root.
+    // detect_git_root walks up and may find a parent repo, capturing sibling
+    // projects (e.g., braid's own 115K LOC when managing an external project).
+    // git ls-files from a subdirectory naturally scopes to that subtree.
+    let project_dir = path;
 
-    // Get LOC for key source files (Rust .rs files, sorted by size)
+    // Verify we're inside a git repo (needed for ls-files)
+    let _root = detect_git_root(path)?;
+
+    // Get LOC for key source files — scoped to project directory
     let output = Command::new("git")
-        .args(["ls-files", "--", "*.rs", "*.toml"])
-        .current_dir(&root)
+        .args(["ls-files", "--", "*.rs", "*.toml", "*.go", "*.ts", "*.py"])
+        .current_dir(project_dir)
         .output()
         .ok()?;
 
@@ -275,22 +282,22 @@ pub fn codebase_snapshot(path: &Path) -> Option<String> {
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
+    let source_exts: &[&str] = &[".rs", ".go", ".ts", ".py"];
     let mut file_sizes: Vec<(String, usize)> = Vec::new();
     let mut total_loc = 0usize;
     let mut total_files = 0usize;
 
     for file in stdout.lines() {
         let file = file.trim();
-        if file.is_empty() || !file.ends_with(".rs") {
+        if file.is_empty() || !source_exts.iter().any(|ext| file.ends_with(ext)) {
             continue;
         }
         total_files += 1;
-        let full_path = root.join(file);
+        let full_path = project_dir.join(file);
         if let Ok(content) = std::fs::read_to_string(&full_path) {
             let loc = content.lines().count();
             total_loc += loc;
             if loc > 100 {
-                // Only show files > 100 LOC
                 file_sizes.push((file.to_string(), loc));
             }
         }
@@ -300,11 +307,10 @@ pub fn codebase_snapshot(path: &Path) -> Option<String> {
 
     let mut lines = Vec::new();
     lines.push(format!(
-        "Codebase: {} LOC across {} .rs files",
+        "Codebase: {} LOC across {} source files",
         total_loc, total_files
     ));
 
-    // Top files by size
     if !file_sizes.is_empty() {
         lines.push("Key files:".to_string());
         for (f, loc) in file_sizes.iter().take(10) {
@@ -312,10 +318,10 @@ pub fn codebase_snapshot(path: &Path) -> Option<String> {
         }
     }
 
-    // Test count (from cargo test --no-run output, fast)
+    // Test count — scoped to project directory
     let test_output = Command::new("cargo")
         .args(["test", "--", "--list"])
-        .current_dir(&root)
+        .current_dir(project_dir)
         .output()
         .ok();
     if let Some(ref out) = test_output {

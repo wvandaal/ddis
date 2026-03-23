@@ -133,6 +133,12 @@ impl Attribute {
                 "must start with ':', got '{keyword}'"
             )));
         }
+        // EDN keywords must be ASCII — non-ASCII chars corrupt the store on serialization
+        if !keyword.is_ascii() {
+            return Err(SchemaError::InvalidAttribute(format!(
+                "must be ASCII only, got non-ASCII in '{keyword}'"
+            )));
+        }
         let body = &keyword[1..];
         let slash_count = body.chars().filter(|c| *c == '/').count();
         if slash_count != 1 {
