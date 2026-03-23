@@ -917,18 +917,30 @@ pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
 /// Generate hypothesis datoms for the top-N R(t) recommendations.
 ///
 /// Each hypothesis records: what action was recommended, the predicted ΔF(S),
-/// which boundary it targets, and the initial confidence (0.5 prior).
-/// These are transacted alongside the routing computation so every
-/// recommendation is a testable, recorded prediction.
+/// which boundary it targets, the initial confidence (0.5 prior), and the
+/// item type for per-type calibration (UAQ-4).
 ///
 /// Returns datoms to be transacted. Does NOT transact them — caller decides.
 ///
 /// **HL-2**: `predicted` = R(t) impact score normalized to [0, 1] as expected ΔF(S).
+/// **UAQ-4**: `item_type` enables per-type calibration (task/block/boundary).
 /// **HL-5** (future): confidence adjusts based on outcome history.
 pub fn record_hypotheses(
     routings: &[TaskRouting],
     top_n: usize,
     tx: crate::datom::TxId,
+) -> Vec<crate::datom::Datom> {
+    record_hypotheses_with_type(routings, top_n, tx, "task")
+}
+
+/// Generate hypothesis datoms with explicit item type (UAQ-4).
+///
+/// `item_type` should be one of: "task", "block", "boundary".
+pub fn record_hypotheses_with_type(
+    routings: &[TaskRouting],
+    top_n: usize,
+    tx: crate::datom::TxId,
+    item_type: &str,
 ) -> Vec<crate::datom::Datom> {
     use crate::datom::{Attribute, Datom, Value};
 
@@ -1003,6 +1015,15 @@ pub fn record_hypotheses(
             tx,
             Op::Assert,
         ));
+
+        // :hypothesis/item-type — UAQ-4: per-type calibration
+        datoms.push(Datom::new(
+            hypothesis_id,
+            Attribute::from_keyword(":hypothesis/item-type"),
+            Value::String(item_type.to_string()),
+            tx,
+            Op::Assert,
+        ));
     }
 
     datoms
@@ -1056,6 +1077,9 @@ pub struct CalibrationReport {
     pub mean_error: f64,
     /// Per-boundary accuracy: boundary_name → mean error.
     pub per_boundary_accuracy: std::collections::BTreeMap<String, f64>,
+    /// Per-type accuracy: item_type → mean error (UAQ-4).
+    /// Keys: "task", "block", "boundary". Missing key = no data for that type.
+    pub per_type_accuracy: std::collections::BTreeMap<String, f64>,
     /// Trend: comparing last-20 vs all-time mean error.
     pub trend: CalibrationTrend,
 }
@@ -1070,13 +1094,15 @@ pub fn compute_calibration_metrics(store: &Store) -> CalibrationReport {
     let error_attr = crate::datom::Attribute::from_keyword(":hypothesis/error");
     let boundary_attr = crate::datom::Attribute::from_keyword(":hypothesis/boundary");
     let completed_attr = crate::datom::Attribute::from_keyword(":hypothesis/completed");
+    let item_type_attr = crate::datom::Attribute::from_keyword(":hypothesis/item-type");
 
     let total_hypotheses = hypothesis_count(store);
 
-    // Collect completed hypotheses with their errors and boundaries
+    // Collect completed hypotheses with their errors, boundaries, and item types
     struct HypRecord {
         error: f64,
         boundary: String,
+        item_type: String,
         completed_at: u64,
     }
 
@@ -1130,9 +1156,20 @@ pub fn compute_calibration_metrics(store: &Store) -> CalibrationReport {
             })
             .unwrap_or(0);
 
+        // UAQ-4: item type for per-type calibration
+        let item_type = datoms
+            .iter()
+            .find(|d| d.attribute == item_type_attr && d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                crate::datom::Value::String(s) => Some(s.clone()),
+                _ => None,
+            })
+            .unwrap_or_else(|| "task".into()); // default for pre-UAQ-4 hypotheses
+
         records.push(HypRecord {
             error,
             boundary,
+            item_type,
             completed_at,
         });
     }
@@ -1145,6 +1182,7 @@ pub fn compute_calibration_metrics(store: &Store) -> CalibrationReport {
             completed_hypotheses: 0,
             mean_error: 0.0,
             per_boundary_accuracy: std::collections::BTreeMap::new(),
+            per_type_accuracy: std::collections::BTreeMap::new(),
             trend: CalibrationTrend::Insufficient,
         };
     }
@@ -1162,6 +1200,23 @@ pub fn compute_calibration_metrics(store: &Store) -> CalibrationReport {
             .push(r.error);
     }
     let per_boundary_accuracy: std::collections::BTreeMap<String, f64> = boundary_errors
+        .iter()
+        .map(|(k, v)| {
+            let mean = v.iter().sum::<f64>() / v.len() as f64;
+            (k.clone(), mean)
+        })
+        .collect();
+
+    // UAQ-4: Per-type accuracy
+    let mut type_errors: std::collections::BTreeMap<String, Vec<f64>> =
+        std::collections::BTreeMap::new();
+    for r in &records {
+        type_errors
+            .entry(r.item_type.clone())
+            .or_default()
+            .push(r.error);
+    }
+    let per_type_accuracy: std::collections::BTreeMap<String, f64> = type_errors
         .iter()
         .map(|(k, v)| {
             let mean = v.iter().sum::<f64>() / v.len() as f64;
@@ -1200,6 +1255,7 @@ pub fn compute_calibration_metrics(store: &Store) -> CalibrationReport {
         completed_hypotheses,
         mean_error,
         per_boundary_accuracy,
+        per_type_accuracy,
         trend,
     }
 }

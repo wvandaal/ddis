@@ -1663,6 +1663,12 @@ pub fn layer_2_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Wall-clock time when the outcome was measured. Null until action completes.",
         ),
+        attr(
+            ":hypothesis/item-type",
+            ValueType::String,
+            Cardinality::One,
+            "Type of item this hypothesis is about: 'task', 'block', or 'boundary'. Enables per-type calibration (UAQ-4, ADR-FOUNDATION-025).",
+        ),
         // =================================================================
         // Attention (6) — Learned context projection (ATT-0)
         // ADR-FOUNDATION-024: Braid as Learned Attention

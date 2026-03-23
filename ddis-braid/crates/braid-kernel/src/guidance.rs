@@ -3660,10 +3660,10 @@ mod tests {
         ];
 
         let datoms = record_hypotheses(&routings, 3, tx);
-        // 2 recommendations x 5 datoms each = 10
-        assert_eq!(datoms.len(), 10, "expected 5 datoms per hypothesis, got {}", datoms.len());
+        // 2 recommendations x 6 datoms each = 12 (UAQ-4: +item-type)
+        assert_eq!(datoms.len(), 12, "expected 6 datoms per hypothesis, got {}", datoms.len());
 
-        // Check first hypothesis has all 5 attributes
+        // Check first hypothesis has all 6 attributes
         let first_entity = datoms[0].entity;
         let attrs: Vec<String> = datoms.iter()
             .filter(|d| d.entity == first_entity)
@@ -3674,6 +3674,7 @@ mod tests {
         assert!(attrs.contains(&":hypothesis/boundary".to_string()));
         assert!(attrs.contains(&":hypothesis/confidence".to_string()));
         assert!(attrs.contains(&":hypothesis/timestamp".to_string()));
+        assert!(attrs.contains(&":hypothesis/item-type".to_string()));
     }
 
     /// HL-2: Zero-impact recommendations are skipped.
