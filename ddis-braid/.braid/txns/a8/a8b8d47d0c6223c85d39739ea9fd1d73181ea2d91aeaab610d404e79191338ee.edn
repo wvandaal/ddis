@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774281728/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7b147c9c"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/close-reason :v "superseded: ceremony is a context block, not a separate system (Insight 12)" :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/closed-at :v 1774281727 :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "f65a312ff6c2abc0155427b0d47771c414729bc6a0dd4060ba3bc290cd4056be" :a :task/status :v :task.status/closed :op :assert}
+ ]}

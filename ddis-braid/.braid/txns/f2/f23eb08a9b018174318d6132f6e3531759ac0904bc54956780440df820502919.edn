@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774281785/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DOGFOOD-4 REVISION: Transfer is reconciliation. DOGFOOD-4 reframed: not 'copy weights from Go CLI to braid' but 'merge stores and observe how reconciliation handles cross-domain hypotheses.' No boundary name matching needed. The hypothesis ledger measures prediction accuracy regardless of origin. Per-boundary errors that spike after merge indicate domain-specific calibration (not transferable). Per-boundary errors that decrease indicate the additional data helped (transferable). The merge IS an observation at the inter-project level. The quality of the merge IS data for meta-calibration."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "abd79de273a3158d2f379a0598aba4a08a16e5ba20bed0479d38cc0a20a325f4" :a :db/doc :v "DOGFOOD-4 REVISION: Transfer is reconciliation. DOGFOOD-4 reframed: not 'copy weights from Go CLI to braid' but 'merge stores and observe how reconciliation handles cross-domain hypotheses.' No boundary name matching needed. The hypothesis ledger measures prediction accuracy regardless of origin. Per-boundary errors that spike after merge indicate domain-specific calibration (not transferable). Per-boundary errors that decrease indicate the additional data helped (transferable). The merge IS an observation at the inter-project level. The quality of the merge IS data for meta-calibration." :op :assert}
+   {:e #blake3 "abd79de273a3158d2f379a0598aba4a08a16e5ba20bed0479d38cc0a20a325f4" :a :db/ident :v :observation/dogfood-4-revision-transfer-is-reconciliation-dogfood-4-re :op :assert}
+   {:e #blake3 "abd79de273a3158d2f379a0598aba4a08a16e5ba20bed0479d38cc0a20a325f4" :a :exploration/body :v "DOGFOOD-4 REVISION: Transfer is reconciliation. DOGFOOD-4 reframed: not 'copy weights from Go CLI to braid' but 'merge stores and observe how reconciliation handles cross-domain hypotheses.' No boundary name matching needed. The hypothesis ledger measures prediction accuracy regardless of origin. Per-boundary errors that spike after merge indicate domain-specific calibration (not transferable). Per-boundary errors that decrease indicate the additional data helped (transferable). The merge IS an observation at the inter-project level. The quality of the merge IS data for meta-calibration." :op :assert}
+   {:e #blake3 "abd79de273a3158d2f379a0598aba4a08a16e5ba20bed0479d38cc0a20a325f4" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "abd79de273a3158d2f379a0598aba4a08a16e5ba20bed0479d38cc0a20a325f4" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "abd79de273a3158d2f379a0598aba4a08a16e5ba20bed0479d38cc0a20a325f4" :a :exploration/content-hash :v #bytes "0ad98fa7ed7bb78caa0112c523b93b21fa20b3bed4c04067678157330d5e7cf5" :op :assert}
+   {:e #blake3 "abd79de273a3158d2f379a0598aba4a08a16e5ba20bed0479d38cc0a20a325f4" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "abd79de273a3158d2f379a0598aba4a08a16e5ba20bed0479d38cc0a20a325f4" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "abd79de273a3158d2f379a0598aba4a08a16e5ba20bed0479d38cc0a20a325f4" :a :exploration/source-session :v #blake3 "3ee7872ef876de12ab7de42ea50c4de480f836a2f2fe93045497216c1d436d1b" :op :assert}
+ ]}
