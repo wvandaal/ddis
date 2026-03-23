@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225432/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: OBS-SCHEMA: Complete observer metadata — source-category, expected-boundaries, cost, composition"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "09d57cc797670f11433e48278763a58a2ca0dd076d56cb4ff19c82bf237bf6f5" :a :db/ident :v :task/t-499eb704 :op :assert}
+   {:e #blake3 "09d57cc797670f11433e48278763a58a2ca0dd076d56cb4ff19c82bf237bf6f5" :a :task/created-at :v 1774225431 :op :assert}
+   {:e #blake3 "09d57cc797670f11433e48278763a58a2ca0dd076d56cb4ff19c82bf237bf6f5" :a :task/id :v "t-499eb704" :op :assert}
+   {:e #blake3 "09d57cc797670f11433e48278763a58a2ca0dd076d56cb4ff19c82bf237bf6f5" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "09d57cc797670f11433e48278763a58a2ca0dd076d56cb4ff19c82bf237bf6f5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "09d57cc797670f11433e48278763a58a2ca0dd076d56cb4ff19c82bf237bf6f5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "09d57cc797670f11433e48278763a58a2ca0dd076d56cb4ff19c82bf237bf6f5" :a :task/title :v "OBS-SCHEMA: Complete observer metadata — source-category, expected-boundaries, cost, composition" :op :assert}
+   {:e #blake3 "09d57cc797670f11433e48278763a58a2ca0dd076d56cb4ff19c82bf237bf6f5" :a :task/title-l0 :v "OBS-SCHEMA" :op :assert}
+   {:e #blake3 "09d57cc797670f11433e48278763a58a2ca0dd076d56cb4ff19c82bf237bf6f5" :a :task/title-l1 :v "OBS-SCHEMA: Complete observer metadata — source-category, expected-boundari..." :op :assert}
+   {:e #blake3 "09d57cc797670f11433e48278763a58a2ca0dd076d56cb4ff19c82bf237bf6f5" :a :task/type :v :task.type/task :op :assert}
+ ]}

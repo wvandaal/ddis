@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225413/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HL-3: Match outcomes on task close — record actual delta_F(S) vs predicted"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "df471d6fb7d2e53c0773d9641331d895ed64e02da0d3a88618e6e622e6214ccb" :a :db/ident :v :task/t-f444b194 :op :assert}
+   {:e #blake3 "df471d6fb7d2e53c0773d9641331d895ed64e02da0d3a88618e6e622e6214ccb" :a :task/created-at :v 1774225412 :op :assert}
+   {:e #blake3 "df471d6fb7d2e53c0773d9641331d895ed64e02da0d3a88618e6e622e6214ccb" :a :task/id :v "t-f444b194" :op :assert}
+   {:e #blake3 "df471d6fb7d2e53c0773d9641331d895ed64e02da0d3a88618e6e622e6214ccb" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "df471d6fb7d2e53c0773d9641331d895ed64e02da0d3a88618e6e622e6214ccb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "df471d6fb7d2e53c0773d9641331d895ed64e02da0d3a88618e6e622e6214ccb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "df471d6fb7d2e53c0773d9641331d895ed64e02da0d3a88618e6e622e6214ccb" :a :task/title :v "HL-3: Match outcomes on task close — record actual delta_F(S) vs predicted" :op :assert}
+   {:e #blake3 "df471d6fb7d2e53c0773d9641331d895ed64e02da0d3a88618e6e622e6214ccb" :a :task/title-l0 :v "HL-3" :op :assert}
+   {:e #blake3 "df471d6fb7d2e53c0773d9641331d895ed64e02da0d3a88618e6e622e6214ccb" :a :task/title-l1 :v "HL-3: Match outcomes on task close — record actual delta_F(S) vs predicted" :op :assert}
+   {:e #blake3 "df471d6fb7d2e53c0773d9641331d895ed64e02da0d3a88618e6e622e6214ccb" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774225097/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HL-4: Calibration metrics — compute_calibration_metrics(store) returns CalibrationReport: total_hypotheses, mean_error, per_boundary_accuracy (BTreeMap<String,f64>), trend (improving/stable/degrading based on last-20 vs all-time), r_squared. Surface in braid status calibration section and braid next alternatives display. DEPENDS-ON: HL-3. FILE: crates/braid-kernel/src/bilateral.rs + crates/braid/src/commands/status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ac3d7c6b8406bccc2ef3f1d512511a8559dc3135a27c29a6360140c82d069ae4" :a :db/ident :v :task/t-85de9ceb :op :assert}
+   {:e #blake3 "ac3d7c6b8406bccc2ef3f1d512511a8559dc3135a27c29a6360140c82d069ae4" :a :task/created-at :v 1774225096 :op :assert}
+   {:e #blake3 "ac3d7c6b8406bccc2ef3f1d512511a8559dc3135a27c29a6360140c82d069ae4" :a :task/files :v "crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "ac3d7c6b8406bccc2ef3f1d512511a8559dc3135a27c29a6360140c82d069ae4" :a :task/files :v "crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "ac3d7c6b8406bccc2ef3f1d512511a8559dc3135a27c29a6360140c82d069ae4" :a :task/id :v "t-85de9ceb" :op :assert}
+   {:e #blake3 "ac3d7c6b8406bccc2ef3f1d512511a8559dc3135a27c29a6360140c82d069ae4" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "ac3d7c6b8406bccc2ef3f1d512511a8559dc3135a27c29a6360140c82d069ae4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ac3d7c6b8406bccc2ef3f1d512511a8559dc3135a27c29a6360140c82d069ae4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ac3d7c6b8406bccc2ef3f1d512511a8559dc3135a27c29a6360140c82d069ae4" :a :task/title :v "HL-4: Calibration metrics — compute_calibration_metrics(store) returns CalibrationReport: total_hypotheses, mean_error, per_boundary_accuracy (BTreeMap<String,f64>), trend (improving/stable/degrading based on last-20 vs all-time), r_squared. Surface in braid status calibration section and braid next alternatives display. DEPENDS-ON: HL-3. FILE: crates/braid-kernel/src/bilateral.rs + crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "ac3d7c6b8406bccc2ef3f1d512511a8559dc3135a27c29a6360140c82d069ae4" :a :task/title-l0 :v "HL-4" :op :assert}
+   {:e #blake3 "ac3d7c6b8406bccc2ef3f1d512511a8559dc3135a27c29a6360140c82d069ae4" :a :task/title-l1 :v "HL-4: Calibration metrics — compute_calibration_metrics(store) returns Cali..." :op :assert}
+   {:e #blake3 "ac3d7c6b8406bccc2ef3f1d512511a8559dc3135a27c29a6360140c82d069ae4" :a :task/type :v :task.type/task :op :assert}
+ ]}

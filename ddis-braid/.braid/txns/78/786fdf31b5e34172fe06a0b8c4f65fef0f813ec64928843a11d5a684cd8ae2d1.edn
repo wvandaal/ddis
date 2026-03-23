@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225429/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PROJ-2: braid project command — invoke registered projectors"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5a244c62107892ebd1c9a40949ca8328b53587bc7de9ca7a030948ed53becfdc" :a :db/ident :v :task/t-86a80cbf :op :assert}
+   {:e #blake3 "5a244c62107892ebd1c9a40949ca8328b53587bc7de9ca7a030948ed53becfdc" :a :task/created-at :v 1774225428 :op :assert}
+   {:e #blake3 "5a244c62107892ebd1c9a40949ca8328b53587bc7de9ca7a030948ed53becfdc" :a :task/id :v "t-86a80cbf" :op :assert}
+   {:e #blake3 "5a244c62107892ebd1c9a40949ca8328b53587bc7de9ca7a030948ed53becfdc" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5a244c62107892ebd1c9a40949ca8328b53587bc7de9ca7a030948ed53becfdc" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5a244c62107892ebd1c9a40949ca8328b53587bc7de9ca7a030948ed53becfdc" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5a244c62107892ebd1c9a40949ca8328b53587bc7de9ca7a030948ed53becfdc" :a :task/title :v "PROJ-2: braid project command — invoke registered projectors" :op :assert}
+   {:e #blake3 "5a244c62107892ebd1c9a40949ca8328b53587bc7de9ca7a030948ed53becfdc" :a :task/title-l0 :v "PROJ-2" :op :assert}
+   {:e #blake3 "5a244c62107892ebd1c9a40949ca8328b53587bc7de9ca7a030948ed53becfdc" :a :task/title-l1 :v "PROJ-2: braid project command — invoke registered projectors" :op :assert}
+   {:e #blake3 "5a244c62107892ebd1c9a40949ca8328b53587bc7de9ca7a030948ed53becfdc" :a :task/type :v :task.type/task :op :assert}
+ ]}

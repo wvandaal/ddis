@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225426/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-TEST: Universal Action Queue test suite"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "24f0279a428a7520bfde588b3ab829d0435b2625c3693ae6f3d2faff0f154a29" :a :db/ident :v :task/t-cb205bcf :op :assert}
+   {:e #blake3 "24f0279a428a7520bfde588b3ab829d0435b2625c3693ae6f3d2faff0f154a29" :a :task/created-at :v 1774225425 :op :assert}
+   {:e #blake3 "24f0279a428a7520bfde588b3ab829d0435b2625c3693ae6f3d2faff0f154a29" :a :task/id :v "t-cb205bcf" :op :assert}
+   {:e #blake3 "24f0279a428a7520bfde588b3ab829d0435b2625c3693ae6f3d2faff0f154a29" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "24f0279a428a7520bfde588b3ab829d0435b2625c3693ae6f3d2faff0f154a29" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "24f0279a428a7520bfde588b3ab829d0435b2625c3693ae6f3d2faff0f154a29" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "24f0279a428a7520bfde588b3ab829d0435b2625c3693ae6f3d2faff0f154a29" :a :task/title :v "UAQ-TEST: Universal Action Queue test suite" :op :assert}
+   {:e #blake3 "24f0279a428a7520bfde588b3ab829d0435b2625c3693ae6f3d2faff0f154a29" :a :task/title-l0 :v "UAQ-TEST" :op :assert}
+   {:e #blake3 "24f0279a428a7520bfde588b3ab829d0435b2625c3693ae6f3d2faff0f154a29" :a :task/title-l1 :v "UAQ-TEST: Universal Action Queue test suite" :op :assert}
+   {:e #blake3 "24f0279a428a7520bfde588b3ab829d0435b2625c3693ae6f3d2faff0f154a29" :a :task/type :v :task.type/task :op :assert}
+ ]}

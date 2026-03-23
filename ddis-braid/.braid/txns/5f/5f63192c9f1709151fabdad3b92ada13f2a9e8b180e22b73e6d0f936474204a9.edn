@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774225166/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HL-TEST: Hypothesis Ledger test suite — unit + proptest + E2E. UNIT: (1) hypothesis datoms created on R(t) computation, (2) outcome matched on task close, (3) calibration metrics correct for known data, (4) weight adjustment converges for synthetic series, (5) confidence monotonically improves with more data. PROPTEST: (6) random prediction/outcome pairs produce bounded error, (7) calibration metrics consistent with manual computation. E2E: (8) scripts/e2e_hypothesis_ledger.sh — create task, predict, close, verify calibration in status output. DEPENDS-ON: HL-4. FILE: crates/braid-kernel/src/bilateral.rs (tests) + scripts/e2e_hypothesis_ledger.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "07fcc30c38cbdbc8d79cfce2f5437ea454f19804da88575652d8a4c6b215c783" :a :db/ident :v :task/t-352fa65a :op :assert}
+   {:e #blake3 "07fcc30c38cbdbc8d79cfce2f5437ea454f19804da88575652d8a4c6b215c783" :a :task/created-at :v 1774225165 :op :assert}
+   {:e #blake3 "07fcc30c38cbdbc8d79cfce2f5437ea454f19804da88575652d8a4c6b215c783" :a :task/files :v "crates/braid-kernel/src/bilateral.rs (tests)" :op :assert}
+   {:e #blake3 "07fcc30c38cbdbc8d79cfce2f5437ea454f19804da88575652d8a4c6b215c783" :a :task/files :v "scripts/e2e_hypothesis_ledger.sh" :op :assert}
+   {:e #blake3 "07fcc30c38cbdbc8d79cfce2f5437ea454f19804da88575652d8a4c6b215c783" :a :task/id :v "t-352fa65a" :op :assert}
+   {:e #blake3 "07fcc30c38cbdbc8d79cfce2f5437ea454f19804da88575652d8a4c6b215c783" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "07fcc30c38cbdbc8d79cfce2f5437ea454f19804da88575652d8a4c6b215c783" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "07fcc30c38cbdbc8d79cfce2f5437ea454f19804da88575652d8a4c6b215c783" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "07fcc30c38cbdbc8d79cfce2f5437ea454f19804da88575652d8a4c6b215c783" :a :task/title :v "HL-TEST: Hypothesis Ledger test suite — unit + proptest + E2E. UNIT: (1) hypothesis datoms created on R(t) computation, (2) outcome matched on task close, (3) calibration metrics correct for known data, (4) weight adjustment converges for synthetic series, (5) confidence monotonically improves with more data. PROPTEST: (6) random prediction/outcome pairs produce bounded error, (7) calibration metrics consistent with manual computation. E2E: (8) scripts/e2e_hypothesis_ledger.sh — create task, predict, close, verify calibration in status output. DEPENDS-ON: HL-4. FILE: crates/braid-kernel/src/bilateral.rs (tests) + scripts/e2e_hypothesis_ledger.sh" :op :assert}
+   {:e #blake3 "07fcc30c38cbdbc8d79cfce2f5437ea454f19804da88575652d8a4c6b215c783" :a :task/title-l0 :v "HL-TEST" :op :assert}
+   {:e #blake3 "07fcc30c38cbdbc8d79cfce2f5437ea454f19804da88575652d8a4c6b215c783" :a :task/title-l1 :v "HL-TEST: Hypothesis Ledger test suite — unit + proptest + E2E" :op :assert}
+   {:e #blake3 "07fcc30c38cbdbc8d79cfce2f5437ea454f19804da88575652d8a4c6b215c783" :a :task/type :v :task.type/test :op :assert}
+ ]}

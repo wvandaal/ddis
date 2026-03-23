@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225417/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HL-5: Self-adjusting weights — exponential smoothing of prediction error"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ab9b9882797cc9307a2447bbdb81ce5afbf26ee955ae72b12f5de135dd7e6f71" :a :db/ident :v :task/t-bed79425 :op :assert}
+   {:e #blake3 "ab9b9882797cc9307a2447bbdb81ce5afbf26ee955ae72b12f5de135dd7e6f71" :a :task/created-at :v 1774225416 :op :assert}
+   {:e #blake3 "ab9b9882797cc9307a2447bbdb81ce5afbf26ee955ae72b12f5de135dd7e6f71" :a :task/id :v "t-bed79425" :op :assert}
+   {:e #blake3 "ab9b9882797cc9307a2447bbdb81ce5afbf26ee955ae72b12f5de135dd7e6f71" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ab9b9882797cc9307a2447bbdb81ce5afbf26ee955ae72b12f5de135dd7e6f71" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ab9b9882797cc9307a2447bbdb81ce5afbf26ee955ae72b12f5de135dd7e6f71" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ab9b9882797cc9307a2447bbdb81ce5afbf26ee955ae72b12f5de135dd7e6f71" :a :task/title :v "HL-5: Self-adjusting weights — exponential smoothing of prediction error" :op :assert}
+   {:e #blake3 "ab9b9882797cc9307a2447bbdb81ce5afbf26ee955ae72b12f5de135dd7e6f71" :a :task/title-l0 :v "HL-5" :op :assert}
+   {:e #blake3 "ab9b9882797cc9307a2447bbdb81ce5afbf26ee955ae72b12f5de135dd7e6f71" :a :task/title-l1 :v "HL-5: Self-adjusting weights — exponential smoothing of prediction error" :op :assert}
+   {:e #blake3 "ab9b9882797cc9307a2447bbdb81ce5afbf26ee955ae72b12f5de135dd7e6f71" :a :task/type :v :task.type/task :op :assert}
+ ]}

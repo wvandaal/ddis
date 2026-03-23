@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225434/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PROJ-TESTGEN: Test Generator Projector — INVs to executable tests"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "247fd41adfc475b470dc2781fdb7da7f7147bae48509e2de98ad42c3d2394c73" :a :db/ident :v :task/t-15704a2a :op :assert}
+   {:e #blake3 "247fd41adfc475b470dc2781fdb7da7f7147bae48509e2de98ad42c3d2394c73" :a :task/created-at :v 1774225433 :op :assert}
+   {:e #blake3 "247fd41adfc475b470dc2781fdb7da7f7147bae48509e2de98ad42c3d2394c73" :a :task/id :v "t-15704a2a" :op :assert}
+   {:e #blake3 "247fd41adfc475b470dc2781fdb7da7f7147bae48509e2de98ad42c3d2394c73" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "247fd41adfc475b470dc2781fdb7da7f7147bae48509e2de98ad42c3d2394c73" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "247fd41adfc475b470dc2781fdb7da7f7147bae48509e2de98ad42c3d2394c73" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "247fd41adfc475b470dc2781fdb7da7f7147bae48509e2de98ad42c3d2394c73" :a :task/title :v "PROJ-TESTGEN: Test Generator Projector — INVs to executable tests" :op :assert}
+   {:e #blake3 "247fd41adfc475b470dc2781fdb7da7f7147bae48509e2de98ad42c3d2394c73" :a :task/title-l0 :v "PROJ-TESTGEN" :op :assert}
+   {:e #blake3 "247fd41adfc475b470dc2781fdb7da7f7147bae48509e2de98ad42c3d2394c73" :a :task/title-l1 :v "PROJ-TESTGEN: Test Generator Projector — INVs to executable tests" :op :assert}
+   {:e #blake3 "247fd41adfc475b470dc2781fdb7da7f7147bae48509e2de98ad42c3d2394c73" :a :task/type :v :task.type/task :op :assert}
+ ]}

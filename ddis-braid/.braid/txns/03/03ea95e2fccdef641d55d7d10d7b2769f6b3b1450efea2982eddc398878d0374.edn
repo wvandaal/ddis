@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774225121/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-3: braid next returns Observation, not just Task — update the next command to display the top Observation regardless of kind. Format: 'next: [kind] description (predicted delta_F(S)=X, confidence=Y, cost=Z)'. For Task kind, behavior is identical to current. For Extraction kind, show 'braid extract <name>'. For Review kind, show 'braid witness check <id>'. DEPENDS-ON: UAQ-2, HL-2. FILE: crates/braid/src/commands/mod.rs + status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dfc40f9e8d4f6dc837a379416acae84444f64b9d7b622641a36faf9317df4ea7" :a :db/ident :v :task/t-9642d665 :op :assert}
+   {:e #blake3 "dfc40f9e8d4f6dc837a379416acae84444f64b9d7b622641a36faf9317df4ea7" :a :task/created-at :v 1774225120 :op :assert}
+   {:e #blake3 "dfc40f9e8d4f6dc837a379416acae84444f64b9d7b622641a36faf9317df4ea7" :a :task/files :v "crates/braid/src/commands/mod.rs" :op :assert}
+   {:e #blake3 "dfc40f9e8d4f6dc837a379416acae84444f64b9d7b622641a36faf9317df4ea7" :a :task/id :v "t-9642d665" :op :assert}
+   {:e #blake3 "dfc40f9e8d4f6dc837a379416acae84444f64b9d7b622641a36faf9317df4ea7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "dfc40f9e8d4f6dc837a379416acae84444f64b9d7b622641a36faf9317df4ea7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "dfc40f9e8d4f6dc837a379416acae84444f64b9d7b622641a36faf9317df4ea7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "dfc40f9e8d4f6dc837a379416acae84444f64b9d7b622641a36faf9317df4ea7" :a :task/title :v "UAQ-3: braid next returns Observation, not just Task — update the next command to display the top Observation regardless of kind. Format: 'next: [kind] description (predicted delta_F(S)=X, confidence=Y, cost=Z)'. For Task kind, behavior is identical to current. For Extraction kind, show 'braid extract <name>'. For Review kind, show 'braid witness check <id>'. DEPENDS-ON: UAQ-2, HL-2. FILE: crates/braid/src/commands/mod.rs + status.rs" :op :assert}
+   {:e #blake3 "dfc40f9e8d4f6dc837a379416acae84444f64b9d7b622641a36faf9317df4ea7" :a :task/title-l0 :v "UAQ-3" :op :assert}
+   {:e #blake3 "dfc40f9e8d4f6dc837a379416acae84444f64b9d7b622641a36faf9317df4ea7" :a :task/title-l1 :v "UAQ-3: braid next returns Observation, not just Task — update the next comm..." :op :assert}
+   {:e #blake3 "dfc40f9e8d4f6dc837a379416acae84444f64b9d7b622641a36faf9317df4ea7" :a :task/type :v :task.type/task :op :assert}
+ ]}

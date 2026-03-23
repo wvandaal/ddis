@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774225170/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PROJ-TEST-SUITE: Projector Registry test suite — unit + E2E. UNIT: (1) :projector/* entities discoverable from store, (2) trigger evaluation correct for on-change/on-demand, (3) projector output validation works. E2E: (4) scripts/e2e_projector.sh — register projector, trigger, verify output artifact. DEPENDS-ON: PROJ-2. FILE: crates/braid/src/commands/project.rs (tests) + scripts/e2e_projector.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "877aaa325d7e41aa74534f6630a9c617741dc72fc732271f27b07279f19e8cc3" :a :db/ident :v :task/t-8d83f735 :op :assert}
+   {:e #blake3 "877aaa325d7e41aa74534f6630a9c617741dc72fc732271f27b07279f19e8cc3" :a :task/created-at :v 1774225169 :op :assert}
+   {:e #blake3 "877aaa325d7e41aa74534f6630a9c617741dc72fc732271f27b07279f19e8cc3" :a :task/files :v "crates/braid/src/commands/project.rs (tests)" :op :assert}
+   {:e #blake3 "877aaa325d7e41aa74534f6630a9c617741dc72fc732271f27b07279f19e8cc3" :a :task/files :v "scripts/e2e_projector.sh" :op :assert}
+   {:e #blake3 "877aaa325d7e41aa74534f6630a9c617741dc72fc732271f27b07279f19e8cc3" :a :task/id :v "t-8d83f735" :op :assert}
+   {:e #blake3 "877aaa325d7e41aa74534f6630a9c617741dc72fc732271f27b07279f19e8cc3" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "877aaa325d7e41aa74534f6630a9c617741dc72fc732271f27b07279f19e8cc3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "877aaa325d7e41aa74534f6630a9c617741dc72fc732271f27b07279f19e8cc3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "877aaa325d7e41aa74534f6630a9c617741dc72fc732271f27b07279f19e8cc3" :a :task/title :v "PROJ-TEST-SUITE: Projector Registry test suite — unit + E2E. UNIT: (1) :projector/* entities discoverable from store, (2) trigger evaluation correct for on-change/on-demand, (3) projector output validation works. E2E: (4) scripts/e2e_projector.sh — register projector, trigger, verify output artifact. DEPENDS-ON: PROJ-2. FILE: crates/braid/src/commands/project.rs (tests) + scripts/e2e_projector.sh" :op :assert}
+   {:e #blake3 "877aaa325d7e41aa74534f6630a9c617741dc72fc732271f27b07279f19e8cc3" :a :task/title-l0 :v "PROJ-TEST-SUITE" :op :assert}
+   {:e #blake3 "877aaa325d7e41aa74534f6630a9c617741dc72fc732271f27b07279f19e8cc3" :a :task/title-l1 :v "PROJ-TEST-SUITE: Projector Registry test suite — unit + E2E" :op :assert}
+   {:e #blake3 "877aaa325d7e41aa74534f6630a9c617741dc72fc732271f27b07279f19e8cc3" :a :task/type :v :task.type/test :op :assert}
+ ]}

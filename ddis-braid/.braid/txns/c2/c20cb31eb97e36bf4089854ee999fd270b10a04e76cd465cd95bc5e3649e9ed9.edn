@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774225092/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HL-1: Hypothesis schema — register :hypothesis/action (Ref), /predicted (Double), /boundary (String), /confidence (Double), /timestamp (Instant), /actual (Double), /error (Double), /completed (Instant) in genesis_datoms(). FILE: crates/braid-kernel/src/schema.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b6e596fec9fce711bfce3fc9c53064a9a2d37e528835d6f9005080c99ce67db6" :a :db/ident :v :task/t-95a902b0 :op :assert}
+   {:e #blake3 "b6e596fec9fce711bfce3fc9c53064a9a2d37e528835d6f9005080c99ce67db6" :a :task/created-at :v 1774225091 :op :assert}
+   {:e #blake3 "b6e596fec9fce711bfce3fc9c53064a9a2d37e528835d6f9005080c99ce67db6" :a :task/files :v "crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "b6e596fec9fce711bfce3fc9c53064a9a2d37e528835d6f9005080c99ce67db6" :a :task/id :v "t-95a902b0" :op :assert}
+   {:e #blake3 "b6e596fec9fce711bfce3fc9c53064a9a2d37e528835d6f9005080c99ce67db6" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "b6e596fec9fce711bfce3fc9c53064a9a2d37e528835d6f9005080c99ce67db6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b6e596fec9fce711bfce3fc9c53064a9a2d37e528835d6f9005080c99ce67db6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b6e596fec9fce711bfce3fc9c53064a9a2d37e528835d6f9005080c99ce67db6" :a :task/title :v "HL-1: Hypothesis schema — register :hypothesis/action (Ref), /predicted (Double), /boundary (String), /confidence (Double), /timestamp (Instant), /actual (Double), /error (Double), /completed (Instant) in genesis_datoms(). FILE: crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "b6e596fec9fce711bfce3fc9c53064a9a2d37e528835d6f9005080c99ce67db6" :a :task/title-l0 :v "HL-1" :op :assert}
+   {:e #blake3 "b6e596fec9fce711bfce3fc9c53064a9a2d37e528835d6f9005080c99ce67db6" :a :task/title-l1 :v "HL-1: Hypothesis schema — register :hypothesis/action (Ref), /predicted (Do..." :op :assert}
+   {:e #blake3 "b6e596fec9fce711bfce3fc9c53064a9a2d37e528835d6f9005080c99ce67db6" :a :task/type :v :task.type/task :op :assert}
+ ]}

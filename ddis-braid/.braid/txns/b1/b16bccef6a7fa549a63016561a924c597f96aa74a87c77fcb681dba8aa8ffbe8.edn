@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774225142/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PROJ-1: Projector schema — register :projector/source-pattern (String), /target (String), /morphism (Keyword — :projector.morphism/template, /generator, /compiler), /trigger (Keyword — :projector.trigger/on-change, /on-demand, /periodic, /on-harvest), /boundary (String), /status (Keyword), /last-run (Instant) in genesis_datoms(). Dual of :extractor/* schema. FILE: crates/braid-kernel/src/schema.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "54e54dde804ea5a4c2c6304a0bbf15731f0ac39af5b36e70d6ca8d90271679bb" :a :db/ident :v :task/t-6ae5d230 :op :assert}
+   {:e #blake3 "54e54dde804ea5a4c2c6304a0bbf15731f0ac39af5b36e70d6ca8d90271679bb" :a :task/created-at :v 1774225141 :op :assert}
+   {:e #blake3 "54e54dde804ea5a4c2c6304a0bbf15731f0ac39af5b36e70d6ca8d90271679bb" :a :task/files :v "crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "54e54dde804ea5a4c2c6304a0bbf15731f0ac39af5b36e70d6ca8d90271679bb" :a :task/id :v "t-6ae5d230" :op :assert}
+   {:e #blake3 "54e54dde804ea5a4c2c6304a0bbf15731f0ac39af5b36e70d6ca8d90271679bb" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "54e54dde804ea5a4c2c6304a0bbf15731f0ac39af5b36e70d6ca8d90271679bb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "54e54dde804ea5a4c2c6304a0bbf15731f0ac39af5b36e70d6ca8d90271679bb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "54e54dde804ea5a4c2c6304a0bbf15731f0ac39af5b36e70d6ca8d90271679bb" :a :task/title :v "PROJ-1: Projector schema — register :projector/source-pattern (String), /target (String), /morphism (Keyword — :projector.morphism/template, /generator, /compiler), /trigger (Keyword — :projector.trigger/on-change, /on-demand, /periodic, /on-harvest), /boundary (String), /status (Keyword), /last-run (Instant) in genesis_datoms(). Dual of :extractor/* schema. FILE: crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "54e54dde804ea5a4c2c6304a0bbf15731f0ac39af5b36e70d6ca8d90271679bb" :a :task/title-l0 :v "PROJ-1" :op :assert}
+   {:e #blake3 "54e54dde804ea5a4c2c6304a0bbf15731f0ac39af5b36e70d6ca8d90271679bb" :a :task/title-l1 :v "PROJ-1: Projector schema — register :projector/source-pattern (String), /ta..." :op :assert}
+   {:e #blake3 "54e54dde804ea5a4c2c6304a0bbf15731f0ac39af5b36e70d6ca8d90271679bb" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225411/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HL-2: Record predictions in R(t) — transact hypothesis datoms on braid next"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e2f3f03dea359d368494f700190814f4a015b9817554fc00e276a5e7e7d88fe1" :a :db/ident :v :task/t-0499a9cd :op :assert}
+   {:e #blake3 "e2f3f03dea359d368494f700190814f4a015b9817554fc00e276a5e7e7d88fe1" :a :task/created-at :v 1774225410 :op :assert}
+   {:e #blake3 "e2f3f03dea359d368494f700190814f4a015b9817554fc00e276a5e7e7d88fe1" :a :task/id :v "t-0499a9cd" :op :assert}
+   {:e #blake3 "e2f3f03dea359d368494f700190814f4a015b9817554fc00e276a5e7e7d88fe1" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e2f3f03dea359d368494f700190814f4a015b9817554fc00e276a5e7e7d88fe1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e2f3f03dea359d368494f700190814f4a015b9817554fc00e276a5e7e7d88fe1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e2f3f03dea359d368494f700190814f4a015b9817554fc00e276a5e7e7d88fe1" :a :task/title :v "HL-2: Record predictions in R(t) — transact hypothesis datoms on braid next" :op :assert}
+   {:e #blake3 "e2f3f03dea359d368494f700190814f4a015b9817554fc00e276a5e7e7d88fe1" :a :task/title-l0 :v "HL-2" :op :assert}
+   {:e #blake3 "e2f3f03dea359d368494f700190814f4a015b9817554fc00e276a5e7e7d88fe1" :a :task/title-l1 :v "HL-2: Record predictions in R(t) — transact hypothesis datoms on braid next" :op :assert}
+   {:e #blake3 "e2f3f03dea359d368494f700190814f4a015b9817554fc00e276a5e7e7d88fe1" :a :task/type :v :task.type/task :op :assert}
+ ]}

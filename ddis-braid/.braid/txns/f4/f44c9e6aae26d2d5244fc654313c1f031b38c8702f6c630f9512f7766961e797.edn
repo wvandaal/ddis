@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774225095/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HL-3: Match outcomes — on task close (and extractor completion), find the :hypothesis/action datom matching this entity, compute actual delta_F(S) (post - pre fitness), transact :hypothesis/actual + /error + /completed. Extend existing OBSERVER-4 pre/post F(S) collection. DEPENDS-ON: HL-1. FILE: crates/braid-kernel/src/task.rs + crates/braid/src/commands/task.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e1567232afc405f954dd8661135edbc2228e7693564d5dc202170b1c89b04035" :a :db/ident :v :task/t-5f7b77bf :op :assert}
+   {:e #blake3 "e1567232afc405f954dd8661135edbc2228e7693564d5dc202170b1c89b04035" :a :task/created-at :v 1774225094 :op :assert}
+   {:e #blake3 "e1567232afc405f954dd8661135edbc2228e7693564d5dc202170b1c89b04035" :a :task/files :v "crates/braid-kernel/src/task.rs" :op :assert}
+   {:e #blake3 "e1567232afc405f954dd8661135edbc2228e7693564d5dc202170b1c89b04035" :a :task/files :v "crates/braid/src/commands/task.rs" :op :assert}
+   {:e #blake3 "e1567232afc405f954dd8661135edbc2228e7693564d5dc202170b1c89b04035" :a :task/id :v "t-5f7b77bf" :op :assert}
+   {:e #blake3 "e1567232afc405f954dd8661135edbc2228e7693564d5dc202170b1c89b04035" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "e1567232afc405f954dd8661135edbc2228e7693564d5dc202170b1c89b04035" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e1567232afc405f954dd8661135edbc2228e7693564d5dc202170b1c89b04035" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e1567232afc405f954dd8661135edbc2228e7693564d5dc202170b1c89b04035" :a :task/title :v "HL-3: Match outcomes — on task close (and extractor completion), find the :hypothesis/action datom matching this entity, compute actual delta_F(S) (post - pre fitness), transact :hypothesis/actual + /error + /completed. Extend existing OBSERVER-4 pre/post F(S) collection. DEPENDS-ON: HL-1. FILE: crates/braid-kernel/src/task.rs + crates/braid/src/commands/task.rs" :op :assert}
+   {:e #blake3 "e1567232afc405f954dd8661135edbc2228e7693564d5dc202170b1c89b04035" :a :task/title-l0 :v "HL-3" :op :assert}
+   {:e #blake3 "e1567232afc405f954dd8661135edbc2228e7693564d5dc202170b1c89b04035" :a :task/title-l1 :v "HL-3: Match outcomes — on task close (and extractor completion), find the :..." :op :assert}
+   {:e #blake3 "e1567232afc405f954dd8661135edbc2228e7693564d5dc202170b1c89b04035" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774225094/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HL-2: Record predictions — in compute_routing_from_store(), for the top-N recommendations, transact :hypothesis/action + /predicted + /boundary + /confidence datoms. The prediction is the R(t) impact score normalized to expected delta_F(S). Confidence starts at 0.5 (prior) and adjusts via HL-5. DEPENDS-ON: HL-1. FILE: crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e2373ad277c83e76d64911156d29b2ada6aff942fd318e00ef85839c54f8c69a" :a :db/ident :v :task/t-bf0c5e1c :op :assert}
+   {:e #blake3 "e2373ad277c83e76d64911156d29b2ada6aff942fd318e00ef85839c54f8c69a" :a :task/created-at :v 1774225093 :op :assert}
+   {:e #blake3 "e2373ad277c83e76d64911156d29b2ada6aff942fd318e00ef85839c54f8c69a" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "e2373ad277c83e76d64911156d29b2ada6aff942fd318e00ef85839c54f8c69a" :a :task/id :v "t-bf0c5e1c" :op :assert}
+   {:e #blake3 "e2373ad277c83e76d64911156d29b2ada6aff942fd318e00ef85839c54f8c69a" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "e2373ad277c83e76d64911156d29b2ada6aff942fd318e00ef85839c54f8c69a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e2373ad277c83e76d64911156d29b2ada6aff942fd318e00ef85839c54f8c69a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e2373ad277c83e76d64911156d29b2ada6aff942fd318e00ef85839c54f8c69a" :a :task/title :v "HL-2: Record predictions — in compute_routing_from_store(), for the top-N recommendations, transact :hypothesis/action + /predicted + /boundary + /confidence datoms. The prediction is the R(t) impact score normalized to expected delta_F(S). Confidence starts at 0.5 (prior) and adjusts via HL-5. DEPENDS-ON: HL-1. FILE: crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "e2373ad277c83e76d64911156d29b2ada6aff942fd318e00ef85839c54f8c69a" :a :task/title-l0 :v "HL-2" :op :assert}
+   {:e #blake3 "e2373ad277c83e76d64911156d29b2ada6aff942fd318e00ef85839c54f8c69a" :a :task/title-l1 :v "HL-2: Record predictions — in compute_routing_from_store(), for the top-N r..." :op :assert}
+   {:e #blake3 "e2373ad277c83e76d64911156d29b2ada6aff942fd318e00ef85839c54f8c69a" :a :task/type :v :task.type/task :op :assert}
+ ]}

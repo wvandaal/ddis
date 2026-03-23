@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225415/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HL-4: Calibration metrics — mean error, per-boundary accuracy, trend, r-squared"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "80386a90594b9711dd77cd3e3adbf38eb8d0d474b04a0dea8e1cb472e80099ee" :a :db/ident :v :task/t-9da3cd84 :op :assert}
+   {:e #blake3 "80386a90594b9711dd77cd3e3adbf38eb8d0d474b04a0dea8e1cb472e80099ee" :a :task/created-at :v 1774225414 :op :assert}
+   {:e #blake3 "80386a90594b9711dd77cd3e3adbf38eb8d0d474b04a0dea8e1cb472e80099ee" :a :task/id :v "t-9da3cd84" :op :assert}
+   {:e #blake3 "80386a90594b9711dd77cd3e3adbf38eb8d0d474b04a0dea8e1cb472e80099ee" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "80386a90594b9711dd77cd3e3adbf38eb8d0d474b04a0dea8e1cb472e80099ee" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "80386a90594b9711dd77cd3e3adbf38eb8d0d474b04a0dea8e1cb472e80099ee" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "80386a90594b9711dd77cd3e3adbf38eb8d0d474b04a0dea8e1cb472e80099ee" :a :task/title :v "HL-4: Calibration metrics — mean error, per-boundary accuracy, trend, r-squared" :op :assert}
+   {:e #blake3 "80386a90594b9711dd77cd3e3adbf38eb8d0d474b04a0dea8e1cb472e80099ee" :a :task/title-l0 :v "HL-4" :op :assert}
+   {:e #blake3 "80386a90594b9711dd77cd3e3adbf38eb8d0d474b04a0dea8e1cb472e80099ee" :a :task/title-l1 :v "HL-4: Calibration metrics — mean error, per-boundary accuracy, trend, r-squ..." :op :assert}
+   {:e #blake3 "80386a90594b9711dd77cd3e3adbf38eb8d0d474b04a0dea8e1cb472e80099ee" :a :task/type :v :task.type/task :op :assert}
+ ]}

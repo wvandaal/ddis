@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774225099/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HL-5: Self-adjusting weights — when calibration error for a boundary exceeds threshold (default 0.03), adjust the boundary weight via exponential smoothing: w_new = w_old + alpha * (actual/predicted - 1) * w_old, where alpha=0.1 (learning rate). This makes the acquisition function converge to optimal weights empirically. DEPENDS-ON: HL-4. FILE: crates/braid-kernel/src/guidance.rs + crates/braid-kernel/src/policy.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "63bf8461861b64b5d0a2768e9a4c66b6775d0887c68b21267de7db07363e3219" :a :db/ident :v :task/t-5b1b7877 :op :assert}
+   {:e #blake3 "63bf8461861b64b5d0a2768e9a4c66b6775d0887c68b21267de7db07363e3219" :a :task/created-at :v 1774225098 :op :assert}
+   {:e #blake3 "63bf8461861b64b5d0a2768e9a4c66b6775d0887c68b21267de7db07363e3219" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "63bf8461861b64b5d0a2768e9a4c66b6775d0887c68b21267de7db07363e3219" :a :task/files :v "crates/braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "63bf8461861b64b5d0a2768e9a4c66b6775d0887c68b21267de7db07363e3219" :a :task/id :v "t-5b1b7877" :op :assert}
+   {:e #blake3 "63bf8461861b64b5d0a2768e9a4c66b6775d0887c68b21267de7db07363e3219" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "63bf8461861b64b5d0a2768e9a4c66b6775d0887c68b21267de7db07363e3219" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "63bf8461861b64b5d0a2768e9a4c66b6775d0887c68b21267de7db07363e3219" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "63bf8461861b64b5d0a2768e9a4c66b6775d0887c68b21267de7db07363e3219" :a :task/title :v "HL-5: Self-adjusting weights — when calibration error for a boundary exceeds threshold (default 0.03), adjust the boundary weight via exponential smoothing: w_new = w_old + alpha * (actual/predicted - 1) * w_old, where alpha=0.1 (learning rate). This makes the acquisition function converge to optimal weights empirically. DEPENDS-ON: HL-4. FILE: crates/braid-kernel/src/guidance.rs + crates/braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "63bf8461861b64b5d0a2768e9a4c66b6775d0887c68b21267de7db07363e3219" :a :task/title-l0 :v "HL-5" :op :assert}
+   {:e #blake3 "63bf8461861b64b5d0a2768e9a4c66b6775d0887c68b21267de7db07363e3219" :a :task/title-l1 :v "HL-5: Self-adjusting weights — when calibration error for a boundary exceed..." :op :assert}
+   {:e #blake3 "63bf8461861b64b5d0a2768e9a4c66b6775d0887c68b21267de7db07363e3219" :a :task/type :v :task.type/task :op :assert}
+ ]}

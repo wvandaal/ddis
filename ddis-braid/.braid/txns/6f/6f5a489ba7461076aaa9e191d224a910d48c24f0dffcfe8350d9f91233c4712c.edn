@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774225147/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: OBS-SCHEMA: Complete observer metadata — add :extractor/source-category (Keyword — :category/structure, /behavior, /history, /intent, /configuration), :extractor/expected-boundaries (String, Many), :extractor/observation-cost (Long, milliseconds), :extractor/composition (Ref, Many — other extractors this combines with). These 4 fields enable the three learning loops to operate on extractor selection. OBSERVER-5 needs source-category to detect cross-category coupling. OBSERVER-4 needs expected-boundaries to attribute F(S) changes. Acquisition function needs observation-cost for information-gain-per-cost optimization. FILE: crates/braid-kernel/src/schema.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "883b5991f504fec131daf9aed399c49af7b01dd96ad3e6e50c15ea39e2577219" :a :db/ident :v :task/t-a040ea35 :op :assert}
+   {:e #blake3 "883b5991f504fec131daf9aed399c49af7b01dd96ad3e6e50c15ea39e2577219" :a :task/created-at :v 1774225146 :op :assert}
+   {:e #blake3 "883b5991f504fec131daf9aed399c49af7b01dd96ad3e6e50c15ea39e2577219" :a :task/files :v "crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "883b5991f504fec131daf9aed399c49af7b01dd96ad3e6e50c15ea39e2577219" :a :task/id :v "t-a040ea35" :op :assert}
+   {:e #blake3 "883b5991f504fec131daf9aed399c49af7b01dd96ad3e6e50c15ea39e2577219" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "883b5991f504fec131daf9aed399c49af7b01dd96ad3e6e50c15ea39e2577219" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "883b5991f504fec131daf9aed399c49af7b01dd96ad3e6e50c15ea39e2577219" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "883b5991f504fec131daf9aed399c49af7b01dd96ad3e6e50c15ea39e2577219" :a :task/title :v "OBS-SCHEMA: Complete observer metadata — add :extractor/source-category (Keyword — :category/structure, /behavior, /history, /intent, /configuration), :extractor/expected-boundaries (String, Many), :extractor/observation-cost (Long, milliseconds), :extractor/composition (Ref, Many — other extractors this combines with). These 4 fields enable the three learning loops to operate on extractor selection. OBSERVER-5 needs source-category to detect cross-category coupling. OBSERVER-4 needs expected-boundaries to attribute F(S) changes. Acquisition function needs observation-cost for information-gain-per-cost optimization. FILE: crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "883b5991f504fec131daf9aed399c49af7b01dd96ad3e6e50c15ea39e2577219" :a :task/title-l0 :v "OBS-SCHEMA" :op :assert}
+   {:e #blake3 "883b5991f504fec131daf9aed399c49af7b01dd96ad3e6e50c15ea39e2577219" :a :task/title-l1 :v "OBS-SCHEMA: Complete observer metadata — add :extractor/source-category (Ke..." :op :assert}
+   {:e #blake3 "883b5991f504fec131daf9aed399c49af7b01dd96ad3e6e50c15ea39e2577219" :a :task/type :v :task.type/task :op :assert}
+ ]}

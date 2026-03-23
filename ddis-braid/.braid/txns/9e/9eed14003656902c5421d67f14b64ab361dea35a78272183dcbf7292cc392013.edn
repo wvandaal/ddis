@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225309/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-PERSIST: verify task creation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "13b8e4488ab4bb42bff1bf3c15429831c5ce4f433c1bdc3ccf1f30e74548c759" :a :db/ident :v :task/t-3dde97c9 :op :assert}
+   {:e #blake3 "13b8e4488ab4bb42bff1bf3c15429831c5ce4f433c1bdc3ccf1f30e74548c759" :a :task/created-at :v 1774225308 :op :assert}
+   {:e #blake3 "13b8e4488ab4bb42bff1bf3c15429831c5ce4f433c1bdc3ccf1f30e74548c759" :a :task/id :v "t-3dde97c9" :op :assert}
+   {:e #blake3 "13b8e4488ab4bb42bff1bf3c15429831c5ce4f433c1bdc3ccf1f30e74548c759" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "13b8e4488ab4bb42bff1bf3c15429831c5ce4f433c1bdc3ccf1f30e74548c759" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "13b8e4488ab4bb42bff1bf3c15429831c5ce4f433c1bdc3ccf1f30e74548c759" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "13b8e4488ab4bb42bff1bf3c15429831c5ce4f433c1bdc3ccf1f30e74548c759" :a :task/title :v "TEST-PERSIST: verify task creation" :op :assert}
+   {:e #blake3 "13b8e4488ab4bb42bff1bf3c15429831c5ce4f433c1bdc3ccf1f30e74548c759" :a :task/title-l0 :v "TEST-PERSIST" :op :assert}
+   {:e #blake3 "13b8e4488ab4bb42bff1bf3c15429831c5ce4f433c1bdc3ccf1f30e74548c759" :a :task/title-l1 :v "TEST-PERSIST: verify task creation" :op :assert}
+   {:e #blake3 "13b8e4488ab4bb42bff1bf3c15429831c5ce4f433c1bdc3ccf1f30e74548c759" :a :task/type :v :task.type/task :op :assert}
+ ]}

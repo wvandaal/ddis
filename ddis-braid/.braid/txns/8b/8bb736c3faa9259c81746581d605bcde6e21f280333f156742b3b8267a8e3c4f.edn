@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774225168/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-TEST: Universal Action Queue test suite — unit + E2E. UNIT: (1) stale extractor appears in observation queue, (2) stale witness appears in observation queue, (3) tasks still appear and are correctly scored, (4) observations sorted by alpha=delta_fs/cost, (5) cost estimates are reasonable. E2E: (6) scripts/e2e_universal_queue.sh — register extractor, let it go stale, verify braid next recommends extraction over task. DEPENDS-ON: UAQ-3. FILE: crates/braid-kernel/src/guidance.rs (tests) + scripts/e2e_universal_queue.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c863f9366252d9e0859967c4f5c18e6fd5c46d4f8c774d7588852243a9013336" :a :db/ident :v :task/t-14997c90 :op :assert}
+   {:e #blake3 "c863f9366252d9e0859967c4f5c18e6fd5c46d4f8c774d7588852243a9013336" :a :task/created-at :v 1774225167 :op :assert}
+   {:e #blake3 "c863f9366252d9e0859967c4f5c18e6fd5c46d4f8c774d7588852243a9013336" :a :task/files :v "crates/braid-kernel/src/guidance.rs (tests)" :op :assert}
+   {:e #blake3 "c863f9366252d9e0859967c4f5c18e6fd5c46d4f8c774d7588852243a9013336" :a :task/files :v "scripts/e2e_universal_queue.sh" :op :assert}
+   {:e #blake3 "c863f9366252d9e0859967c4f5c18e6fd5c46d4f8c774d7588852243a9013336" :a :task/id :v "t-14997c90" :op :assert}
+   {:e #blake3 "c863f9366252d9e0859967c4f5c18e6fd5c46d4f8c774d7588852243a9013336" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c863f9366252d9e0859967c4f5c18e6fd5c46d4f8c774d7588852243a9013336" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c863f9366252d9e0859967c4f5c18e6fd5c46d4f8c774d7588852243a9013336" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c863f9366252d9e0859967c4f5c18e6fd5c46d4f8c774d7588852243a9013336" :a :task/title :v "UAQ-TEST: Universal Action Queue test suite — unit + E2E. UNIT: (1) stale extractor appears in observation queue, (2) stale witness appears in observation queue, (3) tasks still appear and are correctly scored, (4) observations sorted by alpha=delta_fs/cost, (5) cost estimates are reasonable. E2E: (6) scripts/e2e_universal_queue.sh — register extractor, let it go stale, verify braid next recommends extraction over task. DEPENDS-ON: UAQ-3. FILE: crates/braid-kernel/src/guidance.rs (tests) + scripts/e2e_universal_queue.sh" :op :assert}
+   {:e #blake3 "c863f9366252d9e0859967c4f5c18e6fd5c46d4f8c774d7588852243a9013336" :a :task/title-l0 :v "UAQ-TEST" :op :assert}
+   {:e #blake3 "c863f9366252d9e0859967c4f5c18e6fd5c46d4f8c774d7588852243a9013336" :a :task/title-l1 :v "UAQ-TEST: Universal Action Queue test suite — unit + E2E" :op :assert}
+   {:e #blake3 "c863f9366252d9e0859967c4f5c18e6fd5c46d4f8c774d7588852243a9013336" :a :task/type :v :task.type/test :op :assert}
+ ]}

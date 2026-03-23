@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774225149/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PROJ-TEST: Test Generator Projector — the most transformative projector. Source: INV entities with :spec/falsification attribute. Target: executable Rust test functions. Morphism: parse falsification condition, generate test body that checks the negation. Trigger: on-spec-change. This makes the witness system self-populating — stale witnesses auto-refresh, OBSERVER-4 calibration runs continuously. Initial implementation: generate test stubs with TODO body (L1 witnesses). Future: LLM-powered test body generation (L2+ witnesses). FILE: crates/braid-kernel/src/witness.rs + crates/braid/src/commands/witness.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6bf69d20b555dad8be7729f5ff71272d1117b1e08c9f0d3584049c7a6aa7d2f6" :a :db/ident :v :task/t-ff071a40 :op :assert}
+   {:e #blake3 "6bf69d20b555dad8be7729f5ff71272d1117b1e08c9f0d3584049c7a6aa7d2f6" :a :task/created-at :v 1774225148 :op :assert}
+   {:e #blake3 "6bf69d20b555dad8be7729f5ff71272d1117b1e08c9f0d3584049c7a6aa7d2f6" :a :task/files :v "crates/braid-kernel/src/witness.rs" :op :assert}
+   {:e #blake3 "6bf69d20b555dad8be7729f5ff71272d1117b1e08c9f0d3584049c7a6aa7d2f6" :a :task/files :v "crates/braid/src/commands/witness.rs" :op :assert}
+   {:e #blake3 "6bf69d20b555dad8be7729f5ff71272d1117b1e08c9f0d3584049c7a6aa7d2f6" :a :task/id :v "t-ff071a40" :op :assert}
+   {:e #blake3 "6bf69d20b555dad8be7729f5ff71272d1117b1e08c9f0d3584049c7a6aa7d2f6" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "6bf69d20b555dad8be7729f5ff71272d1117b1e08c9f0d3584049c7a6aa7d2f6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6bf69d20b555dad8be7729f5ff71272d1117b1e08c9f0d3584049c7a6aa7d2f6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6bf69d20b555dad8be7729f5ff71272d1117b1e08c9f0d3584049c7a6aa7d2f6" :a :task/title :v "PROJ-TEST: Test Generator Projector — the most transformative projector. Source: INV entities with :spec/falsification attribute. Target: executable Rust test functions. Morphism: parse falsification condition, generate test body that checks the negation. Trigger: on-spec-change. This makes the witness system self-populating — stale witnesses auto-refresh, OBSERVER-4 calibration runs continuously. Initial implementation: generate test stubs with TODO body (L1 witnesses). Future: LLM-powered test body generation (L2+ witnesses). FILE: crates/braid-kernel/src/witness.rs + crates/braid/src/commands/witness.rs" :op :assert}
+   {:e #blake3 "6bf69d20b555dad8be7729f5ff71272d1117b1e08c9f0d3584049c7a6aa7d2f6" :a :task/title-l0 :v "PROJ-TEST" :op :assert}
+   {:e #blake3 "6bf69d20b555dad8be7729f5ff71272d1117b1e08c9f0d3584049c7a6aa7d2f6" :a :task/title-l1 :v "PROJ-TEST: Test Generator Projector — the most transformative projector" :op :assert}
+   {:e #blake3 "6bf69d20b555dad8be7729f5ff71272d1117b1e08c9f0d3584049c7a6aa7d2f6" :a :task/type :v :task.type/task :op :assert}
+ ]}

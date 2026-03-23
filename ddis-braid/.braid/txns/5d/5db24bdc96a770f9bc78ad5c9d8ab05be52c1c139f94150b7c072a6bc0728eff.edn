@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225071/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: The Complete Formalism — Hypothesis Ledger + Universal Action Queue + Projector Registry (ADR-FOUNDATION-015..019)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3f9094f30f59648d2cfc5c24b594b5a51389dc99e2f2cceba26d924e6138b1bd" :a :db/ident :v :task/t-dad5199b :op :assert}
+   {:e #blake3 "3f9094f30f59648d2cfc5c24b594b5a51389dc99e2f2cceba26d924e6138b1bd" :a :task/created-at :v 1774225070 :op :assert}
+   {:e #blake3 "3f9094f30f59648d2cfc5c24b594b5a51389dc99e2f2cceba26d924e6138b1bd" :a :task/id :v "t-dad5199b" :op :assert}
+   {:e #blake3 "3f9094f30f59648d2cfc5c24b594b5a51389dc99e2f2cceba26d924e6138b1bd" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "3f9094f30f59648d2cfc5c24b594b5a51389dc99e2f2cceba26d924e6138b1bd" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3f9094f30f59648d2cfc5c24b594b5a51389dc99e2f2cceba26d924e6138b1bd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3f9094f30f59648d2cfc5c24b594b5a51389dc99e2f2cceba26d924e6138b1bd" :a :task/title :v "EPIC: The Complete Formalism — Hypothesis Ledger + Universal Action Queue + Projector Registry (ADR-FOUNDATION-015..019)" :op :assert}
+   {:e #blake3 "3f9094f30f59648d2cfc5c24b594b5a51389dc99e2f2cceba26d924e6138b1bd" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "3f9094f30f59648d2cfc5c24b594b5a51389dc99e2f2cceba26d924e6138b1bd" :a :task/title-l1 :v "EPIC: The Complete Formalism — Hypothesis Ledger + Universal Action Queue +..." :op :assert}
+   {:e #blake3 "3f9094f30f59648d2cfc5c24b594b5a51389dc99e2f2cceba26d924e6138b1bd" :a :task/type :v :task.type/epic :op :assert}
+ ]}

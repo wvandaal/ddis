@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225420/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-1: ObservationKind enum + Observation struct in guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "911cc5d247d20279a7c8f802290d9377bdf33fd3513098a14a47adda53649bdb" :a :db/ident :v :task/t-3ff31a3e :op :assert}
+   {:e #blake3 "911cc5d247d20279a7c8f802290d9377bdf33fd3513098a14a47adda53649bdb" :a :task/created-at :v 1774225419 :op :assert}
+   {:e #blake3 "911cc5d247d20279a7c8f802290d9377bdf33fd3513098a14a47adda53649bdb" :a :task/id :v "t-3ff31a3e" :op :assert}
+   {:e #blake3 "911cc5d247d20279a7c8f802290d9377bdf33fd3513098a14a47adda53649bdb" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "911cc5d247d20279a7c8f802290d9377bdf33fd3513098a14a47adda53649bdb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "911cc5d247d20279a7c8f802290d9377bdf33fd3513098a14a47adda53649bdb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "911cc5d247d20279a7c8f802290d9377bdf33fd3513098a14a47adda53649bdb" :a :task/title :v "UAQ-1: ObservationKind enum + Observation struct in guidance.rs" :op :assert}
+   {:e #blake3 "911cc5d247d20279a7c8f802290d9377bdf33fd3513098a14a47adda53649bdb" :a :task/title-l0 :v "UAQ-1" :op :assert}
+   {:e #blake3 "911cc5d247d20279a7c8f802290d9377bdf33fd3513098a14a47adda53649bdb" :a :task/title-l1 :v "UAQ-1: ObservationKind enum + Observation struct in guidance.rs" :op :assert}
+   {:e #blake3 "911cc5d247d20279a7c8f802290d9377bdf33fd3513098a14a47adda53649bdb" :a :task/type :v :task.type/task :op :assert}
+ ]}

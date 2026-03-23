@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225427/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PROJ-1: Projector schema — :projector/* attributes in genesis"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "176f05c4e399c301077848a73218a20a1c9d40ac6b7192400ab0e66fe1c10b5f" :a :db/ident :v :task/t-8a426a0a :op :assert}
+   {:e #blake3 "176f05c4e399c301077848a73218a20a1c9d40ac6b7192400ab0e66fe1c10b5f" :a :task/created-at :v 1774225426 :op :assert}
+   {:e #blake3 "176f05c4e399c301077848a73218a20a1c9d40ac6b7192400ab0e66fe1c10b5f" :a :task/id :v "t-8a426a0a" :op :assert}
+   {:e #blake3 "176f05c4e399c301077848a73218a20a1c9d40ac6b7192400ab0e66fe1c10b5f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "176f05c4e399c301077848a73218a20a1c9d40ac6b7192400ab0e66fe1c10b5f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "176f05c4e399c301077848a73218a20a1c9d40ac6b7192400ab0e66fe1c10b5f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "176f05c4e399c301077848a73218a20a1c9d40ac6b7192400ab0e66fe1c10b5f" :a :task/title :v "PROJ-1: Projector schema — :projector/* attributes in genesis" :op :assert}
+   {:e #blake3 "176f05c4e399c301077848a73218a20a1c9d40ac6b7192400ab0e66fe1c10b5f" :a :task/title-l0 :v "PROJ-1" :op :assert}
+   {:e #blake3 "176f05c4e399c301077848a73218a20a1c9d40ac6b7192400ab0e66fe1c10b5f" :a :task/title-l1 :v "PROJ-1: Projector schema — :projector/* attributes in genesis" :op :assert}
+   {:e #blake3 "176f05c4e399c301077848a73218a20a1c9d40ac6b7192400ab0e66fe1c10b5f" :a :task/type :v :task.type/task :op :assert}
+ ]}

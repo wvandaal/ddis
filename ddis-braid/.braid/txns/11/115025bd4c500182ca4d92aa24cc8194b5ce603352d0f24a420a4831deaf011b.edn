@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774225119/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-2: Extend R(t) to score non-task observations — in compute_routing_from_store(), after scoring tasks, also score: (a) extractors with stale last-run (cost=extractor timeout, delta_fs=staleness * boundary_weight), (b) spec elements with stale witnesses (cost=review_time, delta_fs=dep_count * witness_weight), (c) boundaries below coverage threshold (cost=varies, delta_fs=gap * weight). Return unified Vec<Observation> sorted by alpha = delta_fs/cost. DEPENDS-ON: UAQ-1. FILE: crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ae32ee106ff6636f9fe73dbbc99315492d0e15ad7ea0c22f918d55f0ccd8d8b3" :a :db/ident :v :task/t-5159981c :op :assert}
+   {:e #blake3 "ae32ee106ff6636f9fe73dbbc99315492d0e15ad7ea0c22f918d55f0ccd8d8b3" :a :task/created-at :v 1774225118 :op :assert}
+   {:e #blake3 "ae32ee106ff6636f9fe73dbbc99315492d0e15ad7ea0c22f918d55f0ccd8d8b3" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "ae32ee106ff6636f9fe73dbbc99315492d0e15ad7ea0c22f918d55f0ccd8d8b3" :a :task/id :v "t-5159981c" :op :assert}
+   {:e #blake3 "ae32ee106ff6636f9fe73dbbc99315492d0e15ad7ea0c22f918d55f0ccd8d8b3" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ae32ee106ff6636f9fe73dbbc99315492d0e15ad7ea0c22f918d55f0ccd8d8b3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ae32ee106ff6636f9fe73dbbc99315492d0e15ad7ea0c22f918d55f0ccd8d8b3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ae32ee106ff6636f9fe73dbbc99315492d0e15ad7ea0c22f918d55f0ccd8d8b3" :a :task/title :v "UAQ-2: Extend R(t) to score non-task observations — in compute_routing_from_store(), after scoring tasks, also score: (a) extractors with stale last-run (cost=extractor timeout, delta_fs=staleness * boundary_weight), (b) spec elements with stale witnesses (cost=review_time, delta_fs=dep_count * witness_weight), (c) boundaries below coverage threshold (cost=varies, delta_fs=gap * weight). Return unified Vec<Observation> sorted by alpha = delta_fs/cost. DEPENDS-ON: UAQ-1. FILE: crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "ae32ee106ff6636f9fe73dbbc99315492d0e15ad7ea0c22f918d55f0ccd8d8b3" :a :task/title-l0 :v "UAQ-2" :op :assert}
+   {:e #blake3 "ae32ee106ff6636f9fe73dbbc99315492d0e15ad7ea0c22f918d55f0ccd8d8b3" :a :task/title-l1 :v "UAQ-2: Extend R(t) to score non-task observations — in compute_routing_from..." :op :assert}
+   {:e #blake3 "ae32ee106ff6636f9fe73dbbc99315492d0e15ad7ea0c22f918d55f0ccd8d8b3" :a :task/type :v :task.type/task :op :assert}
+ ]}

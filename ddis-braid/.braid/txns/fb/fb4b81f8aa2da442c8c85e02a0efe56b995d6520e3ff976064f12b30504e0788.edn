@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225374/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HL-1: Hypothesis schema"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cfc81bb7328855151f5f1c0ae76f2ab5c61b2dc3f1ac8067d91aabbbe1006ec7" :a :db/ident :v :task/t-a1e9e129 :op :assert}
+   {:e #blake3 "cfc81bb7328855151f5f1c0ae76f2ab5c61b2dc3f1ac8067d91aabbbe1006ec7" :a :task/created-at :v 1774225373 :op :assert}
+   {:e #blake3 "cfc81bb7328855151f5f1c0ae76f2ab5c61b2dc3f1ac8067d91aabbbe1006ec7" :a :task/id :v "t-a1e9e129" :op :assert}
+   {:e #blake3 "cfc81bb7328855151f5f1c0ae76f2ab5c61b2dc3f1ac8067d91aabbbe1006ec7" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "cfc81bb7328855151f5f1c0ae76f2ab5c61b2dc3f1ac8067d91aabbbe1006ec7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cfc81bb7328855151f5f1c0ae76f2ab5c61b2dc3f1ac8067d91aabbbe1006ec7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cfc81bb7328855151f5f1c0ae76f2ab5c61b2dc3f1ac8067d91aabbbe1006ec7" :a :task/title :v "HL-1: Hypothesis schema" :op :assert}
+   {:e #blake3 "cfc81bb7328855151f5f1c0ae76f2ab5c61b2dc3f1ac8067d91aabbbe1006ec7" :a :task/title-l0 :v "HL-1" :op :assert}
+   {:e #blake3 "cfc81bb7328855151f5f1c0ae76f2ab5c61b2dc3f1ac8067d91aabbbe1006ec7" :a :task/title-l1 :v "HL-1: Hypothesis schema" :op :assert}
+   {:e #blake3 "cfc81bb7328855151f5f1c0ae76f2ab5c61b2dc3f1ac8067d91aabbbe1006ec7" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225422/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-2: Extend R(t) to score extractors, witnesses, boundaries"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6f17b8b3648e22063ba9b83cba896943a37d408b20a60ea8f9cac61e58965668" :a :db/ident :v :task/t-6e65f4c3 :op :assert}
+   {:e #blake3 "6f17b8b3648e22063ba9b83cba896943a37d408b20a60ea8f9cac61e58965668" :a :task/created-at :v 1774225421 :op :assert}
+   {:e #blake3 "6f17b8b3648e22063ba9b83cba896943a37d408b20a60ea8f9cac61e58965668" :a :task/id :v "t-6e65f4c3" :op :assert}
+   {:e #blake3 "6f17b8b3648e22063ba9b83cba896943a37d408b20a60ea8f9cac61e58965668" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6f17b8b3648e22063ba9b83cba896943a37d408b20a60ea8f9cac61e58965668" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6f17b8b3648e22063ba9b83cba896943a37d408b20a60ea8f9cac61e58965668" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6f17b8b3648e22063ba9b83cba896943a37d408b20a60ea8f9cac61e58965668" :a :task/title :v "UAQ-2: Extend R(t) to score extractors, witnesses, boundaries" :op :assert}
+   {:e #blake3 "6f17b8b3648e22063ba9b83cba896943a37d408b20a60ea8f9cac61e58965668" :a :task/title-l0 :v "UAQ-2" :op :assert}
+   {:e #blake3 "6f17b8b3648e22063ba9b83cba896943a37d408b20a60ea8f9cac61e58965668" :a :task/title-l1 :v "UAQ-2: Extend R(t) to score extractors, witnesses, boundaries" :op :assert}
+   {:e #blake3 "6f17b8b3648e22063ba9b83cba896943a37d408b20a60ea8f9cac61e58965668" :a :task/type :v :task.type/task :op :assert}
+ ]}

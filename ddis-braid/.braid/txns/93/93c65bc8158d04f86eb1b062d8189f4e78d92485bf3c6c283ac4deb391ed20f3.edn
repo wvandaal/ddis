@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774225117/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: UAQ-1: ObservationKind enum + Observation struct — define ObservationKind {Task, Extraction, Review, WitnessRefresh, BoundaryCheck, CouplingExploration, CalibrationMeasurement, AnomalyInvestigation} and Observation struct {kind, expected_delta_fs, cost: ObservationCost {attention_tokens, wall_time_ms, compute_ms}, source: EntityId, rationale: String}. This is the unified type that replaces TaskRouting as the output of the acquisition function. FILE: crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6928078a2c433bc1ce6f2c355bb8ef04af24bc4ffffb30e3b842bb2ce89db799" :a :db/ident :v :task/t-5c3db83f :op :assert}
+   {:e #blake3 "6928078a2c433bc1ce6f2c355bb8ef04af24bc4ffffb30e3b842bb2ce89db799" :a :task/created-at :v 1774225116 :op :assert}
+   {:e #blake3 "6928078a2c433bc1ce6f2c355bb8ef04af24bc4ffffb30e3b842bb2ce89db799" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "6928078a2c433bc1ce6f2c355bb8ef04af24bc4ffffb30e3b842bb2ce89db799" :a :task/id :v "t-5c3db83f" :op :assert}
+   {:e #blake3 "6928078a2c433bc1ce6f2c355bb8ef04af24bc4ffffb30e3b842bb2ce89db799" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6928078a2c433bc1ce6f2c355bb8ef04af24bc4ffffb30e3b842bb2ce89db799" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6928078a2c433bc1ce6f2c355bb8ef04af24bc4ffffb30e3b842bb2ce89db799" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6928078a2c433bc1ce6f2c355bb8ef04af24bc4ffffb30e3b842bb2ce89db799" :a :task/title :v "UAQ-1: ObservationKind enum + Observation struct — define ObservationKind {Task, Extraction, Review, WitnessRefresh, BoundaryCheck, CouplingExploration, CalibrationMeasurement, AnomalyInvestigation} and Observation struct {kind, expected_delta_fs, cost: ObservationCost {attention_tokens, wall_time_ms, compute_ms}, source: EntityId, rationale: String}. This is the unified type that replaces TaskRouting as the output of the acquisition function. FILE: crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "6928078a2c433bc1ce6f2c355bb8ef04af24bc4ffffb30e3b842bb2ce89db799" :a :task/title-l0 :v "UAQ-1" :op :assert}
+   {:e #blake3 "6928078a2c433bc1ce6f2c355bb8ef04af24bc4ffffb30e3b842bb2ce89db799" :a :task/title-l1 :v "UAQ-1: ObservationKind enum + Observation struct — define ObservationKind {..." :op :assert}
+   {:e #blake3 "6928078a2c433bc1ce6f2c355bb8ef04af24bc4ffffb30e3b842bb2ce89db799" :a :task/type :v :task.type/task :op :assert}
+ ]}

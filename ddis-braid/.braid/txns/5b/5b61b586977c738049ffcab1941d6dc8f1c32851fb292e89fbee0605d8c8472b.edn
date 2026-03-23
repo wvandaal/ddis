@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774225431/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PROJ-TEST-SUITE: Projector Registry test suite"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2127726c90330feef7149a153ad5721ba4085e2c86a393898d1624a3a44f3b5d" :a :db/ident :v :task/t-8d995ddc :op :assert}
+   {:e #blake3 "2127726c90330feef7149a153ad5721ba4085e2c86a393898d1624a3a44f3b5d" :a :task/created-at :v 1774225430 :op :assert}
+   {:e #blake3 "2127726c90330feef7149a153ad5721ba4085e2c86a393898d1624a3a44f3b5d" :a :task/id :v "t-8d995ddc" :op :assert}
+   {:e #blake3 "2127726c90330feef7149a153ad5721ba4085e2c86a393898d1624a3a44f3b5d" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2127726c90330feef7149a153ad5721ba4085e2c86a393898d1624a3a44f3b5d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2127726c90330feef7149a153ad5721ba4085e2c86a393898d1624a3a44f3b5d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2127726c90330feef7149a153ad5721ba4085e2c86a393898d1624a3a44f3b5d" :a :task/title :v "PROJ-TEST-SUITE: Projector Registry test suite" :op :assert}
+   {:e #blake3 "2127726c90330feef7149a153ad5721ba4085e2c86a393898d1624a3a44f3b5d" :a :task/title-l0 :v "PROJ-TEST-SUITE" :op :assert}
+   {:e #blake3 "2127726c90330feef7149a153ad5721ba4085e2c86a393898d1624a3a44f3b5d" :a :task/title-l1 :v "PROJ-TEST-SUITE: Projector Registry test suite" :op :assert}
+   {:e #blake3 "2127726c90330feef7149a153ad5721ba4085e2c86a393898d1624a3a44f3b5d" :a :task/type :v :task.type/task :op :assert}
+ ]}
