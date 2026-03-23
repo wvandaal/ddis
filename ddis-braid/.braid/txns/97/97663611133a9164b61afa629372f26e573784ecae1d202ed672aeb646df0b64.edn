@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774243302/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DC-3 auto-depth: braid spec create with --falsification sets comonad/depth=1 (HYPOTHESIS) and creates criterion entity. Without --falsification sets depth=0 (OPINION) with C6 warning. Enforces ADR-FOUNDATION-020 at creation time."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fb12fe0e0cf0de81843abd431b0c03594e4d176ea3d0651802cec75bc30209db" :a :db/doc :v "DC-3 auto-depth: braid spec create with --falsification sets comonad/depth=1 (HYPOTHESIS) and creates criterion entity. Without --falsification sets depth=0 (OPINION) with C6 warning. Enforces ADR-FOUNDATION-020 at creation time." :op :assert}
+   {:e #blake3 "fb12fe0e0cf0de81843abd431b0c03594e4d176ea3d0651802cec75bc30209db" :a :db/ident :v :observation/dc-3-auto-depth-braid-spec-create-with-falsification-sets :op :assert}
+   {:e #blake3 "fb12fe0e0cf0de81843abd431b0c03594e4d176ea3d0651802cec75bc30209db" :a :exploration/body :v "DC-3 auto-depth: braid spec create with --falsification sets comonad/depth=1 (HYPOTHESIS) and creates criterion entity. Without --falsification sets depth=0 (OPINION) with C6 warning. Enforces ADR-FOUNDATION-020 at creation time." :op :assert}
+   {:e #blake3 "fb12fe0e0cf0de81843abd431b0c03594e4d176ea3d0651802cec75bc30209db" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "fb12fe0e0cf0de81843abd431b0c03594e4d176ea3d0651802cec75bc30209db" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "fb12fe0e0cf0de81843abd431b0c03594e4d176ea3d0651802cec75bc30209db" :a :exploration/content-hash :v #bytes "0b7d646b2bf4e7f7d6e1504b14a751e88541130c904cc4be706b72a8bd0c137a" :op :assert}
+   {:e #blake3 "fb12fe0e0cf0de81843abd431b0c03594e4d176ea3d0651802cec75bc30209db" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "fb12fe0e0cf0de81843abd431b0c03594e4d176ea3d0651802cec75bc30209db" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "fb12fe0e0cf0de81843abd431b0c03594e4d176ea3d0651802cec75bc30209db" :a :exploration/source-session :v #blake3 "ff888d77e0ed8774771a1e8022065c218370970dd501e44409fc758dabecbc16" :op :assert}
+ ]}

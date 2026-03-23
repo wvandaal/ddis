@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774243283/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "ACP pyramid disclosure: project() now collects omitted blocks and appends [+N omitted: label1, label2] before the evidence pointer. Labels extracted from block content prefix. Closes the pyramid summary gap — every level of compression tells the LLM what was cut and how to access deeper data. Root cause of missing hypothesis line was ACP context blocks not sorted by precedence — fixed with context.sort_by(precedence descending) in build_status_projection."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9d404058992e60300c6f314c81f57dea0da8b48c4c7f6ea3b94b5fddf113dbcd" :a :db/doc :v "ACP pyramid disclosure: project() now collects omitted blocks and appends [+N omitted: label1, label2] before the evidence pointer. Labels extracted from block content prefix. Closes the pyramid summary gap — every level of compression tells the LLM what was cut and how to access deeper data. Root cause of missing hypothesis line was ACP context blocks not sorted by precedence — fixed with context.sort_by(precedence descending) in build_status_projection." :op :assert}
+   {:e #blake3 "9d404058992e60300c6f314c81f57dea0da8b48c4c7f6ea3b94b5fddf113dbcd" :a :db/ident :v :observation/acp-pyramid-disclosure-project-now-collects-omitted-block :op :assert}
+   {:e #blake3 "9d404058992e60300c6f314c81f57dea0da8b48c4c7f6ea3b94b5fddf113dbcd" :a :exploration/body :v "ACP pyramid disclosure: project() now collects omitted blocks and appends [+N omitted: label1, label2] before the evidence pointer. Labels extracted from block content prefix. Closes the pyramid summary gap — every level of compression tells the LLM what was cut and how to access deeper data. Root cause of missing hypothesis line was ACP context blocks not sorted by precedence — fixed with context.sort_by(precedence descending) in build_status_projection." :op :assert}
+   {:e #blake3 "9d404058992e60300c6f314c81f57dea0da8b48c4c7f6ea3b94b5fddf113dbcd" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "9d404058992e60300c6f314c81f57dea0da8b48c4c7f6ea3b94b5fddf113dbcd" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "9d404058992e60300c6f314c81f57dea0da8b48c4c7f6ea3b94b5fddf113dbcd" :a :exploration/content-hash :v #bytes "23039ef90bd4a9267e46658d4d1fb5fc659237466f77c5bcb7b32985ec60cb8b" :op :assert}
+   {:e #blake3 "9d404058992e60300c6f314c81f57dea0da8b48c4c7f6ea3b94b5fddf113dbcd" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "9d404058992e60300c6f314c81f57dea0da8b48c4c7f6ea3b94b5fddf113dbcd" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "9d404058992e60300c6f314c81f57dea0da8b48c4c7f6ea3b94b5fddf113dbcd" :a :exploration/source-session :v #blake3 "ff888d77e0ed8774771a1e8022065c218370970dd501e44409fc758dabecbc16" :op :assert}
+ ]}

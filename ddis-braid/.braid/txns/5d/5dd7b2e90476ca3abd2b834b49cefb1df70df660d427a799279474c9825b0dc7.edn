@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774243297/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "HL-3 wired: task close now matches hypothesis outcomes. For each closed task, scans :hypothesis/action datoms for matching Ref, computes actual delta_F(S) = post - pre fitness, transacts :hypothesis/actual + /error + /completed. Calibration loop structurally closed."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2289ad0a58d7bd96ca200a95fa4f0033c3e47801390266f4c1e7c15fc47b49d4" :a :db/doc :v "HL-3 wired: task close now matches hypothesis outcomes. For each closed task, scans :hypothesis/action datoms for matching Ref, computes actual delta_F(S) = post - pre fitness, transacts :hypothesis/actual + /error + /completed. Calibration loop structurally closed." :op :assert}
+   {:e #blake3 "2289ad0a58d7bd96ca200a95fa4f0033c3e47801390266f4c1e7c15fc47b49d4" :a :db/ident :v :observation/hl-3-wired-task-close-now-matches-hypothesis-outcomes-for :op :assert}
+   {:e #blake3 "2289ad0a58d7bd96ca200a95fa4f0033c3e47801390266f4c1e7c15fc47b49d4" :a :exploration/body :v "HL-3 wired: task close now matches hypothesis outcomes. For each closed task, scans :hypothesis/action datoms for matching Ref, computes actual delta_F(S) = post - pre fitness, transacts :hypothesis/actual + /error + /completed. Calibration loop structurally closed." :op :assert}
+   {:e #blake3 "2289ad0a58d7bd96ca200a95fa4f0033c3e47801390266f4c1e7c15fc47b49d4" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "2289ad0a58d7bd96ca200a95fa4f0033c3e47801390266f4c1e7c15fc47b49d4" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "2289ad0a58d7bd96ca200a95fa4f0033c3e47801390266f4c1e7c15fc47b49d4" :a :exploration/content-hash :v #bytes "e4756e9d9be9abac8b82e19e3c18231005b29425b23e23d473b746bbf1a4aff6" :op :assert}
+   {:e #blake3 "2289ad0a58d7bd96ca200a95fa4f0033c3e47801390266f4c1e7c15fc47b49d4" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2289ad0a58d7bd96ca200a95fa4f0033c3e47801390266f4c1e7c15fc47b49d4" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2289ad0a58d7bd96ca200a95fa4f0033c3e47801390266f4c1e7c15fc47b49d4" :a :exploration/source-session :v #blake3 "ff888d77e0ed8774771a1e8022065c218370970dd501e44409fc758dabecbc16" :op :assert}
+ ]}

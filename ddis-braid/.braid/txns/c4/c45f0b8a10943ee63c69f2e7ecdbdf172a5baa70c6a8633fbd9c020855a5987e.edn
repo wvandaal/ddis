@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774243300/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "HL-4 calibration metrics: compute_calibration_metrics(store) returns CalibrationReport with total_hypotheses, completed_hypotheses, mean_error, per_boundary_accuracy BTreeMap, and trend (Improving/Stable/Degrading/Insufficient). Surfaced in braid status ACP context as Methodology-precedence block."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "718ae9150e3b5fca68985161157d824cf727abc5011202fd91ee2c9040609da1" :a :db/doc :v "HL-4 calibration metrics: compute_calibration_metrics(store) returns CalibrationReport with total_hypotheses, completed_hypotheses, mean_error, per_boundary_accuracy BTreeMap, and trend (Improving/Stable/Degrading/Insufficient). Surfaced in braid status ACP context as Methodology-precedence block." :op :assert}
+   {:e #blake3 "718ae9150e3b5fca68985161157d824cf727abc5011202fd91ee2c9040609da1" :a :db/ident :v :observation/hl-4-calibration-metrics-compute-calibration-metricsstore :op :assert}
+   {:e #blake3 "718ae9150e3b5fca68985161157d824cf727abc5011202fd91ee2c9040609da1" :a :exploration/body :v "HL-4 calibration metrics: compute_calibration_metrics(store) returns CalibrationReport with total_hypotheses, completed_hypotheses, mean_error, per_boundary_accuracy BTreeMap, and trend (Improving/Stable/Degrading/Insufficient). Surfaced in braid status ACP context as Methodology-precedence block." :op :assert}
+   {:e #blake3 "718ae9150e3b5fca68985161157d824cf727abc5011202fd91ee2c9040609da1" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "718ae9150e3b5fca68985161157d824cf727abc5011202fd91ee2c9040609da1" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "718ae9150e3b5fca68985161157d824cf727abc5011202fd91ee2c9040609da1" :a :exploration/content-hash :v #bytes "073cf89f7638248aec0423004b3ebd048c1d9325fdee1676897740fe4a23f13b" :op :assert}
+   {:e #blake3 "718ae9150e3b5fca68985161157d824cf727abc5011202fd91ee2c9040609da1" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "718ae9150e3b5fca68985161157d824cf727abc5011202fd91ee2c9040609da1" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "718ae9150e3b5fca68985161157d824cf727abc5011202fd91ee2c9040609da1" :a :exploration/source-session :v #blake3 "ff888d77e0ed8774771a1e8022065c218370970dd501e44409fc758dabecbc16" :op :assert}
+ ]}
