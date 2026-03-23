@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774297143/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ACP-TEST: ACP unification test suite"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9d3a96654ead0df7e7d6feeddd711db919e396eb60e4567639ea9531016e96ba" :a :db/ident :v :task/t-c76b7e9b :op :assert}
+   {:e #blake3 "9d3a96654ead0df7e7d6feeddd711db919e396eb60e4567639ea9531016e96ba" :a :task/created-at :v 1774297142 :op :assert}
+   {:e #blake3 "9d3a96654ead0df7e7d6feeddd711db919e396eb60e4567639ea9531016e96ba" :a :task/id :v "t-c76b7e9b" :op :assert}
+   {:e #blake3 "9d3a96654ead0df7e7d6feeddd711db919e396eb60e4567639ea9531016e96ba" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9d3a96654ead0df7e7d6feeddd711db919e396eb60e4567639ea9531016e96ba" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9d3a96654ead0df7e7d6feeddd711db919e396eb60e4567639ea9531016e96ba" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9d3a96654ead0df7e7d6feeddd711db919e396eb60e4567639ea9531016e96ba" :a :task/title :v "ACP-TEST: ACP unification test suite" :op :assert}
+   {:e #blake3 "9d3a96654ead0df7e7d6feeddd711db919e396eb60e4567639ea9531016e96ba" :a :task/title-l0 :v "ACP-TEST" :op :assert}
+   {:e #blake3 "9d3a96654ead0df7e7d6feeddd711db919e396eb60e4567639ea9531016e96ba" :a :task/title-l1 :v "ACP-TEST: ACP unification test suite" :op :assert}
+   {:e #blake3 "9d3a96654ead0df7e7d6feeddd711db919e396eb60e4567639ea9531016e96ba" :a :task/type :v :task.type/test :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774297138/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-88ca2bbf"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d9501693ce17877c0ed822d5c5db0704c95bd57d8a1a7ffb1a3451db9ffb3723" :a :task/close-reason :v "Duplicate of FEGH-2 (t-06215eb2) which has full description" :op :assert}
+   {:e #blake3 "d9501693ce17877c0ed822d5c5db0704c95bd57d8a1a7ffb1a3451db9ffb3723" :a :task/closed-at :v 1774297137 :op :assert}
+   {:e #blake3 "d9501693ce17877c0ed822d5c5db0704c95bd57d8a1a7ffb1a3451db9ffb3723" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "d9501693ce17877c0ed822d5c5db0704c95bd57d8a1a7ffb1a3451db9ffb3723" :a :task/status :v :task.status/closed :op :assert}
+ ]}

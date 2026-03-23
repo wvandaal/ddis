@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774297228/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PROPOSAL GENERATION AT MULTIPLE SCALES: Local (comonadic neighborhood, tau near 0) = whats adjacent to what I know. Medium-range (semantic similarity, tau 0.5) = whats conceptually related across the store. Long-range (training data analogies, tau near 1.0) = what pattern from elsewhere might apply. Under the free energy formulation, tau EMERGES from the F(S) gradient landscape: when local observations are saturated (low projected delta-F(S) nearby), only distant bridges have high gradient, so the system naturally makes Levy-flight jumps. No separate creativity parameter needed."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c4c2437a097449f2290e1c58812dc4912442ae74677a757ff6e05dd3245973c3" :a :db/doc :v "PROPOSAL GENERATION AT MULTIPLE SCALES: Local (comonadic neighborhood, tau near 0) = whats adjacent to what I know. Medium-range (semantic similarity, tau 0.5) = whats conceptually related across the store. Long-range (training data analogies, tau near 1.0) = what pattern from elsewhere might apply. Under the free energy formulation, tau EMERGES from the F(S) gradient landscape: when local observations are saturated (low projected delta-F(S) nearby), only distant bridges have high gradient, so the system naturally makes Levy-flight jumps. No separate creativity parameter needed." :op :assert}
+   {:e #blake3 "c4c2437a097449f2290e1c58812dc4912442ae74677a757ff6e05dd3245973c3" :a :db/ident :v :observation/proposal-generation-at-multiple-scales-local-comonadic-nei :op :assert}
+   {:e #blake3 "c4c2437a097449f2290e1c58812dc4912442ae74677a757ff6e05dd3245973c3" :a :exploration/body :v "PROPOSAL GENERATION AT MULTIPLE SCALES: Local (comonadic neighborhood, tau near 0) = whats adjacent to what I know. Medium-range (semantic similarity, tau 0.5) = whats conceptually related across the store. Long-range (training data analogies, tau near 1.0) = what pattern from elsewhere might apply. Under the free energy formulation, tau EMERGES from the F(S) gradient landscape: when local observations are saturated (low projected delta-F(S) nearby), only distant bridges have high gradient, so the system naturally makes Levy-flight jumps. No separate creativity parameter needed." :op :assert}
+   {:e #blake3 "c4c2437a097449f2290e1c58812dc4912442ae74677a757ff6e05dd3245973c3" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "c4c2437a097449f2290e1c58812dc4912442ae74677a757ff6e05dd3245973c3" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "c4c2437a097449f2290e1c58812dc4912442ae74677a757ff6e05dd3245973c3" :a :exploration/content-hash :v #bytes "827442c81f53d506c67921447f0f808193ab1d0e7a3ec9d20ab7cdecef050829" :op :assert}
+   {:e #blake3 "c4c2437a097449f2290e1c58812dc4912442ae74677a757ff6e05dd3245973c3" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "c4c2437a097449f2290e1c58812dc4912442ae74677a757ff6e05dd3245973c3" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "c4c2437a097449f2290e1c58812dc4912442ae74677a757ff6e05dd3245973c3" :a :exploration/source-session :v #blake3 "7722d17a602e7faa875587cc7d5d95cd9358c570588d3859fd0f35fcb2a339ec" :op :assert}
+ ]}

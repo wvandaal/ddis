@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774297218/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PEIRCE TRIADIC EPISTEMOLOGY MAPS TO UAQ: Deduction (exploitation) = I know X, therefore Y follows = low creativity, high confidence. Induction (exploration) = I have seen X in several places, therefore it is probably general = medium creativity, medium confidence. Abduction (creativity) = Y is surprising, if X were true Y would follow, therefore maybe X = high creativity, low confidence but high potential. The hypothesis ledger calibrates all three. The depth ladder tracks all three. The acquisition function ranks all three in a single queue."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8382c278cbbf11657201b7a964b75eb35c00f54b8d1a50ce40cd73a47b076163" :a :db/doc :v "PEIRCE TRIADIC EPISTEMOLOGY MAPS TO UAQ: Deduction (exploitation) = I know X, therefore Y follows = low creativity, high confidence. Induction (exploration) = I have seen X in several places, therefore it is probably general = medium creativity, medium confidence. Abduction (creativity) = Y is surprising, if X were true Y would follow, therefore maybe X = high creativity, low confidence but high potential. The hypothesis ledger calibrates all three. The depth ladder tracks all three. The acquisition function ranks all three in a single queue." :op :assert}
+   {:e #blake3 "8382c278cbbf11657201b7a964b75eb35c00f54b8d1a50ce40cd73a47b076163" :a :db/ident :v :observation/peirce-triadic-epistemology-maps-to-uaq-deduction-exploita :op :assert}
+   {:e #blake3 "8382c278cbbf11657201b7a964b75eb35c00f54b8d1a50ce40cd73a47b076163" :a :exploration/body :v "PEIRCE TRIADIC EPISTEMOLOGY MAPS TO UAQ: Deduction (exploitation) = I know X, therefore Y follows = low creativity, high confidence. Induction (exploration) = I have seen X in several places, therefore it is probably general = medium creativity, medium confidence. Abduction (creativity) = Y is surprising, if X were true Y would follow, therefore maybe X = high creativity, low confidence but high potential. The hypothesis ledger calibrates all three. The depth ladder tracks all three. The acquisition function ranks all three in a single queue." :op :assert}
+   {:e #blake3 "8382c278cbbf11657201b7a964b75eb35c00f54b8d1a50ce40cd73a47b076163" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "8382c278cbbf11657201b7a964b75eb35c00f54b8d1a50ce40cd73a47b076163" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "8382c278cbbf11657201b7a964b75eb35c00f54b8d1a50ce40cd73a47b076163" :a :exploration/content-hash :v #bytes "00e487283b7892fc679c1ed7955e9fe1f463a562cf81a5bf853a88f5c371c024" :op :assert}
+   {:e #blake3 "8382c278cbbf11657201b7a964b75eb35c00f54b8d1a50ce40cd73a47b076163" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "8382c278cbbf11657201b7a964b75eb35c00f54b8d1a50ce40cd73a47b076163" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "8382c278cbbf11657201b7a964b75eb35c00f54b8d1a50ce40cd73a47b076163" :a :exploration/source-session :v #blake3 "7722d17a602e7faa875587cc7d5d95cd9358c570588d3859fd0f35fcb2a339ec" :op :assert}
+ ]}

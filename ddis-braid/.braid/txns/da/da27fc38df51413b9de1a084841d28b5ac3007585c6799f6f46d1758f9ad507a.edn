@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774297224/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "COVERAGE MODEL AS MATERIALIZED VIEW: The coverage map (observations per region) should be a MaterializedView computed once per command, like StatusSnapshot. Project topology (file tree, package list from init/extractors) defines regions. Observation count per region is the coverage. The gap between topology size and coverage is the exploration gradient. This view enables generate_bridge_hypotheses to run in O(communities) instead of O(datoms). Already exists conceptually in store.views() — extend with coverage dimension."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "87a0b004b9e1d4e13af884312ab37f27f726a283599696ea5874aae5d260491c" :a :db/doc :v "COVERAGE MODEL AS MATERIALIZED VIEW: The coverage map (observations per region) should be a MaterializedView computed once per command, like StatusSnapshot. Project topology (file tree, package list from init/extractors) defines regions. Observation count per region is the coverage. The gap between topology size and coverage is the exploration gradient. This view enables generate_bridge_hypotheses to run in O(communities) instead of O(datoms). Already exists conceptually in store.views() — extend with coverage dimension." :op :assert}
+   {:e #blake3 "87a0b004b9e1d4e13af884312ab37f27f726a283599696ea5874aae5d260491c" :a :db/ident :v :observation/coverage-model-as-materialized-view-the-coverage-map-obser :op :assert}
+   {:e #blake3 "87a0b004b9e1d4e13af884312ab37f27f726a283599696ea5874aae5d260491c" :a :exploration/body :v "COVERAGE MODEL AS MATERIALIZED VIEW: The coverage map (observations per region) should be a MaterializedView computed once per command, like StatusSnapshot. Project topology (file tree, package list from init/extractors) defines regions. Observation count per region is the coverage. The gap between topology size and coverage is the exploration gradient. This view enables generate_bridge_hypotheses to run in O(communities) instead of O(datoms). Already exists conceptually in store.views() — extend with coverage dimension." :op :assert}
+   {:e #blake3 "87a0b004b9e1d4e13af884312ab37f27f726a283599696ea5874aae5d260491c" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "87a0b004b9e1d4e13af884312ab37f27f726a283599696ea5874aae5d260491c" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "87a0b004b9e1d4e13af884312ab37f27f726a283599696ea5874aae5d260491c" :a :exploration/content-hash :v #bytes "b999efa2b9fb6a5ecf87794cf7825d653c047eb4e7b4865745294d790381e547" :op :assert}
+   {:e #blake3 "87a0b004b9e1d4e13af884312ab37f27f726a283599696ea5874aae5d260491c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "87a0b004b9e1d4e13af884312ab37f27f726a283599696ea5874aae5d260491c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "87a0b004b9e1d4e13af884312ab37f27f726a283599696ea5874aae5d260491c" :a :exploration/source-session :v #blake3 "7722d17a602e7faa875587cc7d5d95cd9358c570588d3859fd0f35fcb2a339ec" :op :assert}
+ ]}

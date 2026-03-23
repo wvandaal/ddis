@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774297221/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FREE ENERGY COMPLEXITY TERM: F = surprise + complexity. Bridges are disproportionately valuable because they reduce BOTH terms simultaneously. Coverage fills reduce surprise but INCREASE complexity (more datoms). Bridges reduce surprise AND reduce complexity (fewer explanations needed). A bridge lets you REPLACE two separate explanations with one unified explanation = model COMPRESSION. The system should seek observations that COMPRESS understanding, not just expand it. This is literally the definition of INSIGHT: a single fact that reorganizes all other facts."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e877a5958ad3b6c4c50a7aab133368880bb1eab4a4cbb60c8826220aa187bef4" :a :db/doc :v "FREE ENERGY COMPLEXITY TERM: F = surprise + complexity. Bridges are disproportionately valuable because they reduce BOTH terms simultaneously. Coverage fills reduce surprise but INCREASE complexity (more datoms). Bridges reduce surprise AND reduce complexity (fewer explanations needed). A bridge lets you REPLACE two separate explanations with one unified explanation = model COMPRESSION. The system should seek observations that COMPRESS understanding, not just expand it. This is literally the definition of INSIGHT: a single fact that reorganizes all other facts." :op :assert}
+   {:e #blake3 "e877a5958ad3b6c4c50a7aab133368880bb1eab4a4cbb60c8826220aa187bef4" :a :db/ident :v :observation/free-energy-complexity-term-f-surprise-complexity-brid :op :assert}
+   {:e #blake3 "e877a5958ad3b6c4c50a7aab133368880bb1eab4a4cbb60c8826220aa187bef4" :a :exploration/body :v "FREE ENERGY COMPLEXITY TERM: F = surprise + complexity. Bridges are disproportionately valuable because they reduce BOTH terms simultaneously. Coverage fills reduce surprise but INCREASE complexity (more datoms). Bridges reduce surprise AND reduce complexity (fewer explanations needed). A bridge lets you REPLACE two separate explanations with one unified explanation = model COMPRESSION. The system should seek observations that COMPRESS understanding, not just expand it. This is literally the definition of INSIGHT: a single fact that reorganizes all other facts." :op :assert}
+   {:e #blake3 "e877a5958ad3b6c4c50a7aab133368880bb1eab4a4cbb60c8826220aa187bef4" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "e877a5958ad3b6c4c50a7aab133368880bb1eab4a4cbb60c8826220aa187bef4" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "e877a5958ad3b6c4c50a7aab133368880bb1eab4a4cbb60c8826220aa187bef4" :a :exploration/content-hash :v #bytes "0b58e2e448d9d2a6d96e2dad7afc82821e27b8196d7ced3ab52fd61bf15beb8d" :op :assert}
+   {:e #blake3 "e877a5958ad3b6c4c50a7aab133368880bb1eab4a4cbb60c8826220aa187bef4" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "e877a5958ad3b6c4c50a7aab133368880bb1eab4a4cbb60c8826220aa187bef4" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "e877a5958ad3b6c4c50a7aab133368880bb1eab4a4cbb60c8826220aa187bef4" :a :exploration/source-session :v #blake3 "7722d17a602e7faa875587cc7d5d95cd9358c570588d3859fd0f35fcb2a339ec" :op :assert}
+ ]}
