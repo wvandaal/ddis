@@ -247,14 +247,27 @@ pub fn run(
         layout.write_tx(&tx_file)?;
     }
 
+    // ACP-LEGACY-1: Wrap in ActionProjection for unified output pipeline.
+    let projection =
+        braid_kernel::budget::ActionProjection::from_command_output(&out, "challenge");
+    let mut json = serde_json::json!({
+        "entity": entity_id,
+        "depth": new_depth,
+        "label": depth_label(new_depth),
+        "weight": new_weight,
+    });
+    let acp = projection.to_json();
+    if let serde_json::Value::Object(acp_map) = acp {
+        if let serde_json::Value::Object(ref mut map) = json {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
+
     Ok(CommandOutput {
         human: out.clone(),
-        json: serde_json::json!({
-            "entity": entity_id,
-            "depth": new_depth,
-            "label": depth_label(new_depth),
-            "weight": new_weight,
-        }),
+        json,
         agent: crate::output::AgentOutput {
             context: format!("challenge {entity_id}"),
             content: out,

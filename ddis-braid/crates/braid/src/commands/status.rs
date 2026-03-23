@@ -256,6 +256,112 @@ pub fn run(
     // ACP-TRACK-1: Presentation tracking moved to maybe_inject_footer (mod.rs).
     // All ACP commands now get universal tracking via the _acp JSON field.
 
+    // EXT-BUG-2: --json returns structured JSON early, before building text output
+    if json {
+        let fitness = &snapshot.fitness;
+        let coherence = &snapshot.coherence;
+        let score = &snapshot.methodology_score;
+        let (open, in_progress, closed) = snapshot.task_counts;
+        let total_all = open + in_progress + closed;
+        let p_t = if total_all > 0 { closed as f64 / total_all as f64 } else { 0.0 };
+        let registry = braid_kernel::default_boundaries();
+        let evals = registry.evaluate_all(&store);
+        let boundaries_json: Vec<serde_json::Value> = evals
+            .iter()
+            .map(|e| {
+                serde_json::json!({
+                    "name": e.name,
+                    "coverage": e.relation.coverage,
+                    "gaps": e.divergences.len(),
+                })
+            })
+            .collect();
+        let actions = derive_actions(&store);
+        let actions_json: Vec<serde_json::Value> = actions
+            .iter()
+            .map(|a| {
+                serde_json::json!({
+                    "priority": a.priority,
+                    "category": format!("{}", a.category),
+                    "summary": a.summary,
+                    "command": a.command,
+                    "relates_to": a.relates_to,
+                })
+            })
+            .collect();
+        let session_boundary = braid_kernel::guidance::last_harvest_wall_time(&store);
+        let session_tasks_closed = store
+            .attribute_datoms(&Attribute::from_keyword(":task/status"))
+            .iter()
+            .filter(|d| {
+                d.op == Op::Assert
+                    && d.tx.wall_time() > session_boundary
+                    && matches!(&d.value, Value::Keyword(k) if k.contains("closed"))
+            })
+            .count();
+        let datom_delta = store
+            .len()
+            .saturating_sub(snapshot.session_start_datom_count);
+        let tx_since = count_txns_since_last_harvest(&store);
+        let trend_str = match score.trend {
+            Trend::Up => "up",
+            Trend::Down => "down",
+            Trend::Stable => "stable",
+        };
+        let mut json_out = serde_json::json!({
+            "store": {
+                "datoms": store.len(),
+                "entities": store.entity_count(),
+                "txns": hashes.len(),
+            },
+            "coherence": {
+                "fs": fitness.total,
+                "phi": coherence.phi,
+                "b1": coherence.beta_1,
+                "mt": score.score,
+                "quadrant": format!("{:?}", coherence.quadrant),
+            },
+            "boundaries": boundaries_json,
+            "session": {
+                "tasks_closed": session_tasks_closed,
+                "datoms_added": datom_delta,
+                "tx_since_harvest": tx_since,
+            },
+            "methodology": {
+                "score": score.score,
+                "trend": trend_str,
+                "drift_signal": score.drift_signal,
+            },
+            "tasks": {
+                "open": open,
+                "in_progress": in_progress,
+                "closed": closed,
+                "p_t": p_t,
+            },
+            "actions": actions_json,
+        });
+        // Merge ACP metadata
+        if let serde_json::Value::Object(ref mut map) = json_out {
+            let acp = projection.to_json();
+            if let serde_json::Value::Object(acp_map) = acp {
+                for (k, v) in acp_map {
+                    map.insert(k, v);
+                }
+            }
+        }
+        let json_str = serde_json::to_string_pretty(&json_out).unwrap() + "\n";
+        let agent_output = AgentOutput {
+            context: String::new(),
+            content: projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate),
+            footer: String::new(),
+        };
+        return Ok(CommandOutput {
+            json: json_out,
+            agent: agent_output,
+            human: json_str,
+        });
+    }
+
     // Build human representation
     let human = if verbose {
         build_verbose(path, agent_name, &store, &hashes, tx_since_harvest)
@@ -264,35 +370,18 @@ pub fn run(
         projection.project(usize::MAX)
     };
 
-    // Agent representation: use ACP projection at Navigate level
-    // This replaces the old build_agent() which was truncated at 300 tokens.
-    // ACP ensures the action is ALWAYS present and context fills gracefully.
-    let projected_agent =
-        projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    // EXT-BUG-1: When --verbose, use large budget to expand all sections (no omissions).
+    // Navigate level (100 tokens) is too small and produces identical [+N omitted] output.
+    let projected_agent = if verbose {
+        projection.project(10000)
+    } else {
+        projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate)
+    };
     let agent_output = AgentOutput {
         context: String::new(),
         content: projected_agent,
         footer: String::new(),
     };
-
-    // If --json flag was used, return JSON as human output too (backward compat)
-    if json {
-        let mut json_with_acp = json_value.clone();
-        if let serde_json::Value::Object(ref mut map) = json_with_acp {
-            let acp = projection.to_json();
-            if let serde_json::Value::Object(acp_map) = acp {
-                for (k, v) in acp_map {
-                    map.insert(k, v);
-                }
-            }
-        }
-        let json_str = serde_json::to_string_pretty(&json_with_acp).unwrap() + "\n";
-        return Ok(CommandOutput {
-            json: json_with_acp,
-            agent: agent_output,
-            human: json_str,
-        });
-    }
 
     // Always merge ACP field into JSON (enables BAO-2 footer suppression)
     let mut final_json = json_value;

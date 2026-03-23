@@ -894,6 +894,24 @@ impl ActionProjection {
             }
         })
     }
+
+    /// Create a minimal ACP wrapper for commands that produce plain text output.
+    /// Used by legacy commands to enter the unified ACP pipeline.
+    pub fn from_command_output(output: &str, cmd: &str) -> Self {
+        ActionProjection {
+            action: ProjectedAction {
+                command: format!("braid {cmd}"),
+                rationale: "command output".to_string(),
+                impact: 0.5,
+            },
+            context: vec![ContextBlock::new_scored(
+                OutputPrecedence::System,
+                output.to_string(),
+                output.split_whitespace().count() / 4 + 1, // rough token estimate
+            )],
+            evidence_pointer: String::new(),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------

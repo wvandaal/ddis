@@ -1965,6 +1965,11 @@ fn maybe_inject_footer(
         // The legacy footer would add ~100 tokens of REDUNDANT information.
         return cmd_output;
     }
+    // ACP-LEGACY-1: After converting init, verify, challenge, config, and write
+    // to produce _acp output, this legacy footer path is only reached by Shell
+    // and Mcp (which return plain strings via from_human()). Retained as safety
+    // net — do NOT remove yet (separate cleanup task).
+    //
     // INV-GUIDANCE-014: Derive contextual hint from the command's JSON output.
     let hint =
         cmd_name.and_then(|name| braid_kernel::contextual_observation_hint(name, &cmd_output.json));
@@ -2244,7 +2249,7 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
 /// ceiling are compressed via pyramid summary (never hard-truncated).
 ///
 /// Most commands return `CommandOutput` with native tri-mode output.
-/// Remaining `from_human()` bridge: write assert/retract/promote/export, shell, mcp.
+/// Remaining `from_human()` bridge: shell, mcp (special: REPL and event loop).
 pub fn run(
     cmd: Command,
     budget_ctx: &BudgetCtx,
@@ -2362,51 +2367,85 @@ pub fn run(
                 None,
             ));
         }
-        Command::Write { action } => match action {
-            WriteAction::Assert {
-                path,
-                agent,
-                rationale,
-                datoms,
-            } => write::run_assert(&path, &agent, &rationale, &datoms),
-            WriteAction::Retract {
-                path,
-                agent,
-                entity,
-                attribute,
-                value,
-            } => write::run_retract(&path, &agent, &entity, &attribute, value.as_deref()),
-            WriteAction::Promote {
-                path,
-                entity,
-                target_id,
-                namespace,
-                target_type,
-                agent,
-                statement,
-                falsification,
-                verification,
-                problem,
-                decision,
-            } => write::run_promote(write::PromoteArgs {
-                path: &path,
-                entity_ident: &entity,
-                target_id: &target_id,
-                namespace: &namespace,
-                target_type: &target_type,
-                agent_name: &agent,
-                statement: statement.as_deref(),
-                falsification: falsification.as_deref(),
-                verification: verification.as_deref(),
-                problem: problem.as_deref(),
-                decision: decision.as_deref(),
-            }),
-            WriteAction::Export {
-                path,
-                output,
-                namespace,
-            } => write::run_export(&path, &output, namespace.as_deref()),
-        },
+        Command::Write { action } => {
+            // ACP-LEGACY-1: Write subcommands return String; wrap in ACP-enabled
+            // CommandOutput and return early (bypassing from_human() bridge).
+            let (text, subcmd) = match action {
+                WriteAction::Assert {
+                    path,
+                    agent,
+                    rationale,
+                    datoms,
+                } => (
+                    write::run_assert(&path, &agent, &rationale, &datoms)?,
+                    "write assert",
+                ),
+                WriteAction::Retract {
+                    path,
+                    agent,
+                    entity,
+                    attribute,
+                    value,
+                } => (
+                    write::run_retract(&path, &agent, &entity, &attribute, value.as_deref())?,
+                    "write retract",
+                ),
+                WriteAction::Promote {
+                    path,
+                    entity,
+                    target_id,
+                    namespace,
+                    target_type,
+                    agent,
+                    statement,
+                    falsification,
+                    verification,
+                    problem,
+                    decision,
+                } => (
+                    write::run_promote(write::PromoteArgs {
+                        path: &path,
+                        entity_ident: &entity,
+                        target_id: &target_id,
+                        namespace: &namespace,
+                        target_type: &target_type,
+                        agent_name: &agent,
+                        statement: statement.as_deref(),
+                        falsification: falsification.as_deref(),
+                        verification: verification.as_deref(),
+                        problem: problem.as_deref(),
+                        decision: decision.as_deref(),
+                    })?,
+                    "write promote",
+                ),
+                WriteAction::Export {
+                    path,
+                    output,
+                    namespace,
+                } => (
+                    write::run_export(&path, &output, namespace.as_deref())?,
+                    "write export",
+                ),
+            };
+            let projection = braid_kernel::budget::ActionProjection::from_command_output(&text, subcmd);
+            let mut cmd_output = CommandOutput::from_human(text);
+            let acp = projection.to_json();
+            if let serde_json::Value::Object(acp_map) = acp {
+                if let serde_json::Value::Object(ref mut map) = cmd_output.json {
+                    for (k, v) in acp_map {
+                        map.insert(k, v);
+                    }
+                }
+            }
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+                footer_cmd_name,
+                None,
+            ));
+        }
         Command::Query {
             path,
             entity,
@@ -3099,7 +3138,37 @@ pub fn run(
             agent,
             ..
         } => {
+            // EXT-BUG-4: Extractor recursion guard.
+            // When braid runs inside a project with extractors configured, and an
+            // extractor command calls braid (e.g., `braid extract rust` invokes a
+            // shell command that itself calls braid), infinite recursion can occur.
+            // Guard: if BRAID_EXTRACTOR_DEPTH >= 1, skip extractor execution.
+            let extractor_depth: u32 = std::env::var("BRAID_EXTRACTOR_DEPTH")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(0);
+            if extractor_depth >= 1 {
+                let msg = format!(
+                    "extract: skipped (recursion depth {}, max 1)",
+                    extractor_depth
+                );
+                let cmd_output = CommandOutput::from_human(msg);
+                return Ok(maybe_inject_footer(
+                    cmd_output,
+                    skip_footer,
+                    path_for_footer.as_deref(),
+                    budget_ctx,
+                    footer_cmd_name,
+                    None,
+                ));
+            }
+            // Set incremented depth for child processes spawned by extract::run().
+            // Subprocesses inherit env, so any `braid extract` they invoke will see
+            // depth >= 1 and bail out above.
+            std::env::set_var("BRAID_EXTRACTOR_DEPTH", (extractor_depth + 1).to_string());
             let cmd_output = extract::run(&path, filter.as_deref(), commit, &agent)?;
+            // Restore previous depth after extraction completes.
+            std::env::set_var("BRAID_EXTRACTOR_DEPTH", extractor_depth.to_string());
             return Ok(maybe_inject_footer(
                 cmd_output,
                 skip_footer,
@@ -3113,6 +3182,12 @@ pub fn run(
 
     // INV-GUIDANCE-001: Inject guidance footer into applicable command outputs.
     // INV-BUDGET-004: Footer compressed by k*_eff from budget_ctx.
+    //
+    // ACP-LEGACY-1: After converting init, verify, challenge, config, and write
+    // subcommands to produce _acp-enabled output, only Shell and Mcp still reach
+    // this from_human() bridge. This path is retained for those special commands
+    // (Shell is a REPL, Mcp is an event loop) and as a safety net for future
+    // commands that return plain strings. Do NOT remove yet — separate cleanup task.
     match result {
         Ok(output) => {
             let cmd_output = CommandOutput::from_human(output);

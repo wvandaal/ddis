@@ -366,11 +366,23 @@ pub fn run(
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
-    let output = if generate {
+    let mut output = if generate {
         run_generate(&store, dry_run, namespace)
     } else {
         run_status(&store)
     };
+
+    // ACP-LEGACY-1: Wrap in ActionProjection for unified output pipeline.
+    let projection =
+        braid_kernel::budget::ActionProjection::from_command_output(&output.human, "verify");
+    let acp = projection.to_json();
+    if let serde_json::Value::Object(acp_map) = acp {
+        if let serde_json::Value::Object(ref mut map) = output.json {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
     Ok(output)
 }

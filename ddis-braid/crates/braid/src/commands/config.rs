@@ -25,7 +25,7 @@ pub fn run(
     reset: bool,
     agent: &str,
 ) -> Result<CommandOutput, BraidError> {
-    match (key, value, reset) {
+    let mut output = match (key, value, reset) {
         (Some(k), Some(v), false) => run_set(path, k, v, agent),
         (Some(k), None, true) => run_reset(path, k, agent),
         (Some(k), None, false) => run_get(path, k),
@@ -33,7 +33,21 @@ pub fn run(
         _ => Err(BraidError::Validation(
             "Usage: braid config [key] [value] | braid config --reset <key>".into(),
         )),
+    }?;
+
+    // ACP-LEGACY-1: Wrap in ActionProjection for unified output pipeline.
+    let projection =
+        braid_kernel::budget::ActionProjection::from_command_output(&output.human, "config");
+    let acp = projection.to_json();
+    if let serde_json::Value::Object(acp_map) = acp {
+        if let serde_json::Value::Object(ref mut map) = output.json {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
     }
+
+    Ok(output)
 }
 
 fn run_get(path: &Path, key: &str) -> Result<CommandOutput, BraidError> {

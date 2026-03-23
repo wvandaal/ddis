@@ -477,6 +477,17 @@ braid seed --inject AGENTS.md             # Refresh this section
         footer: "next: braid status | workflow: observe \u{2192} harvest \u{2192} seed".to_string(),
     };
 
+    // ACP-LEGACY-1: Wrap in ActionProjection for unified output pipeline.
+    let projection = braid_kernel::budget::ActionProjection::from_command_output(&out, "init");
+    let acp = projection.to_json();
+    if let serde_json::Value::Object(acp_map) = acp {
+        if let serde_json::Value::Object(ref mut map) = json {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
+
     Ok(CommandOutput {
         json,
         agent: agent_output,
