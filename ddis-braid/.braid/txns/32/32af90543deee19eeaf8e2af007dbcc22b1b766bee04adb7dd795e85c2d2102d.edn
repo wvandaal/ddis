@@ -1,0 +1,28 @@
+{:tx/id #hlc "1774282103/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-028 \"All System Outputs Are Context Blocks — methodology IS information, not a separate enforcement mechanism\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "466bba8b199501f4d924adcf7b960db88ccbadfd86732fffc842da6c19b62cee" :a :db/doc :v "Violated if any system output requires a scoring mechanism distinct from A(t,x). If ceremony or harvest urgency cannot be adequately represented as scored context blocks, this ADR is wrong and they need separate decision paths." :op :assert}
+   {:e #blake3 "4c56809782d762f186a75fd0987d33ca3a6cd95a6e27fcf91079d9098d68e757" :a :db/ident :v :task/t-3c728bc4 :op :assert}
+   {:e #blake3 "4c56809782d762f186a75fd0987d33ca3a6cd95a6e27fcf91079d9098d68e757" :a :task/created-at :v 1774282102 :op :assert}
+   {:e #blake3 "4c56809782d762f186a75fd0987d33ca3a6cd95a6e27fcf91079d9098d68e757" :a :task/id :v "t-3c728bc4" :op :assert}
+   {:e #blake3 "4c56809782d762f186a75fd0987d33ca3a6cd95a6e27fcf91079d9098d68e757" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "4c56809782d762f186a75fd0987d33ca3a6cd95a6e27fcf91079d9098d68e757" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4c56809782d762f186a75fd0987d33ca3a6cd95a6e27fcf91079d9098d68e757" :a :task/title :v "Implement ADR-FOUNDATION-028: All System Outputs Are Context Blocks — methodology IS information, not a separate enforcement mechanism" :op :assert}
+   {:e #blake3 "4c56809782d762f186a75fd0987d33ca3a6cd95a6e27fcf91079d9098d68e757" :a :task/traces-to :v #blake3 "ff529c8ee9cfd27cb629c37815da8fffccb3aace2f653325dc16e16a4759c86b" :op :assert}
+   {:e #blake3 "4c56809782d762f186a75fd0987d33ca3a6cd95a6e27fcf91079d9098d68e757" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "ff529c8ee9cfd27cb629c37815da8fffccb3aace2f653325dc16e16a4759c86b" :a :adr/decision :v "There are not five systems. There is ONE system with multiple SOURCES of context blocks. Ceremony, harvest urgency, task routing, coherence metrics, and methodology guidance all produce context blocks that compete for token budget. The acquisition function alpha = E[delta_F(S)] / cost scores ALL blocks uniformly. ceremony_level() is not a decision function — it is the EMERGENT result of methodology blocks surviving or being cut by budget pressure. harvest_urgency_multi() is an INPUT to the harvest-warning block's impact factor, not a standalone threshold check. The basin competition (ADR-GUIDANCE-002) resolves itself: methodology blocks survive when their alpha is high (they demonstrably improve F(S))." :op :assert}
+   {:e #blake3 "ff529c8ee9cfd27cb629c37815da8fffccb3aace2f653325dc16e16a4759c86b" :a :adr/problem :v "ADR-FOUNDATION-025 described 'five systems unified into one function.' But ceremony and harvest urgency were still modeled as separate decision types requiring integration. This created UAQ-7 and UAQ-8 as distinct tasks." :op :assert}
+   {:e #blake3 "ff529c8ee9cfd27cb629c37815da8fffccb3aace2f653325dc16e16a4759c86b" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "ff529c8ee9cfd27cb629c37815da8fffccb3aace2f653325dc16e16a4759c86b" :a :comonad/falsification :v #blake3 "466bba8b199501f4d924adcf7b960db88ccbadfd86732fffc842da6c19b62cee" :op :assert}
+   {:e #blake3 "ff529c8ee9cfd27cb629c37815da8fffccb3aace2f653325dc16e16a4759c86b" :a :db/doc :v "All System Outputs Are Context Blocks — methodology IS information, not a separate enforcement mechanism" :op :assert}
+   {:e #blake3 "ff529c8ee9cfd27cb629c37815da8fffccb3aace2f653325dc16e16a4759c86b" :a :db/ident :v :spec/adr-foundation-028 :op :assert}
+   {:e #blake3 "ff529c8ee9cfd27cb629c37815da8fffccb3aace2f653325dc16e16a4759c86b" :a :element/traces-to :v "ADR-FOUNDATION-025" :op :assert}
+   {:e #blake3 "ff529c8ee9cfd27cb629c37815da8fffccb3aace2f653325dc16e16a4759c86b" :a :spec/confidence :v 0.93 :op :assert}
+   {:e #blake3 "ff529c8ee9cfd27cb629c37815da8fffccb3aace2f653325dc16e16a4759c86b" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "ff529c8ee9cfd27cb629c37815da8fffccb3aace2f653325dc16e16a4759c86b" :a :spec/falsification :v "Violated if any system output requires a scoring mechanism distinct from A(t,x). If ceremony or harvest urgency cannot be adequately represented as scored context blocks, this ADR is wrong and they need separate decision paths." :op :assert}
+   {:e #blake3 "ff529c8ee9cfd27cb629c37815da8fffccb3aace2f653325dc16e16a4759c86b" :a :spec/id :v "ADR-FOUNDATION-028" :op :assert}
+   {:e #blake3 "ff529c8ee9cfd27cb629c37815da8fffccb3aace2f653325dc16e16a4759c86b" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+ ]}
