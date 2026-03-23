@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774232803/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CACHE-TEST: verify cache invalidation works"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "486d08c95b92671ef734d3c0f6e325f47dd6117e27a3ff2025a97712b4ac66f1" :a :db/ident :v :task/t-8b7b7463 :op :assert}
+   {:e #blake3 "486d08c95b92671ef734d3c0f6e325f47dd6117e27a3ff2025a97712b4ac66f1" :a :task/created-at :v 1774232802 :op :assert}
+   {:e #blake3 "486d08c95b92671ef734d3c0f6e325f47dd6117e27a3ff2025a97712b4ac66f1" :a :task/id :v "t-8b7b7463" :op :assert}
+   {:e #blake3 "486d08c95b92671ef734d3c0f6e325f47dd6117e27a3ff2025a97712b4ac66f1" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "486d08c95b92671ef734d3c0f6e325f47dd6117e27a3ff2025a97712b4ac66f1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "486d08c95b92671ef734d3c0f6e325f47dd6117e27a3ff2025a97712b4ac66f1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "486d08c95b92671ef734d3c0f6e325f47dd6117e27a3ff2025a97712b4ac66f1" :a :task/title :v "CACHE-TEST: verify cache invalidation works" :op :assert}
+   {:e #blake3 "486d08c95b92671ef734d3c0f6e325f47dd6117e27a3ff2025a97712b4ac66f1" :a :task/title-l0 :v "CACHE-TEST" :op :assert}
+   {:e #blake3 "486d08c95b92671ef734d3c0f6e325f47dd6117e27a3ff2025a97712b4ac66f1" :a :task/title-l1 :v "CACHE-TEST: verify cache invalidation works" :op :assert}
+   {:e #blake3 "486d08c95b92671ef734d3c0f6e325f47dd6117e27a3ff2025a97712b4ac66f1" :a :task/type :v :task.type/task :op :assert}
+ ]}

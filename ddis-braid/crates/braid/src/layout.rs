@@ -154,6 +154,11 @@ impl DiskLayout {
             Ok(mut file) => {
                 file.write_all(&bytes)?;
                 file.sync_all()?;
+                // Invalidate the store cache so the next load_store() picks up
+                // this new transaction. Without this, commands that write and then
+                // read within the same process (or rapid succession) would miss
+                // the new data — causing silent data loss (CACHE-BUG t-03fd2cd5).
+                self.invalidate_cache();
             }
             Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
                 // Idempotent: same content, same hash, same file.
@@ -162,6 +167,17 @@ impl DiskLayout {
         }
 
         Ok(file_path)
+    }
+
+    /// Invalidate the store cache so the next load picks up new transactions.
+    ///
+    /// Called after every write_tx() to prevent stale reads. The cache files
+    /// (.cache/store.bin and .cache/meta.json) are deleted; the next load_store()
+    /// will do a full rebuild from txn files and write a fresh cache.
+    fn invalidate_cache(&self) {
+        let cache_dir = self.root.join(".cache");
+        let _ = fs::remove_file(cache_dir.join("store.bin"));
+        let _ = fs::remove_file(cache_dir.join("meta.json"));
     }
 
     /// Read a transaction file by its hash.

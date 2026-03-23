@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774232826/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Cache invalidation fix verified: write_tx() now deletes .cache/store.bin and .cache/meta.json, forcing full rebuild on next load. Task create → immediate task search now works."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c56095e8f2cfc48b0625c4a385f7deb5cef04d97a21e9d7f3a66b9a52d49ae1f" :a :db/ident :v :task/t-f82813c7 :op :assert}
+   {:e #blake3 "c56095e8f2cfc48b0625c4a385f7deb5cef04d97a21e9d7f3a66b9a52d49ae1f" :a :task/created-at :v 1774232825 :op :assert}
+   {:e #blake3 "c56095e8f2cfc48b0625c4a385f7deb5cef04d97a21e9d7f3a66b9a52d49ae1f" :a :task/id :v "t-f82813c7" :op :assert}
+   {:e #blake3 "c56095e8f2cfc48b0625c4a385f7deb5cef04d97a21e9d7f3a66b9a52d49ae1f" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "c56095e8f2cfc48b0625c4a385f7deb5cef04d97a21e9d7f3a66b9a52d49ae1f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c56095e8f2cfc48b0625c4a385f7deb5cef04d97a21e9d7f3a66b9a52d49ae1f" :a :task/title :v "Cache invalidation fix verified: write_tx() now deletes .cache/store.bin and .cache/meta.json, forcing full rebuild on next load. Task create → immediate task search now works" :op :assert}
+   {:e #blake3 "c56095e8f2cfc48b0625c4a385f7deb5cef04d97a21e9d7f3a66b9a52d49ae1f" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "f2b777467356ac910eea165dc65c80ac3ef56414f1cc4f618d25041bae0fa1b3" :a :db/doc :v "Cache invalidation fix verified: write_tx() now deletes .cache/store.bin and .cache/meta.json, forcing full rebuild on next load. Task create → immediate task search now works." :op :assert}
+   {:e #blake3 "f2b777467356ac910eea165dc65c80ac3ef56414f1cc4f618d25041bae0fa1b3" :a :db/ident :v :observation/cache-invalidation-fix-verified-write-tx-now-deletes-cac :op :assert}
+   {:e #blake3 "f2b777467356ac910eea165dc65c80ac3ef56414f1cc4f618d25041bae0fa1b3" :a :exploration/body :v "Cache invalidation fix verified: write_tx() now deletes .cache/store.bin and .cache/meta.json, forcing full rebuild on next load. Task create → immediate task search now works." :op :assert}
+   {:e #blake3 "f2b777467356ac910eea165dc65c80ac3ef56414f1cc4f618d25041bae0fa1b3" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "f2b777467356ac910eea165dc65c80ac3ef56414f1cc4f618d25041bae0fa1b3" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "f2b777467356ac910eea165dc65c80ac3ef56414f1cc4f618d25041bae0fa1b3" :a :exploration/content-hash :v #bytes "c93c2f61f9f75f5bdb98cad877904993ae273e9d2fb8bcf56fdce98667648774" :op :assert}
+   {:e #blake3 "f2b777467356ac910eea165dc65c80ac3ef56414f1cc4f618d25041bae0fa1b3" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f2b777467356ac910eea165dc65c80ac3ef56414f1cc4f618d25041bae0fa1b3" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f2b777467356ac910eea165dc65c80ac3ef56414f1cc4f618d25041bae0fa1b3" :a :exploration/source-session :v #blake3 "535f7c5c4ae2c8bffff62c839602f59bbb6a023b50187b217c6afbfa3552eee5" :op :assert}
+ ]}
