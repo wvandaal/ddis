@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774227541/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DC-TEST: Dialectical Comonad test suite — UNIT: (1) depth=0 contributes 0 to F(S), (2) depth=3 contributes 0.7, (3) braid challenge increments depth on survival, (4) falsification resets depth, (5) saw-tooth detected in synthetic trajectory, (6) echo-chamber warning fires at 0 surprise. PROPTEST: (7) depth-weighted F(S) always in [0,1], (8) survived challenge never decreases depth. E2E: scripts/e2e_dialectical_comonad.sh. FILE: bilateral.rs + challenge.rs tests"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "10640dbf3fbb462c886dd86255255956ba88b77ff2d07e8dbb58bae8a12217c5" :a :db/ident :v :task/t-4f01860f :op :assert}
+   {:e #blake3 "10640dbf3fbb462c886dd86255255956ba88b77ff2d07e8dbb58bae8a12217c5" :a :task/created-at :v 1774227540 :op :assert}
+   {:e #blake3 "10640dbf3fbb462c886dd86255255956ba88b77ff2d07e8dbb58bae8a12217c5" :a :task/id :v "t-4f01860f" :op :assert}
+   {:e #blake3 "10640dbf3fbb462c886dd86255255956ba88b77ff2d07e8dbb58bae8a12217c5" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "10640dbf3fbb462c886dd86255255956ba88b77ff2d07e8dbb58bae8a12217c5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "10640dbf3fbb462c886dd86255255956ba88b77ff2d07e8dbb58bae8a12217c5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "10640dbf3fbb462c886dd86255255956ba88b77ff2d07e8dbb58bae8a12217c5" :a :task/title :v "DC-TEST: Dialectical Comonad test suite — UNIT: (1) depth=0 contributes 0 to F(S), (2) depth=3 contributes 0.7, (3) braid challenge increments depth on survival, (4) falsification resets depth, (5) saw-tooth detected in synthetic trajectory, (6) echo-chamber warning fires at 0 surprise. PROPTEST: (7) depth-weighted F(S) always in [0,1], (8) survived challenge never decreases depth. E2E: scripts/e2e_dialectical_comonad.sh. FILE: bilateral.rs + challenge.rs tests" :op :assert}
+   {:e #blake3 "10640dbf3fbb462c886dd86255255956ba88b77ff2d07e8dbb58bae8a12217c5" :a :task/title-l0 :v "DC-TEST" :op :assert}
+   {:e #blake3 "10640dbf3fbb462c886dd86255255956ba88b77ff2d07e8dbb58bae8a12217c5" :a :task/title-l1 :v "DC-TEST: Dialectical Comonad test suite — UNIT: (1) depth=0 contributes 0 t..." :op :assert}
+   {:e #blake3 "10640dbf3fbb462c886dd86255255956ba88b77ff2d07e8dbb58bae8a12217c5" :a :task/type :v :task.type/test :op :assert}
+ ]}

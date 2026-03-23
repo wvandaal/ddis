@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774227525/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DC-1: Comonadic schema — :comonad/depth (Long 0-4), :comonad/falsification (Ref Many), :comonad/last-challenged (Instant), :comonad/survival-rate (Double). Every spec entity carries dialectical depth. FILE: crates/braid-kernel/src/schema.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6729c83a791d0e5b3d8d4bfb53aae8e7f2d980bb0dd10fb36609a73c5648a36f" :a :db/ident :v :task/t-f5e16bae :op :assert}
+   {:e #blake3 "6729c83a791d0e5b3d8d4bfb53aae8e7f2d980bb0dd10fb36609a73c5648a36f" :a :task/created-at :v 1774227524 :op :assert}
+   {:e #blake3 "6729c83a791d0e5b3d8d4bfb53aae8e7f2d980bb0dd10fb36609a73c5648a36f" :a :task/files :v "crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "6729c83a791d0e5b3d8d4bfb53aae8e7f2d980bb0dd10fb36609a73c5648a36f" :a :task/id :v "t-f5e16bae" :op :assert}
+   {:e #blake3 "6729c83a791d0e5b3d8d4bfb53aae8e7f2d980bb0dd10fb36609a73c5648a36f" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "6729c83a791d0e5b3d8d4bfb53aae8e7f2d980bb0dd10fb36609a73c5648a36f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6729c83a791d0e5b3d8d4bfb53aae8e7f2d980bb0dd10fb36609a73c5648a36f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6729c83a791d0e5b3d8d4bfb53aae8e7f2d980bb0dd10fb36609a73c5648a36f" :a :task/title :v "DC-1: Comonadic schema — :comonad/depth (Long 0-4), :comonad/falsification (Ref Many), :comonad/last-challenged (Instant), :comonad/survival-rate (Double). Every spec entity carries dialectical depth. FILE: crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "6729c83a791d0e5b3d8d4bfb53aae8e7f2d980bb0dd10fb36609a73c5648a36f" :a :task/title-l0 :v "DC-1" :op :assert}
+   {:e #blake3 "6729c83a791d0e5b3d8d4bfb53aae8e7f2d980bb0dd10fb36609a73c5648a36f" :a :task/title-l1 :v "DC-1: Comonadic schema — :comonad/depth (Long 0-4), :comonad/falsification..." :op :assert}
+   {:e #blake3 "6729c83a791d0e5b3d8d4bfb53aae8e7f2d980bb0dd10fb36609a73c5648a36f" :a :task/type :v :task.type/task :op :assert}
+ ]}

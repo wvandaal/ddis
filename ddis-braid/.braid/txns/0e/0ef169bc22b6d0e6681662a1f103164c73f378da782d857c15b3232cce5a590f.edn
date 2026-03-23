@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774227530/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DC-3: Auto-depth on spec create — COTX rule: braid spec create with --falsification → depth=1, without → depth=0 + C6 warning. Extends existing COTX-2 auto-crystallization. FILE: crates/braid/src/commands/spec.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "14566e616ae8dd15f573b09af87e53d3bbf8dabf903fea7a82d17f801588e35f" :a :db/ident :v :task/t-ea3b45fd :op :assert}
+   {:e #blake3 "14566e616ae8dd15f573b09af87e53d3bbf8dabf903fea7a82d17f801588e35f" :a :task/created-at :v 1774227529 :op :assert}
+   {:e #blake3 "14566e616ae8dd15f573b09af87e53d3bbf8dabf903fea7a82d17f801588e35f" :a :task/files :v "crates/braid/src/commands/spec.rs" :op :assert}
+   {:e #blake3 "14566e616ae8dd15f573b09af87e53d3bbf8dabf903fea7a82d17f801588e35f" :a :task/id :v "t-ea3b45fd" :op :assert}
+   {:e #blake3 "14566e616ae8dd15f573b09af87e53d3bbf8dabf903fea7a82d17f801588e35f" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "14566e616ae8dd15f573b09af87e53d3bbf8dabf903fea7a82d17f801588e35f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "14566e616ae8dd15f573b09af87e53d3bbf8dabf903fea7a82d17f801588e35f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "14566e616ae8dd15f573b09af87e53d3bbf8dabf903fea7a82d17f801588e35f" :a :task/title :v "DC-3: Auto-depth on spec create — COTX rule: braid spec create with --falsification → depth=1, without → depth=0 + C6 warning. Extends existing COTX-2 auto-crystallization. FILE: crates/braid/src/commands/spec.rs" :op :assert}
+   {:e #blake3 "14566e616ae8dd15f573b09af87e53d3bbf8dabf903fea7a82d17f801588e35f" :a :task/title-l0 :v "DC-3" :op :assert}
+   {:e #blake3 "14566e616ae8dd15f573b09af87e53d3bbf8dabf903fea7a82d17f801588e35f" :a :task/title-l1 :v "DC-3: Auto-depth on spec create — COTX rule: braid spec create with --falsi..." :op :assert}
+   {:e #blake3 "14566e616ae8dd15f573b09af87e53d3bbf8dabf903fea7a82d17f801588e35f" :a :task/type :v :task.type/task :op :assert}
+ ]}

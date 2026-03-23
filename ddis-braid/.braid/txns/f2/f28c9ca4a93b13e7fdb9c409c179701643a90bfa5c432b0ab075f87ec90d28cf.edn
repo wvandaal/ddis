@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774227523/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Dialectical Comonad — falsification-first F(S), braid challenge, depth-weighted fitness (ADR-FOUNDATION-020, ADR-FOUNDATION-021)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "51f6f9f1e7c45389174e7e766c0b5d4b5fc3858c124ba1807615c87e62d9f027" :a :db/ident :v :task/t-94d642f7 :op :assert}
+   {:e #blake3 "51f6f9f1e7c45389174e7e766c0b5d4b5fc3858c124ba1807615c87e62d9f027" :a :task/created-at :v 1774227522 :op :assert}
+   {:e #blake3 "51f6f9f1e7c45389174e7e766c0b5d4b5fc3858c124ba1807615c87e62d9f027" :a :task/id :v "t-94d642f7" :op :assert}
+   {:e #blake3 "51f6f9f1e7c45389174e7e766c0b5d4b5fc3858c124ba1807615c87e62d9f027" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "51f6f9f1e7c45389174e7e766c0b5d4b5fc3858c124ba1807615c87e62d9f027" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "51f6f9f1e7c45389174e7e766c0b5d4b5fc3858c124ba1807615c87e62d9f027" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "51f6f9f1e7c45389174e7e766c0b5d4b5fc3858c124ba1807615c87e62d9f027" :a :task/title :v "EPIC: Dialectical Comonad — falsification-first F(S), braid challenge, depth-weighted fitness (ADR-FOUNDATION-020, ADR-FOUNDATION-021)" :op :assert}
+   {:e #blake3 "51f6f9f1e7c45389174e7e766c0b5d4b5fc3858c124ba1807615c87e62d9f027" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "51f6f9f1e7c45389174e7e766c0b5d4b5fc3858c124ba1807615c87e62d9f027" :a :task/title-l1 :v "EPIC: Dialectical Comonad — falsification-first F(S), braid challenge, dept..." :op :assert}
+   {:e #blake3 "51f6f9f1e7c45389174e7e766c0b5d4b5fc3858c124ba1807615c87e62d9f027" :a :task/type :v :task.type/epic :op :assert}
+ ]}

@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774227527/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DC-2: Depth-weighted F(S) — replace raw coverage with depth_weight(d) × coverage in ALL boundary evaluations. depth_weight: 0→0.0, 1→0.15, 2→0.4, 3→0.7, 4+→1.0. Claims at depth 0 contribute nothing. Only survived challenges increase score. FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a1f2e5d10203af3f49420da31899d311fe5e353a0346a1a335081ecf97bf4722" :a :db/ident :v :task/t-8138ebd0 :op :assert}
+   {:e #blake3 "a1f2e5d10203af3f49420da31899d311fe5e353a0346a1a335081ecf97bf4722" :a :task/created-at :v 1774227526 :op :assert}
+   {:e #blake3 "a1f2e5d10203af3f49420da31899d311fe5e353a0346a1a335081ecf97bf4722" :a :task/files :v "crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "a1f2e5d10203af3f49420da31899d311fe5e353a0346a1a335081ecf97bf4722" :a :task/id :v "t-8138ebd0" :op :assert}
+   {:e #blake3 "a1f2e5d10203af3f49420da31899d311fe5e353a0346a1a335081ecf97bf4722" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "a1f2e5d10203af3f49420da31899d311fe5e353a0346a1a335081ecf97bf4722" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a1f2e5d10203af3f49420da31899d311fe5e353a0346a1a335081ecf97bf4722" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a1f2e5d10203af3f49420da31899d311fe5e353a0346a1a335081ecf97bf4722" :a :task/title :v "DC-2: Depth-weighted F(S) — replace raw coverage with depth_weight(d) × coverage in ALL boundary evaluations. depth_weight: 0→0.0, 1→0.15, 2→0.4, 3→0.7, 4+→1.0. Claims at depth 0 contribute nothing. Only survived challenges increase score. FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "a1f2e5d10203af3f49420da31899d311fe5e353a0346a1a335081ecf97bf4722" :a :task/title-l0 :v "DC-2" :op :assert}
+   {:e #blake3 "a1f2e5d10203af3f49420da31899d311fe5e353a0346a1a335081ecf97bf4722" :a :task/title-l1 :v "DC-2: Depth-weighted F(S) — replace raw coverage with depth_weight(d) × co..." :op :assert}
+   {:e #blake3 "a1f2e5d10203af3f49420da31899d311fe5e353a0346a1a335081ecf97bf4722" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774227536/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DC-6: Pre-registered falsification in hypothesis ledger — extend :hypothesis/* with /falsification (String) and /anti-predicted (Double). Four-quadrant evaluation on outcome: genuine-robustness, trivial-prediction, clean-falsification, genuine-surprise. FILE: crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f010ecafe2fb172e9f5029060f6f274455ca4d650a0b8ea025ef4e569f524ea8" :a :db/ident :v :task/t-7a254b59 :op :assert}
+   {:e #blake3 "f010ecafe2fb172e9f5029060f6f274455ca4d650a0b8ea025ef4e569f524ea8" :a :task/created-at :v 1774227535 :op :assert}
+   {:e #blake3 "f010ecafe2fb172e9f5029060f6f274455ca4d650a0b8ea025ef4e569f524ea8" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "f010ecafe2fb172e9f5029060f6f274455ca4d650a0b8ea025ef4e569f524ea8" :a :task/id :v "t-7a254b59" :op :assert}
+   {:e #blake3 "f010ecafe2fb172e9f5029060f6f274455ca4d650a0b8ea025ef4e569f524ea8" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f010ecafe2fb172e9f5029060f6f274455ca4d650a0b8ea025ef4e569f524ea8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f010ecafe2fb172e9f5029060f6f274455ca4d650a0b8ea025ef4e569f524ea8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f010ecafe2fb172e9f5029060f6f274455ca4d650a0b8ea025ef4e569f524ea8" :a :task/title :v "DC-6: Pre-registered falsification in hypothesis ledger — extend :hypothesis/* with /falsification (String) and /anti-predicted (Double). Four-quadrant evaluation on outcome: genuine-robustness, trivial-prediction, clean-falsification, genuine-surprise. FILE: crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "f010ecafe2fb172e9f5029060f6f274455ca4d650a0b8ea025ef4e569f524ea8" :a :task/title-l0 :v "DC-6" :op :assert}
+   {:e #blake3 "f010ecafe2fb172e9f5029060f6f274455ca4d650a0b8ea025ef4e569f524ea8" :a :task/title-l1 :v "DC-6: Pre-registered falsification in hypothesis ledger — extend :hypothesi..." :op :assert}
+   {:e #blake3 "f010ecafe2fb172e9f5029060f6f274455ca4d650a0b8ea025ef4e569f524ea8" :a :task/type :v :task.type/task :op :assert}
+ ]}

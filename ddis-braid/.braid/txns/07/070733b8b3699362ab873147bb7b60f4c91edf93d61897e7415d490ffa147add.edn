@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774227532/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DC-4: braid challenge command — comonadic duplicate made executable. Takes hypothesis ID, generates falsification criteria (contrapositives), recommends highest-information-gain test, tracks survival/falsification outcomes, increments depth on survival. --deepen flag runs duplicate on existing criteria. FILE: crates/braid/src/commands/challenge.rs + mod.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8c1995152052dd2f6f512aa17522960cefac1b7b92429998c3fb4f1358ccf8fa" :a :db/ident :v :task/t-d6307861 :op :assert}
+   {:e #blake3 "8c1995152052dd2f6f512aa17522960cefac1b7b92429998c3fb4f1358ccf8fa" :a :task/created-at :v 1774227531 :op :assert}
+   {:e #blake3 "8c1995152052dd2f6f512aa17522960cefac1b7b92429998c3fb4f1358ccf8fa" :a :task/files :v "crates/braid/src/commands/challenge.rs" :op :assert}
+   {:e #blake3 "8c1995152052dd2f6f512aa17522960cefac1b7b92429998c3fb4f1358ccf8fa" :a :task/id :v "t-d6307861" :op :assert}
+   {:e #blake3 "8c1995152052dd2f6f512aa17522960cefac1b7b92429998c3fb4f1358ccf8fa" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "8c1995152052dd2f6f512aa17522960cefac1b7b92429998c3fb4f1358ccf8fa" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8c1995152052dd2f6f512aa17522960cefac1b7b92429998c3fb4f1358ccf8fa" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8c1995152052dd2f6f512aa17522960cefac1b7b92429998c3fb4f1358ccf8fa" :a :task/title :v "DC-4: braid challenge command — comonadic duplicate made executable. Takes hypothesis ID, generates falsification criteria (contrapositives), recommends highest-information-gain test, tracks survival/falsification outcomes, increments depth on survival. --deepen flag runs duplicate on existing criteria. FILE: crates/braid/src/commands/challenge.rs + mod.rs" :op :assert}
+   {:e #blake3 "8c1995152052dd2f6f512aa17522960cefac1b7b92429998c3fb4f1358ccf8fa" :a :task/title-l0 :v "DC-4" :op :assert}
+   {:e #blake3 "8c1995152052dd2f6f512aa17522960cefac1b7b92429998c3fb4f1358ccf8fa" :a :task/title-l1 :v "DC-4: braid challenge command — comonadic duplicate made executable" :op :assert}
+   {:e #blake3 "8c1995152052dd2f6f512aa17522960cefac1b7b92429998c3fb4f1358ccf8fa" :a :task/type :v :task.type/task :op :assert}
+ ]}

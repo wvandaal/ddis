@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774227534/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DC-5: Saw-tooth metrics — compute surprise_rate (falsifications per time), recovery_rate (F(S) bounce-back speed), peak_progression (each peak higher than last). Surface echo-chamber warning when surprise_rate=0 for >7 days. FILE: crates/braid-kernel/src/bilateral.rs + crates/braid/src/commands/status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "120b9ea2157111cb628148c64b9beb678b9a1f1e48181a3e1f762ac4431a2c05" :a :db/ident :v :task/t-4f9b504c :op :assert}
+   {:e #blake3 "120b9ea2157111cb628148c64b9beb678b9a1f1e48181a3e1f762ac4431a2c05" :a :task/created-at :v 1774227533 :op :assert}
+   {:e #blake3 "120b9ea2157111cb628148c64b9beb678b9a1f1e48181a3e1f762ac4431a2c05" :a :task/files :v "crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "120b9ea2157111cb628148c64b9beb678b9a1f1e48181a3e1f762ac4431a2c05" :a :task/files :v "crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "120b9ea2157111cb628148c64b9beb678b9a1f1e48181a3e1f762ac4431a2c05" :a :task/id :v "t-4f9b504c" :op :assert}
+   {:e #blake3 "120b9ea2157111cb628148c64b9beb678b9a1f1e48181a3e1f762ac4431a2c05" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "120b9ea2157111cb628148c64b9beb678b9a1f1e48181a3e1f762ac4431a2c05" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "120b9ea2157111cb628148c64b9beb678b9a1f1e48181a3e1f762ac4431a2c05" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "120b9ea2157111cb628148c64b9beb678b9a1f1e48181a3e1f762ac4431a2c05" :a :task/title :v "DC-5: Saw-tooth metrics — compute surprise_rate (falsifications per time), recovery_rate (F(S) bounce-back speed), peak_progression (each peak higher than last). Surface echo-chamber warning when surprise_rate=0 for >7 days. FILE: crates/braid-kernel/src/bilateral.rs + crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "120b9ea2157111cb628148c64b9beb678b9a1f1e48181a3e1f762ac4431a2c05" :a :task/title-l0 :v "DC-5" :op :assert}
+   {:e #blake3 "120b9ea2157111cb628148c64b9beb678b9a1f1e48181a3e1f762ac4431a2c05" :a :task/title-l1 :v "DC-5: Saw-tooth metrics — compute surprise_rate (falsifications per time),..." :op :assert}
+   {:e #blake3 "120b9ea2157111cb628148c64b9beb678b9a1f1e48181a3e1f762ac4431a2c05" :a :task/type :v :task.type/task :op :assert}
+ ]}

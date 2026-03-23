@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774227539/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DC-7: Exploration bonus in acquisition function — UCB: α(action) = E[ΔF(S)] + β × uncertainty(action). β parameter stored as policy datom, defaults to 0.3, decreases through project lifecycle. High-uncertainty actions get bonus for potential surprise. FILE: crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cc0da5d4f108977e1f6cdebed70504fa5973c6f1283f8f926385d8430b1a6c71" :a :db/ident :v :task/t-24cd03dc :op :assert}
+   {:e #blake3 "cc0da5d4f108977e1f6cdebed70504fa5973c6f1283f8f926385d8430b1a6c71" :a :task/created-at :v 1774227538 :op :assert}
+   {:e #blake3 "cc0da5d4f108977e1f6cdebed70504fa5973c6f1283f8f926385d8430b1a6c71" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "cc0da5d4f108977e1f6cdebed70504fa5973c6f1283f8f926385d8430b1a6c71" :a :task/id :v "t-24cd03dc" :op :assert}
+   {:e #blake3 "cc0da5d4f108977e1f6cdebed70504fa5973c6f1283f8f926385d8430b1a6c71" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "cc0da5d4f108977e1f6cdebed70504fa5973c6f1283f8f926385d8430b1a6c71" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cc0da5d4f108977e1f6cdebed70504fa5973c6f1283f8f926385d8430b1a6c71" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cc0da5d4f108977e1f6cdebed70504fa5973c6f1283f8f926385d8430b1a6c71" :a :task/title :v "DC-7: Exploration bonus in acquisition function — UCB: α(action) = E[ΔF(S)] + β × uncertainty(action). β parameter stored as policy datom, defaults to 0.3, decreases through project lifecycle. High-uncertainty actions get bonus for potential surprise. FILE: crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "cc0da5d4f108977e1f6cdebed70504fa5973c6f1283f8f926385d8430b1a6c71" :a :task/title-l0 :v "DC-7" :op :assert}
+   {:e #blake3 "cc0da5d4f108977e1f6cdebed70504fa5973c6f1283f8f926385d8430b1a6c71" :a :task/title-l1 :v "DC-7: Exploration bonus in acquisition function — UCB: α(action) = E[ΔF(S..." :op :assert}
+   {:e #blake3 "cc0da5d4f108977e1f6cdebed70504fa5973c6f1283f8f926385d8430b1a6c71" :a :task/type :v :task.type/task :op :assert}
+ ]}
