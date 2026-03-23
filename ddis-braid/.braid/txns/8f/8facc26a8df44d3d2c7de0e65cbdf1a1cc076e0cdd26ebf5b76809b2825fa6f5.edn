@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774305925/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c76b7e9b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9d3a96654ead0df7e7d6feeddd711db919e396eb60e4567639ea9531016e96ba" :a :task/close-reason :v "Implemented Session 038: 16 tests (8 unit, 3 proptest, 5 integration) in acp_unification.rs. Caught LIVE value bug in record_block_presentations. Commit 35bc51a0." :op :assert}
+   {:e #blake3 "9d3a96654ead0df7e7d6feeddd711db919e396eb60e4567639ea9531016e96ba" :a :task/closed-at :v 1774305924 :op :assert}
+   {:e #blake3 "9d3a96654ead0df7e7d6feeddd711db919e396eb60e4567639ea9531016e96ba" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "9d3a96654ead0df7e7d6feeddd711db919e396eb60e4567639ea9531016e96ba" :a :task/status :v :task.status/closed :op :assert}
+ ]}

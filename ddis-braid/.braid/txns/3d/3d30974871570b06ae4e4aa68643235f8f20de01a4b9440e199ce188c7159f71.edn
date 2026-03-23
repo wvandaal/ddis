@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774305937/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Runtime Performance — store cache + StatusSnapshot cache + incremental tx + daemon (Levels 1-4). BLOCKING: braid status takes 30s+ on 70K datom store due to O(N) EDN parsing of 6766 txn files + O(tasks*datoms) routing computation called 2-3x per command. Unblocks dog-fooding and FEGH bridge hypothesis work. ADR-STORE-006, SEED.md Runtime stage."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "77ca002410f8f8663d76dc3ce3cad43e633d261dd704e8ed1fb17902fb33ebe9" :a :db/ident :v :task/t-a1f1300a :op :assert}
+   {:e #blake3 "77ca002410f8f8663d76dc3ce3cad43e633d261dd704e8ed1fb17902fb33ebe9" :a :task/created-at :v 1774305936 :op :assert}
+   {:e #blake3 "77ca002410f8f8663d76dc3ce3cad43e633d261dd704e8ed1fb17902fb33ebe9" :a :task/id :v "t-a1f1300a" :op :assert}
+   {:e #blake3 "77ca002410f8f8663d76dc3ce3cad43e633d261dd704e8ed1fb17902fb33ebe9" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "77ca002410f8f8663d76dc3ce3cad43e633d261dd704e8ed1fb17902fb33ebe9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "77ca002410f8f8663d76dc3ce3cad43e633d261dd704e8ed1fb17902fb33ebe9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "77ca002410f8f8663d76dc3ce3cad43e633d261dd704e8ed1fb17902fb33ebe9" :a :task/title :v "EPIC: Runtime Performance — store cache + StatusSnapshot cache + incremental tx + daemon (Levels 1-4). BLOCKING: braid status takes 30s+ on 70K datom store due to O(N) EDN parsing of 6766 txn files + O(tasks*datoms) routing computation called 2-3x per command. Unblocks dog-fooding and FEGH bridge hypothesis work. ADR-STORE-006, SEED.md Runtime stage." :op :assert}
+   {:e #blake3 "77ca002410f8f8663d76dc3ce3cad43e633d261dd704e8ed1fb17902fb33ebe9" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "77ca002410f8f8663d76dc3ce3cad43e633d261dd704e8ed1fb17902fb33ebe9" :a :task/title-l1 :v "EPIC: Runtime Performance — store cache + StatusSnapshot cache + incrementa..." :op :assert}
+   {:e #blake3 "77ca002410f8f8663d76dc3ce3cad43e633d261dd704e8ed1fb17902fb33ebe9" :a :task/type :v :task.type/epic :op :assert}
+ ]}

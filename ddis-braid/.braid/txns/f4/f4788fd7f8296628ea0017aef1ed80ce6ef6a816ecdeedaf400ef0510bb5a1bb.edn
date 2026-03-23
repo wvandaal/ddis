@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774305974/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PERF-2: StatusSnapshot disk cache. Serialize StatusSnapshot to .braid/.cache/snapshot.bin. Invalidate when store cache is invalidated (same mtime check). StatusSnapshot contains pre-computed: fitness, coherence, methodology_score, task_counts, ready_set, session_start_fitness/datoms. APPROACH: (1) Add Serialize/Deserialize to StatusSnapshot and its nested types (FitnessScore, CoherenceReport, MethodologyScore). (2) In StatusSnapshot::compute_with_layout, check cache first. (3) Write cache after computation. (4) Invalidation: same as PERF-1 (newest txn file mtime). ACCEPTANCE: (A) status with warm cache: <1s total. (B) status after new txn: recompute + re-cache. (C) Snapshot values identical whether cached or recomputed. DEPENDS-ON: PERF-1. FILE: crates/braid/src/commands/status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2210db08a0972b18f34704912bdc19dd11b42947acdc340d4bb9c3b40d3da71b" :a :db/ident :v :task/t-b6350982 :op :assert}
+   {:e #blake3 "2210db08a0972b18f34704912bdc19dd11b42947acdc340d4bb9c3b40d3da71b" :a :task/acceptance :v "(A) status with warm cache: <1s total. (B) status after new txn: recompute + re-cache. (C) Snapshot values identical whether cached or recomputed. DEPENDS-ON: PERF-1." :op :assert}
+   {:e #blake3 "2210db08a0972b18f34704912bdc19dd11b42947acdc340d4bb9c3b40d3da71b" :a :task/approach :v "(1) Add Serialize/Deserialize to StatusSnapshot and its nested types (FitnessScore, CoherenceReport, MethodologyScore). (2) In StatusSnapshot::compute_with_layout, check cache first. (3) Write cache after computation. (4) Invalidation: same as PERF-1 (newest txn file mtime)." :op :assert}
+   {:e #blake3 "2210db08a0972b18f34704912bdc19dd11b42947acdc340d4bb9c3b40d3da71b" :a :task/body :v "APPROACH: (1) Add Serialize/Deserialize to StatusSnapshot and its nested types (FitnessScore, CoherenceReport, MethodologyScore). (2) In StatusSnapshot::compute_with_layout, check cache first. (3) Write cache after computation. (4) Invalidation: same as PERF-1 (newest txn file mtime). ACCEPTANCE: (A) status with warm cache: <1s total. (B) status after new txn: recompute + re-cache. (C) Snapshot values identical whether cached or recomputed. DEPENDS-ON: PERF-1. FILE: crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "2210db08a0972b18f34704912bdc19dd11b42947acdc340d4bb9c3b40d3da71b" :a :task/created-at :v 1774305973 :op :assert}
+   {:e #blake3 "2210db08a0972b18f34704912bdc19dd11b42947acdc340d4bb9c3b40d3da71b" :a :task/files :v "crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "2210db08a0972b18f34704912bdc19dd11b42947acdc340d4bb9c3b40d3da71b" :a :task/id :v "t-b6350982" :op :assert}
+   {:e #blake3 "2210db08a0972b18f34704912bdc19dd11b42947acdc340d4bb9c3b40d3da71b" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "2210db08a0972b18f34704912bdc19dd11b42947acdc340d4bb9c3b40d3da71b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2210db08a0972b18f34704912bdc19dd11b42947acdc340d4bb9c3b40d3da71b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2210db08a0972b18f34704912bdc19dd11b42947acdc340d4bb9c3b40d3da71b" :a :task/title :v "PERF-2: StatusSnapshot disk cache. Serialize StatusSnapshot to .braid/.cache/snapshot.bin. Invalidate when store cache is invalidated (same mtime check). StatusSnapshot contains pre-computed: fitness, coherence, methodology_score, task_counts, ready_set, session_start_fitness/datoms" :op :assert}
+   {:e #blake3 "2210db08a0972b18f34704912bdc19dd11b42947acdc340d4bb9c3b40d3da71b" :a :task/title-l0 :v "PERF-2" :op :assert}
+   {:e #blake3 "2210db08a0972b18f34704912bdc19dd11b42947acdc340d4bb9c3b40d3da71b" :a :task/title-l1 :v "PERF-2: StatusSnapshot disk cache" :op :assert}
+   {:e #blake3 "2210db08a0972b18f34704912bdc19dd11b42947acdc340d4bb9c3b40d3da71b" :a :task/type :v :task.type/task :op :assert}
+ ]}

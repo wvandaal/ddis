@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774306027/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PERF-TEST: Runtime performance test suite. E2E benchmarks + regression guards. (1) scripts/e2e_perf_benchmark.sh: measure braid status latency at 1K, 10K, 50K, 70K datoms with and without cache. Assert: cached status < 2s at any store size. (2) Unit test: store cache roundtrip — load from EDN, write cache, load from cache, compare. (3) Unit test: incremental load — load from cache, add 1 txn, incremental load, verify datom present. (4) Unit test: cache invalidation — write cache, add txn file, verify cache detected as stale. (5) Proptest: for any sequence of N transactions, full-load and incremental-load produce identical stores. FILE: crates/braid-kernel/tests/perf.rs + scripts/e2e_perf_benchmark.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :db/ident :v :task/t-3c27bfb1 :op :assert}
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/created-at :v 1774306026 :op :assert}
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/files :v "crates/braid-kernel/tests/perf.rs" :op :assert}
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/files :v "scripts/e2e_perf_benchmark.sh" :op :assert}
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/id :v "t-3c27bfb1" :op :assert}
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/title :v "PERF-TEST: Runtime performance test suite. E2E benchmarks + regression guards. (1) scripts/e2e_perf_benchmark.sh: measure braid status latency at 1K, 10K, 50K, 70K datoms with and without cache. Assert: cached status < 2s at any store size. (2) Unit test: store cache roundtrip — load from EDN, write cache, load from cache, compare. (3) Unit test: incremental load — load from cache, add 1 txn, incremental load, verify datom present. (4) Unit test: cache invalidation — write cache, add txn file, verify cache detected as stale. (5) Proptest: for any sequence of N transactions, full-load and incremental-load produce identical stores. FILE: crates/braid-kernel/tests/perf.rs + scripts/e2e_perf_benchmark.sh" :op :assert}
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/title-l0 :v "PERF-TEST" :op :assert}
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/title-l1 :v "PERF-TEST: Runtime performance test suite" :op :assert}
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/type :v :task.type/test :op :assert}
+ ]}

@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774305986/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PERF-3: Incremental transaction loading. Instead of reparsing all 6766 EDN files when cache is stale, load from cache + append only NEW transaction files (those with mtime > cache mtime). APPROACH: (1) Store the highest TxId (or newest txn file path) in the cache metadata. (2) On load with stale cache: deserialize cache, then scan txn dirs for files newer than cache, parse only those, append to store. (3) Write updated cache. (4) This makes every-command overhead O(new_txns) instead of O(all_txns). Typical session: 1-3 new txns per command = <50ms. ACCEPTANCE: (A) After 1 new txn: load time <100ms (not full reparse). (B) Store contents identical to full parse. (C) Works correctly with concurrent writers (multiple agents). (D) Handles txn file deletion gracefully (full reparse fallback). DEPENDS-ON: PERF-1. FILE: crates/braid/src/layout.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :db/ident :v :task/t-b38f580d :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/acceptance :v "(A) After 1 new txn: load time <100ms (not full reparse). (B) Store contents identical to full parse. (C) Works correctly with concurrent writers (multiple agents). (D) Handles txn file deletion gracefully (full reparse fallback). DEPENDS-ON: PERF-1." :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/approach :v "(1) Store the highest TxId (or newest txn file path) in the cache metadata. (2) On load with stale cache: deserialize cache, then scan txn dirs for files newer than cache, parse only those, append to store. (3) Write updated cache. (4) This makes every-command overhead O(new_txns) instead of O(all_txns). Typical session: 1-3 new txns per command = <50ms." :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/body :v "APPROACH: (1) Store the highest TxId (or newest txn file path) in the cache metadata. (2) On load with stale cache: deserialize cache, then scan txn dirs for files newer than cache, parse only those, append to store. (3) Write updated cache. (4) This makes every-command overhead O(new_txns) instead of O(all_txns). Typical session: 1-3 new txns per command = <50ms. ACCEPTANCE: (A) After 1 new txn: load time <100ms (not full reparse). (B) Store contents identical to full parse. (C) Works correctly with concurrent writers (multiple agents). (D) Handles txn file deletion gracefully (full reparse fallback). DEPENDS-ON: PERF-1. FILE: crates/braid/src/layout.rs" :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/created-at :v 1774305985 :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/files :v "crates/braid/src/layout.rs" :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/id :v "t-b38f580d" :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/title :v "PERF-3: Incremental transaction loading. Instead of reparsing all 6766 EDN files when cache is stale, load from cache + append only NEW transaction files (those with mtime > cache mtime)" :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/title-l0 :v "PERF-3" :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/title-l1 :v "PERF-3: Incremental transaction loading" :op :assert}
+   {:e #blake3 "9964d4451decdae5b1662936a7d4183936a961d3bf1e8f91e7346269b3e8daf7" :a :task/type :v :task.type/task :op :assert}
+ ]}
