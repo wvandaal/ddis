@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774293386/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Check cross-module reference consistency: ensure interfaces declared in manifest match actual cross-references in module files"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "79d5a3f12e1ab99e57ab9779eff238a2bdb3bb6e9854c8945d923e98e5d9116f" :a :db/ident :v :task/t-04403285 :op :assert}
+   {:e #blake3 "79d5a3f12e1ab99e57ab9779eff238a2bdb3bb6e9854c8945d923e98e5d9116f" :a :task/created-at :v 1774293385 :op :assert}
+   {:e #blake3 "79d5a3f12e1ab99e57ab9779eff238a2bdb3bb6e9854c8945d923e98e5d9116f" :a :task/id :v "t-04403285" :op :assert}
+   {:e #blake3 "79d5a3f12e1ab99e57ab9779eff238a2bdb3bb6e9854c8945d923e98e5d9116f" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "79d5a3f12e1ab99e57ab9779eff238a2bdb3bb6e9854c8945d923e98e5d9116f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "79d5a3f12e1ab99e57ab9779eff238a2bdb3bb6e9854c8945d923e98e5d9116f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "79d5a3f12e1ab99e57ab9779eff238a2bdb3bb6e9854c8945d923e98e5d9116f" :a :task/title :v "Check cross-module reference consistency: ensure interfaces declared in manifest match actual cross-references in module files" :op :assert}
+   {:e #blake3 "79d5a3f12e1ab99e57ab9779eff238a2bdb3bb6e9854c8945d923e98e5d9116f" :a :task/title-l0 :v "ensure interfaces declare" :op :assert}
+   {:e #blake3 "79d5a3f12e1ab99e57ab9779eff238a2bdb3bb6e9854c8945d923e98e5d9116f" :a :task/title-l1 :v "Check cross-module reference consistency: ensure interfaces declared in manif..." :op :assert}
+   {:e #blake3 "79d5a3f12e1ab99e57ab9779eff238a2bdb3bb6e9854c8945d923e98e5d9116f" :a :task/type :v :task.type/task :op :assert}
+ ]}

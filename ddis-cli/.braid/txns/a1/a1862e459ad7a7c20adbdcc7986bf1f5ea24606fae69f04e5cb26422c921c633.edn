@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293275/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The Go CLI uses Cobra for command dispatch with ~30 subcommands"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b69e61be2aebc7a25a78a5ac2fef5b3984e04e577a3927da13435c7e1480ff36" :a :db/doc :v "The Go CLI uses Cobra for command dispatch with ~30 subcommands" :op :assert}
+   {:e #blake3 "b69e61be2aebc7a25a78a5ac2fef5b3984e04e577a3927da13435c7e1480ff36" :a :db/ident :v :observation/the-go-cli-uses-cobra-for-command-dispatch-with-30-subcomma :op :assert}
+   {:e #blake3 "b69e61be2aebc7a25a78a5ac2fef5b3984e04e577a3927da13435c7e1480ff36" :a :exploration/body :v "The Go CLI uses Cobra for command dispatch with ~30 subcommands" :op :assert}
+   {:e #blake3 "b69e61be2aebc7a25a78a5ac2fef5b3984e04e577a3927da13435c7e1480ff36" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "b69e61be2aebc7a25a78a5ac2fef5b3984e04e577a3927da13435c7e1480ff36" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "b69e61be2aebc7a25a78a5ac2fef5b3984e04e577a3927da13435c7e1480ff36" :a :exploration/content-hash :v #bytes "53b717f4b63f2f37e307ad8db5c8105da548a32a2ce808b700e1d3eeaf652dfd" :op :assert}
+   {:e #blake3 "b69e61be2aebc7a25a78a5ac2fef5b3984e04e577a3927da13435c7e1480ff36" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b69e61be2aebc7a25a78a5ac2fef5b3984e04e577a3927da13435c7e1480ff36" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b69e61be2aebc7a25a78a5ac2fef5b3984e04e577a3927da13435c7e1480ff36" :a :exploration/source-session :v #blake3 "bc048690dfa9a534eaaaf8332ffbc85bc0fb702141d1c50e068958a28daa67af" :op :assert}
+ ]}

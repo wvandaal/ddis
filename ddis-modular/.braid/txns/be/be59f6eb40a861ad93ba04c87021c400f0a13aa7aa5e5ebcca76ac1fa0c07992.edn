@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293347/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The drift-management module (INV-021/022/023, ADR-012/013/014) is the newest addition. It defines: Drift Detection Completeness (every drift form detectable), Reconciliation Monotonicity (drift only decreases), and Brownfield Convergence (constructive procedure from total drift to zero). This module bridges the meta-spec with the ddis CLI toolchain."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0c7310a85a213c082f05ee1d50319c5837fa2a89ad91cee91f31a2d62ef7c6f7" :a :db/doc :v "The drift-management module (INV-021/022/023, ADR-012/013/014) is the newest addition. It defines: Drift Detection Completeness (every drift form detectable), Reconciliation Monotonicity (drift only decreases), and Brownfield Convergence (constructive procedure from total drift to zero). This module bridges the meta-spec with the ddis CLI toolchain." :op :assert}
+   {:e #blake3 "0c7310a85a213c082f05ee1d50319c5837fa2a89ad91cee91f31a2d62ef7c6f7" :a :db/ident :v :observation/the-drift-management-module-inv-021022023-adr-01201301 :op :assert}
+   {:e #blake3 "0c7310a85a213c082f05ee1d50319c5837fa2a89ad91cee91f31a2d62ef7c6f7" :a :exploration/body :v "The drift-management module (INV-021/022/023, ADR-012/013/014) is the newest addition. It defines: Drift Detection Completeness (every drift form detectable), Reconciliation Monotonicity (drift only decreases), and Brownfield Convergence (constructive procedure from total drift to zero). This module bridges the meta-spec with the ddis CLI toolchain." :op :assert}
+   {:e #blake3 "0c7310a85a213c082f05ee1d50319c5837fa2a89ad91cee91f31a2d62ef7c6f7" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "0c7310a85a213c082f05ee1d50319c5837fa2a89ad91cee91f31a2d62ef7c6f7" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "0c7310a85a213c082f05ee1d50319c5837fa2a89ad91cee91f31a2d62ef7c6f7" :a :exploration/content-hash :v #bytes "f706cfc04610cf54f9b19dac6fd4ca573909b43076d3bafa55857738a1834c6f" :op :assert}
+   {:e #blake3 "0c7310a85a213c082f05ee1d50319c5837fa2a89ad91cee91f31a2d62ef7c6f7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "0c7310a85a213c082f05ee1d50319c5837fa2a89ad91cee91f31a2d62ef7c6f7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "0c7310a85a213c082f05ee1d50319c5837fa2a89ad91cee91f31a2d62ef7c6f7" :a :exploration/source-session :v #blake3 "d60c64ed69a1ecab0cd28281b4cae4b4a336a05d8e004845f0d0e889f024df57" :op :assert}
+ ]}

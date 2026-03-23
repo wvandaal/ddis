@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774294209/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXT-BUG-2: braid status --json outputs plain text, not JSON. The --json flag should produce structured JSON output. FILE: crates/braid/src/commands/status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :db/ident :v :task/t-00c2f4b2 :op :assert}
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :task/created-at :v 1774294208 :op :assert}
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :task/files :v "crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :task/id :v "t-00c2f4b2" :op :assert}
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :task/title :v "EXT-BUG-2: braid status --json outputs plain text, not JSON. The --json flag should produce structured JSON output. FILE: crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :task/title-l0 :v "EXT-BUG-2" :op :assert}
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :task/title-l1 :v "EXT-BUG-2: braid status --json outputs plain text, not JSON" :op :assert}
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :task/type :v :task.type/bug :op :assert}
+ ]}

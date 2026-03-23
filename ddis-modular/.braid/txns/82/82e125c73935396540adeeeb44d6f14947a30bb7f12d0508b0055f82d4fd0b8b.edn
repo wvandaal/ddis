@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774293390/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Identify ambiguous specification language: scan all modules for hedging words, undefined terms, and unclear quantifiers"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7bc4657b76fc75725f4e1c5d808f28b4c64d24294f30e1436ac7fed31774fa12" :a :db/ident :v :task/t-e30d7a19 :op :assert}
+   {:e #blake3 "7bc4657b76fc75725f4e1c5d808f28b4c64d24294f30e1436ac7fed31774fa12" :a :task/created-at :v 1774293389 :op :assert}
+   {:e #blake3 "7bc4657b76fc75725f4e1c5d808f28b4c64d24294f30e1436ac7fed31774fa12" :a :task/id :v "t-e30d7a19" :op :assert}
+   {:e #blake3 "7bc4657b76fc75725f4e1c5d808f28b4c64d24294f30e1436ac7fed31774fa12" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "7bc4657b76fc75725f4e1c5d808f28b4c64d24294f30e1436ac7fed31774fa12" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7bc4657b76fc75725f4e1c5d808f28b4c64d24294f30e1436ac7fed31774fa12" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7bc4657b76fc75725f4e1c5d808f28b4c64d24294f30e1436ac7fed31774fa12" :a :task/title :v "Identify ambiguous specification language: scan all modules for hedging words, undefined terms, and unclear quantifiers" :op :assert}
+   {:e #blake3 "7bc4657b76fc75725f4e1c5d808f28b4c64d24294f30e1436ac7fed31774fa12" :a :task/title-l0 :v "scan all modules for" :op :assert}
+   {:e #blake3 "7bc4657b76fc75725f4e1c5d808f28b4c64d24294f30e1436ac7fed31774fa12" :a :task/title-l1 :v "Identify ambiguous specification language: scan all modules for hedging words..." :op :assert}
+   {:e #blake3 "7bc4657b76fc75725f4e1c5d808f28b4c64d24294f30e1436ac7fed31774fa12" :a :task/type :v :task.type/task :op :assert}
+ ]}

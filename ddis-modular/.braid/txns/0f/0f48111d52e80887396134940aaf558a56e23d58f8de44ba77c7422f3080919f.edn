@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293321/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The invariant registry in manifest.yaml defines 23 invariants (INV-001 through INV-023) organized across 4 domains: core (INV-001 to INV-010, INV-017 to INV-020), modularization (INV-011 to INV-016), and drift (INV-021 to INV-023). Each invariant has a single owner module. Modules declare which invariants they MAINTAIN vs INTERFACE with."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "064d64c171b036facad0711e91835ed689415ed1ed76d1b1a63f1cff436ac812" :a :db/doc :v "The invariant registry in manifest.yaml defines 23 invariants (INV-001 through INV-023) organized across 4 domains: core (INV-001 to INV-010, INV-017 to INV-020), modularization (INV-011 to INV-016), and drift (INV-021 to INV-023). Each invariant has a single owner module. Modules declare which invariants they MAINTAIN vs INTERFACE with." :op :assert}
+   {:e #blake3 "064d64c171b036facad0711e91835ed689415ed1ed76d1b1a63f1cff436ac812" :a :db/ident :v :observation/the-invariant-registry-in-manifestyaml-defines-23-invariant :op :assert}
+   {:e #blake3 "064d64c171b036facad0711e91835ed689415ed1ed76d1b1a63f1cff436ac812" :a :exploration/body :v "The invariant registry in manifest.yaml defines 23 invariants (INV-001 through INV-023) organized across 4 domains: core (INV-001 to INV-010, INV-017 to INV-020), modularization (INV-011 to INV-016), and drift (INV-021 to INV-023). Each invariant has a single owner module. Modules declare which invariants they MAINTAIN vs INTERFACE with." :op :assert}
+   {:e #blake3 "064d64c171b036facad0711e91835ed689415ed1ed76d1b1a63f1cff436ac812" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "064d64c171b036facad0711e91835ed689415ed1ed76d1b1a63f1cff436ac812" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "064d64c171b036facad0711e91835ed689415ed1ed76d1b1a63f1cff436ac812" :a :exploration/content-hash :v #bytes "8c7e3311ce324679a95aa4738a131f13457387476aa034ee73fb286c8fe41dec" :op :assert}
+   {:e #blake3 "064d64c171b036facad0711e91835ed689415ed1ed76d1b1a63f1cff436ac812" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "064d64c171b036facad0711e91835ed689415ed1ed76d1b1a63f1cff436ac812" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "064d64c171b036facad0711e91835ed689415ed1ed76d1b1a63f1cff436ac812" :a :exploration/source-session :v #blake3 "d60c64ed69a1ecab0cd28281b4cae4b4a336a05d8e004845f0d0e889f024df57" :op :assert}
+ ]}

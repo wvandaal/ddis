@@ -1,0 +1,26 @@
+{:tx/id #hlc "1774296493/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-FOUNDATION-013 \"Bridge Generation from Graph Structure — hypotheticals traceable to spectral partition\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3037db9556ff87f9e226300cce2a610be81ac77e4779d308f183511f9b65ba4f" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "3037db9556ff87f9e226300cce2a610be81ac77e4779d308f183511f9b65ba4f" :a :comonad/falsification :v #blake3 "cac9d1962fef1697c08d9e0339790e86f5c507686f063d769917c0677f05aed1" :op :assert}
+   {:e #blake3 "3037db9556ff87f9e226300cce2a610be81ac77e4779d308f183511f9b65ba4f" :a :db/doc :v "Bridge Generation from Graph Structure — hypotheticals traceable to spectral partition" :op :assert}
+   {:e #blake3 "3037db9556ff87f9e226300cce2a610be81ac77e4779d308f183511f9b65ba4f" :a :db/ident :v :spec/inv-foundation-013 :op :assert}
+   {:e #blake3 "3037db9556ff87f9e226300cce2a610be81ac77e4779d308f183511f9b65ba4f" :a :spec/confidence :v 0.85 :op :assert}
+   {:e #blake3 "3037db9556ff87f9e226300cce2a610be81ac77e4779d308f183511f9b65ba4f" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "3037db9556ff87f9e226300cce2a610be81ac77e4779d308f183511f9b65ba4f" :a :spec/falsification :v "Violated if the system generates exploration suggestions not traceable to graph structural properties (community partition, inter-community edge weight, or cross-cluster semantic similarity)." :op :assert}
+   {:e #blake3 "3037db9556ff87f9e226300cce2a610be81ac77e4779d308f183511f9b65ba4f" :a :spec/id :v "INV-FOUNDATION-013" :op :assert}
+   {:e #blake3 "3037db9556ff87f9e226300cce2a610be81ac77e4779d308f183511f9b65ba4f" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "3037db9556ff87f9e226300cce2a610be81ac77e4779d308f183511f9b65ba4f" :a :spec/statement :v "Hypothetical bridging observations are generated from the spectral partition of the knowledge graph. Each hypothesis bridges two weakly-connected communities and predicts a specific ΔF(S) improvement." :op :assert}
+   {:e #blake3 "c3d362b9ac6e982ded368770e9988f1d640e0be048d3a5412bba75092c12c8e3" :a :db/ident :v :task/t-8df51232 :op :assert}
+   {:e #blake3 "c3d362b9ac6e982ded368770e9988f1d640e0be048d3a5412bba75092c12c8e3" :a :task/created-at :v 1774296492 :op :assert}
+   {:e #blake3 "c3d362b9ac6e982ded368770e9988f1d640e0be048d3a5412bba75092c12c8e3" :a :task/id :v "t-8df51232" :op :assert}
+   {:e #blake3 "c3d362b9ac6e982ded368770e9988f1d640e0be048d3a5412bba75092c12c8e3" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "c3d362b9ac6e982ded368770e9988f1d640e0be048d3a5412bba75092c12c8e3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c3d362b9ac6e982ded368770e9988f1d640e0be048d3a5412bba75092c12c8e3" :a :task/title :v "Implement INV-FOUNDATION-013: Bridge Generation from Graph Structure — hypotheticals traceable to spectral partition" :op :assert}
+   {:e #blake3 "c3d362b9ac6e982ded368770e9988f1d640e0be048d3a5412bba75092c12c8e3" :a :task/traces-to :v #blake3 "3037db9556ff87f9e226300cce2a610be81ac77e4779d308f183511f9b65ba4f" :op :assert}
+   {:e #blake3 "c3d362b9ac6e982ded368770e9988f1d640e0be048d3a5412bba75092c12c8e3" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "cac9d1962fef1697c08d9e0339790e86f5c507686f063d769917c0677f05aed1" :a :db/doc :v "Violated if the system generates exploration suggestions not traceable to graph structural properties (community partition, inter-community edge weight, or cross-cluster semantic similarity)." :op :assert}
+ ]}

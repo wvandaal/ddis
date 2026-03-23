@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774294205/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXT-BUG-1: braid status --verbose produces identical output to bare status. The omitted sections (hypotheses, trace, tasks, Store) should expand in verbose mode. FILE: crates/braid/src/commands/status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :db/ident :v :task/t-ad7974fd :op :assert}
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :task/created-at :v 1774294204 :op :assert}
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :task/files :v "crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :task/id :v "t-ad7974fd" :op :assert}
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :task/title :v "EXT-BUG-1: braid status --verbose produces identical output to bare status. The omitted sections (hypotheses, trace, tasks, Store) should expand in verbose mode. FILE: crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :task/title-l0 :v "EXT-BUG-1" :op :assert}
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :task/title-l1 :v "EXT-BUG-1: braid status --verbose produces identical output to bare status" :op :assert}
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :task/type :v :task.type/bug :op :assert}
+ ]}

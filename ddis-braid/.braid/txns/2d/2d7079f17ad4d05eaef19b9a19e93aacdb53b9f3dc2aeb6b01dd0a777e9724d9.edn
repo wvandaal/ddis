@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774296856/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FEGH-1c: Bridge outcome recording via hypothesis ledger"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "55c64ae3a278b35a2d8348e81ab2ad8ec0e964dde99a6247f76cf858d5741bed" :a :db/ident :v :task/t-06ba2f20 :op :assert}
+   {:e #blake3 "55c64ae3a278b35a2d8348e81ab2ad8ec0e964dde99a6247f76cf858d5741bed" :a :task/created-at :v 1774296855 :op :assert}
+   {:e #blake3 "55c64ae3a278b35a2d8348e81ab2ad8ec0e964dde99a6247f76cf858d5741bed" :a :task/id :v "t-06ba2f20" :op :assert}
+   {:e #blake3 "55c64ae3a278b35a2d8348e81ab2ad8ec0e964dde99a6247f76cf858d5741bed" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "55c64ae3a278b35a2d8348e81ab2ad8ec0e964dde99a6247f76cf858d5741bed" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "55c64ae3a278b35a2d8348e81ab2ad8ec0e964dde99a6247f76cf858d5741bed" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "55c64ae3a278b35a2d8348e81ab2ad8ec0e964dde99a6247f76cf858d5741bed" :a :task/title :v "FEGH-1c: Bridge outcome recording via hypothesis ledger" :op :assert}
+   {:e #blake3 "55c64ae3a278b35a2d8348e81ab2ad8ec0e964dde99a6247f76cf858d5741bed" :a :task/title-l0 :v "FEGH-1c" :op :assert}
+   {:e #blake3 "55c64ae3a278b35a2d8348e81ab2ad8ec0e964dde99a6247f76cf858d5741bed" :a :task/title-l1 :v "FEGH-1c: Bridge outcome recording via hypothesis ledger" :op :assert}
+   {:e #blake3 "55c64ae3a278b35a2d8348e81ab2ad8ec0e964dde99a6247f76cf858d5741bed" :a :task/type :v :task.type/task :op :assert}
+ ]}

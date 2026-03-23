@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774294211/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXT-BUG-3: Auto-created tasks from harvest have 600+ char titles (entire observation body as title). Should truncate to ~80 chars and put remainder in :task/body. FILE: crates/braid/src/commands/harvest.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a51da6530e6e3ca66da743e9a26b72d1017efed3c44971040084b107920e66a6" :a :db/ident :v :task/t-d3e784b8 :op :assert}
+   {:e #blake3 "a51da6530e6e3ca66da743e9a26b72d1017efed3c44971040084b107920e66a6" :a :task/created-at :v 1774294210 :op :assert}
+   {:e #blake3 "a51da6530e6e3ca66da743e9a26b72d1017efed3c44971040084b107920e66a6" :a :task/files :v "crates/braid/src/commands/harvest.rs" :op :assert}
+   {:e #blake3 "a51da6530e6e3ca66da743e9a26b72d1017efed3c44971040084b107920e66a6" :a :task/id :v "t-d3e784b8" :op :assert}
+   {:e #blake3 "a51da6530e6e3ca66da743e9a26b72d1017efed3c44971040084b107920e66a6" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "a51da6530e6e3ca66da743e9a26b72d1017efed3c44971040084b107920e66a6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a51da6530e6e3ca66da743e9a26b72d1017efed3c44971040084b107920e66a6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a51da6530e6e3ca66da743e9a26b72d1017efed3c44971040084b107920e66a6" :a :task/title :v "EXT-BUG-3: Auto-created tasks from harvest have 600+ char titles (entire observation body as title). Should truncate to ~80 chars and put remainder in :task/body. FILE: crates/braid/src/commands/harvest.rs" :op :assert}
+   {:e #blake3 "a51da6530e6e3ca66da743e9a26b72d1017efed3c44971040084b107920e66a6" :a :task/title-l0 :v "EXT-BUG-3" :op :assert}
+   {:e #blake3 "a51da6530e6e3ca66da743e9a26b72d1017efed3c44971040084b107920e66a6" :a :task/title-l1 :v "EXT-BUG-3: Auto-created tasks from harvest have 600+ char titles (entire obse..." :op :assert}
+   {:e #blake3 "a51da6530e6e3ca66da743e9a26b72d1017efed3c44971040084b107920e66a6" :a :task/type :v :task.type/bug :op :assert}
+ ]}

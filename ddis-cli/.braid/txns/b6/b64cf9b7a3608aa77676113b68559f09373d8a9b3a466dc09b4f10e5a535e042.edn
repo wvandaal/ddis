@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293525/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Architecture pattern: the Go CLI uses ddis:implements and ddis:maintains annotations in code comments (e.g., // ddis:implements APP-ADR-002) to create traceable links between spec elements and implementation code. The annotate package scans for these, the witness system verifies them, and drift detection uses them. This is a real working bidirectional traceability system. The annotation format is simple enough for any language (just comment patterns) but powerful enough to drive verification."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b5ad0697092381e787a0817602848a71f8cdc210a3fabde9d4762936236c3950" :a :db/doc :v "Architecture pattern: the Go CLI uses ddis:implements and ddis:maintains annotations in code comments (e.g., // ddis:implements APP-ADR-002) to create traceable links between spec elements and implementation code. The annotate package scans for these, the witness system verifies them, and drift detection uses them. This is a real working bidirectional traceability system. The annotation format is simple enough for any language (just comment patterns) but powerful enough to drive verification." :op :assert}
+   {:e #blake3 "b5ad0697092381e787a0817602848a71f8cdc210a3fabde9d4762936236c3950" :a :db/ident :v :observation/architecture-pattern-the-go-cli-uses-ddisimplements-and-dd :op :assert}
+   {:e #blake3 "b5ad0697092381e787a0817602848a71f8cdc210a3fabde9d4762936236c3950" :a :exploration/body :v "Architecture pattern: the Go CLI uses ddis:implements and ddis:maintains annotations in code comments (e.g., // ddis:implements APP-ADR-002) to create traceable links between spec elements and implementation code. The annotate package scans for these, the witness system verifies them, and drift detection uses them. This is a real working bidirectional traceability system. The annotation format is simple enough for any language (just comment patterns) but powerful enough to drive verification." :op :assert}
+   {:e #blake3 "b5ad0697092381e787a0817602848a71f8cdc210a3fabde9d4762936236c3950" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "b5ad0697092381e787a0817602848a71f8cdc210a3fabde9d4762936236c3950" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "b5ad0697092381e787a0817602848a71f8cdc210a3fabde9d4762936236c3950" :a :exploration/content-hash :v #bytes "1d5cb5af026e739add0bc29c0d762f244c9ddf601e56916fac147b7504fe9a9f" :op :assert}
+   {:e #blake3 "b5ad0697092381e787a0817602848a71f8cdc210a3fabde9d4762936236c3950" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b5ad0697092381e787a0817602848a71f8cdc210a3fabde9d4762936236c3950" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b5ad0697092381e787a0817602848a71f8cdc210a3fabde9d4762936236c3950" :a :exploration/source-session :v #blake3 "54b60ca45d888324d8a4672b7750169df7a00b2b661743c1ffce01925aae3568" :op :assert}
+ ]}

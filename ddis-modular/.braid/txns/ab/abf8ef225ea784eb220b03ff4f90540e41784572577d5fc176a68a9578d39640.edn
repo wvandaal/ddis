@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774293381/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Review module completeness: verify each module file covers all invariants it claims to maintain per manifest.yaml"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bfef5cfe552e3a5ddd0d3b6fb3803f346cab0926659ebd9c223c1d245fe94982" :a :db/ident :v :task/t-15c3e555 :op :assert}
+   {:e #blake3 "bfef5cfe552e3a5ddd0d3b6fb3803f346cab0926659ebd9c223c1d245fe94982" :a :task/created-at :v 1774293380 :op :assert}
+   {:e #blake3 "bfef5cfe552e3a5ddd0d3b6fb3803f346cab0926659ebd9c223c1d245fe94982" :a :task/id :v "t-15c3e555" :op :assert}
+   {:e #blake3 "bfef5cfe552e3a5ddd0d3b6fb3803f346cab0926659ebd9c223c1d245fe94982" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "bfef5cfe552e3a5ddd0d3b6fb3803f346cab0926659ebd9c223c1d245fe94982" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bfef5cfe552e3a5ddd0d3b6fb3803f346cab0926659ebd9c223c1d245fe94982" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bfef5cfe552e3a5ddd0d3b6fb3803f346cab0926659ebd9c223c1d245fe94982" :a :task/title :v "Review module completeness: verify each module file covers all invariants it claims to maintain per manifest.yaml" :op :assert}
+   {:e #blake3 "bfef5cfe552e3a5ddd0d3b6fb3803f346cab0926659ebd9c223c1d245fe94982" :a :task/title-l0 :v "verify each module file" :op :assert}
+   {:e #blake3 "bfef5cfe552e3a5ddd0d3b6fb3803f346cab0926659ebd9c223c1d245fe94982" :a :task/title-l1 :v "Review module completeness: verify each module file covers all invariants it..." :op :assert}
+   {:e #blake3 "bfef5cfe552e3a5ddd0d3b6fb3803f346cab0926659ebd9c223c1d245fe94982" :a :task/type :v :task.type/task :op :assert}
+ ]}

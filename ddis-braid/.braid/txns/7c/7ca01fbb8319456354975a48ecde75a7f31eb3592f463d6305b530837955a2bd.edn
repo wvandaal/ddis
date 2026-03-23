@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774296523/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FEGH-2: Surface bridge questions in compute_action_from_store. After computing R(t) task recommendations, also call generate_bridge_hypotheses. If top bridge has projected ΔF(S) > top task, surface it as guidance: 'ask: what connects X to Y? (ΔF=0.05) — explore: read path/to/relevant/files'. The question competes in the SAME ranking as tasks (INV-FOUNDATION-012 gradient universality). TRACES: ADR-FOUNDATION-030, INV-FOUNDATION-012. FILE: crates/braid-kernel/src/routing.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :db/ident :v :task/t-06215eb2 :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/created-at :v 1774296522 :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/files :v "crates/braid-kernel/src/routing.rs" :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/id :v "t-06215eb2" :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/title :v "FEGH-2: Surface bridge questions in compute_action_from_store. After computing R(t) task recommendations, also call generate_bridge_hypotheses. If top bridge has projected ΔF(S) > top task, surface it as guidance: 'ask: what connects X to Y? (ΔF=0.05) — explore: read path/to/relevant/files'. The question competes in the SAME ranking as tasks (INV-FOUNDATION-012 gradient universality). TRACES: ADR-FOUNDATION-030, INV-FOUNDATION-012. FILE: crates/braid-kernel/src/routing.rs" :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/title-l0 :v "FEGH-2" :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/title-l1 :v "FEGH-2: Surface bridge questions in compute_action_from_store" :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/traces-to :v #blake3 "1db7712ec2d9390017481d0c6322fc520fed69facbdf810ac74b73ad883c4c92" :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/traces-to :v #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/type :v :task.type/task :op :assert}
+ ]}

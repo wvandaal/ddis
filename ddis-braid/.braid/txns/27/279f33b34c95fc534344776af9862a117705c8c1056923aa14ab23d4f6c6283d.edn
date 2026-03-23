@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774294202/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C8-FIX-3: Filter braid-self-referential entities from seed in external projects. Genesis bootstrap entities (crate info, Store::genesis patterns, cargo commands) must not appear in seeds for non-braid projects. Seed projector should distinguish tool-context from project-context datoms. FILE: crates/braid/src/commands/seed.rs + crates/braid-kernel/src/seed.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ddbe43f645817baa1e95297cad44483c594345b34cf9bc8299808b3eed586b98" :a :db/ident :v :task/t-0210660b :op :assert}
+   {:e #blake3 "ddbe43f645817baa1e95297cad44483c594345b34cf9bc8299808b3eed586b98" :a :task/created-at :v 1774294201 :op :assert}
+   {:e #blake3 "ddbe43f645817baa1e95297cad44483c594345b34cf9bc8299808b3eed586b98" :a :task/files :v "crates/braid-kernel/src/seed.rs" :op :assert}
+   {:e #blake3 "ddbe43f645817baa1e95297cad44483c594345b34cf9bc8299808b3eed586b98" :a :task/files :v "crates/braid/src/commands/seed.rs" :op :assert}
+   {:e #blake3 "ddbe43f645817baa1e95297cad44483c594345b34cf9bc8299808b3eed586b98" :a :task/id :v "t-0210660b" :op :assert}
+   {:e #blake3 "ddbe43f645817baa1e95297cad44483c594345b34cf9bc8299808b3eed586b98" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ddbe43f645817baa1e95297cad44483c594345b34cf9bc8299808b3eed586b98" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ddbe43f645817baa1e95297cad44483c594345b34cf9bc8299808b3eed586b98" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ddbe43f645817baa1e95297cad44483c594345b34cf9bc8299808b3eed586b98" :a :task/title :v "C8-FIX-3: Filter braid-self-referential entities from seed in external projects. Genesis bootstrap entities (crate info, Store::genesis patterns, cargo commands) must not appear in seeds for non-braid projects. Seed projector should distinguish tool-context from project-context datoms. FILE: crates/braid/src/commands/seed.rs + crates/braid-kernel/src/seed.rs" :op :assert}
+   {:e #blake3 "ddbe43f645817baa1e95297cad44483c594345b34cf9bc8299808b3eed586b98" :a :task/title-l0 :v "C8-FIX-3" :op :assert}
+   {:e #blake3 "ddbe43f645817baa1e95297cad44483c594345b34cf9bc8299808b3eed586b98" :a :task/title-l1 :v "C8-FIX-3: Filter braid-self-referential entities from seed in external projects" :op :assert}
+   {:e #blake3 "ddbe43f645817baa1e95297cad44483c594345b34cf9bc8299808b3eed586b98" :a :task/type :v :task.type/bug :op :assert}
+ ]}

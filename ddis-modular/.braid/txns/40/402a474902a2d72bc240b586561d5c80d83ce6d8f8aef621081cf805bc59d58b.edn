@@ -1,0 +1,26 @@
+{:tx/id #hlc "1774293669/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-META-002 \"Each invariant in invariant_registry has exactly one owner module\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4a94a2a98e0cb198f841c682dd61bb1bf8e86df1a18974430138ac56edcde0f4" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "4a94a2a98e0cb198f841c682dd61bb1bf8e86df1a18974430138ac56edcde0f4" :a :comonad/falsification :v #blake3 "83f22f49954343f76733b1603018dc8e7543ec473449109cb9a76988346ab449" :op :assert}
+   {:e #blake3 "4a94a2a98e0cb198f841c682dd61bb1bf8e86df1a18974430138ac56edcde0f4" :a :db/doc :v "Each invariant in invariant_registry has exactly one owner module" :op :assert}
+   {:e #blake3 "4a94a2a98e0cb198f841c682dd61bb1bf8e86df1a18974430138ac56edcde0f4" :a :db/ident :v :spec/inv-meta-002 :op :assert}
+   {:e #blake3 "4a94a2a98e0cb198f841c682dd61bb1bf8e86df1a18974430138ac56edcde0f4" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "4a94a2a98e0cb198f841c682dd61bb1bf8e86df1a18974430138ac56edcde0f4" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "4a94a2a98e0cb198f841c682dd61bb1bf8e86df1a18974430138ac56edcde0f4" :a :spec/falsification :v "An invariant ID appears in zero maintains lists (orphan) or in two or more maintains lists (conflicting ownership)" :op :assert}
+   {:e #blake3 "4a94a2a98e0cb198f841c682dd61bb1bf8e86df1a18974430138ac56edcde0f4" :a :spec/id :v "INV-META-002" :op :assert}
+   {:e #blake3 "4a94a2a98e0cb198f841c682dd61bb1bf8e86df1a18974430138ac56edcde0f4" :a :spec/namespace :v :spec.ns/META :op :assert}
+   {:e #blake3 "4a94a2a98e0cb198f841c682dd61bb1bf8e86df1a18974430138ac56edcde0f4" :a :spec/statement :v "Every INV-NNN entry in invariant_registry must have exactly one module where that invariant appears in the maintains list. No invariant may appear in zero or two+ maintains lists." :op :assert}
+   {:e #blake3 "83f22f49954343f76733b1603018dc8e7543ec473449109cb9a76988346ab449" :a :db/doc :v "An invariant ID appears in zero maintains lists (orphan) or in two or more maintains lists (conflicting ownership)" :op :assert}
+   {:e #blake3 "c96f71139e9687c656ab8ceceed9e2768ccfc4ab998a43de57ad163afc56d97c" :a :db/ident :v :task/t-3f4389e2 :op :assert}
+   {:e #blake3 "c96f71139e9687c656ab8ceceed9e2768ccfc4ab998a43de57ad163afc56d97c" :a :task/created-at :v 1774293668 :op :assert}
+   {:e #blake3 "c96f71139e9687c656ab8ceceed9e2768ccfc4ab998a43de57ad163afc56d97c" :a :task/id :v "t-3f4389e2" :op :assert}
+   {:e #blake3 "c96f71139e9687c656ab8ceceed9e2768ccfc4ab998a43de57ad163afc56d97c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "c96f71139e9687c656ab8ceceed9e2768ccfc4ab998a43de57ad163afc56d97c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c96f71139e9687c656ab8ceceed9e2768ccfc4ab998a43de57ad163afc56d97c" :a :task/title :v "Implement INV-META-002: Each invariant in invariant_registry has exactly one owner module" :op :assert}
+   {:e #blake3 "c96f71139e9687c656ab8ceceed9e2768ccfc4ab998a43de57ad163afc56d97c" :a :task/traces-to :v #blake3 "4a94a2a98e0cb198f841c682dd61bb1bf8e86df1a18974430138ac56edcde0f4" :op :assert}
+   {:e #blake3 "c96f71139e9687c656ab8ceceed9e2768ccfc4ab998a43de57ad163afc56d97c" :a :task/type :v :task.type/task :op :assert}
+ ]}

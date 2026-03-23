@@ -1,0 +1,26 @@
+{:tx/id #hlc "1774293661/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-META-001 \"Every module listed in manifest.yaml must have a corresponding non-empty file\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "89420e3d40c4cc0e95d48504e5cb28bd654a4130384a47b95d9f49f080f49e91" :a :db/ident :v :task/t-c2278985 :op :assert}
+   {:e #blake3 "89420e3d40c4cc0e95d48504e5cb28bd654a4130384a47b95d9f49f080f49e91" :a :task/created-at :v 1774293660 :op :assert}
+   {:e #blake3 "89420e3d40c4cc0e95d48504e5cb28bd654a4130384a47b95d9f49f080f49e91" :a :task/id :v "t-c2278985" :op :assert}
+   {:e #blake3 "89420e3d40c4cc0e95d48504e5cb28bd654a4130384a47b95d9f49f080f49e91" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "89420e3d40c4cc0e95d48504e5cb28bd654a4130384a47b95d9f49f080f49e91" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "89420e3d40c4cc0e95d48504e5cb28bd654a4130384a47b95d9f49f080f49e91" :a :task/title :v "Implement INV-META-001: Every module listed in manifest.yaml must have a corresponding non-empty file" :op :assert}
+   {:e #blake3 "89420e3d40c4cc0e95d48504e5cb28bd654a4130384a47b95d9f49f080f49e91" :a :task/traces-to :v #blake3 "a89105d34b68e64d16b11de3fe33135d79ede577215f8537035aede4030f34d8" :op :assert}
+   {:e #blake3 "89420e3d40c4cc0e95d48504e5cb28bd654a4130384a47b95d9f49f080f49e91" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "a89105d34b68e64d16b11de3fe33135d79ede577215f8537035aede4030f34d8" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "a89105d34b68e64d16b11de3fe33135d79ede577215f8537035aede4030f34d8" :a :comonad/falsification :v #blake3 "e6d3184f5f7270f6ed182c4c50360f0b7dd6344ff6cf94bcfff8450983605abb" :op :assert}
+   {:e #blake3 "a89105d34b68e64d16b11de3fe33135d79ede577215f8537035aede4030f34d8" :a :db/doc :v "Every module listed in manifest.yaml must have a corresponding non-empty file" :op :assert}
+   {:e #blake3 "a89105d34b68e64d16b11de3fe33135d79ede577215f8537035aede4030f34d8" :a :db/ident :v :spec/inv-meta-001 :op :assert}
+   {:e #blake3 "a89105d34b68e64d16b11de3fe33135d79ede577215f8537035aede4030f34d8" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "a89105d34b68e64d16b11de3fe33135d79ede577215f8537035aede4030f34d8" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "a89105d34b68e64d16b11de3fe33135d79ede577215f8537035aede4030f34d8" :a :spec/falsification :v "A module key in manifest.yaml has a file: path that does not exist, is empty, or has zero substantive content" :op :assert}
+   {:e #blake3 "a89105d34b68e64d16b11de3fe33135d79ede577215f8537035aede4030f34d8" :a :spec/id :v "INV-META-001" :op :assert}
+   {:e #blake3 "a89105d34b68e64d16b11de3fe33135d79ede577215f8537035aede4030f34d8" :a :spec/namespace :v :spec.ns/META :op :assert}
+   {:e #blake3 "a89105d34b68e64d16b11de3fe33135d79ede577215f8537035aede4030f34d8" :a :spec/statement :v "Every module entry in manifest.yaml modules section must reference a file that exists and is non-empty at the declared path" :op :assert}
+   {:e #blake3 "e6d3184f5f7270f6ed182c4c50360f0b7dd6344ff6cf94bcfff8450983605abb" :a :db/doc :v "A module key in manifest.yaml has a file: path that does not exist, is empty, or has zero substantive content" :op :assert}
+ ]}

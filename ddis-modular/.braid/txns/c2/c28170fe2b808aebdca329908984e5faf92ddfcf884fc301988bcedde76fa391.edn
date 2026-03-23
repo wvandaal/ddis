@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293340/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The ddis-modular project has a parent-child spec relationship. manifest.yaml defines the meta-spec (DDIS standard itself). Child specs (like ddis-cli-spec) have parent_spec: ddis-modular. The meta-spec defines WHAT a well-formed DDIS spec is; child specs are instances. This is analogous to a type system for specifications."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "34b4964443518500c8908f4801c6a8988a8e946c669dcb571a46bab05a607ed9" :a :db/doc :v "The ddis-modular project has a parent-child spec relationship. manifest.yaml defines the meta-spec (DDIS standard itself). Child specs (like ddis-cli-spec) have parent_spec: ddis-modular. The meta-spec defines WHAT a well-formed DDIS spec is; child specs are instances. This is analogous to a type system for specifications." :op :assert}
+   {:e #blake3 "34b4964443518500c8908f4801c6a8988a8e946c669dcb571a46bab05a607ed9" :a :db/ident :v :observation/the-ddis-modular-project-has-a-parent-child-spec-relationshi :op :assert}
+   {:e #blake3 "34b4964443518500c8908f4801c6a8988a8e946c669dcb571a46bab05a607ed9" :a :exploration/body :v "The ddis-modular project has a parent-child spec relationship. manifest.yaml defines the meta-spec (DDIS standard itself). Child specs (like ddis-cli-spec) have parent_spec: ddis-modular. The meta-spec defines WHAT a well-formed DDIS spec is; child specs are instances. This is analogous to a type system for specifications." :op :assert}
+   {:e #blake3 "34b4964443518500c8908f4801c6a8988a8e946c669dcb571a46bab05a607ed9" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "34b4964443518500c8908f4801c6a8988a8e946c669dcb571a46bab05a607ed9" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "34b4964443518500c8908f4801c6a8988a8e946c669dcb571a46bab05a607ed9" :a :exploration/content-hash :v #bytes "167832088b0677e046205ce6a2f3bac992596fbcfc9e072507b20e657d7ec695" :op :assert}
+   {:e #blake3 "34b4964443518500c8908f4801c6a8988a8e946c669dcb571a46bab05a607ed9" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "34b4964443518500c8908f4801c6a8988a8e946c669dcb571a46bab05a607ed9" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "34b4964443518500c8908f4801c6a8988a8e946c669dcb571a46bab05a607ed9" :a :exploration/source-session :v #blake3 "d60c64ed69a1ecab0cd28281b4cae4b4a336a05d8e004845f0d0e889f024df57" :op :assert}
+ ]}

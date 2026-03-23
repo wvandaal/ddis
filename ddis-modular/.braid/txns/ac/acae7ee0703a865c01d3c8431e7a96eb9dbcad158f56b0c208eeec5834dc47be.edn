@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293328/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The meta-spec uses a two-tier mode: constitution + largest module must fit within target_lines (4000) with a hard ceiling of 5000. This is the CONTEXT BUDGET concept - specs must be loadable in a single LLM context window. The manifest tracks actual line counts per module and bundle (constitution + module) sizes."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2449b1c115e34d7872ff1636833fad324604769514d486a47f595ad4618990ed" :a :db/doc :v "The meta-spec uses a two-tier mode: constitution + largest module must fit within target_lines (4000) with a hard ceiling of 5000. This is the CONTEXT BUDGET concept - specs must be loadable in a single LLM context window. The manifest tracks actual line counts per module and bundle (constitution + module) sizes." :op :assert}
+   {:e #blake3 "2449b1c115e34d7872ff1636833fad324604769514d486a47f595ad4618990ed" :a :db/ident :v :observation/the-meta-spec-uses-a-two-tier-mode-constitution-largest-m :op :assert}
+   {:e #blake3 "2449b1c115e34d7872ff1636833fad324604769514d486a47f595ad4618990ed" :a :exploration/body :v "The meta-spec uses a two-tier mode: constitution + largest module must fit within target_lines (4000) with a hard ceiling of 5000. This is the CONTEXT BUDGET concept - specs must be loadable in a single LLM context window. The manifest tracks actual line counts per module and bundle (constitution + module) sizes." :op :assert}
+   {:e #blake3 "2449b1c115e34d7872ff1636833fad324604769514d486a47f595ad4618990ed" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "2449b1c115e34d7872ff1636833fad324604769514d486a47f595ad4618990ed" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "2449b1c115e34d7872ff1636833fad324604769514d486a47f595ad4618990ed" :a :exploration/content-hash :v #bytes "9e263d3f7e9a21ec951f3e63c352ac48481d9597eff6e471e44995ecb001883e" :op :assert}
+   {:e #blake3 "2449b1c115e34d7872ff1636833fad324604769514d486a47f595ad4618990ed" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2449b1c115e34d7872ff1636833fad324604769514d486a47f595ad4618990ed" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2449b1c115e34d7872ff1636833fad324604769514d486a47f595ad4618990ed" :a :exploration/source-session :v #blake3 "d60c64ed69a1ecab0cd28281b4cae4b4a336a05d8e004845f0d0e889f024df57" :op :assert}
+ ]}

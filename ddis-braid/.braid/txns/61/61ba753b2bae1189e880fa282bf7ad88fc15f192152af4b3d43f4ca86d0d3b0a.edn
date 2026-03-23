@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774296526/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FEGH-3: Bridge lifecycle tracking — each bridge hypothesis gets a connection entity with the 6 ADR-029 lifecycle attributes. When the agent explores: activation-count increments, last-activated updates. When outcome is positive (actual ΔF(S) > 0): hebbian-boost increases. After calibration: learned-weight updates via Bayesian posterior, calibration-count increments. Decay: novelty decreases per novelty_from_count(activation_count). Death: retract if calibration shows bridge was spurious (actual ΔF(S) = 0 across 3+ activations). TRACES: ADR-FOUNDATION-029, ADR-FOUNDATION-030, INV-FOUNDATION-014. FILE: crates/braid-kernel/src/routing.rs + context.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9f40ec95f913ca7416b056cc8f806345c71b99f34db2b8f415e33d2f6f822182" :a :db/ident :v :task/t-7007ba04 :op :assert}
+   {:e #blake3 "9f40ec95f913ca7416b056cc8f806345c71b99f34db2b8f415e33d2f6f822182" :a :task/created-at :v 1774296525 :op :assert}
+   {:e #blake3 "9f40ec95f913ca7416b056cc8f806345c71b99f34db2b8f415e33d2f6f822182" :a :task/files :v "crates/braid-kernel/src/routing.rs" :op :assert}
+   {:e #blake3 "9f40ec95f913ca7416b056cc8f806345c71b99f34db2b8f415e33d2f6f822182" :a :task/id :v "t-7007ba04" :op :assert}
+   {:e #blake3 "9f40ec95f913ca7416b056cc8f806345c71b99f34db2b8f415e33d2f6f822182" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9f40ec95f913ca7416b056cc8f806345c71b99f34db2b8f415e33d2f6f822182" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9f40ec95f913ca7416b056cc8f806345c71b99f34db2b8f415e33d2f6f822182" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9f40ec95f913ca7416b056cc8f806345c71b99f34db2b8f415e33d2f6f822182" :a :task/title :v "FEGH-3: Bridge lifecycle tracking — each bridge hypothesis gets a connection entity with the 6 ADR-029 lifecycle attributes. When the agent explores: activation-count increments, last-activated updates. When outcome is positive (actual ΔF(S) > 0): hebbian-boost increases. After calibration: learned-weight updates via Bayesian posterior, calibration-count increments. Decay: novelty decreases per novelty_from_count(activation_count). Death: retract if calibration shows bridge was spurious (actual ΔF(S) = 0 across 3+ activations). TRACES: ADR-FOUNDATION-029, ADR-FOUNDATION-030, INV-FOUNDATION-014. FILE: crates/braid-kernel/src/routing.rs + context.rs" :op :assert}
+   {:e #blake3 "9f40ec95f913ca7416b056cc8f806345c71b99f34db2b8f415e33d2f6f822182" :a :task/title-l0 :v "FEGH-3" :op :assert}
+   {:e #blake3 "9f40ec95f913ca7416b056cc8f806345c71b99f34db2b8f415e33d2f6f822182" :a :task/title-l1 :v "FEGH-3: Bridge lifecycle tracking — each bridge hypothesis gets a connectio..." :op :assert}
+   {:e #blake3 "9f40ec95f913ca7416b056cc8f806345c71b99f34db2b8f415e33d2f6f822182" :a :task/traces-to :v #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :op :assert}
+   {:e #blake3 "9f40ec95f913ca7416b056cc8f806345c71b99f34db2b8f415e33d2f6f822182" :a :task/traces-to :v #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :op :assert}
+   {:e #blake3 "9f40ec95f913ca7416b056cc8f806345c71b99f34db2b8f415e33d2f6f822182" :a :task/traces-to :v #blake3 "e4fe3d740bf75c17e5ef347b9552c5f0b9ad2c675000ea92a55ffa192e1cbed7" :op :assert}
+   {:e #blake3 "9f40ec95f913ca7416b056cc8f806345c71b99f34db2b8f415e33d2f6f822182" :a :task/type :v :task.type/task :op :assert}
+ ]}

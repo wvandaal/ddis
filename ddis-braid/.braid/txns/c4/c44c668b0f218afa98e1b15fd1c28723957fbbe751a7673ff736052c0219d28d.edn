@@ -1,0 +1,26 @@
+{:tx/id #hlc "1774296488/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-FOUNDATION-012 \"Gradient Universality — all items scored by E[ΔF(S)] / cost\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1db7712ec2d9390017481d0c6322fc520fed69facbdf810ac74b73ad883c4c92" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "1db7712ec2d9390017481d0c6322fc520fed69facbdf810ac74b73ad883c4c92" :a :comonad/falsification :v #blake3 "d1312181059cda41add790e218defa956ca97d677fe547650a8d63cb459eec3e" :op :assert}
+   {:e #blake3 "1db7712ec2d9390017481d0c6322fc520fed69facbdf810ac74b73ad883c4c92" :a :db/doc :v "Gradient Universality — all items scored by E[ΔF(S)] / cost" :op :assert}
+   {:e #blake3 "1db7712ec2d9390017481d0c6322fc520fed69facbdf810ac74b73ad883c4c92" :a :db/ident :v :spec/inv-foundation-012 :op :assert}
+   {:e #blake3 "1db7712ec2d9390017481d0c6322fc520fed69facbdf810ac74b73ad883c4c92" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "1db7712ec2d9390017481d0c6322fc520fed69facbdf810ac74b73ad883c4c92" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "1db7712ec2d9390017481d0c6322fc520fed69facbdf810ac74b73ad883c4c92" :a :spec/falsification :v "Violated if any scoring path in the acquisition pipeline uses a term not derivable from projected ΔF(S) and cost." :op :assert}
+   {:e #blake3 "1db7712ec2d9390017481d0c6322fc520fed69facbdf810ac74b73ad883c4c92" :a :spec/id :v "INV-FOUNDATION-012" :op :assert}
+   {:e #blake3 "1db7712ec2d9390017481d0c6322fc520fed69facbdf810ac74b73ad883c4c92" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "1db7712ec2d9390017481d0c6322fc520fed69facbdf810ac74b73ad883c4c92" :a :spec/statement :v "Every item in the UAQ queue — tasks, context blocks, and hypothetical bridge observations — is scored by the same criterion: projected ΔF(S) divided by observation cost. No item type has a privileged scoring path." :op :assert}
+   {:e #blake3 "913f4084e5648ea2244b4c00b7d94e66c752e7ce8a5b5f3c1f4112e28460d5c0" :a :db/ident :v :task/t-78f32d55 :op :assert}
+   {:e #blake3 "913f4084e5648ea2244b4c00b7d94e66c752e7ce8a5b5f3c1f4112e28460d5c0" :a :task/created-at :v 1774296487 :op :assert}
+   {:e #blake3 "913f4084e5648ea2244b4c00b7d94e66c752e7ce8a5b5f3c1f4112e28460d5c0" :a :task/id :v "t-78f32d55" :op :assert}
+   {:e #blake3 "913f4084e5648ea2244b4c00b7d94e66c752e7ce8a5b5f3c1f4112e28460d5c0" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "913f4084e5648ea2244b4c00b7d94e66c752e7ce8a5b5f3c1f4112e28460d5c0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "913f4084e5648ea2244b4c00b7d94e66c752e7ce8a5b5f3c1f4112e28460d5c0" :a :task/title :v "Implement INV-FOUNDATION-012: Gradient Universality — all items scored by E[ΔF(S)] / cost" :op :assert}
+   {:e #blake3 "913f4084e5648ea2244b4c00b7d94e66c752e7ce8a5b5f3c1f4112e28460d5c0" :a :task/traces-to :v #blake3 "1db7712ec2d9390017481d0c6322fc520fed69facbdf810ac74b73ad883c4c92" :op :assert}
+   {:e #blake3 "913f4084e5648ea2244b4c00b7d94e66c752e7ce8a5b5f3c1f4112e28460d5c0" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "d1312181059cda41add790e218defa956ca97d677fe547650a8d63cb459eec3e" :a :db/doc :v "Violated if any scoring path in the acquisition pipeline uses a term not derivable from projected ΔF(S) and cost." :op :assert}
+ ]}

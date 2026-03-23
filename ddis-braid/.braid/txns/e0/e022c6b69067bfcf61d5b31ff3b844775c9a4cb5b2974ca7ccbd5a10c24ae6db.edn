@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774294198/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C8-FIX-1: Scope harvest codebase-snapshot to project directory only. Currently walks up to parent repo and captures braid's own 115K LOC Rust in external projects. Must use .braid parent dir as root, not git root. CRITICAL C8 violation — data contamination bug. FILE: crates/braid/src/commands/harvest.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :db/ident :v :task/t-a6768e84 :op :assert}
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :task/created-at :v 1774294197 :op :assert}
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :task/files :v "crates/braid/src/commands/harvest.rs" :op :assert}
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :task/id :v "t-a6768e84" :op :assert}
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :task/title :v "C8-FIX-1: Scope harvest codebase-snapshot to project directory only. Currently walks up to parent repo and captures braid's own 115K LOC Rust in external projects. Must use .braid parent dir as root, not git root. CRITICAL C8 violation — data contamination bug. FILE: crates/braid/src/commands/harvest.rs" :op :assert}
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :task/title-l0 :v "C8-FIX-1" :op :assert}
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :task/title-l1 :v "C8-FIX-1: Scope harvest codebase-snapshot to project directory only" :op :assert}
+   {:e #blake3 "be5a95ac838192bda0c1f21a0f3e8a0b8a1f74461bc75f979051a7993da74681" :a :task/type :v :task.type/bug :op :assert}
+ ]}

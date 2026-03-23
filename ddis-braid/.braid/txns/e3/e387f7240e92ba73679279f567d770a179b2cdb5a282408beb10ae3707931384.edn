@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774294149/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ACP-LEGACY-1: Convert 8 legacy commands to ActionProjection. Commands: init, verify, challenge, extract, wrap, config, write (assert/retract/export). Each gets a minimal ACP wrapper: ProjectedAction from command result + single System-precedence ContextBlock for the output. Eliminates the legacy footer path entirely — single output algebra. FILE: crates/braid/src/commands/{init,verify,challenge,extract,wrap,config,write}.rs + mod.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e070c11e4b40c3fa5693c50982e944f7e7f3808cd321e3c5c8239eb002659b68" :a :db/ident :v :task/t-f71d4be3 :op :assert}
+   {:e #blake3 "e070c11e4b40c3fa5693c50982e944f7e7f3808cd321e3c5c8239eb002659b68" :a :task/created-at :v 1774294148 :op :assert}
+   {:e #blake3 "e070c11e4b40c3fa5693c50982e944f7e7f3808cd321e3c5c8239eb002659b68" :a :task/files :v "crates/braid/src/commands/{init" :op :assert}
+   {:e #blake3 "e070c11e4b40c3fa5693c50982e944f7e7f3808cd321e3c5c8239eb002659b68" :a :task/id :v "t-f71d4be3" :op :assert}
+   {:e #blake3 "e070c11e4b40c3fa5693c50982e944f7e7f3808cd321e3c5c8239eb002659b68" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e070c11e4b40c3fa5693c50982e944f7e7f3808cd321e3c5c8239eb002659b68" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e070c11e4b40c3fa5693c50982e944f7e7f3808cd321e3c5c8239eb002659b68" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e070c11e4b40c3fa5693c50982e944f7e7f3808cd321e3c5c8239eb002659b68" :a :task/title :v "ACP-LEGACY-1: Convert 8 legacy commands to ActionProjection. Commands: init, verify, challenge, extract, wrap, config, write (assert/retract/export). Each gets a minimal ACP wrapper: ProjectedAction from command result + single System-precedence ContextBlock for the output. Eliminates the legacy footer path entirely — single output algebra. FILE: crates/braid/src/commands/{init,verify,challenge,extract,wrap,config,write}.rs + mod.rs" :op :assert}
+   {:e #blake3 "e070c11e4b40c3fa5693c50982e944f7e7f3808cd321e3c5c8239eb002659b68" :a :task/title-l0 :v "ACP-LEGACY-1" :op :assert}
+   {:e #blake3 "e070c11e4b40c3fa5693c50982e944f7e7f3808cd321e3c5c8239eb002659b68" :a :task/title-l1 :v "ACP-LEGACY-1: Convert 8 legacy commands to ActionProjection" :op :assert}
+   {:e #blake3 "e070c11e4b40c3fa5693c50982e944f7e7f3808cd321e3c5c8239eb002659b68" :a :task/type :v :task.type/task :op :assert}
+ ]}

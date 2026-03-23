@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774293442/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Map the event type coverage: 46 event types declared but unclear which are actually emitted. Verify completeness of the materialize Apply type-switch against all declared event types."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bb65e68a188d1c9f7c9521130171b3255b4bbd3403fb77a4127b21a1e1f9b4a6" :a :db/ident :v :task/t-76ce6a16 :op :assert}
+   {:e #blake3 "bb65e68a188d1c9f7c9521130171b3255b4bbd3403fb77a4127b21a1e1f9b4a6" :a :task/created-at :v 1774293441 :op :assert}
+   {:e #blake3 "bb65e68a188d1c9f7c9521130171b3255b4bbd3403fb77a4127b21a1e1f9b4a6" :a :task/id :v "t-76ce6a16" :op :assert}
+   {:e #blake3 "bb65e68a188d1c9f7c9521130171b3255b4bbd3403fb77a4127b21a1e1f9b4a6" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "bb65e68a188d1c9f7c9521130171b3255b4bbd3403fb77a4127b21a1e1f9b4a6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bb65e68a188d1c9f7c9521130171b3255b4bbd3403fb77a4127b21a1e1f9b4a6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bb65e68a188d1c9f7c9521130171b3255b4bbd3403fb77a4127b21a1e1f9b4a6" :a :task/title :v "Map the event type coverage: 46 event types declared but unclear which are actually emitted. Verify completeness of the materialize Apply type-switch against all declared event types." :op :assert}
+   {:e #blake3 "bb65e68a188d1c9f7c9521130171b3255b4bbd3403fb77a4127b21a1e1f9b4a6" :a :task/title-l0 :v "46 event types declared" :op :assert}
+   {:e #blake3 "bb65e68a188d1c9f7c9521130171b3255b4bbd3403fb77a4127b21a1e1f9b4a6" :a :task/title-l1 :v "Map the event type coverage: 46 event types declared but unclear which are ac..." :op :assert}
+   {:e #blake3 "bb65e68a188d1c9f7c9521130171b3255b4bbd3403fb77a4127b21a1e1f9b4a6" :a :task/type :v :task.type/task :op :assert}
+ ]}

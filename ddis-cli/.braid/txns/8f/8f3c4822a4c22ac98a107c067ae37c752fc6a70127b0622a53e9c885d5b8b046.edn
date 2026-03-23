@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293300/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Go CLI project structure: Cobra-based CLI (spf13/cobra), SQLite storage (modernc.org/sqlite), 38 internal packages. Entry point: cmd/ddis/main.go calls cli.Execute(). Key packages include: storage, consistency, events, parser, drift, discover, refine, absorb, witness, challenge, search, materialize, cascade, projector, causal. The project uses a YAML spec parser and event-sourcing model."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2dc1c54f2f0866e6a5060402a1e6c4b511a09d6f4de9ad4bbf264fea8ad0cf82" :a :db/doc :v "Go CLI project structure: Cobra-based CLI (spf13/cobra), SQLite storage (modernc.org/sqlite), 38 internal packages. Entry point: cmd/ddis/main.go calls cli.Execute(). Key packages include: storage, consistency, events, parser, drift, discover, refine, absorb, witness, challenge, search, materialize, cascade, projector, causal. The project uses a YAML spec parser and event-sourcing model." :op :assert}
+   {:e #blake3 "2dc1c54f2f0866e6a5060402a1e6c4b511a09d6f4de9ad4bbf264fea8ad0cf82" :a :db/ident :v :observation/go-cli-project-structure-cobra-based-cli-spf13cobra-sql :op :assert}
+   {:e #blake3 "2dc1c54f2f0866e6a5060402a1e6c4b511a09d6f4de9ad4bbf264fea8ad0cf82" :a :exploration/body :v "Go CLI project structure: Cobra-based CLI (spf13/cobra), SQLite storage (modernc.org/sqlite), 38 internal packages. Entry point: cmd/ddis/main.go calls cli.Execute(). Key packages include: storage, consistency, events, parser, drift, discover, refine, absorb, witness, challenge, search, materialize, cascade, projector, causal. The project uses a YAML spec parser and event-sourcing model." :op :assert}
+   {:e #blake3 "2dc1c54f2f0866e6a5060402a1e6c4b511a09d6f4de9ad4bbf264fea8ad0cf82" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "2dc1c54f2f0866e6a5060402a1e6c4b511a09d6f4de9ad4bbf264fea8ad0cf82" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "2dc1c54f2f0866e6a5060402a1e6c4b511a09d6f4de9ad4bbf264fea8ad0cf82" :a :exploration/content-hash :v #bytes "9d9d4722e6494531ac7e2477168b1c585fe31b42444c1f904de4337500d4bc33" :op :assert}
+   {:e #blake3 "2dc1c54f2f0866e6a5060402a1e6c4b511a09d6f4de9ad4bbf264fea8ad0cf82" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2dc1c54f2f0866e6a5060402a1e6c4b511a09d6f4de9ad4bbf264fea8ad0cf82" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2dc1c54f2f0866e6a5060402a1e6c4b511a09d6f4de9ad4bbf264fea8ad0cf82" :a :exploration/source-session :v #blake3 "bc048690dfa9a534eaaaf8332ffbc85bc0fb702141d1c50e068958a28daa67af" :op :assert}
+ ]}

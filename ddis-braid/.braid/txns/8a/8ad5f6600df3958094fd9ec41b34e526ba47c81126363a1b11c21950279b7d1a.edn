@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774294095/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DOG-FOOD GO CLI (Agent 1 Lifecycle): 9/9 steps PASS. F(S) 0.51->0.56. 8 bugs found: --verbose=bare duplicate, --json outputs text not JSON, --datoms flag ignored, extractors fail on recursive self-invoke, git=no in monorepo, init rejects positional arg, harvest auto-task titles overflow 600+ chars, cargo detected in Go project. Core lifecycle (init->observe->task->harvest->seed) fully functional on 62.5K LOC Go project. External readiness 7/10."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f33fc5d7045cd2e99c7fdaa580a6d8eec0a9ae1fba7a7f5463d14c672d85452a" :a :db/doc :v "DOG-FOOD GO CLI (Agent 1 Lifecycle): 9/9 steps PASS. F(S) 0.51->0.56. 8 bugs found: --verbose=bare duplicate, --json outputs text not JSON, --datoms flag ignored, extractors fail on recursive self-invoke, git=no in monorepo, init rejects positional arg, harvest auto-task titles overflow 600+ chars, cargo detected in Go project. Core lifecycle (init->observe->task->harvest->seed) fully functional on 62.5K LOC Go project. External readiness 7/10." :op :assert}
+   {:e #blake3 "f33fc5d7045cd2e99c7fdaa580a6d8eec0a9ae1fba7a7f5463d14c672d85452a" :a :db/ident :v :observation/dog-food-go-cli-agent-1-lifecycle-99-steps-pass-fs-0 :op :assert}
+   {:e #blake3 "f33fc5d7045cd2e99c7fdaa580a6d8eec0a9ae1fba7a7f5463d14c672d85452a" :a :exploration/body :v "DOG-FOOD GO CLI (Agent 1 Lifecycle): 9/9 steps PASS. F(S) 0.51->0.56. 8 bugs found: --verbose=bare duplicate, --json outputs text not JSON, --datoms flag ignored, extractors fail on recursive self-invoke, git=no in monorepo, init rejects positional arg, harvest auto-task titles overflow 600+ chars, cargo detected in Go project. Core lifecycle (init->observe->task->harvest->seed) fully functional on 62.5K LOC Go project. External readiness 7/10." :op :assert}
+   {:e #blake3 "f33fc5d7045cd2e99c7fdaa580a6d8eec0a9ae1fba7a7f5463d14c672d85452a" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "f33fc5d7045cd2e99c7fdaa580a6d8eec0a9ae1fba7a7f5463d14c672d85452a" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "f33fc5d7045cd2e99c7fdaa580a6d8eec0a9ae1fba7a7f5463d14c672d85452a" :a :exploration/content-hash :v #bytes "726f87319563f2c549c972b082e6f28c09cba939f5e6a89418a6e63ea6ebbee9" :op :assert}
+   {:e #blake3 "f33fc5d7045cd2e99c7fdaa580a6d8eec0a9ae1fba7a7f5463d14c672d85452a" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f33fc5d7045cd2e99c7fdaa580a6d8eec0a9ae1fba7a7f5463d14c672d85452a" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f33fc5d7045cd2e99c7fdaa580a6d8eec0a9ae1fba7a7f5463d14c672d85452a" :a :exploration/source-session :v #blake3 "e48138a1d9eef741f625843f9c1b1c62c23e41557a9119d92d9351daa08def53" :op :assert}
+ ]}

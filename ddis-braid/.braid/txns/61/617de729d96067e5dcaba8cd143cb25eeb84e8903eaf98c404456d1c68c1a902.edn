@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774294146/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ACP-SCORE-1: Default AcquisitionScore for all context blocks. Add ContextBlock::new_scored(precedence, content, tokens, kind, impact) constructor that computes baseline score from precedence level and token cost. Replace 96 attention:None constructors across 15 files with scored defaults. Eliminates the None/Some bifurcation — all blocks participate in UAQ ranking. FILE: crates/braid-kernel/src/budget.rs + all command files"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :db/ident :v :task/t-238ea707 :op :assert}
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :task/created-at :v 1774294145 :op :assert}
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :task/files :v "crates/braid-kernel/src/budget.rs" :op :assert}
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :task/id :v "t-238ea707" :op :assert}
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :task/title :v "ACP-SCORE-1: Default AcquisitionScore for all context blocks. Add ContextBlock::new_scored(precedence, content, tokens, kind, impact) constructor that computes baseline score from precedence level and token cost. Replace 96 attention:None constructors across 15 files with scored defaults. Eliminates the None/Some bifurcation — all blocks participate in UAQ ranking. FILE: crates/braid-kernel/src/budget.rs + all command files" :op :assert}
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :task/title-l0 :v "ACP-SCORE-1" :op :assert}
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :task/title-l1 :v "ACP-SCORE-1: Default AcquisitionScore for all context blocks" :op :assert}
+   {:e #blake3 "6da0cfe3691536d9765cd126dd8ff184a489c06b329c1df742eab56f9a662e5c" :a :task/type :v :task.type/task :op :assert}
+ ]}

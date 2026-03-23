@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293286/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The internal/ directory has ~25 packages: absorb, annotate, bundle, cascade, challenge, consistency, discover, drift, events, materialize, parser, refine, search, storage, triage, witness"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ae2472a708251ea35155402c61d40efac2ec097478716cee0d449880a3560eb6" :a :db/doc :v "The internal/ directory has ~25 packages: absorb, annotate, bundle, cascade, challenge, consistency, discover, drift, events, materialize, parser, refine, search, storage, triage, witness" :op :assert}
+   {:e #blake3 "ae2472a708251ea35155402c61d40efac2ec097478716cee0d449880a3560eb6" :a :db/ident :v :observation/the-internal-directory-has-25-packages-absorb-annotate :op :assert}
+   {:e #blake3 "ae2472a708251ea35155402c61d40efac2ec097478716cee0d449880a3560eb6" :a :exploration/body :v "The internal/ directory has ~25 packages: absorb, annotate, bundle, cascade, challenge, consistency, discover, drift, events, materialize, parser, refine, search, storage, triage, witness" :op :assert}
+   {:e #blake3 "ae2472a708251ea35155402c61d40efac2ec097478716cee0d449880a3560eb6" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "ae2472a708251ea35155402c61d40efac2ec097478716cee0d449880a3560eb6" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "ae2472a708251ea35155402c61d40efac2ec097478716cee0d449880a3560eb6" :a :exploration/content-hash :v #bytes "b546b19f7327e0d4af994c0bff8bbde79d4c8ce5c24bc8a85a3be4cbb9329821" :op :assert}
+   {:e #blake3 "ae2472a708251ea35155402c61d40efac2ec097478716cee0d449880a3560eb6" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "ae2472a708251ea35155402c61d40efac2ec097478716cee0d449880a3560eb6" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "ae2472a708251ea35155402c61d40efac2ec097478716cee0d449880a3560eb6" :a :exploration/source-session :v #blake3 "bc048690dfa9a534eaaaf8332ffbc85bc0fb702141d1c50e068958a28daa67af" :op :assert}
+ ]}

@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774294144/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ACP-TRACK-1: Universal presentation tracking for all ACP commands. Currently only status.rs records block presentation counts. Add post-render hook in maybe_inject_footer (for ACP path, before early return at line 1901) that calls record_block_presentations for any command with _acp JSON field. Single wiring point covers all 16 ACP commands. FILE: crates/braid/src/commands/mod.rs:1897"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :db/ident :v :task/t-eae39095 :op :assert}
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :task/created-at :v 1774294143 :op :assert}
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :task/files :v "crates/braid/src/commands/mod.rs:1897" :op :assert}
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :task/id :v "t-eae39095" :op :assert}
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :task/title :v "ACP-TRACK-1: Universal presentation tracking for all ACP commands. Currently only status.rs records block presentation counts. Add post-render hook in maybe_inject_footer (for ACP path, before early return at line 1901) that calls record_block_presentations for any command with _acp JSON field. Single wiring point covers all 16 ACP commands. FILE: crates/braid/src/commands/mod.rs:1897" :op :assert}
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :task/title-l0 :v "ACP-TRACK-1" :op :assert}
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :task/title-l1 :v "ACP-TRACK-1: Universal presentation tracking for all ACP commands" :op :assert}
+   {:e #blake3 "40c7ae19b40d98040a7d310ceee3b61beafee4c08b65ca6c0e62c22e32e4634c" :a :task/type :v :task.type/task :op :assert}
+ ]}

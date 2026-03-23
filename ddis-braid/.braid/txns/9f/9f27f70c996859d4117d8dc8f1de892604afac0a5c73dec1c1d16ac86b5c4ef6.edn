@@ -1,0 +1,26 @@
+{:tx/id #hlc "1774296496/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-FOUNDATION-014 \"Gradient Self-Calibration — projected vs actual ΔF(S) error decreases\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "13ab376c6e3a4c410665cd0fe05ec0876d44cfb00752e1c4eb009a11e47916d8" :a :db/ident :v :task/t-136cbef9 :op :assert}
+   {:e #blake3 "13ab376c6e3a4c410665cd0fe05ec0876d44cfb00752e1c4eb009a11e47916d8" :a :task/created-at :v 1774296495 :op :assert}
+   {:e #blake3 "13ab376c6e3a4c410665cd0fe05ec0876d44cfb00752e1c4eb009a11e47916d8" :a :task/id :v "t-136cbef9" :op :assert}
+   {:e #blake3 "13ab376c6e3a4c410665cd0fe05ec0876d44cfb00752e1c4eb009a11e47916d8" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "13ab376c6e3a4c410665cd0fe05ec0876d44cfb00752e1c4eb009a11e47916d8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "13ab376c6e3a4c410665cd0fe05ec0876d44cfb00752e1c4eb009a11e47916d8" :a :task/title :v "Implement INV-FOUNDATION-014: Gradient Self-Calibration — projected vs actual ΔF(S) error decreases" :op :assert}
+   {:e #blake3 "13ab376c6e3a4c410665cd0fe05ec0876d44cfb00752e1c4eb009a11e47916d8" :a :task/traces-to :v #blake3 "e4fe3d740bf75c17e5ef347b9552c5f0b9ad2c675000ea92a55ffa192e1cbed7" :op :assert}
+   {:e #blake3 "13ab376c6e3a4c410665cd0fe05ec0876d44cfb00752e1c4eb009a11e47916d8" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "dfef57fcf9e532ad2f9a8e12c2225d6d39fe9337f654e157e02201fdfcd52216" :a :db/doc :v "Violated if after 20 calibration events for exploration hypotheses, the mean projection error does not decrease relative to the first 5 events." :op :assert}
+   {:e #blake3 "e4fe3d740bf75c17e5ef347b9552c5f0b9ad2c675000ea92a55ffa192e1cbed7" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "e4fe3d740bf75c17e5ef347b9552c5f0b9ad2c675000ea92a55ffa192e1cbed7" :a :comonad/falsification :v #blake3 "dfef57fcf9e532ad2f9a8e12c2225d6d39fe9337f654e157e02201fdfcd52216" :op :assert}
+   {:e #blake3 "e4fe3d740bf75c17e5ef347b9552c5f0b9ad2c675000ea92a55ffa192e1cbed7" :a :db/doc :v "Gradient Self-Calibration — projected vs actual ΔF(S) error decreases" :op :assert}
+   {:e #blake3 "e4fe3d740bf75c17e5ef347b9552c5f0b9ad2c675000ea92a55ffa192e1cbed7" :a :db/ident :v :spec/inv-foundation-014 :op :assert}
+   {:e #blake3 "e4fe3d740bf75c17e5ef347b9552c5f0b9ad2c675000ea92a55ffa192e1cbed7" :a :spec/confidence :v 0.8 :op :assert}
+   {:e #blake3 "e4fe3d740bf75c17e5ef347b9552c5f0b9ad2c675000ea92a55ffa192e1cbed7" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "e4fe3d740bf75c17e5ef347b9552c5f0b9ad2c675000ea92a55ffa192e1cbed7" :a :spec/falsification :v "Violated if after 20 calibration events for exploration hypotheses, the mean projection error does not decrease relative to the first 5 events." :op :assert}
+   {:e #blake3 "e4fe3d740bf75c17e5ef347b9552c5f0b9ad2c675000ea92a55ffa192e1cbed7" :a :spec/id :v "INV-FOUNDATION-014" :op :assert}
+   {:e #blake3 "e4fe3d740bf75c17e5ef347b9552c5f0b9ad2c675000ea92a55ffa192e1cbed7" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "e4fe3d740bf75c17e5ef347b9552c5f0b9ad2c675000ea92a55ffa192e1cbed7" :a :spec/statement :v "The projected ΔF(S) for each bridge hypothesis is compared to actual ΔF(S) after exploration. The calibration error feeds back through the hypothesis ledger with item_type=exploration, adjusting future bridge projections." :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293590/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "C8 test observation: the methodology score M(t) footer suggests 'spec-lang: fail -> query --entity :spec/inv-...' but this spec project does not have INV entities in the store. The spec-lang check is looking for braid-native spec entities, which is orthogonal to the YAML-based spec format used by ddis-modular."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "290f7280df00306fb60f48621ce715b6b58668244ba7fb67fc017bd2af4edb21" :a :db/doc :v "C8 test observation: the methodology score M(t) footer suggests 'spec-lang: fail -> query --entity :spec/inv-...' but this spec project does not have INV entities in the store. The spec-lang check is looking for braid-native spec entities, which is orthogonal to the YAML-based spec format used by ddis-modular." :op :assert}
+   {:e #blake3 "290f7280df00306fb60f48621ce715b6b58668244ba7fb67fc017bd2af4edb21" :a :db/ident :v :observation/c8-test-observation-the-methodology-score-mt-footer-sugge :op :assert}
+   {:e #blake3 "290f7280df00306fb60f48621ce715b6b58668244ba7fb67fc017bd2af4edb21" :a :exploration/body :v "C8 test observation: the methodology score M(t) footer suggests 'spec-lang: fail -> query --entity :spec/inv-...' but this spec project does not have INV entities in the store. The spec-lang check is looking for braid-native spec entities, which is orthogonal to the YAML-based spec format used by ddis-modular." :op :assert}
+   {:e #blake3 "290f7280df00306fb60f48621ce715b6b58668244ba7fb67fc017bd2af4edb21" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "290f7280df00306fb60f48621ce715b6b58668244ba7fb67fc017bd2af4edb21" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "290f7280df00306fb60f48621ce715b6b58668244ba7fb67fc017bd2af4edb21" :a :exploration/content-hash :v #bytes "2993990262d262879fd108f9edcf0f1d0f2d89eea0e8dbb3f13fb95e35185abf" :op :assert}
+   {:e #blake3 "290f7280df00306fb60f48621ce715b6b58668244ba7fb67fc017bd2af4edb21" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "290f7280df00306fb60f48621ce715b6b58668244ba7fb67fc017bd2af4edb21" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "290f7280df00306fb60f48621ce715b6b58668244ba7fb67fc017bd2af4edb21" :a :exploration/source-session :v #blake3 "f4471ed2c8f0b9c056ac9c3bedf5042389379bbc8bb248c9887e281e025ccefb" :op :assert}
+ ]}

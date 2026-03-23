@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774293406/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Verify context budget compliance: measure actual line counts for all bundles and confirm they stay within target_lines (4000) and hard_ceiling (5000)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8e043e179e9a31e8f792b9b8ceffa062b9a473b70bfa35cc92f0a81482a329fe" :a :db/ident :v :task/t-caa5b57a :op :assert}
+   {:e #blake3 "8e043e179e9a31e8f792b9b8ceffa062b9a473b70bfa35cc92f0a81482a329fe" :a :task/created-at :v 1774293405 :op :assert}
+   {:e #blake3 "8e043e179e9a31e8f792b9b8ceffa062b9a473b70bfa35cc92f0a81482a329fe" :a :task/id :v "t-caa5b57a" :op :assert}
+   {:e #blake3 "8e043e179e9a31e8f792b9b8ceffa062b9a473b70bfa35cc92f0a81482a329fe" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8e043e179e9a31e8f792b9b8ceffa062b9a473b70bfa35cc92f0a81482a329fe" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8e043e179e9a31e8f792b9b8ceffa062b9a473b70bfa35cc92f0a81482a329fe" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8e043e179e9a31e8f792b9b8ceffa062b9a473b70bfa35cc92f0a81482a329fe" :a :task/title :v "Verify context budget compliance: measure actual line counts for all bundles and confirm they stay within target_lines (4000) and hard_ceiling (5000)" :op :assert}
+   {:e #blake3 "8e043e179e9a31e8f792b9b8ceffa062b9a473b70bfa35cc92f0a81482a329fe" :a :task/title-l0 :v "measure actual line count" :op :assert}
+   {:e #blake3 "8e043e179e9a31e8f792b9b8ceffa062b9a473b70bfa35cc92f0a81482a329fe" :a :task/title-l1 :v "Verify context budget compliance: measure actual line counts for all bundles..." :op :assert}
+   {:e #blake3 "8e043e179e9a31e8f792b9b8ceffa062b9a473b70bfa35cc92f0a81482a329fe" :a :task/type :v :task.type/task :op :assert}
+ ]}

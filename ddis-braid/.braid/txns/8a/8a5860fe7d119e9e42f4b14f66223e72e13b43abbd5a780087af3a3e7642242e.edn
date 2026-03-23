@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774294098/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DOG-FOOD GO CLI (Agent 2 Exploration): Usefulness 4/10, Guidance Quality 3/10, Observation UX 5/10, Knowledge Persistence 6/10, C8 5/10. Key insight: braid is a knowledge CAPTURE tool not a DISCOVERY tool. M(t) stayed at 0.55 entire session (uninformative). F(S) barely moved 0.52->0.56. Seed leaks braid's own codebase info (115K LOC Rust, cargo commands) into Go project context. Highest value: harvest urgency reminders, task ready prioritization, COTX auto-task."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "31bd3536a6fb69f2962712d230e4d0050546bb42fe9f27b2f47819002b3583ff" :a :db/doc :v "DOG-FOOD GO CLI (Agent 2 Exploration): Usefulness 4/10, Guidance Quality 3/10, Observation UX 5/10, Knowledge Persistence 6/10, C8 5/10. Key insight: braid is a knowledge CAPTURE tool not a DISCOVERY tool. M(t) stayed at 0.55 entire session (uninformative). F(S) barely moved 0.52->0.56. Seed leaks braid's own codebase info (115K LOC Rust, cargo commands) into Go project context. Highest value: harvest urgency reminders, task ready prioritization, COTX auto-task." :op :assert}
+   {:e #blake3 "31bd3536a6fb69f2962712d230e4d0050546bb42fe9f27b2f47819002b3583ff" :a :db/ident :v :observation/dog-food-go-cli-agent-2-exploration-usefulness-410-guid :op :assert}
+   {:e #blake3 "31bd3536a6fb69f2962712d230e4d0050546bb42fe9f27b2f47819002b3583ff" :a :exploration/body :v "DOG-FOOD GO CLI (Agent 2 Exploration): Usefulness 4/10, Guidance Quality 3/10, Observation UX 5/10, Knowledge Persistence 6/10, C8 5/10. Key insight: braid is a knowledge CAPTURE tool not a DISCOVERY tool. M(t) stayed at 0.55 entire session (uninformative). F(S) barely moved 0.52->0.56. Seed leaks braid's own codebase info (115K LOC Rust, cargo commands) into Go project context. Highest value: harvest urgency reminders, task ready prioritization, COTX auto-task." :op :assert}
+   {:e #blake3 "31bd3536a6fb69f2962712d230e4d0050546bb42fe9f27b2f47819002b3583ff" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "31bd3536a6fb69f2962712d230e4d0050546bb42fe9f27b2f47819002b3583ff" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "31bd3536a6fb69f2962712d230e4d0050546bb42fe9f27b2f47819002b3583ff" :a :exploration/content-hash :v #bytes "8898ef8edd0caab7e3d9b5182d8013670c40a3615827b0e7054a9657f528b14b" :op :assert}
+   {:e #blake3 "31bd3536a6fb69f2962712d230e4d0050546bb42fe9f27b2f47819002b3583ff" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "31bd3536a6fb69f2962712d230e4d0050546bb42fe9f27b2f47819002b3583ff" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "31bd3536a6fb69f2962712d230e4d0050546bb42fe9f27b2f47819002b3583ff" :a :exploration/source-session :v #blake3 "e48138a1d9eef741f625843f9c1b1c62c23e41557a9119d92d9351daa08def53" :op :assert}
+ ]}

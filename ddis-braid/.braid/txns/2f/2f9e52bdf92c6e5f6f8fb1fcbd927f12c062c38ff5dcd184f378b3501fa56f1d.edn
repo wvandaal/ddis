@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774294135/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ACP-DRY-1: Extract novelty_from_count(N) -> f64 to budget.rs. Replace 3 duplicate 1/sqrt(N) formulas in budget.rs:682, context.rs:282, routing.rs:894 with single function. Algebraic property: monotonically decreasing in N, 1.0 at N=0, approaches 0 as N->inf. FILE: crates/braid-kernel/src/budget.rs + routing.rs + context.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :db/ident :v :task/t-3d5e9546 :op :assert}
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :task/created-at :v 1774294134 :op :assert}
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :task/files :v "crates/braid-kernel/src/budget.rs" :op :assert}
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :task/id :v "t-3d5e9546" :op :assert}
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :task/title :v "ACP-DRY-1: Extract novelty_from_count(N) -> f64 to budget.rs. Replace 3 duplicate 1/sqrt(N) formulas in budget.rs:682, context.rs:282, routing.rs:894 with single function. Algebraic property: monotonically decreasing in N, 1.0 at N=0, approaches 0 as N->inf. FILE: crates/braid-kernel/src/budget.rs + routing.rs + context.rs" :op :assert}
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :task/title-l0 :v "ACP-DRY-1" :op :assert}
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :task/title-l1 :v "ACP-DRY-1: Extract novelty_from_count(N) -> f64 to budget.rs" :op :assert}
+   {:e #blake3 "955df7f8f5ba2a2c54d343298c4f54232e6cdf147ecde5c02fa62976aa2516cb" :a :task/type :v :task.type/task :op :assert}
+ ]}

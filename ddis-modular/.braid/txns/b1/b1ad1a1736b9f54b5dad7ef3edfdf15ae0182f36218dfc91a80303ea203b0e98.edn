@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293334/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Each module declares negative_specs - explicit DON'T constraints. For example, core-standard: 'Must NOT define invariants without violation scenarios', 'Must NOT create strawman ADRs'. This is meta-level quality assurance - the meta-spec constrains what well-formed specs look like."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dfd52959b5d86c96d595ec9dec3011da6a66640f68d5575070a0769c81b364d5" :a :db/doc :v "Each module declares negative_specs - explicit DON'T constraints. For example, core-standard: 'Must NOT define invariants without violation scenarios', 'Must NOT create strawman ADRs'. This is meta-level quality assurance - the meta-spec constrains what well-formed specs look like." :op :assert}
+   {:e #blake3 "dfd52959b5d86c96d595ec9dec3011da6a66640f68d5575070a0769c81b364d5" :a :db/ident :v :observation/each-module-declares-negative-specs-explicit-dont-constra :op :assert}
+   {:e #blake3 "dfd52959b5d86c96d595ec9dec3011da6a66640f68d5575070a0769c81b364d5" :a :exploration/body :v "Each module declares negative_specs - explicit DON'T constraints. For example, core-standard: 'Must NOT define invariants without violation scenarios', 'Must NOT create strawman ADRs'. This is meta-level quality assurance - the meta-spec constrains what well-formed specs look like." :op :assert}
+   {:e #blake3 "dfd52959b5d86c96d595ec9dec3011da6a66640f68d5575070a0769c81b364d5" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "dfd52959b5d86c96d595ec9dec3011da6a66640f68d5575070a0769c81b364d5" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "dfd52959b5d86c96d595ec9dec3011da6a66640f68d5575070a0769c81b364d5" :a :exploration/content-hash :v #bytes "7b7cea08ecba035fc7f423501b55489b60004aa6742a1da114c9c7d9c810a8e2" :op :assert}
+   {:e #blake3 "dfd52959b5d86c96d595ec9dec3011da6a66640f68d5575070a0769c81b364d5" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "dfd52959b5d86c96d595ec9dec3011da6a66640f68d5575070a0769c81b364d5" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "dfd52959b5d86c96d595ec9dec3011da6a66640f68d5575070a0769c81b364d5" :a :exploration/source-session :v #blake3 "d60c64ed69a1ecab0cd28281b4cae4b4a336a05d8e004845f0d0e889f024df57" :op :assert}
+ ]}

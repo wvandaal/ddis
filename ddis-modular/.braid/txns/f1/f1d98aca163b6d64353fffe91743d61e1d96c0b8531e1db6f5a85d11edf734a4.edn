@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774293400/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Validate negative spec coverage: each module must have domain-specific negative specs, not generic ones (per INV-017)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6c0fab6e1d9df06da2e46e69f032394fcec25b012304e6a075701ec6cacd84f4" :a :db/ident :v :task/t-b64e4663 :op :assert}
+   {:e #blake3 "6c0fab6e1d9df06da2e46e69f032394fcec25b012304e6a075701ec6cacd84f4" :a :task/created-at :v 1774293399 :op :assert}
+   {:e #blake3 "6c0fab6e1d9df06da2e46e69f032394fcec25b012304e6a075701ec6cacd84f4" :a :task/id :v "t-b64e4663" :op :assert}
+   {:e #blake3 "6c0fab6e1d9df06da2e46e69f032394fcec25b012304e6a075701ec6cacd84f4" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "6c0fab6e1d9df06da2e46e69f032394fcec25b012304e6a075701ec6cacd84f4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6c0fab6e1d9df06da2e46e69f032394fcec25b012304e6a075701ec6cacd84f4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6c0fab6e1d9df06da2e46e69f032394fcec25b012304e6a075701ec6cacd84f4" :a :task/title :v "Validate negative spec coverage: each module must have domain-specific negative specs, not generic ones (per INV-017)" :op :assert}
+   {:e #blake3 "6c0fab6e1d9df06da2e46e69f032394fcec25b012304e6a075701ec6cacd84f4" :a :task/title-l0 :v "each module must have" :op :assert}
+   {:e #blake3 "6c0fab6e1d9df06da2e46e69f032394fcec25b012304e6a075701ec6cacd84f4" :a :task/title-l1 :v "Validate negative spec coverage: each module must have domain-specific negati..." :op :assert}
+   {:e #blake3 "6c0fab6e1d9df06da2e46e69f032394fcec25b012304e6a075701ec6cacd84f4" :a :task/type :v :task.type/task :op :assert}
+ ]}

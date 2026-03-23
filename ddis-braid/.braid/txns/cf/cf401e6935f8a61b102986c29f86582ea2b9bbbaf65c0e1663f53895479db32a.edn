@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774296862/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXT-BUG-5: braid init detects cargo in Go-only project"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a91801c1bc0e6ca069ae0a9caddcaa93480c3e6de0d1ba584d23d377678ce38d" :a :db/ident :v :task/t-0988fa40 :op :assert}
+   {:e #blake3 "a91801c1bc0e6ca069ae0a9caddcaa93480c3e6de0d1ba584d23d377678ce38d" :a :task/created-at :v 1774296861 :op :assert}
+   {:e #blake3 "a91801c1bc0e6ca069ae0a9caddcaa93480c3e6de0d1ba584d23d377678ce38d" :a :task/id :v "t-0988fa40" :op :assert}
+   {:e #blake3 "a91801c1bc0e6ca069ae0a9caddcaa93480c3e6de0d1ba584d23d377678ce38d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "a91801c1bc0e6ca069ae0a9caddcaa93480c3e6de0d1ba584d23d377678ce38d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a91801c1bc0e6ca069ae0a9caddcaa93480c3e6de0d1ba584d23d377678ce38d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a91801c1bc0e6ca069ae0a9caddcaa93480c3e6de0d1ba584d23d377678ce38d" :a :task/title :v "EXT-BUG-5: braid init detects cargo in Go-only project" :op :assert}
+   {:e #blake3 "a91801c1bc0e6ca069ae0a9caddcaa93480c3e6de0d1ba584d23d377678ce38d" :a :task/title-l0 :v "EXT-BUG-5" :op :assert}
+   {:e #blake3 "a91801c1bc0e6ca069ae0a9caddcaa93480c3e6de0d1ba584d23d377678ce38d" :a :task/title-l1 :v "EXT-BUG-5: braid init detects cargo in Go-only project" :op :assert}
+   {:e #blake3 "a91801c1bc0e6ca069ae0a9caddcaa93480c3e6de0d1ba584d23d377678ce38d" :a :task/type :v :task.type/bug :op :assert}
+ ]}

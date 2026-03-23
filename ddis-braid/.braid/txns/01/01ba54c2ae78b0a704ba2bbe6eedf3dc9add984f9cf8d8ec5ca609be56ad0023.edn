@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774296867/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C8-FIX-5: M(t) spec-lang penalizes external spec formats"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "93b0a5769f8372c5e7dcd1e0123bb9bb689d5c00c00d2de015536c689535c533" :a :db/ident :v :task/t-f843f44c :op :assert}
+   {:e #blake3 "93b0a5769f8372c5e7dcd1e0123bb9bb689d5c00c00d2de015536c689535c533" :a :task/created-at :v 1774296866 :op :assert}
+   {:e #blake3 "93b0a5769f8372c5e7dcd1e0123bb9bb689d5c00c00d2de015536c689535c533" :a :task/id :v "t-f843f44c" :op :assert}
+   {:e #blake3 "93b0a5769f8372c5e7dcd1e0123bb9bb689d5c00c00d2de015536c689535c533" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "93b0a5769f8372c5e7dcd1e0123bb9bb689d5c00c00d2de015536c689535c533" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "93b0a5769f8372c5e7dcd1e0123bb9bb689d5c00c00d2de015536c689535c533" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "93b0a5769f8372c5e7dcd1e0123bb9bb689d5c00c00d2de015536c689535c533" :a :task/title :v "C8-FIX-5: M(t) spec-lang penalizes external spec formats" :op :assert}
+   {:e #blake3 "93b0a5769f8372c5e7dcd1e0123bb9bb689d5c00c00d2de015536c689535c533" :a :task/title-l0 :v "C8-FIX-5" :op :assert}
+   {:e #blake3 "93b0a5769f8372c5e7dcd1e0123bb9bb689d5c00c00d2de015536c689535c533" :a :task/title-l1 :v "C8-FIX-5: M(t) spec-lang penalizes external spec formats" :op :assert}
+   {:e #blake3 "93b0a5769f8372c5e7dcd1e0123bb9bb689d5c00c00d2de015536c689535c533" :a :task/type :v :task.type/bug :op :assert}
+ ]}

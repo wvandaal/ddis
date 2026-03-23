@@ -1,0 +1,467 @@
+{:tx/id #hlc "1774293381/0/4ca749d2637ba418d02a616614d4c1a9"
+ :tx/agent "4ca749d2637ba418d02a616614d4c1a9"
+ :tx/provenance :observed
+ :tx/rationale "Schema evolution: install Layer 4 (task/plan/session) attributes"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0057d6d4f5305a356d6be71eb01831e13980173feb427115f1b6ea2f3d788785" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "0057d6d4f5305a356d6be71eb01831e13980173feb427115f1b6ea2f3d788785" :a :db/doc :v "Parent epic entity (for task hierarchy)" :op :assert}
+   {:e #blake3 "0057d6d4f5305a356d6be71eb01831e13980173feb427115f1b6ea2f3d788785" :a :db/ident :v :task/parent :op :assert}
+   {:e #blake3 "0057d6d4f5305a356d6be71eb01831e13980173feb427115f1b6ea2f3d788785" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "0057d6d4f5305a356d6be71eb01831e13980173feb427115f1b6ea2f3d788785" :a :db/valueType :v :db.type/ref :op :assert}
+   {:e #blake3 "017713fe8f0d6eda9cdcb263f5fe73f398f3e893ada536e3b17644afdd48fdca" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "017713fe8f0d6eda9cdcb263f5fe73f398f3e893ada536e3b17644afdd48fdca" :a :db/doc :v "ACCEPTANCE section: specific criteria for task completion" :op :assert}
+   {:e #blake3 "017713fe8f0d6eda9cdcb263f5fe73f398f3e893ada536e3b17644afdd48fdca" :a :db/ident :v :task/acceptance :op :assert}
+   {:e #blake3 "017713fe8f0d6eda9cdcb263f5fe73f398f3e893ada536e3b17644afdd48fdca" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "017713fe8f0d6eda9cdcb263f5fe73f398f3e893ada536e3b17644afdd48fdca" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "01dbaf6f97db488f25dc89ecb3487a4ebea97330d233d63199574d383cb95c40" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "01dbaf6f97db488f25dc89ecb3487a4ebea97330d233d63199574d383cb95c40" :a :db/doc :v "How the verification depth was determined (e.g., 'test_inv_store_001 found at line 42')" :op :assert}
+   {:e #blake3 "01dbaf6f97db488f25dc89ecb3487a4ebea97330d233d63199574d383cb95c40" :a :db/ident :v :impl/verification-evidence :op :assert}
+   {:e #blake3 "01dbaf6f97db488f25dc89ecb3487a4ebea97330d233d63199574d383cb95c40" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "01dbaf6f97db488f25dc89ecb3487a4ebea97330d233d63199574d383cb95c40" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "04401afba455a0dcfe5be9e7af1cfff6bfa301c72d517d783d1f0ecd0baeb4a5" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "04401afba455a0dcfe5be9e7af1cfff6bfa301c72d517d783d1f0ecd0baeb4a5" :a :db/doc :v "Topology event type: :topology.event/completion, :topology.event/conflict, :topology.event/merge, :topology.event/block" :op :assert}
+   {:e #blake3 "04401afba455a0dcfe5be9e7af1cfff6bfa301c72d517d783d1f0ecd0baeb4a5" :a :db/ident :v :topology/event-type :op :assert}
+   {:e #blake3 "04401afba455a0dcfe5be9e7af1cfff6bfa301c72d517d783d1f0ecd0baeb4a5" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "04401afba455a0dcfe5be9e7af1cfff6bfa301c72d517d783d1f0ecd0baeb4a5" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "0509055f22193a7948e4554f3e3d73aeede309483e4f2c59a9eb1537e241dd87" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "0509055f22193a7948e4554f3e3d73aeede309483e4f2c59a9eb1537e241dd87" :a :db/doc :v "Resolution mode applied: :resolution/lww, :resolution/lattice, :resolution/multi" :op :assert}
+   {:e #blake3 "0509055f22193a7948e4554f3e3d73aeede309483e4f2c59a9eb1537e241dd87" :a :db/ident :v :resolution/mode :op :assert}
+   {:e #blake3 "0509055f22193a7948e4554f3e3d73aeede309483e4f2c59a9eb1537e241dd87" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "0509055f22193a7948e4554f3e3d73aeede309483e4f2c59a9eb1537e241dd87" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "073cb15611007694fd256fe367496489cdc63b2932f33347b9e0031d4ef8d664" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "073cb15611007694fd256fe367496489cdc63b2932f33347b9e0031d4ef8d664" :a :db/doc :v "Shell command to invoke this reconciliation source (e.g., 'cass search --robot')" :op :assert}
+   {:e #blake3 "073cb15611007694fd256fe367496489cdc63b2932f33347b9e0031d4ef8d664" :a :db/ident :v :recon-source/command :op :assert}
+   {:e #blake3 "073cb15611007694fd256fe367496489cdc63b2932f33347b9e0031d4ef8d664" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "073cb15611007694fd256fe367496489cdc63b2932f33347b9e0031d4ef8d664" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "09a1428b8d5d4f73bc3b9fd4f5353a7d6146de5b4f60fa437d46d68074927f01" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "09a1428b8d5d4f73bc3b9fd4f5353a7d6146de5b4f60fa437d46d68074927f01" :a :db/doc :v "JSON array of 6 R(t) metric floats: [pagerank, betweenness, critical_path, blocker_ratio, staleness, priority_boost]" :op :assert}
+   {:e #blake3 "09a1428b8d5d4f73bc3b9fd4f5353a7d6146de5b4f60fa437d46d68074927f01" :a :db/ident :v :action/features :op :assert}
+   {:e #blake3 "09a1428b8d5d4f73bc3b9fd4f5353a7d6146de5b4f60fa437d46d68074927f01" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "09a1428b8d5d4f73bc3b9fd4f5353a7d6146de5b4f60fa437d46d68074927f01" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "0a955f1c306a9418478a1add40feec337e052b36886b7c59d88c62f8d081bd7c" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "0a955f1c306a9418478a1add40feec337e052b36886b7c59d88c62f8d081bd7c" :a :db/doc :v "Task status (lattice-resolved): :task.status/open, :task.status/in-progress, :task.status/closed" :op :assert}
+   {:e #blake3 "0a955f1c306a9418478a1add40feec337e052b36886b7c59d88c62f8d081bd7c" :a :db/ident :v :task/status :op :assert}
+   {:e #blake3 "0a955f1c306a9418478a1add40feec337e052b36886b7c59d88c62f8d081bd7c" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "0a955f1c306a9418478a1add40feec337e052b36886b7c59d88c62f8d081bd7c" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "0c964dbf20aa765c2c9387a4b7b8575f52f5cc31bc385e720e5a9a698895a0b4" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "0c964dbf20aa765c2c9387a4b7b8575f52f5cc31bc385e720e5a9a698895a0b4" :a :db/doc :v "Human-readable name for this reconciliation source (e.g., 'cass', 'cm')" :op :assert}
+   {:e #blake3 "0c964dbf20aa765c2c9387a4b7b8575f52f5cc31bc385e720e5a9a698895a0b4" :a :db/ident :v :recon-source/name :op :assert}
+   {:e #blake3 "0c964dbf20aa765c2c9387a4b7b8575f52f5cc31bc385e720e5a9a698895a0b4" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "0c964dbf20aa765c2c9387a4b7b8575f52f5cc31bc385e720e5a9a698895a0b4" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "0ce68f144acfa78c702feb82e8856114621c44003c894c6cbdcd63d1a3cd4a8b" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "0ce68f144acfa78c702feb82e8856114621c44003c894c6cbdcd63d1a3cd4a8b" :a :db/doc :v "Plan lifecycle status: :plan.status/draft, :plan.status/active, :plan.status/completed" :op :assert}
+   {:e #blake3 "0ce68f144acfa78c702feb82e8856114621c44003c894c6cbdcd63d1a3cd4a8b" :a :db/ident :v :plan/status :op :assert}
+   {:e #blake3 "0ce68f144acfa78c702feb82e8856114621c44003c894c6cbdcd63d1a3cd4a8b" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "0ce68f144acfa78c702feb82e8856114621c44003c894c6cbdcd63d1a3cd4a8b" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "12fff1be4f8901ddd3578baf233865cd35a42e3538d65f890eb92eaa1feb893f" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "12fff1be4f8901ddd3578baf233865cd35a42e3538d65f890eb92eaa1feb893f" :a :db/doc :v "Dominant spec namespace of the trace (e.g., STORE, MERGE, GUIDANCE)" :op :assert}
+   {:e #blake3 "12fff1be4f8901ddd3578baf233865cd35a42e3538d65f890eb92eaa1feb893f" :a :db/ident :v :recon/trace-neighborhood :op :assert}
+   {:e #blake3 "12fff1be4f8901ddd3578baf233865cd35a42e3538d65f890eb92eaa1feb893f" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "12fff1be4f8901ddd3578baf233865cd35a42e3538d65f890eb92eaa1feb893f" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "1880d24645661268a0915813c615dd1cee2e2051c1a9005d7b6079372b2e20ff" :a :db/cardinality :v :db.cardinality/many :op :assert}
+   {:e #blake3 "1880d24645661268a0915813c615dd1cee2e2051c1a9005d7b6079372b2e20ff" :a :db/doc :v "FILE markers: source files this task modifies (e.g., crates/braid-kernel/src/guidance.rs)" :op :assert}
+   {:e #blake3 "1880d24645661268a0915813c615dd1cee2e2051c1a9005d7b6079372b2e20ff" :a :db/ident :v :task/files :op :assert}
+   {:e #blake3 "1880d24645661268a0915813c615dd1cee2e2051c1a9005d7b6079372b2e20ff" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "1880d24645661268a0915813c615dd1cee2e2051c1a9005d7b6079372b2e20ff" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "1c02944d61a14ff1b40c06bd4d7009f619c4c03940c90fcf192f91d02c7eb8e7" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "1c02944d61a14ff1b40c06bd4d7009f619c4c03940c90fcf192f91d02c7eb8e7" :a :db/doc :v "Origin of the task (e.g., beads:brai-114c, manual, harvest)" :op :assert}
+   {:e #blake3 "1c02944d61a14ff1b40c06bd4d7009f619c4c03940c90fcf192f91d02c7eb8e7" :a :db/ident :v :task/source :op :assert}
+   {:e #blake3 "1c02944d61a14ff1b40c06bd4d7009f619c4c03940c90fcf192f91d02c7eb8e7" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "1c02944d61a14ff1b40c06bd4d7009f619c4c03940c90fcf192f91d02c7eb8e7" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "1c900eb4fdb22bd1f6597104d4e758830c734857067a0b4640d5ecbdb6197b6d" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "1c900eb4fdb22bd1f6597104d4e758830c734857067a0b4640d5ecbdb6197b6d" :a :db/doc :v "Unix milliseconds when the recommendation was made" :op :assert}
+   {:e #blake3 "1c900eb4fdb22bd1f6597104d4e758830c734857067a0b4640d5ecbdb6197b6d" :a :db/ident :v :action/timestamp :op :assert}
+   {:e #blake3 "1c900eb4fdb22bd1f6597104d4e758830c734857067a0b4640d5ecbdb6197b6d" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "1c900eb4fdb22bd1f6597104d4e758830c734857067a0b4640d5ecbdb6197b6d" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "23cfc1ae4119d8240d80ff009a981529bb8bc6043dc07b3d029f5b2074ec85e5" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "23cfc1ae4119d8240d80ff009a981529bb8bc6043dc07b3d029f5b2074ec85e5" :a :db/doc :v "Short task ID (e.g., t-aB3c)" :op :assert}
+   {:e #blake3 "23cfc1ae4119d8240d80ff009a981529bb8bc6043dc07b3d029f5b2074ec85e5" :a :db/ident :v :task/id :op :assert}
+   {:e #blake3 "23cfc1ae4119d8240d80ff009a981529bb8bc6043dc07b3d029f5b2074ec85e5" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "23cfc1ae4119d8240d80ff009a981529bb8bc6043dc07b3d029f5b2074ec85e5" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "243507748467ff68ee0b57c12923c791e622de6d5d0199aefa94b7e4f041eb13" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "243507748467ff68ee0b57c12923c791e622de6d5d0199aefa94b7e4f041eb13" :a :db/doc :v "Highest verification depth achieved across all :impl entities for this spec element" :op :assert}
+   {:e #blake3 "243507748467ff68ee0b57c12923c791e622de6d5d0199aefa94b7e4f041eb13" :a :db/ident :v :spec/verification-depth :op :assert}
+   {:e #blake3 "243507748467ff68ee0b57c12923c791e622de6d5d0199aefa94b7e4f041eb13" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "243507748467ff68ee0b57c12923c791e622de6d5d0199aefa94b7e4f041eb13" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "26279e4e2a8d6379231bb44303522dde6d5610eb336db60dad036922951423de" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "26279e4e2a8d6379231bb44303522dde6d5610eb336db60dad036922951423de" :a :db/doc :v "Session lifecycle status: :session.status/active, :session.status/closed" :op :assert}
+   {:e #blake3 "26279e4e2a8d6379231bb44303522dde6d5610eb336db60dad036922951423de" :a :db/ident :v :session/status :op :assert}
+   {:e #blake3 "26279e4e2a8d6379231bb44303522dde6d5610eb336db60dad036922951423de" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "26279e4e2a8d6379231bb44303522dde6d5610eb336db60dad036922951423de" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "27863aa6610cc3172929f9fe970968d8ef9119e99eed6fbe4342b523fa3a0fc8" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "27863aa6610cc3172929f9fe970968d8ef9119e99eed6fbe4342b523fa3a0fc8" :a :db/doc :v "BLAKE3 hash of the falsification condition text" :op :assert}
+   {:e #blake3 "27863aa6610cc3172929f9fe970968d8ef9119e99eed6fbe4342b523fa3a0fc8" :a :db/ident :v :witness/falsification-hash :op :assert}
+   {:e #blake3 "27863aa6610cc3172929f9fe970968d8ef9119e99eed6fbe4342b523fa3a0fc8" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "27863aa6610cc3172929f9fe970968d8ef9119e99eed6fbe4342b523fa3a0fc8" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "285bd4fe112d0598e21d2bfb28bf0f76f91e71dea1cd4b934b74fa8fbb2ca4b7" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "285bd4fe112d0598e21d2bfb28bf0f76f91e71dea1cd4b934b74fa8fbb2ca4b7" :a :db/doc :v "The resolved winning value (serialized as JSON string for auditability)" :op :assert}
+   {:e #blake3 "285bd4fe112d0598e21d2bfb28bf0f76f91e71dea1cd4b934b74fa8fbb2ca4b7" :a :db/ident :v :resolution/winner :op :assert}
+   {:e #blake3 "285bd4fe112d0598e21d2bfb28bf0f76f91e71dea1cd4b934b74fa8fbb2ca4b7" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "285bd4fe112d0598e21d2bfb28bf0f76f91e71dea1cd4b934b74fa8fbb2ca4b7" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "289767a1a8bfddc625ce65b5e4ada0553c876b3efe03b9b9a9d32b7a9f601fc2" :a :db/cardinality :v :db.cardinality/many :op :assert}
+   {:e #blake3 "289767a1a8bfddc625ce65b5e4ada0553c876b3efe03b9b9a9d32b7a9f601fc2" :a :db/doc :v "Dependency edges to other task entities (must form a DAG, INV-TASK-002)" :op :assert}
+   {:e #blake3 "289767a1a8bfddc625ce65b5e4ada0553c876b3efe03b9b9a9d32b7a9f601fc2" :a :db/ident :v :task/depends-on :op :assert}
+   {:e #blake3 "289767a1a8bfddc625ce65b5e4ada0553c876b3efe03b9b9a9d32b7a9f601fc2" :a :db/resolutionMode :v :resolution/multi :op :assert}
+   {:e #blake3 "289767a1a8bfddc625ce65b5e4ada0553c876b3efe03b9b9a9d32b7a9f601fc2" :a :db/valueType :v :db.type/ref :op :assert}
+   {:e #blake3 "2980dc4eda1b2f061b1da46d67bfd974379dbde46caff92c8af4dc5abb351a87" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "2980dc4eda1b2f061b1da46d67bfd974379dbde46caff92c8af4dc5abb351a87" :a :db/doc :v "Wall-clock time (unix seconds) of the last challenge against this witness" :op :assert}
+   {:e #blake3 "2980dc4eda1b2f061b1da46d67bfd974379dbde46caff92c8af4dc5abb351a87" :a :db/ident :v :witness/challenged-at :op :assert}
+   {:e #blake3 "2980dc4eda1b2f061b1da46d67bfd974379dbde46caff92c8af4dc5abb351a87" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "2980dc4eda1b2f061b1da46d67bfd974379dbde46caff92c8af4dc5abb351a87" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "2adda2c668cd1146142be3e917a826cd8b2fcb975b963c21bd2394b40dbfd29b" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "2adda2c668cd1146142be3e917a826cd8b2fcb975b963c21bd2394b40dbfd29b" :a :db/doc :v "Follow-through outcome: :action.outcome/followed, /adjacent, /ignored" :op :assert}
+   {:e #blake3 "2adda2c668cd1146142be3e917a826cd8b2fcb975b963c21bd2394b40dbfd29b" :a :db/ident :v :action/outcome :op :assert}
+   {:e #blake3 "2adda2c668cd1146142be3e917a826cd8b2fcb975b963c21bd2394b40dbfd29b" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "2adda2c668cd1146142be3e917a826cd8b2fcb975b963c21bd2394b40dbfd29b" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "2b2301c358225c7d76537bc0fddf34bd1046eed4ae7a54eb6bdadcda199444d2" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "2b2301c358225c7d76537bc0fddf34bd1046eed4ae7a54eb6bdadcda199444d2" :a :db/doc :v "Parallelizability coefficient p = r_eff / n" :op :assert}
+   {:e #blake3 "2b2301c358225c7d76537bc0fddf34bd1046eed4ae7a54eb6bdadcda199444d2" :a :db/ident :v :topology/plan-parallelizability :op :assert}
+   {:e #blake3 "2b2301c358225c7d76537bc0fddf34bd1046eed4ae7a54eb6bdadcda199444d2" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "2b2301c358225c7d76537bc0fddf34bd1046eed4ae7a54eb6bdadcda199444d2" :a :db/valueType :v :db.type/double :op :assert}
+   {:e #blake3 "2b66c1ee04fe171a982e59bb5ae2e13ca562f9a2170496aa32a7bde7e39d2461" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "2b66c1ee04fe171a982e59bb5ae2e13ca562f9a2170496aa32a7bde7e39d2461" :a :db/doc :v "The braid command recommended by R(t) (e.g., 'braid go t-fd30')" :op :assert}
+   {:e #blake3 "2b66c1ee04fe171a982e59bb5ae2e13ca562f9a2170496aa32a7bde7e39d2461" :a :db/ident :v :action/recommended-command :op :assert}
+   {:e #blake3 "2b66c1ee04fe171a982e59bb5ae2e13ca562f9a2170496aa32a7bde7e39d2461" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "2b66c1ee04fe171a982e59bb5ae2e13ca562f9a2170496aa32a7bde7e39d2461" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "2e449b0f1e9fca27ef9481dc562084fb991c6c62ce4f75944e34f0f4469c8014" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "2e449b0f1e9fca27ef9481dc562084fb991c6c62ce4f75944e34f0f4469c8014" :a :db/doc :v "Keyword alignment score between test body and falsification condition [0,1]" :op :assert}
+   {:e #blake3 "2e449b0f1e9fca27ef9481dc562084fb991c6c62ce4f75944e34f0f4469c8014" :a :db/ident :v :witness/alignment-score :op :assert}
+   {:e #blake3 "2e449b0f1e9fca27ef9481dc562084fb991c6c62ce4f75944e34f0f4469c8014" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "2e449b0f1e9fca27ef9481dc562084fb991c6c62ce4f75944e34f0f4469c8014" :a :db/valueType :v :db.type/double :op :assert}
+   {:e #blake3 "2f5fb4129317cfc4727ac610074033183660c3ba269b05c38030b36451c65126" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "2f5fb4129317cfc4727ac610074033183660c3ba269b05c38030b36451c65126" :a :db/doc :v "Configuration scope: :config.scope/global, :config.scope/project, :config.scope/session" :op :assert}
+   {:e #blake3 "2f5fb4129317cfc4727ac610074033183660c3ba269b05c38030b36451c65126" :a :db/ident :v :config/scope :op :assert}
+   {:e #blake3 "2f5fb4129317cfc4727ac610074033183660c3ba269b05c38030b36451c65126" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "2f5fb4129317cfc4727ac610074033183660c3ba269b05c38030b36451c65126" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "327c8d591dbaf3f432c153feaccef8d773baac63afb1a6acb965307f1a377a89" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "327c8d591dbaf3f432c153feaccef8d773baac63afb1a6acb965307f1a377a89" :a :db/doc :v "Attestation evidence for task completion (human-readable description)" :op :assert}
+   {:e #blake3 "327c8d591dbaf3f432c153feaccef8d773baac63afb1a6acb965307f1a377a89" :a :db/ident :v :task/completion-evidence :op :assert}
+   {:e #blake3 "327c8d591dbaf3f432c153feaccef8d773baac63afb1a6acb965307f1a377a89" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "327c8d591dbaf3f432c153feaccef8d773baac63afb1a6acb965307f1a377a89" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "33b59411d7b137f9eee33e537694a651c70bdaca71eb41cdee82a77fc9a755fd" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "33b59411d7b137f9eee33e537694a651c70bdaca71eb41cdee82a77fc9a755fd" :a :db/doc :v "Topology pattern: :topology.pattern/mesh, /star, /hybrid, /solo, /pipeline" :op :assert}
+   {:e #blake3 "33b59411d7b137f9eee33e537694a651c70bdaca71eb41cdee82a77fc9a755fd" :a :db/ident :v :topology/plan-pattern :op :assert}
+   {:e #blake3 "33b59411d7b137f9eee33e537694a651c70bdaca71eb41cdee82a77fc9a755fd" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "33b59411d7b137f9eee33e537694a651c70bdaca71eb41cdee82a77fc9a755fd" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "33dd24ca3fd2d39813b4bf0d02db4a8a47f41bde3418e7f05b4a32fac12c40a4" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "33dd24ca3fd2d39813b4bf0d02db4a8a47f41bde3418e7f05b4a32fac12c40a4" :a :db/doc :v "Reference to the entity that had the conflict" :op :assert}
+   {:e #blake3 "33dd24ca3fd2d39813b4bf0d02db4a8a47f41bde3418e7f05b4a32fac12c40a4" :a :db/ident :v :resolution/entity :op :assert}
+   {:e #blake3 "33dd24ca3fd2d39813b4bf0d02db4a8a47f41bde3418e7f05b4a32fac12c40a4" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "33dd24ca3fd2d39813b4bf0d02db4a8a47f41bde3418e7f05b4a32fac12c40a4" :a :db/valueType :v :db.type/ref :op :assert}
+   {:e #blake3 "34cd865ec04764da4e32dfb608a3a4deba670990f642992054ae667093cee3a8" :a :db/cardinality :v :db.cardinality/many :op :assert}
+   {:e #blake3 "34cd865ec04764da4e32dfb608a3a4deba670990f642992054ae667093cee3a8" :a :db/doc :v "Categorical labels for filtering and grouping" :op :assert}
+   {:e #blake3 "34cd865ec04764da4e32dfb608a3a4deba670990f642992054ae667093cee3a8" :a :db/ident :v :task/labels :op :assert}
+   {:e #blake3 "34cd865ec04764da4e32dfb608a3a4deba670990f642992054ae667093cee3a8" :a :db/resolutionMode :v :resolution/multi :op :assert}
+   {:e #blake3 "34cd865ec04764da4e32dfb608a3a4deba670990f642992054ae667093cee3a8" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "35d6f1702466caef0708b03f1c151b288bb10c90e0f1fb358aae6f3b19921335" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "35d6f1702466caef0708b03f1c151b288bb10c90e0f1fb358aae6f3b19921335" :a :db/doc :v "Whether this reconciliation source is currently active" :op :assert}
+   {:e #blake3 "35d6f1702466caef0708b03f1c151b288bb10c90e0f1fb358aae6f3b19921335" :a :db/ident :v :recon-source/active :op :assert}
+   {:e #blake3 "35d6f1702466caef0708b03f1c151b288bb10c90e0f1fb358aae6f3b19921335" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "35d6f1702466caef0708b03f1c151b288bb10c90e0f1fb358aae6f3b19921335" :a :db/valueType :v :db.type/boolean :op :assert}
+   {:e #blake3 "3976a61012476753cc10c1d7323d9209a79961c3fcac8d7de2fad78be8028eee" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "3976a61012476753cc10c1d7323d9209a79961c3fcac8d7de2fad78be8028eee" :a :db/doc :v "Invalidation marker: :witness.invalidated/true when witness is no longer valid, absent otherwise" :op :assert}
+   {:e #blake3 "3976a61012476753cc10c1d7323d9209a79961c3fcac8d7de2fad78be8028eee" :a :db/ident :v :witness/invalidated :op :assert}
+   {:e #blake3 "3976a61012476753cc10c1d7323d9209a79961c3fcac8d7de2fad78be8028eee" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "3976a61012476753cc10c1d7323d9209a79961c3fcac8d7de2fad78be8028eee" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "3adba3124d10efc0a6fd7f75bbc8791461d222aa318601b03bf0569ca6623249" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "3adba3124d10efc0a6fd7f75bbc8791461d222aa318601b03bf0569ca6623249" :a :db/doc :v "F(T) topology fitness score — weighted sum of 7 dimensions" :op :assert}
+   {:e #blake3 "3adba3124d10efc0a6fd7f75bbc8791461d222aa318601b03bf0569ca6623249" :a :db/ident :v :topology/fitness-total :op :assert}
+   {:e #blake3 "3adba3124d10efc0a6fd7f75bbc8791461d222aa318601b03bf0569ca6623249" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "3adba3124d10efc0a6fd7f75bbc8791461d222aa318601b03bf0569ca6623249" :a :db/valueType :v :db.type/double :op :assert}
+   {:e #blake3 "3caf648cd52a19ace8aa67f50df979c54b47cd04ee4f12a22758e578eb852ca6" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "3caf648cd52a19ace8aa67f50df979c54b47cd04ee4f12a22758e578eb852ca6" :a :db/doc :v "Human-readable task title (L3 — full detail for Demonstrate strategy)" :op :assert}
+   {:e #blake3 "3caf648cd52a19ace8aa67f50df979c54b47cd04ee4f12a22758e578eb852ca6" :a :db/ident :v :task/title :op :assert}
+   {:e #blake3 "3caf648cd52a19ace8aa67f50df979c54b47cd04ee4f12a22758e578eb852ca6" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "3caf648cd52a19ace8aa67f50df979c54b47cd04ee4f12a22758e578eb852ca6" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "416dfdd3236bd1a7c01eeeaa9ce0229275d036ac1c9e78df39bdfc69903ee826" :a :db/cardinality :v :db.cardinality/many :op :assert}
+   {:e #blake3 "416dfdd3236bd1a7c01eeeaa9ce0229275d036ac1c9e78df39bdfc69903ee826" :a :db/doc :v "Spec ref IDs found in command output (e.g., INV-STORE-001, ADR-MERGE-005)" :op :assert}
+   {:e #blake3 "416dfdd3236bd1a7c01eeeaa9ce0229275d036ac1c9e78df39bdfc69903ee826" :a :db/ident :v :recon/trace-refs :op :assert}
+   {:e #blake3 "416dfdd3236bd1a7c01eeeaa9ce0229275d036ac1c9e78df39bdfc69903ee826" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "416dfdd3236bd1a7c01eeeaa9ce0229275d036ac1c9e78df39bdfc69903ee826" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "460c6b09e7ba52efca3747af7084c8dd4ff8965d7de880d5c9c627e9b9ff5c90" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "460c6b09e7ba52efca3747af7084c8dd4ff8965d7de880d5c9c627e9b9ff5c90" :a :db/doc :v "Entity ident of the recommended task (e.g., ':task/t-fd30')" :op :assert}
+   {:e #blake3 "460c6b09e7ba52efca3747af7084c8dd4ff8965d7de880d5c9c627e9b9ff5c90" :a :db/ident :v :action/recommended-entity :op :assert}
+   {:e #blake3 "460c6b09e7ba52efca3747af7084c8dd4ff8965d7de880d5c9c627e9b9ff5c90" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "460c6b09e7ba52efca3747af7084c8dd4ff8965d7de880d5c9c627e9b9ff5c90" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "46a67a4554d7736424e60d62406627837a8c7637509e4af4457650a494922357" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "46a67a4554d7736424e60d62406627837a8c7637509e4af4457650a494922357" :a :db/doc :v "Path to the test file providing witness evidence" :op :assert}
+   {:e #blake3 "46a67a4554d7736424e60d62406627837a8c7637509e4af4457650a494922357" :a :db/ident :v :witness/test-file :op :assert}
+   {:e #blake3 "46a67a4554d7736424e60d62406627837a8c7637509e4af4457650a494922357" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "46a67a4554d7736424e60d62406627837a8c7637509e4af4457650a494922357" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "48526b919df5a10579346a0c8d7365f5104615424cffe29639488abf6b448d24" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "48526b919df5a10579346a0c8d7365f5104615424cffe29639488abf6b448d24" :a :db/doc :v "Wall-clock time (unix seconds) when the task was closed" :op :assert}
+   {:e #blake3 "48526b919df5a10579346a0c8d7365f5104615424cffe29639488abf6b448d24" :a :db/ident :v :task/closed-at :op :assert}
+   {:e #blake3 "48526b919df5a10579346a0c8d7365f5104615424cffe29639488abf6b448d24" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "48526b919df5a10579346a0c8d7365f5104615424cffe29639488abf6b448d24" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "48f5a92bd1923328a80e403c8ce1272f1b48e0598eb8ce839e88611f97276f6f" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "48f5a92bd1923328a80e403c8ce1272f1b48e0598eb8ce839e88611f97276f6f" :a :db/doc :v "How the task was verified complete: :task.completion/manual, :task.completion/incremental" :op :assert}
+   {:e #blake3 "48f5a92bd1923328a80e403c8ce1272f1b48e0598eb8ce839e88611f97276f6f" :a :db/ident :v :task/completion-method :op :assert}
+   {:e #blake3 "48f5a92bd1923328a80e403c8ce1272f1b48e0598eb8ce839e88611f97276f6f" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "48f5a92bd1923328a80e403c8ce1272f1b48e0598eb8ce839e88611f97276f6f" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "4c813bc8fe0d5f254509a186e1b61bf384b294866374aaa640d5e776b509cb1e" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "4c813bc8fe0d5f254509a186e1b61bf384b294866374aaa640d5e776b509cb1e" :a :db/doc :v "BACKGROUND section: rationale, context, prior art for this task" :op :assert}
+   {:e #blake3 "4c813bc8fe0d5f254509a186e1b61bf384b294866374aaa640d5e776b509cb1e" :a :db/ident :v :task/background :op :assert}
+   {:e #blake3 "4c813bc8fe0d5f254509a186e1b61bf384b294866374aaa640d5e776b509cb1e" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "4c813bc8fe0d5f254509a186e1b61bf384b294866374aaa640d5e776b509cb1e" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "509b23c5bdb51eea71664a3903fc651da609cd233f6b0c94cfc1d7469280f86f" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "509b23c5bdb51eea71664a3903fc651da609cd233f6b0c94cfc1d7469280f86f" :a :db/doc :v "ISO 8601 wall-clock time when the session auto-started (e.g., 2026-03-20T14:30:00Z)" :op :assert}
+   {:e #blake3 "509b23c5bdb51eea71664a3903fc651da609cd233f6b0c94cfc1d7469280f86f" :a :db/ident :v :session/start-time :op :assert}
+   {:e #blake3 "509b23c5bdb51eea71664a3903fc651da609cd233f6b0c94cfc1d7469280f86f" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "509b23c5bdb51eea71664a3903fc651da609cd233f6b0c94cfc1d7469280f86f" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "5ae95eceb68b9df431d2fd0209a950a847d929a727e7d5a59da7255ee92c3279" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "5ae95eceb68b9df431d2fd0209a950a847d929a727e7d5a59da7255ee92c3279" :a :db/doc :v "Author of the comment" :op :assert}
+   {:e #blake3 "5ae95eceb68b9df431d2fd0209a950a847d929a727e7d5a59da7255ee92c3279" :a :db/ident :v :comment/author :op :assert}
+   {:e #blake3 "5ae95eceb68b9df431d2fd0209a950a847d929a727e7d5a59da7255ee92c3279" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "5ae95eceb68b9df431d2fd0209a950a847d929a727e7d5a59da7255ee92c3279" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "5c1f4f75eca7b74d333180ef0ea15c67d3c3f7ceacda27bf773c860f676d02a1" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "5c1f4f75eca7b74d333180ef0ea15c67d3c3f7ceacda27bf773c860f676d02a1" :a :db/doc :v "What this config key controls" :op :assert}
+   {:e #blake3 "5c1f4f75eca7b74d333180ef0ea15c67d3c3f7ceacda27bf773c860f676d02a1" :a :db/ident :v :config/description :op :assert}
+   {:e #blake3 "5c1f4f75eca7b74d333180ef0ea15c67d3c3f7ceacda27bf773c860f676d02a1" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "5c1f4f75eca7b74d333180ef0ea15c67d3c3f7ceacda27bf773c860f676d02a1" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "5f7935a6fd877a30df428ebaf326cdd41bc3ff33667d9561deced0e78ebd45bf" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "5f7935a6fd877a30df428ebaf326cdd41bc3ff33667d9561deced0e78ebd45bf" :a :db/doc :v "Priority level: 0=critical, 1=high, 2=medium, 3=low, 4=backlog" :op :assert}
+   {:e #blake3 "5f7935a6fd877a30df428ebaf326cdd41bc3ff33667d9561deced0e78ebd45bf" :a :db/ident :v :task/priority :op :assert}
+   {:e #blake3 "5f7935a6fd877a30df428ebaf326cdd41bc3ff33667d9561deced0e78ebd45bf" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "5f7935a6fd877a30df428ebaf326cdd41bc3ff33667d9561deced0e78ebd45bf" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "5fbdb8d7efc4143edf8bd0b05a02836610c86b39ea973bf6f1b4a72accc0dca7" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "5fbdb8d7efc4143edf8bd0b05a02836610c86b39ea973bf6f1b4a72accc0dca7" :a :db/doc :v "Current witness status: :witness.status/valid, :witness.status/stale, :witness.status/pending" :op :assert}
+   {:e #blake3 "5fbdb8d7efc4143edf8bd0b05a02836610c86b39ea973bf6f1b4a72accc0dca7" :a :db/ident :v :witness/status :op :assert}
+   {:e #blake3 "5fbdb8d7efc4143edf8bd0b05a02836610c86b39ea973bf6f1b4a72accc0dca7" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "5fbdb8d7efc4143edf8bd0b05a02836610c86b39ea973bf6f1b4a72accc0dca7" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "65eb08177edfeed305560f52ff8cba69347d12a0f5ea094ae3fa1865aa1d0442" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "65eb08177edfeed305560f52ff8cba69347d12a0f5ea094ae3fa1865aa1d0442" :a :db/doc :v "Configuration value (string-encoded)" :op :assert}
+   {:e #blake3 "65eb08177edfeed305560f52ff8cba69347d12a0f5ea094ae3fa1865aa1d0442" :a :db/ident :v :config/value :op :assert}
+   {:e #blake3 "65eb08177edfeed305560f52ff8cba69347d12a0f5ea094ae3fa1865aa1d0442" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "65eb08177edfeed305560f52ff8cba69347d12a0f5ea094ae3fa1865aa1d0442" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "6bdf80e059841f038e3ece96ce1d9f05be2cc556e5a5c0d398f14d05d0d9c922" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "6bdf80e059841f038e3ece96ce1d9f05be2cc556e5a5c0d398f14d05d0d9c922" :a :db/doc :v "JSON-encoded details of a topology coordination event" :op :assert}
+   {:e #blake3 "6bdf80e059841f038e3ece96ce1d9f05be2cc556e5a5c0d398f14d05d0d9c922" :a :db/ident :v :topology/event-details :op :assert}
+   {:e #blake3 "6bdf80e059841f038e3ece96ce1d9f05be2cc556e5a5c0d398f14d05d0d9c922" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "6bdf80e059841f038e3ece96ce1d9f05be2cc556e5a5c0d398f14d05d0d9c922" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "6fffcb6a1b1bf06ad265cde0224379bbf7706ce112280a89e628d1808eb3c6bb" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "6fffcb6a1b1bf06ad265cde0224379bbf7706ce112280a89e628d1808eb3c6bb" :a :db/doc :v "Why the task was closed" :op :assert}
+   {:e #blake3 "6fffcb6a1b1bf06ad265cde0224379bbf7706ce112280a89e628d1808eb3c6bb" :a :db/ident :v :task/close-reason :op :assert}
+   {:e #blake3 "6fffcb6a1b1bf06ad265cde0224379bbf7706ce112280a89e628d1808eb3c6bb" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "6fffcb6a1b1bf06ad265cde0224379bbf7706ce112280a89e628d1808eb3c6bb" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "7038699507de435c8213b8d04c50e2d95d4aef1327291e4c8b101e83f5e4daa8" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "7038699507de435c8213b8d04c50e2d95d4aef1327291e4c8b101e83f5e4daa8" :a :db/doc :v "Plan identifier" :op :assert}
+   {:e #blake3 "7038699507de435c8213b8d04c50e2d95d4aef1327291e4c8b101e83f5e4daa8" :a :db/ident :v :plan/id :op :assert}
+   {:e #blake3 "7038699507de435c8213b8d04c50e2d95d4aef1327291e4c8b101e83f5e4daa8" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "7038699507de435c8213b8d04c50e2d95d4aef1327291e4c8b101e83f5e4daa8" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "776fe27d458c81d52c10bd71fdd7bc2041de61da0b3a9d41d57cac07cf17dd30" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "776fe27d458c81d52c10bd71fdd7bc2041de61da0b3a9d41d57cac07cf17dd30" :a :db/doc :v "Output format: :recon-source.format/json or :recon-source.format/lines" :op :assert}
+   {:e #blake3 "776fe27d458c81d52c10bd71fdd7bc2041de61da0b3a9d41d57cac07cf17dd30" :a :db/ident :v :recon-source/format :op :assert}
+   {:e #blake3 "776fe27d458c81d52c10bd71fdd7bc2041de61da0b3a9d41d57cac07cf17dd30" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "776fe27d458c81d52c10bd71fdd7bc2041de61da0b3a9d41d57cac07cf17dd30" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "797d67320899a27e102da5af784ec20ce3926aaaabc915410d894e9a63e14c23" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "797d67320899a27e102da5af784ec20ce3926aaaabc915410d894e9a63e14c23" :a :db/doc :v "R(t) impact score of the recommended task (0.0-1.0)" :op :assert}
+   {:e #blake3 "797d67320899a27e102da5af784ec20ce3926aaaabc915410d894e9a63e14c23" :a :db/ident :v :action/recommended-impact :op :assert}
+   {:e #blake3 "797d67320899a27e102da5af784ec20ce3926aaaabc915410d894e9a63e14c23" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "797d67320899a27e102da5af784ec20ce3926aaaabc915410d894e9a63e14c23" :a :db/valueType :v :db.type/double :op :assert}
+   {:e #blake3 "7a23a9ff5070995e5b812c29659cb760d6adb249730878065e68a63dc1d79c69" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "7a23a9ff5070995e5b812c29659cb760d6adb249730878065e68a63dc1d79c69" :a :db/doc :v "The braid command the agent actually ran next" :op :assert}
+   {:e #blake3 "7a23a9ff5070995e5b812c29659cb760d6adb249730878065e68a63dc1d79c69" :a :db/ident :v :action/next-command :op :assert}
+   {:e #blake3 "7a23a9ff5070995e5b812c29659cb760d6adb249730878065e68a63dc1d79c69" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "7a23a9ff5070995e5b812c29659cb760d6adb249730878065e68a63dc1d79c69" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "7aa4503978e6ae75af41d0e456df0fbfbadc69af80af1de92814c0be8d052bf1" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "7aa4503978e6ae75af41d0e456df0fbfbadc69af80af1de92814c0be8d052bf1" :a :db/doc :v "Witness evidence level: 1=attestation, 2=test, 3=scan, 4=review" :op :assert}
+   {:e #blake3 "7aa4503978e6ae75af41d0e456df0fbfbadc69af80af1de92814c0be8d052bf1" :a :db/ident :v :witness/level :op :assert}
+   {:e #blake3 "7aa4503978e6ae75af41d0e456df0fbfbadc69af80af1de92814c0be8d052bf1" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "7aa4503978e6ae75af41d0e456df0fbfbadc69af80af1de92814c0be8d052bf1" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "8503c8ebd4b379594efdc1619baaa9f25787942c26524421c0d896d438ac823b" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "8503c8ebd4b379594efdc1619baaa9f25787942c26524421c0d896d438ac823b" :a :db/doc :v "Singleton marker pointing to the active session entity. Exactly one entity carries this attribute at any time." :op :assert}
+   {:e #blake3 "8503c8ebd4b379594efdc1619baaa9f25787942c26524421c0d896d438ac823b" :a :db/ident :v :session/current :op :assert}
+   {:e #blake3 "8503c8ebd4b379594efdc1619baaa9f25787942c26524421c0d896d438ac823b" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "8503c8ebd4b379594efdc1619baaa9f25787942c26524421c0d896d438ac823b" :a :db/valueType :v :db.type/ref :op :assert}
+   {:e #blake3 "85f921c4ecf8cecc7e04da6ed08150cfe05c518319c6a91e3eac39acc170e164" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "85f921c4ecf8cecc7e04da6ed08150cfe05c518319c6a91e3eac39acc170e164" :a :db/doc :v "Timeout in milliseconds for this reconciliation source invocation" :op :assert}
+   {:e #blake3 "85f921c4ecf8cecc7e04da6ed08150cfe05c518319c6a91e3eac39acc170e164" :a :db/ident :v :recon-source/timeout :op :assert}
+   {:e #blake3 "85f921c4ecf8cecc7e04da6ed08150cfe05c518319c6a91e3eac39acc170e164" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "85f921c4ecf8cecc7e04da6ed08150cfe05c518319c6a91e3eac39acc170e164" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "8619cdb8138de62029cfc367eb958b72fc3acee5861134875721a209a42bd6fb" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "8619cdb8138de62029cfc367eb958b72fc3acee5861134875721a209a42bd6fb" :a :db/doc :v "Human-readable explanation of why this resolution was chosen (INV-RESOLUTION-008 audit trail)" :op :assert}
+   {:e #blake3 "8619cdb8138de62029cfc367eb958b72fc3acee5861134875721a209a42bd6fb" :a :db/ident :v :resolution/rationale :op :assert}
+   {:e #blake3 "8619cdb8138de62029cfc367eb958b72fc3acee5861134875721a209a42bd6fb" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "8619cdb8138de62029cfc367eb958b72fc3acee5861134875721a209a42bd6fb" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "87d26596dc3567280da148244daaffc0ce112940db4eb63e033da0a74bd2fbd7" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "87d26596dc3567280da148244daaffc0ce112940db4eb63e033da0a74bd2fbd7" :a :db/doc :v "BLAKE3 hash of the test body that provides evidence" :op :assert}
+   {:e #blake3 "87d26596dc3567280da148244daaffc0ce112940db4eb63e033da0a74bd2fbd7" :a :db/ident :v :witness/test-body-hash :op :assert}
+   {:e #blake3 "87d26596dc3567280da148244daaffc0ce112940db4eb63e033da0a74bd2fbd7" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "87d26596dc3567280da148244daaffc0ce112940db4eb63e033da0a74bd2fbd7" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "887799f6a2444697f86735446976f098a64e5e99b0323b3fa525a34f9af4a7aa" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "887799f6a2444697f86735446976f098a64e5e99b0323b3fa525a34f9af4a7aa" :a :db/doc :v "Agent name assigned to this task by topology compilation" :op :assert}
+   {:e #blake3 "887799f6a2444697f86735446976f098a64e5e99b0323b3fa525a34f9af4a7aa" :a :db/ident :v :topology/assignment :op :assert}
+   {:e #blake3 "887799f6a2444697f86735446976f098a64e5e99b0323b3fa525a34f9af4a7aa" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "887799f6a2444697f86735446976f098a64e5e99b0323b3fa525a34f9af4a7aa" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "88c154c7fa4341ea85259b6369e0763d6f89171d9e9627e3ea8b69b9d281d65b" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "88c154c7fa4341ea85259b6369e0763d6f89171d9e9627e3ea8b69b9d281d65b" :a :db/doc :v "Full markdown content of the plan" :op :assert}
+   {:e #blake3 "88c154c7fa4341ea85259b6369e0763d6f89171d9e9627e3ea8b69b9d281d65b" :a :db/ident :v :plan/body :op :assert}
+   {:e #blake3 "88c154c7fa4341ea85259b6369e0763d6f89171d9e9627e3ea8b69b9d281d65b" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "88c154c7fa4341ea85259b6369e0763d6f89171d9e9627e3ea8b69b9d281d65b" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "8ef81532f1aed051ad58770a2844b314236e453a2bf16fa6478e8a2a6b56cbc4" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "8ef81532f1aed051ad58770a2844b314236e453a2bf16fa6478e8a2a6b56cbc4" :a :db/doc :v "Configuration key name (e.g., output.default-mode)" :op :assert}
+   {:e #blake3 "8ef81532f1aed051ad58770a2844b314236e453a2bf16fa6478e8a2a6b56cbc4" :a :db/ident :v :config/key :op :assert}
+   {:e #blake3 "8ef81532f1aed051ad58770a2844b314236e453a2bf16fa6478e8a2a6b56cbc4" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "8ef81532f1aed051ad58770a2844b314236e453a2bf16fa6478e8a2a6b56cbc4" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "980c19ce06d921fa8b21c14dfaa498e290ac27252fa53f6583ba0ed7b534fc82" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "980c19ce06d921fa8b21c14dfaa498e290ac27252fa53f6583ba0ed7b534fc82" :a :db/doc :v "Back-reference to the task entity this comment belongs to" :op :assert}
+   {:e #blake3 "980c19ce06d921fa8b21c14dfaa498e290ac27252fa53f6583ba0ed7b534fc82" :a :db/ident :v :comment/task :op :assert}
+   {:e #blake3 "980c19ce06d921fa8b21c14dfaa498e290ac27252fa53f6583ba0ed7b534fc82" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "980c19ce06d921fa8b21c14dfaa498e290ac27252fa53f6583ba0ed7b534fc82" :a :db/valueType :v :db.type/ref :op :assert}
+   {:e #blake3 "9e5650d63c5c6729839fb6100e635354160006a7c6a7f2c3b5f173e239ccaa41" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "9e5650d63c5c6729839fb6100e635354160006a7c6a7f2c3b5f173e239ccaa41" :a :db/doc :v "Command name that produced this trace (e.g., observe, task, spec)" :op :assert}
+   {:e #blake3 "9e5650d63c5c6729839fb6100e635354160006a7c6a7f2c3b5f173e239ccaa41" :a :db/ident :v :recon/trace-command :op :assert}
+   {:e #blake3 "9e5650d63c5c6729839fb6100e635354160006a7c6a7f2c3b5f173e239ccaa41" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "9e5650d63c5c6729839fb6100e635354160006a7c6a7f2c3b5f173e239ccaa41" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "9f5a03b2ae80e7463526cd8950c4fd33c8e303b549eaab42335ba943604280c8" :a :db/cardinality :v :db.cardinality/many :op :assert}
+   {:e #blake3 "9f5a03b2ae80e7463526cd8950c4fd33c8e303b549eaab42335ba943604280c8" :a :db/doc :v "Entity idents of related entities from spec-graph traversal" :op :assert}
+   {:e #blake3 "9f5a03b2ae80e7463526cd8950c4fd33c8e303b549eaab42335ba943604280c8" :a :db/ident :v :recon/trace-neighbors :op :assert}
+   {:e #blake3 "9f5a03b2ae80e7463526cd8950c4fd33c8e303b549eaab42335ba943604280c8" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "9f5a03b2ae80e7463526cd8950c4fd33c8e303b549eaab42335ba943604280c8" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "a2de5460c99dc6f03fa51350412e167bfdf38717cd8c0ca61d80332c133da380" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "a2de5460c99dc6f03fa51350412e167bfdf38717cd8c0ca61d80332c133da380" :a :db/doc :v "Reference to the spec element entity this witness covers" :op :assert}
+   {:e #blake3 "a2de5460c99dc6f03fa51350412e167bfdf38717cd8c0ca61d80332c133da380" :a :db/ident :v :witness/traces-to :op :assert}
+   {:e #blake3 "a2de5460c99dc6f03fa51350412e167bfdf38717cd8c0ca61d80332c133da380" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "a2de5460c99dc6f03fa51350412e167bfdf38717cd8c0ca61d80332c133da380" :a :db/valueType :v :db.type/ref :op :assert}
+   {:e #blake3 "a30f77c55dc86406ca30a32d9f3bae5fd3fc16363034a51e4e54c8d95911c6dd" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "a30f77c55dc86406ca30a32d9f3bae5fd3fc16363034a51e4e54c8d95911c6dd" :a :db/doc :v "BLAKE3 hash of the spec element statement text" :op :assert}
+   {:e #blake3 "a30f77c55dc86406ca30a32d9f3bae5fd3fc16363034a51e4e54c8d95911c6dd" :a :db/ident :v :witness/spec-hash :op :assert}
+   {:e #blake3 "a30f77c55dc86406ca30a32d9f3bae5fd3fc16363034a51e4e54c8d95911c6dd" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "a30f77c55dc86406ca30a32d9f3bae5fd3fc16363034a51e4e54c8d95911c6dd" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "ac76c76ad8ff2c4772cfca27f49fd5bbaf05535432a5589228d88c6c6b791b07" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "ac76c76ad8ff2c4772cfca27f49fd5bbaf05535432a5589228d88c6c6b791b07" :a :db/doc :v "Agent identity that created or last verified this witness" :op :assert}
+   {:e #blake3 "ac76c76ad8ff2c4772cfca27f49fd5bbaf05535432a5589228d88c6c6b791b07" :a :db/ident :v :witness/agent :op :assert}
+   {:e #blake3 "ac76c76ad8ff2c4772cfca27f49fd5bbaf05535432a5589228d88c6c6b791b07" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "ac76c76ad8ff2c4772cfca27f49fd5bbaf05535432a5589228d88c6c6b791b07" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "af2660f2ca436b7387cf515d68851a11b9ba64de8bd0302df2347dbb6d10717e" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "af2660f2ca436b7387cf515d68851a11b9ba64de8bd0302df2347dbb6d10717e" :a :db/doc :v "F(S) fitness score at session start — enables delta tracking across session" :op :assert}
+   {:e #blake3 "af2660f2ca436b7387cf515d68851a11b9ba64de8bd0302df2347dbb6d10717e" :a :db/ident :v :session/start-fitness :op :assert}
+   {:e #blake3 "af2660f2ca436b7387cf515d68851a11b9ba64de8bd0302df2347dbb6d10717e" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "af2660f2ca436b7387cf515d68851a11b9ba64de8bd0302df2347dbb6d10717e" :a :db/valueType :v :db.type/double :op :assert}
+   {:e #blake3 "af56bd813b11675bf8348e37b4432c31dcbdfb0cc8facc7431b47b1b21bef8a0" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "af56bd813b11675bf8348e37b4432c31dcbdfb0cc8facc7431b47b1b21bef8a0" :a :db/doc :v "Unix epoch seconds of the most recent trace scan. Stored on :system/trace-clock entity. Used by check_staleness to detect files modified since last scan." :op :assert}
+   {:e #blake3 "af56bd813b11675bf8348e37b4432c31dcbdfb0cc8facc7431b47b1b21bef8a0" :a :db/ident :v :trace/last-scan-mtime :op :assert}
+   {:e #blake3 "af56bd813b11675bf8348e37b4432c31dcbdfb0cc8facc7431b47b1b21bef8a0" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "af56bd813b11675bf8348e37b4432c31dcbdfb0cc8facc7431b47b1b21bef8a0" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "b76df65fdc9eac7efbe3fd58f90cd7fd277b1c262e441ffd288373f967232b22" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "b76df65fdc9eac7efbe3fd58f90cd7fd277b1c262e441ffd288373f967232b22" :a :db/doc :v "Wall-clock time (unix seconds) when the session started" :op :assert}
+   {:e #blake3 "b76df65fdc9eac7efbe3fd58f90cd7fd277b1c262e441ffd288373f967232b22" :a :db/ident :v :session/started-at :op :assert}
+   {:e #blake3 "b76df65fdc9eac7efbe3fd58f90cd7fd277b1c262e441ffd288373f967232b22" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "b76df65fdc9eac7efbe3fd58f90cd7fd277b1c262e441ffd288373f967232b22" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "bca4ede6a7aec9ec6d2dd56bb2f53a6b01f85a90d67aafb742aac2e5da73930a" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "bca4ede6a7aec9ec6d2dd56bb2f53a6b01f85a90d67aafb742aac2e5da73930a" :a :db/doc :v "Coupling entropy S(rho_C) of the topology plan" :op :assert}
+   {:e #blake3 "bca4ede6a7aec9ec6d2dd56bb2f53a6b01f85a90d67aafb742aac2e5da73930a" :a :db/ident :v :topology/plan-entropy :op :assert}
+   {:e #blake3 "bca4ede6a7aec9ec6d2dd56bb2f53a6b01f85a90d67aafb742aac2e5da73930a" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "bca4ede6a7aec9ec6d2dd56bb2f53a6b01f85a90d67aafb742aac2e5da73930a" :a :db/valueType :v :db.type/double :op :assert}
+   {:e #blake3 "bfececec2fbc00f6e0f16845f1ef0abc943bb220461552310ec94356d8485ae9" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "bfececec2fbc00f6e0f16845f1ef0abc943bb220461552310ec94356d8485ae9" :a :db/doc :v "Comment text content" :op :assert}
+   {:e #blake3 "bfececec2fbc00f6e0f16845f1ef0abc943bb220461552310ec94356d8485ae9" :a :db/ident :v :comment/body :op :assert}
+   {:e #blake3 "bfececec2fbc00f6e0f16845f1ef0abc943bb220461552310ec94356d8485ae9" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "bfececec2fbc00f6e0f16845f1ef0abc943bb220461552310ec94356d8485ae9" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "c52fb5d9d5bf47ceca5956a05bc04af5f05a53e3d0b30cabdf60caf609358be0" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "c52fb5d9d5bf47ceca5956a05bc04af5f05a53e3d0b30cabdf60caf609358be0" :a :db/doc :v "Ultra-short title (~4 words, ≤25 chars) for Imperative/Signal ACP strategy" :op :assert}
+   {:e #blake3 "c52fb5d9d5bf47ceca5956a05bc04af5f05a53e3d0b30cabdf60caf609358be0" :a :db/ident :v :task/title-l0 :op :assert}
+   {:e #blake3 "c52fb5d9d5bf47ceca5956a05bc04af5f05a53e3d0b30cabdf60caf609358be0" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "c52fb5d9d5bf47ceca5956a05bc04af5f05a53e3d0b30cabdf60caf609358be0" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "c6cf8d6d13abd068f59c234b36df8fad467fba3d2d9dc407c3c3c1520881ee6c" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "c6cf8d6d13abd068f59c234b36df8fad467fba3d2d9dc407c3c3c1520881ee6c" :a :db/doc :v "Wall-clock time (unix seconds) when the task was created" :op :assert}
+   {:e #blake3 "c6cf8d6d13abd068f59c234b36df8fad467fba3d2d9dc407c3c3c1520881ee6c" :a :db/ident :v :task/created-at :op :assert}
+   {:e #blake3 "c6cf8d6d13abd068f59c234b36df8fad467fba3d2d9dc407c3c3c1520881ee6c" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "c6cf8d6d13abd068f59c234b36df8fad467fba3d2d9dc407c3c3c1520881ee6c" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "c95f80f7136befa5c41d3188f8c5fb37bfe7155a09e722efc7d5e0661eabff70" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "c95f80f7136befa5c41d3188f8c5fb37bfe7155a09e722efc7d5e0661eabff70" :a :db/doc :v "Milliseconds between recommendation and next command" :op :assert}
+   {:e #blake3 "c95f80f7136befa5c41d3188f8c5fb37bfe7155a09e722efc7d5e0661eabff70" :a :db/ident :v :action/latency-ms :op :assert}
+   {:e #blake3 "c95f80f7136befa5c41d3188f8c5fb37bfe7155a09e722efc7d5e0661eabff70" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "c95f80f7136befa5c41d3188f8c5fb37bfe7155a09e722efc7d5e0661eabff70" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "c97ce78070fdc58b28bb0c03f236ad10ec4b918a6975cc330d0d55a65f6f93f7" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "c97ce78070fdc58b28bb0c03f236ad10ec4b918a6975cc330d0d55a65f6f93f7" :a :db/doc :v "APPROACH section: implementation plan, step-by-step strategy" :op :assert}
+   {:e #blake3 "c97ce78070fdc58b28bb0c03f236ad10ec4b918a6975cc330d0d55a65f6f93f7" :a :db/ident :v :task/approach :op :assert}
+   {:e #blake3 "c97ce78070fdc58b28bb0c03f236ad10ec4b918a6975cc330d0d55a65f6f93f7" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "c97ce78070fdc58b28bb0c03f236ad10ec4b918a6975cc330d0d55a65f6f93f7" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "cca2b457f5b7d87f686eb062943a07c5a05c5aa61f6a3481e28891d226015fcc" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "cca2b457f5b7d87f686eb062943a07c5a05c5aa61f6a3481e28891d226015fcc" :a :db/doc :v "Plan name" :op :assert}
+   {:e #blake3 "cca2b457f5b7d87f686eb062943a07c5a05c5aa61f6a3481e28891d226015fcc" :a :db/ident :v :plan/title :op :assert}
+   {:e #blake3 "cca2b457f5b7d87f686eb062943a07c5a05c5aa61f6a3481e28891d226015fcc" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "cca2b457f5b7d87f686eb062943a07c5a05c5aa61f6a3481e28891d226015fcc" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "d0dec8da95627680136422a87fdbccad6330aa1003ecb18e783d07c8922c783e" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "d0dec8da95627680136422a87fdbccad6330aa1003ecb18e783d07c8922c783e" :a :db/doc :v "Total datom count at session start — enables growth tracking across session" :op :assert}
+   {:e #blake3 "d0dec8da95627680136422a87fdbccad6330aa1003ecb18e783d07c8922c783e" :a :db/ident :v :session/start-datom-count :op :assert}
+   {:e #blake3 "d0dec8da95627680136422a87fdbccad6330aa1003ecb18e783d07c8922c783e" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "d0dec8da95627680136422a87fdbccad6330aa1003ecb18e783d07c8922c783e" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "d1db17aab55b568e5cc7dadbd54b0f7de66a1e59726d71ce5faba4e2c18857ad" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "d1db17aab55b568e5cc7dadbd54b0f7de66a1e59726d71ce5faba4e2c18857ad" :a :db/doc :v "Agent identity that produced this topology event" :op :assert}
+   {:e #blake3 "d1db17aab55b568e5cc7dadbd54b0f7de66a1e59726d71ce5faba4e2c18857ad" :a :db/ident :v :topology/event-agent :op :assert}
+   {:e #blake3 "d1db17aab55b568e5cc7dadbd54b0f7de66a1e59726d71ce5faba4e2c18857ad" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "d1db17aab55b568e5cc7dadbd54b0f7de66a1e59726d71ce5faba4e2c18857ad" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "d301676a633a75c94bc15a343be73451b0f233a6b2b4b3238022534234e67c00" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "d301676a633a75c94bc15a343be73451b0f233a6b2b4b3238022534234e67c00" :a :db/doc :v "Whether this transaction passed CRB reconciliation check (true = agent acknowledged related spec)" :op :assert}
+   {:e #blake3 "d301676a633a75c94bc15a343be73451b0f233a6b2b4b3238022534234e67c00" :a :db/ident :v :tx/reconciled :op :assert}
+   {:e #blake3 "d301676a633a75c94bc15a343be73451b0f233a6b2b4b3238022534234e67c00" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "d301676a633a75c94bc15a343be73451b0f233a6b2b4b3238022534234e67c00" :a :db/valueType :v :db.type/boolean :op :assert}
+   {:e #blake3 "d7e552aa31742db0f055161731e24b6f55bc6d3f47f19c34247e3496a810b988" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "d7e552aa31742db0f055161731e24b6f55bc6d3f47f19c34247e3496a810b988" :a :db/doc :v "Task body: structured content (BACKGROUND:, APPROACH:, ACCEPTANCE:, etc.) split from title (TAP-SPLIT, INV-TASK-005)" :op :assert}
+   {:e #blake3 "d7e552aa31742db0f055161731e24b6f55bc6d3f47f19c34247e3496a810b988" :a :db/ident :v :task/body :op :assert}
+   {:e #blake3 "d7e552aa31742db0f055161731e24b6f55bc6d3f47f19c34247e3496a810b988" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "d7e552aa31742db0f055161731e24b6f55bc6d3f47f19c34247e3496a810b988" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "d978af8c6f88044810c704d0f18f7d3c029ce7ab29dae6d56e0cdff904149bae" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "d978af8c6f88044810c704d0f18f7d3c029ce7ab29dae6d56e0cdff904149bae" :a :db/doc :v "Task type: :task.type/task, :task.type/bug, :task.type/feature, :task.type/epic, :task.type/question, :task.type/docs" :op :assert}
+   {:e #blake3 "d978af8c6f88044810c704d0f18f7d3c029ce7ab29dae6d56e0cdff904149bae" :a :db/ident :v :task/type :op :assert}
+   {:e #blake3 "d978af8c6f88044810c704d0f18f7d3c029ce7ab29dae6d56e0cdff904149bae" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "d978af8c6f88044810c704d0f18f7d3c029ce7ab29dae6d56e0cdff904149bae" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "e19914090229c85ca2a0a272d66295dae891d19aac5438fec8c49c78a1af9856" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "e19914090229c85ca2a0a272d66295dae891d19aac5438fec8c49c78a1af9856" :a :db/doc :v "Short title (~12 words, ≤80 chars) for Navigate ACP strategy" :op :assert}
+   {:e #blake3 "e19914090229c85ca2a0a272d66295dae891d19aac5438fec8c49c78a1af9856" :a :db/ident :v :task/title-l1 :op :assert}
+   {:e #blake3 "e19914090229c85ca2a0a272d66295dae891d19aac5438fec8c49c78a1af9856" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "e19914090229c85ca2a0a272d66295dae891d19aac5438fec8c49c78a1af9856" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "e49e0161fa0e0ce95899b34d21c6542146cacd140fc1fd38d4241cfba63ac22e" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "e49e0161fa0e0ce95899b34d21c6542146cacd140fc1fd38d4241cfba63ac22e" :a :db/doc :v "Wall-clock time (unix seconds) when the comment was created" :op :assert}
+   {:e #blake3 "e49e0161fa0e0ce95899b34d21c6542146cacd140fc1fd38d4241cfba63ac22e" :a :db/ident :v :comment/created-at :op :assert}
+   {:e #blake3 "e49e0161fa0e0ce95899b34d21c6542146cacd140fc1fd38d4241cfba63ac22e" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "e49e0161fa0e0ce95899b34d21c6542146cacd140fc1fd38d4241cfba63ac22e" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "e9f35377f22049355942fd8676f930dde1550ffe5b34a516c9d412cfb210617c" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "e9f35377f22049355942fd8676f930dde1550ffe5b34a516c9d412cfb210617c" :a :db/doc :v "Number of conflicting values that were resolved" :op :assert}
+   {:e #blake3 "e9f35377f22049355942fd8676f930dde1550ffe5b34a516c9d412cfb210617c" :a :db/ident :v :resolution/conflict-count :op :assert}
+   {:e #blake3 "e9f35377f22049355942fd8676f930dde1550ffe5b34a516c9d412cfb210617c" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "e9f35377f22049355942fd8676f930dde1550ffe5b34a516c9d412cfb210617c" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "ecf7769221cf6bf499d39f5415e8530d9eb3776bff6222499a35637d069bfecb" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "ecf7769221cf6bf499d39f5415e8530d9eb3776bff6222499a35637d069bfecb" :a :db/doc :v "Verification depth level (0=unverified, 1=syntactic, 2=structural, 3=property, 4=formal). Lattice-resolved: monotonically non-decreasing." :op :assert}
+   {:e #blake3 "ecf7769221cf6bf499d39f5415e8530d9eb3776bff6222499a35637d069bfecb" :a :db/ident :v :impl/verification-depth :op :assert}
+   {:e #blake3 "ecf7769221cf6bf499d39f5415e8530d9eb3776bff6222499a35637d069bfecb" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "ecf7769221cf6bf499d39f5415e8530d9eb3776bff6222499a35637d069bfecb" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "ed8f3b38d0ebdcdf57cedfa91ba1c4f2bd9c47ea4dff99a38ca814fdb26b5448" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "ed8f3b38d0ebdcdf57cedfa91ba1c4f2bd9c47ea4dff99a38ca814fdb26b5448" :a :db/doc :v "JSON-encoded coupling weight vector for multi-signal fusion" :op :assert}
+   {:e #blake3 "ed8f3b38d0ebdcdf57cedfa91ba1c4f2bd9c47ea4dff99a38ca814fdb26b5448" :a :db/ident :v :topology/coupling-weights :op :assert}
+   {:e #blake3 "ed8f3b38d0ebdcdf57cedfa91ba1c4f2bd9c47ea4dff99a38ca814fdb26b5448" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "ed8f3b38d0ebdcdf57cedfa91ba1c4f2bd9c47ea4dff99a38ca814fdb26b5448" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "f4a3c08e0f7f501fdf293526edb52620361f890e6b0c322a76b87e5dd5fe6a32" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "f4a3c08e0f7f501fdf293526edb52620361f890e6b0c322a76b87e5dd5fe6a32" :a :db/doc :v "The conflicting attribute's keyword" :op :assert}
+   {:e #blake3 "f4a3c08e0f7f501fdf293526edb52620361f890e6b0c322a76b87e5dd5fe6a32" :a :db/ident :v :resolution/attribute :op :assert}
+   {:e #blake3 "f4a3c08e0f7f501fdf293526edb52620361f890e6b0c322a76b87e5dd5fe6a32" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "f4a3c08e0f7f501fdf293526edb52620361f890e6b0c322a76b87e5dd5fe6a32" :a :db/valueType :v :db.type/keyword :op :assert}
+   {:e #blake3 "f5054999f1147deeeb5144127d2d8cfc3672bc9ccf03a1bfe52a78ef714ce04a" :a :db/cardinality :v :db.cardinality/many :op :assert}
+   {:e #blake3 "f5054999f1147deeeb5144127d2d8cfc3672bc9ccf03a1bfe52a78ef714ce04a" :a :db/doc :v "Task entities covered by this plan" :op :assert}
+   {:e #blake3 "f5054999f1147deeeb5144127d2d8cfc3672bc9ccf03a1bfe52a78ef714ce04a" :a :db/ident :v :plan/tasks :op :assert}
+   {:e #blake3 "f5054999f1147deeeb5144127d2d8cfc3672bc9ccf03a1bfe52a78ef714ce04a" :a :db/resolutionMode :v :resolution/multi :op :assert}
+   {:e #blake3 "f5054999f1147deeeb5144127d2d8cfc3672bc9ccf03a1bfe52a78ef714ce04a" :a :db/valueType :v :db.type/ref :op :assert}
+   {:e #blake3 "f58328f450534f39744491c68baeac6951cf3947781a5cde9515918aa203cfcb" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "f58328f450534f39744491c68baeac6951cf3947781a5cde9515918aa203cfcb" :a :db/doc :v "Detailed task description (legacy — prefer structured sections below)" :op :assert}
+   {:e #blake3 "f58328f450534f39744491c68baeac6951cf3947781a5cde9515918aa203cfcb" :a :db/ident :v :task/description :op :assert}
+   {:e #blake3 "f58328f450534f39744491c68baeac6951cf3947781a5cde9515918aa203cfcb" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "f58328f450534f39744491c68baeac6951cf3947781a5cde9515918aa203cfcb" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "fe0d9412b9e1f51f80a96b50a7c9c53a0898b2f37b58b06434d7c56938f17cac" :a :db/cardinality :v :db.cardinality/many :op :assert}
+   {:e #blake3 "fe0d9412b9e1f51f80a96b50a7c9c53a0898b2f37b58b06434d7c56938f17cac" :a :db/doc :v "Links to spec/observation entities this task relates to" :op :assert}
+   {:e #blake3 "fe0d9412b9e1f51f80a96b50a7c9c53a0898b2f37b58b06434d7c56938f17cac" :a :db/ident :v :task/traces-to :op :assert}
+   {:e #blake3 "fe0d9412b9e1f51f80a96b50a7c9c53a0898b2f37b58b06434d7c56938f17cac" :a :db/resolutionMode :v :resolution/multi :op :assert}
+   {:e #blake3 "fe0d9412b9e1f51f80a96b50a7c9c53a0898b2f37b58b06434d7c56938f17cac" :a :db/valueType :v :db.type/ref :op :assert}
+   {:e #blake3 "ff2ed7ee3c2ce0b4a0ab119cd0c6f0f17fd78d88f5db158138c6437b83068115" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "ff2ed7ee3c2ce0b4a0ab119cd0c6f0f17fd78d88f5db158138c6437b83068115" :a :db/doc :v "Number of times this witness has been challenged" :op :assert}
+   {:e #blake3 "ff2ed7ee3c2ce0b4a0ab119cd0c6f0f17fd78d88f5db158138c6437b83068115" :a :db/ident :v :witness/challenge-count :op :assert}
+   {:e #blake3 "ff2ed7ee3c2ce0b4a0ab119cd0c6f0f17fd78d88f5db158138c6437b83068115" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "ff2ed7ee3c2ce0b4a0ab119cd0c6f0f17fd78d88f5db158138c6437b83068115" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "ff582db6e0eeaf283acc8c7f94fce80d2793949e61f615219a3861f3de591e21" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "ff582db6e0eeaf283acc8c7f94fce80d2793949e61f615219a3861f3de591e21" :a :db/doc :v "Witness verdict: :witness.verdict/confirmed, :witness.verdict/refuted, :witness.verdict/inconclusive" :op :assert}
+   {:e #blake3 "ff582db6e0eeaf283acc8c7f94fce80d2793949e61f615219a3861f3de591e21" :a :db/ident :v :witness/verdict :op :assert}
+   {:e #blake3 "ff582db6e0eeaf283acc8c7f94fce80d2793949e61f615219a3861f3de591e21" :a :db/resolutionMode :v :resolution/lww :op :assert}
+   {:e #blake3 "ff582db6e0eeaf283acc8c7f94fce80d2793949e61f615219a3861f3de591e21" :a :db/valueType :v :db.type/keyword :op :assert}
+ ]}

@@ -1,0 +1,26 @@
+{:tx/id #hlc "1774296484/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-030 \"The Free Energy Gradient — hypothetical observation scoring via project_delta over bridge hypotheses\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "423069261c0c4b3bbe46ff1291a993c56990a2b2859efb8158bc4c0c01211a35" :a :db/doc :v "Violated if: (1) bridge hypotheses require a scoring mechanism separate from project_delta, (2) the connection lifecycle schema (ADR-029) requires additional attributes beyond the six to model bridge lifecycle, or (3) after 20 calibrated bridge explorations, the system does not generate more accurate bridge predictions than random exploration." :op :assert}
+   {:e #blake3 "67d58018d7fb3c29d2b864be879b7c1090a0ec9a6455e7c956db6cee6ebe0dd9" :a :db/ident :v :task/t-5c8eab95 :op :assert}
+   {:e #blake3 "67d58018d7fb3c29d2b864be879b7c1090a0ec9a6455e7c956db6cee6ebe0dd9" :a :task/created-at :v 1774296483 :op :assert}
+   {:e #blake3 "67d58018d7fb3c29d2b864be879b7c1090a0ec9a6455e7c956db6cee6ebe0dd9" :a :task/id :v "t-5c8eab95" :op :assert}
+   {:e #blake3 "67d58018d7fb3c29d2b864be879b7c1090a0ec9a6455e7c956db6cee6ebe0dd9" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "67d58018d7fb3c29d2b864be879b7c1090a0ec9a6455e7c956db6cee6ebe0dd9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "67d58018d7fb3c29d2b864be879b7c1090a0ec9a6455e7c956db6cee6ebe0dd9" :a :task/title :v "Implement ADR-FOUNDATION-030: The Free Energy Gradient — hypothetical observation scoring via project_delta over bridge hypotheses" :op :assert}
+   {:e #blake3 "67d58018d7fb3c29d2b864be879b7c1090a0ec9a6455e7c956db6cee6ebe0dd9" :a :task/traces-to :v #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :op :assert}
+   {:e #blake3 "67d58018d7fb3c29d2b864be879b7c1090a0ec9a6455e7c956db6cee6ebe0dd9" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :a :comonad/falsification :v #blake3 "423069261c0c4b3bbe46ff1291a993c56990a2b2859efb8158bc4c0c01211a35" :op :assert}
+   {:e #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :a :db/doc :v "The Free Energy Gradient — hypothetical observation scoring via project_delta over bridge hypotheses" :op :assert}
+   {:e #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :a :db/ident :v :spec/adr-foundation-030 :op :assert}
+   {:e #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :a :spec/confidence :v 0.85 :op :assert}
+   {:e #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :a :spec/falsification :v "Violated if: (1) bridge hypotheses require a scoring mechanism separate from project_delta, (2) the connection lifecycle schema (ADR-029) requires additional attributes beyond the six to model bridge lifecycle, or (3) after 20 calibrated bridge explorations, the system does not generate more accurate bridge predictions than random exploration." :op :assert}
+   {:e #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :a :spec/id :v "ADR-FOUNDATION-030" :op :assert}
+   {:e #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :a :spec/statement :v "The acquisition function evaluates E[ΔF(S)] over hypothetical bridging observations generated from the knowledge graph community structure, using the same project_delta mechanism that scores tasks. Each bridge hypothesis is a connection entity with the full 6-attribute lifecycle from ADR-FOUNDATION-029. Exploration, creativity, and bridge-seeking emerge from the F(S) landscape without separate parameters. The hypothesis ledger calibrates bridge prediction accuracy. This completes braid's transformation from passive capture to active inference." :op :assert}
+ ]}

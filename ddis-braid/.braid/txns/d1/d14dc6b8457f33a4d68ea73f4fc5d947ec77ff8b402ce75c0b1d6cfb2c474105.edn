@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774294138/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ACP-DRY-2: Cache calibration metrics per command invocation. compute_calibration_metrics called 2x per command (routing.rs:868 + context.rs:268). Extract to a CalibrationSnapshot computed once in compute_routing_from_store, passed to methodology_context_blocks via parameter. Eliminates O(H*K) redundant hypothesis scan. FILE: crates/braid-kernel/src/routing.rs + context.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :db/ident :v :task/t-e9471f3a :op :assert}
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :task/created-at :v 1774294137 :op :assert}
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :task/files :v "crates/braid-kernel/src/routing.rs" :op :assert}
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :task/id :v "t-e9471f3a" :op :assert}
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :task/title :v "ACP-DRY-2: Cache calibration metrics per command invocation. compute_calibration_metrics called 2x per command (routing.rs:868 + context.rs:268). Extract to a CalibrationSnapshot computed once in compute_routing_from_store, passed to methodology_context_blocks via parameter. Eliminates O(H*K) redundant hypothesis scan. FILE: crates/braid-kernel/src/routing.rs + context.rs" :op :assert}
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :task/title-l0 :v "ACP-DRY-2" :op :assert}
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :task/title-l1 :v "ACP-DRY-2: Cache calibration metrics per command invocation" :op :assert}
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :task/type :v :task.type/task :op :assert}
+ ]}

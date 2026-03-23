@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774294140/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ACP-FIX-1: Add retraction datoms in record_block_presentations. Currently asserts new :attention/presentation-count without retracting old value, causing unbounded datom accumulation per block label. Must retract old count datom (op=Retract) before asserting new one. C1 compliant — retractions ARE new datoms. FILE: crates/braid-kernel/src/context.rs:174"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8f12e2d362d07e7dde99a36848f3b61d5f1209f1fcf7de350c2b65c37d98c041" :a :db/ident :v :task/t-8dcb3939 :op :assert}
+   {:e #blake3 "8f12e2d362d07e7dde99a36848f3b61d5f1209f1fcf7de350c2b65c37d98c041" :a :task/created-at :v 1774294139 :op :assert}
+   {:e #blake3 "8f12e2d362d07e7dde99a36848f3b61d5f1209f1fcf7de350c2b65c37d98c041" :a :task/files :v "crates/braid-kernel/src/context.rs:174" :op :assert}
+   {:e #blake3 "8f12e2d362d07e7dde99a36848f3b61d5f1209f1fcf7de350c2b65c37d98c041" :a :task/id :v "t-8dcb3939" :op :assert}
+   {:e #blake3 "8f12e2d362d07e7dde99a36848f3b61d5f1209f1fcf7de350c2b65c37d98c041" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "8f12e2d362d07e7dde99a36848f3b61d5f1209f1fcf7de350c2b65c37d98c041" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8f12e2d362d07e7dde99a36848f3b61d5f1209f1fcf7de350c2b65c37d98c041" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8f12e2d362d07e7dde99a36848f3b61d5f1209f1fcf7de350c2b65c37d98c041" :a :task/title :v "ACP-FIX-1: Add retraction datoms in record_block_presentations. Currently asserts new :attention/presentation-count without retracting old value, causing unbounded datom accumulation per block label. Must retract old count datom (op=Retract) before asserting new one. C1 compliant — retractions ARE new datoms. FILE: crates/braid-kernel/src/context.rs:174" :op :assert}
+   {:e #blake3 "8f12e2d362d07e7dde99a36848f3b61d5f1209f1fcf7de350c2b65c37d98c041" :a :task/title-l0 :v "ACP-FIX-1" :op :assert}
+   {:e #blake3 "8f12e2d362d07e7dde99a36848f3b61d5f1209f1fcf7de350c2b65c37d98c041" :a :task/title-l1 :v "ACP-FIX-1: Add retraction datoms in record_block_presentations" :op :assert}
+   {:e #blake3 "8f12e2d362d07e7dde99a36848f3b61d5f1209f1fcf7de350c2b65c37d98c041" :a :task/type :v :task.type/bug :op :assert}
+ ]}

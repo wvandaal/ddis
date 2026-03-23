@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774296851/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FEGH-1a: BridgeHypothesis struct + generate_bridge_hypotheses"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6d684ceb2772e21dfb36da073a2960a8e223e4d406d98d008b5ad0a4861dc5e2" :a :db/ident :v :task/t-65edfa1a :op :assert}
+   {:e #blake3 "6d684ceb2772e21dfb36da073a2960a8e223e4d406d98d008b5ad0a4861dc5e2" :a :task/created-at :v 1774296850 :op :assert}
+   {:e #blake3 "6d684ceb2772e21dfb36da073a2960a8e223e4d406d98d008b5ad0a4861dc5e2" :a :task/id :v "t-65edfa1a" :op :assert}
+   {:e #blake3 "6d684ceb2772e21dfb36da073a2960a8e223e4d406d98d008b5ad0a4861dc5e2" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "6d684ceb2772e21dfb36da073a2960a8e223e4d406d98d008b5ad0a4861dc5e2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6d684ceb2772e21dfb36da073a2960a8e223e4d406d98d008b5ad0a4861dc5e2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6d684ceb2772e21dfb36da073a2960a8e223e4d406d98d008b5ad0a4861dc5e2" :a :task/title :v "FEGH-1a: BridgeHypothesis struct + generate_bridge_hypotheses" :op :assert}
+   {:e #blake3 "6d684ceb2772e21dfb36da073a2960a8e223e4d406d98d008b5ad0a4861dc5e2" :a :task/title-l0 :v "FEGH-1a" :op :assert}
+   {:e #blake3 "6d684ceb2772e21dfb36da073a2960a8e223e4d406d98d008b5ad0a4861dc5e2" :a :task/title-l1 :v "FEGH-1a: BridgeHypothesis struct + generate_bridge_hypotheses" :op :assert}
+   {:e #blake3 "6d684ceb2772e21dfb36da073a2960a8e223e4d406d98d008b5ad0a4861dc5e2" :a :task/type :v :task.type/task :op :assert}
+ ]}

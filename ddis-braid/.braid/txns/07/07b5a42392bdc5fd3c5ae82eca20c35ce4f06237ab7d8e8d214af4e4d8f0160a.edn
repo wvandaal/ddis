@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774296860/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXT-BUG-4: Extractors fail on recursive self-invoke"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2589c7ff554e8ef9837dbfc7834a16c542a932c8bed6085f74dd5579aff5383b" :a :db/ident :v :task/t-f7b80ea7 :op :assert}
+   {:e #blake3 "2589c7ff554e8ef9837dbfc7834a16c542a932c8bed6085f74dd5579aff5383b" :a :task/created-at :v 1774296859 :op :assert}
+   {:e #blake3 "2589c7ff554e8ef9837dbfc7834a16c542a932c8bed6085f74dd5579aff5383b" :a :task/id :v "t-f7b80ea7" :op :assert}
+   {:e #blake3 "2589c7ff554e8ef9837dbfc7834a16c542a932c8bed6085f74dd5579aff5383b" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2589c7ff554e8ef9837dbfc7834a16c542a932c8bed6085f74dd5579aff5383b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2589c7ff554e8ef9837dbfc7834a16c542a932c8bed6085f74dd5579aff5383b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2589c7ff554e8ef9837dbfc7834a16c542a932c8bed6085f74dd5579aff5383b" :a :task/title :v "EXT-BUG-4: Extractors fail on recursive self-invoke" :op :assert}
+   {:e #blake3 "2589c7ff554e8ef9837dbfc7834a16c542a932c8bed6085f74dd5579aff5383b" :a :task/title-l0 :v "EXT-BUG-4" :op :assert}
+   {:e #blake3 "2589c7ff554e8ef9837dbfc7834a16c542a932c8bed6085f74dd5579aff5383b" :a :task/title-l1 :v "EXT-BUG-4: Extractors fail on recursive self-invoke" :op :assert}
+   {:e #blake3 "2589c7ff554e8ef9837dbfc7834a16c542a932c8bed6085f74dd5579aff5383b" :a :task/type :v :task.type/bug :op :assert}
+ ]}

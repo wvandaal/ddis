@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774293394/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Verify ADR completeness: check that all 14 ADRs (ADR-001 through ADR-014) have alternatives-considered and rationale sections in their defining modules"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "28c2ce7175d7cc7c8b37435690a86d9d5327e6c05f3cbe24492b0f0c85fc773c" :a :db/ident :v :task/t-ae0d1671 :op :assert}
+   {:e #blake3 "28c2ce7175d7cc7c8b37435690a86d9d5327e6c05f3cbe24492b0f0c85fc773c" :a :task/created-at :v 1774293393 :op :assert}
+   {:e #blake3 "28c2ce7175d7cc7c8b37435690a86d9d5327e6c05f3cbe24492b0f0c85fc773c" :a :task/id :v "t-ae0d1671" :op :assert}
+   {:e #blake3 "28c2ce7175d7cc7c8b37435690a86d9d5327e6c05f3cbe24492b0f0c85fc773c" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "28c2ce7175d7cc7c8b37435690a86d9d5327e6c05f3cbe24492b0f0c85fc773c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "28c2ce7175d7cc7c8b37435690a86d9d5327e6c05f3cbe24492b0f0c85fc773c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "28c2ce7175d7cc7c8b37435690a86d9d5327e6c05f3cbe24492b0f0c85fc773c" :a :task/title :v "Verify ADR completeness: check that all 14 ADRs (ADR-001 through ADR-014) have alternatives-considered and rationale sections in their defining modules" :op :assert}
+   {:e #blake3 "28c2ce7175d7cc7c8b37435690a86d9d5327e6c05f3cbe24492b0f0c85fc773c" :a :task/title-l0 :v "Verify ADR completeness" :op :assert}
+   {:e #blake3 "28c2ce7175d7cc7c8b37435690a86d9d5327e6c05f3cbe24492b0f0c85fc773c" :a :task/title-l1 :v "Verify ADR completeness: check that all 14 ADRs (ADR-001 through ADR-014) hav..." :op :assert}
+   {:e #blake3 "28c2ce7175d7cc7c8b37435690a86d9d5327e6c05f3cbe24492b0f0c85fc773c" :a :task/type :v :task.type/task :op :assert}
+ ]}

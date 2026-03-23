@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774294133/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: ACP/UAQ Output Unification — single projection algebra for all commands"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f40bacef89efc55efca771e2269eae0e09869eb1d6d802a6cedd2af27dcc4c7c" :a :db/ident :v :task/t-263d4afd :op :assert}
+   {:e #blake3 "f40bacef89efc55efca771e2269eae0e09869eb1d6d802a6cedd2af27dcc4c7c" :a :task/created-at :v 1774294132 :op :assert}
+   {:e #blake3 "f40bacef89efc55efca771e2269eae0e09869eb1d6d802a6cedd2af27dcc4c7c" :a :task/id :v "t-263d4afd" :op :assert}
+   {:e #blake3 "f40bacef89efc55efca771e2269eae0e09869eb1d6d802a6cedd2af27dcc4c7c" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "f40bacef89efc55efca771e2269eae0e09869eb1d6d802a6cedd2af27dcc4c7c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f40bacef89efc55efca771e2269eae0e09869eb1d6d802a6cedd2af27dcc4c7c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f40bacef89efc55efca771e2269eae0e09869eb1d6d802a6cedd2af27dcc4c7c" :a :task/title :v "EPIC: ACP/UAQ Output Unification — single projection algebra for all commands" :op :assert}
+   {:e #blake3 "f40bacef89efc55efca771e2269eae0e09869eb1d6d802a6cedd2af27dcc4c7c" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "f40bacef89efc55efca771e2269eae0e09869eb1d6d802a6cedd2af27dcc4c7c" :a :task/title-l1 :v "EPIC: ACP/UAQ Output Unification — single projection algebra for all commands" :op :assert}
+   {:e #blake3 "f40bacef89efc55efca771e2269eae0e09869eb1d6d802a6cedd2af27dcc4c7c" :a :task/type :v :task.type/epic :op :assert}
+ ]}

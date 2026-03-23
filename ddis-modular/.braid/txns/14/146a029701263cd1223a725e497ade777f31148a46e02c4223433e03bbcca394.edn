@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293315/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "ddis-modular is a 5-module meta-specification (DDIS v3.0) that defines HOW to write DDIS specifications. It has: constitution/system.md (537 lines), modules/core-standard.md (894), modules/element-specifications.md (918), modules/modularization.md (855), modules/guidance-operations.md (620), modules/drift-management.md (new). The manifest.yaml is the single source of truth for module composition."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7b18bf35ecf16b93f7e3677f7bfac3834d2c29c97f4d726c1ec5bdc0ed58da9c" :a :db/doc :v "ddis-modular is a 5-module meta-specification (DDIS v3.0) that defines HOW to write DDIS specifications. It has: constitution/system.md (537 lines), modules/core-standard.md (894), modules/element-specifications.md (918), modules/modularization.md (855), modules/guidance-operations.md (620), modules/drift-management.md (new). The manifest.yaml is the single source of truth for module composition." :op :assert}
+   {:e #blake3 "7b18bf35ecf16b93f7e3677f7bfac3834d2c29c97f4d726c1ec5bdc0ed58da9c" :a :db/ident :v :observation/ddis-modular-is-a-5-module-meta-specification-ddis-v30-th :op :assert}
+   {:e #blake3 "7b18bf35ecf16b93f7e3677f7bfac3834d2c29c97f4d726c1ec5bdc0ed58da9c" :a :exploration/body :v "ddis-modular is a 5-module meta-specification (DDIS v3.0) that defines HOW to write DDIS specifications. It has: constitution/system.md (537 lines), modules/core-standard.md (894), modules/element-specifications.md (918), modules/modularization.md (855), modules/guidance-operations.md (620), modules/drift-management.md (new). The manifest.yaml is the single source of truth for module composition." :op :assert}
+   {:e #blake3 "7b18bf35ecf16b93f7e3677f7bfac3834d2c29c97f4d726c1ec5bdc0ed58da9c" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "7b18bf35ecf16b93f7e3677f7bfac3834d2c29c97f4d726c1ec5bdc0ed58da9c" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "7b18bf35ecf16b93f7e3677f7bfac3834d2c29c97f4d726c1ec5bdc0ed58da9c" :a :exploration/content-hash :v #bytes "410b69f461ec200935b2c4754dbfd2acdf624deb9208b533ce523f6ae086d986" :op :assert}
+   {:e #blake3 "7b18bf35ecf16b93f7e3677f7bfac3834d2c29c97f4d726c1ec5bdc0ed58da9c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7b18bf35ecf16b93f7e3677f7bfac3834d2c29c97f4d726c1ec5bdc0ed58da9c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7b18bf35ecf16b93f7e3677f7bfac3834d2c29c97f4d726c1ec5bdc0ed58da9c" :a :exploration/source-session :v #blake3 "d60c64ed69a1ecab0cd28281b4cae4b4a336a05d8e004845f0d0e889f024df57" :op :assert}
+ ]}

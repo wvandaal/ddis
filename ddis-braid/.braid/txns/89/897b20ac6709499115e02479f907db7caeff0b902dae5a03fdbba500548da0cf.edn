@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774296853/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FEGH-1b: Surface bridge questions in compute_action_from_store"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d9501693ce17877c0ed822d5c5db0704c95bd57d8a1a7ffb1a3451db9ffb3723" :a :db/ident :v :task/t-88ca2bbf :op :assert}
+   {:e #blake3 "d9501693ce17877c0ed822d5c5db0704c95bd57d8a1a7ffb1a3451db9ffb3723" :a :task/created-at :v 1774296852 :op :assert}
+   {:e #blake3 "d9501693ce17877c0ed822d5c5db0704c95bd57d8a1a7ffb1a3451db9ffb3723" :a :task/id :v "t-88ca2bbf" :op :assert}
+   {:e #blake3 "d9501693ce17877c0ed822d5c5db0704c95bd57d8a1a7ffb1a3451db9ffb3723" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "d9501693ce17877c0ed822d5c5db0704c95bd57d8a1a7ffb1a3451db9ffb3723" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d9501693ce17877c0ed822d5c5db0704c95bd57d8a1a7ffb1a3451db9ffb3723" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d9501693ce17877c0ed822d5c5db0704c95bd57d8a1a7ffb1a3451db9ffb3723" :a :task/title :v "FEGH-1b: Surface bridge questions in compute_action_from_store" :op :assert}
+   {:e #blake3 "d9501693ce17877c0ed822d5c5db0704c95bd57d8a1a7ffb1a3451db9ffb3723" :a :task/title-l0 :v "FEGH-1b" :op :assert}
+   {:e #blake3 "d9501693ce17877c0ed822d5c5db0704c95bd57d8a1a7ffb1a3451db9ffb3723" :a :task/title-l1 :v "FEGH-1b: Surface bridge questions in compute_action_from_store" :op :assert}
+   {:e #blake3 "d9501693ce17877c0ed822d5c5db0704c95bd57d8a1a7ffb1a3451db9ffb3723" :a :task/type :v :task.type/task :op :assert}
+ ]}

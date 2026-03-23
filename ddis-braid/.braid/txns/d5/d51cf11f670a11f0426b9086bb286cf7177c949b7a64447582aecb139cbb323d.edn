@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774296864/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C8-FIX-4: braid trace hardcoded for Rust comments"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5bb9296de151c43163f554129b39f21191f1779bc5fbd8fbab0f61b37cf336c4" :a :db/ident :v :task/t-5da9064a :op :assert}
+   {:e #blake3 "5bb9296de151c43163f554129b39f21191f1779bc5fbd8fbab0f61b37cf336c4" :a :task/created-at :v 1774296863 :op :assert}
+   {:e #blake3 "5bb9296de151c43163f554129b39f21191f1779bc5fbd8fbab0f61b37cf336c4" :a :task/id :v "t-5da9064a" :op :assert}
+   {:e #blake3 "5bb9296de151c43163f554129b39f21191f1779bc5fbd8fbab0f61b37cf336c4" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5bb9296de151c43163f554129b39f21191f1779bc5fbd8fbab0f61b37cf336c4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5bb9296de151c43163f554129b39f21191f1779bc5fbd8fbab0f61b37cf336c4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5bb9296de151c43163f554129b39f21191f1779bc5fbd8fbab0f61b37cf336c4" :a :task/title :v "C8-FIX-4: braid trace hardcoded for Rust comments" :op :assert}
+   {:e #blake3 "5bb9296de151c43163f554129b39f21191f1779bc5fbd8fbab0f61b37cf336c4" :a :task/title-l0 :v "C8-FIX-4" :op :assert}
+   {:e #blake3 "5bb9296de151c43163f554129b39f21191f1779bc5fbd8fbab0f61b37cf336c4" :a :task/title-l1 :v "C8-FIX-4: braid trace hardcoded for Rust comments" :op :assert}
+   {:e #blake3 "5bb9296de151c43163f554129b39f21191f1779bc5fbd8fbab0f61b37cf336c4" :a :task/type :v :task.type/bug :op :assert}
+ ]}

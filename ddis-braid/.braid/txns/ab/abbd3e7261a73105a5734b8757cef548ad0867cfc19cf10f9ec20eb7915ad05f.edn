@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774294101/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DOG-FOOD SPEC PROJECT (Agent 3 C8): C8 Score 5/10. TWO CRITICAL VIOLATIONS: (1) harvest codebase-snapshot captures braid's own 115K LOC Rust, not the target YAML project — walks up to parent directory. (2) harvest git-summary captures braid's git history, not target project. HIGH: braid trace hardcoded for Rust comments. MEDIUM: seed injects cargo/braid API patterns into non-Rust project. MEDIUM: M(t) spec-lang penalizes external spec formats. WORKED: observe/task/spec-create/bilateral/challenge/witness all domain-agnostic."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "df901ffcac3f3f070bb13129638c86ef4f6a3655da44b8ea6c8653bf9e1064b2" :a :db/doc :v "DOG-FOOD SPEC PROJECT (Agent 3 C8): C8 Score 5/10. TWO CRITICAL VIOLATIONS: (1) harvest codebase-snapshot captures braid's own 115K LOC Rust, not the target YAML project — walks up to parent directory. (2) harvest git-summary captures braid's git history, not target project. HIGH: braid trace hardcoded for Rust comments. MEDIUM: seed injects cargo/braid API patterns into non-Rust project. MEDIUM: M(t) spec-lang penalizes external spec formats. WORKED: observe/task/spec-create/bilateral/challenge/witness all domain-agnostic." :op :assert}
+   {:e #blake3 "df901ffcac3f3f070bb13129638c86ef4f6a3655da44b8ea6c8653bf9e1064b2" :a :db/ident :v :observation/dog-food-spec-project-agent-3-c8-c8-score-510-two-criti :op :assert}
+   {:e #blake3 "df901ffcac3f3f070bb13129638c86ef4f6a3655da44b8ea6c8653bf9e1064b2" :a :exploration/body :v "DOG-FOOD SPEC PROJECT (Agent 3 C8): C8 Score 5/10. TWO CRITICAL VIOLATIONS: (1) harvest codebase-snapshot captures braid's own 115K LOC Rust, not the target YAML project — walks up to parent directory. (2) harvest git-summary captures braid's git history, not target project. HIGH: braid trace hardcoded for Rust comments. MEDIUM: seed injects cargo/braid API patterns into non-Rust project. MEDIUM: M(t) spec-lang penalizes external spec formats. WORKED: observe/task/spec-create/bilateral/challenge/witness all domain-agnostic." :op :assert}
+   {:e #blake3 "df901ffcac3f3f070bb13129638c86ef4f6a3655da44b8ea6c8653bf9e1064b2" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "df901ffcac3f3f070bb13129638c86ef4f6a3655da44b8ea6c8653bf9e1064b2" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "df901ffcac3f3f070bb13129638c86ef4f6a3655da44b8ea6c8653bf9e1064b2" :a :exploration/content-hash :v #bytes "9293508ce2b2db287950f78c7c3acee9a1e53e870ecd60ed807c346b76326c7e" :op :assert}
+   {:e #blake3 "df901ffcac3f3f070bb13129638c86ef4f6a3655da44b8ea6c8653bf9e1064b2" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "df901ffcac3f3f070bb13129638c86ef4f6a3655da44b8ea6c8653bf9e1064b2" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "df901ffcac3f3f070bb13129638c86ef4f6a3655da44b8ea6c8653bf9e1064b2" :a :exploration/source-session :v #blake3 "e48138a1d9eef741f625843f9c1b1c62c23e41557a9119d92d9351daa08def53" :op :assert}
+ ]}

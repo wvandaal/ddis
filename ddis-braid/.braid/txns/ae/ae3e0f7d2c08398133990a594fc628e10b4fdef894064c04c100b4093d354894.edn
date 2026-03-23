@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774294103/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "ACP AUDIT: 16/24 commands use ActionProjection. 8 legacy commands (init, verify, challenge, extract, wrap, config, write subactions) still use footer injection. 96 context blocks across 15 files have attention:None — no UAQ scoring. Presentation tracking only in status command. compute_calibration_metrics called 2x per command (routing.rs + context.rs), no caching. Novelty formula 1/sqrt(N) duplicated in 3 places. record_block_presentations missing retraction datoms for old counts."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "69480368f7eca0b472f83af59dbef66c83515919114b4e72d9f11c4fc0b7fb66" :a :db/doc :v "ACP AUDIT: 16/24 commands use ActionProjection. 8 legacy commands (init, verify, challenge, extract, wrap, config, write subactions) still use footer injection. 96 context blocks across 15 files have attention:None — no UAQ scoring. Presentation tracking only in status command. compute_calibration_metrics called 2x per command (routing.rs + context.rs), no caching. Novelty formula 1/sqrt(N) duplicated in 3 places. record_block_presentations missing retraction datoms for old counts." :op :assert}
+   {:e #blake3 "69480368f7eca0b472f83af59dbef66c83515919114b4e72d9f11c4fc0b7fb66" :a :db/ident :v :observation/acp-audit-1624-commands-use-actionprojection-8-legacy-com :op :assert}
+   {:e #blake3 "69480368f7eca0b472f83af59dbef66c83515919114b4e72d9f11c4fc0b7fb66" :a :exploration/body :v "ACP AUDIT: 16/24 commands use ActionProjection. 8 legacy commands (init, verify, challenge, extract, wrap, config, write subactions) still use footer injection. 96 context blocks across 15 files have attention:None — no UAQ scoring. Presentation tracking only in status command. compute_calibration_metrics called 2x per command (routing.rs + context.rs), no caching. Novelty formula 1/sqrt(N) duplicated in 3 places. record_block_presentations missing retraction datoms for old counts." :op :assert}
+   {:e #blake3 "69480368f7eca0b472f83af59dbef66c83515919114b4e72d9f11c4fc0b7fb66" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "69480368f7eca0b472f83af59dbef66c83515919114b4e72d9f11c4fc0b7fb66" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "69480368f7eca0b472f83af59dbef66c83515919114b4e72d9f11c4fc0b7fb66" :a :exploration/content-hash :v #bytes "1c940e97042e8db7d900e33fd6d5ba6b5a81e004be2cee04ade1ff864b392aa0" :op :assert}
+   {:e #blake3 "69480368f7eca0b472f83af59dbef66c83515919114b4e72d9f11c4fc0b7fb66" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "69480368f7eca0b472f83af59dbef66c83515919114b4e72d9f11c4fc0b7fb66" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "69480368f7eca0b472f83af59dbef66c83515919114b4e72d9f11c4fc0b7fb66" :a :exploration/source-session :v #blake3 "e48138a1d9eef741f625843f9c1b1c62c23e41557a9119d92d9351daa08def53" :op :assert}
+ ]}
