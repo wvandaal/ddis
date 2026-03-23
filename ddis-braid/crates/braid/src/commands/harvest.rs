@@ -691,8 +691,17 @@ pub fn run(
         // SWS-4: Record R(t) top-3 recommendations at harvest time.
         // This enables the retrospective (SWS-5) to compare what R(t) recommended
         // vs what the agent actually did during the session.
+        //
+        // HL-2: Also record hypothesis datoms for top-3 recommendations.
+        // Every R(t) recommendation is a testable prediction (ADR-FOUNDATION-018).
         {
             let routing = compute_routing_from_store(&store);
+
+            // HL-2: Record hypotheses for the top-3 recommendations
+            let hypothesis_datoms =
+                braid_kernel::guidance::record_hypotheses(&routing, 3, harvest_tx_id);
+            all_datoms.extend(hypothesis_datoms);
+
             let top_ids: Vec<String> = routing
                 .iter()
                 .filter(|r| r.impact > 0.0)

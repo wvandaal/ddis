@@ -1224,6 +1224,124 @@ pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
 }
 
 // ---------------------------------------------------------------------------
+// Hypothesis Ledger (HL-2, ADR-FOUNDATION-018)
+// ---------------------------------------------------------------------------
+
+/// Generate hypothesis datoms for the top-N R(t) recommendations.
+///
+/// Each hypothesis records: what action was recommended, the predicted ΔF(S),
+/// which boundary it targets, and the initial confidence (0.5 prior).
+/// These are transacted alongside the routing computation so every
+/// recommendation is a testable, recorded prediction.
+///
+/// Returns datoms to be transacted. Does NOT transact them — caller decides.
+///
+/// **HL-2**: `predicted` = R(t) impact score normalized to [0, 1] as expected ΔF(S).
+/// **HL-5** (future): confidence adjusts based on outcome history.
+pub fn record_hypotheses(
+    routings: &[TaskRouting],
+    top_n: usize,
+    tx: crate::datom::TxId,
+) -> Vec<crate::datom::Datom> {
+    use crate::datom::{Attribute, Datom, Value};
+
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+
+    let mut datoms = Vec::new();
+
+    for routing in routings.iter().take(top_n) {
+        // Skip zero-impact recommendations (noise)
+        if routing.impact <= f64::EPSILON {
+            continue;
+        }
+
+        // Entity for this hypothesis — content-addressed from action entity + timestamp
+        let entity_hash = &format!("{:?}", routing.entity)[..8]; // first 8 chars of debug repr
+        let hypothesis_id = EntityId::from_ident(&format!(
+            ":hypothesis/r-{}-{}",
+            entity_hash, now
+        ));
+
+        // :hypothesis/action — ref to the task entity
+        datoms.push(Datom::new(
+            hypothesis_id,
+            Attribute::from_keyword(":hypothesis/action"),
+            Value::Ref(routing.entity),
+            tx,
+            Op::Assert,
+        ));
+
+        // :hypothesis/predicted — R(t) impact normalized to expected ΔF(S)
+        // Impact is already in [0, ~2] range; clamp to [0, 1] for ΔF(S) semantics
+        let predicted = routing.impact.clamp(0.0, 1.0);
+        datoms.push(Datom::new(
+            hypothesis_id,
+            Attribute::from_keyword(":hypothesis/predicted"),
+            Value::Double(ordered_float::OrderedFloat(predicted)),
+            tx,
+            Op::Assert,
+        ));
+
+        // :hypothesis/boundary — infer from gradient metrics
+        let boundary = if routing.metrics.gradient_delta > f64::EPSILON {
+            "spec<->impl".to_string()
+        } else {
+            "general".to_string()
+        };
+        datoms.push(Datom::new(
+            hypothesis_id,
+            Attribute::from_keyword(":hypothesis/boundary"),
+            Value::String(boundary),
+            tx,
+            Op::Assert,
+        ));
+
+        // :hypothesis/confidence — start at 0.5 (uninformative prior)
+        datoms.push(Datom::new(
+            hypothesis_id,
+            Attribute::from_keyword(":hypothesis/confidence"),
+            Value::Double(ordered_float::OrderedFloat(0.5)),
+            tx,
+            Op::Assert,
+        ));
+
+        // :hypothesis/timestamp — when the prediction was made
+        datoms.push(Datom::new(
+            hypothesis_id,
+            Attribute::from_keyword(":hypothesis/timestamp"),
+            Value::Instant(now),
+            tx,
+            Op::Assert,
+        ));
+    }
+
+    datoms
+}
+
+/// Count recorded hypotheses in the store.
+pub fn hypothesis_count(store: &Store) -> usize {
+    let attr = crate::datom::Attribute::from_keyword(":hypothesis/action");
+    store
+        .attribute_datoms(&attr)
+        .iter()
+        .filter(|d| d.op == Op::Assert)
+        .count()
+}
+
+/// Count hypotheses that have been completed (have :hypothesis/actual set).
+pub fn hypothesis_completed_count(store: &Store) -> usize {
+    let attr = crate::datom::Attribute::from_keyword(":hypothesis/actual");
+    store
+        .attribute_datoms(&attr)
+        .iter()
+        .filter(|d| d.op == Op::Assert)
+        .count()
+}
+
+// ---------------------------------------------------------------------------
 // ACP Action Extraction (INV-BUDGET-009)
 // ---------------------------------------------------------------------------
 
@@ -7732,6 +7850,115 @@ mod tests {
         }
         Store::from_datoms(datoms)
     }
+
+    // -------------------------------------------------------------------
+    // HL-2: Hypothesis Ledger tests (ADR-FOUNDATION-018)
+    // -------------------------------------------------------------------
+
+    /// HL-2: record_hypotheses produces 5 datoms per recommendation.
+    #[test]
+    fn record_hypotheses_produces_correct_datoms() {
+        use crate::datom::AgentId;
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(100, 0, agent);
+
+        let routings = vec![
+            TaskRouting {
+                entity: EntityId::from_ident(":task/alpha"),
+                label: "Alpha task".into(),
+                impact: 0.7,
+                metrics: RoutingMetrics {
+                    pagerank: 0.5,
+                    betweenness_proxy: 0.3,
+                    critical_path_pos: 0.2,
+                    blocker_ratio: 0.1,
+                    staleness: 0.0,
+                    priority_boost: 0.8,
+                    type_multiplier: 1.0,
+                    urgency_decay: 1.0,
+                    spec_anchor: 1.0,
+                    session_boost: 1.0,
+                    gradient_delta: 0.05,
+                },
+            },
+            TaskRouting {
+                entity: EntityId::from_ident(":task/beta"),
+                label: "Beta task".into(),
+                impact: 0.3,
+                metrics: RoutingMetrics {
+                    pagerank: 0.2,
+                    betweenness_proxy: 0.1,
+                    critical_path_pos: 0.1,
+                    blocker_ratio: 0.05,
+                    staleness: 0.0,
+                    priority_boost: 0.6,
+                    type_multiplier: 1.0,
+                    urgency_decay: 1.0,
+                    spec_anchor: 1.0,
+                    session_boost: 1.0,
+                    gradient_delta: 0.0,
+                },
+            },
+        ];
+
+        let datoms = record_hypotheses(&routings, 3, tx);
+        // 2 recommendations x 5 datoms each = 10
+        assert_eq!(datoms.len(), 10, "expected 5 datoms per hypothesis, got {}", datoms.len());
+
+        // Check first hypothesis has all 5 attributes
+        let first_entity = datoms[0].entity;
+        let attrs: Vec<String> = datoms.iter()
+            .filter(|d| d.entity == first_entity)
+            .map(|d| d.attribute.as_str().to_string())
+            .collect();
+        assert!(attrs.contains(&":hypothesis/action".to_string()));
+        assert!(attrs.contains(&":hypothesis/predicted".to_string()));
+        assert!(attrs.contains(&":hypothesis/boundary".to_string()));
+        assert!(attrs.contains(&":hypothesis/confidence".to_string()));
+        assert!(attrs.contains(&":hypothesis/timestamp".to_string()));
+    }
+
+    /// HL-2: Zero-impact recommendations are skipped.
+    #[test]
+    fn record_hypotheses_skips_zero_impact() {
+        use crate::datom::AgentId;
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(100, 0, agent);
+
+        let routings = vec![TaskRouting {
+            entity: EntityId::from_ident(":task/zero"),
+            label: "Zero impact".into(),
+            impact: 0.0,
+            metrics: RoutingMetrics {
+                pagerank: 0.0,
+                betweenness_proxy: 0.0,
+                critical_path_pos: 0.0,
+                blocker_ratio: 0.0,
+                staleness: 0.0,
+                priority_boost: 0.0,
+                type_multiplier: 1.0,
+                urgency_decay: 1.0,
+                spec_anchor: 1.0,
+                session_boost: 1.0,
+                gradient_delta: 0.0,
+            },
+        }];
+
+        let datoms = record_hypotheses(&routings, 3, tx);
+        assert!(datoms.is_empty(), "zero-impact should produce no hypotheses");
+    }
+
+    /// HL-2: hypothesis_count on empty store is 0.
+    #[test]
+    fn hypothesis_count_empty() {
+        let store = Store::genesis();
+        assert_eq!(hypothesis_count(&store), 0);
+        assert_eq!(hypothesis_completed_count(&store), 0);
+    }
+
+    // -------------------------------------------------------------------
+    // compute_routing_from_store tests (INV-GUIDANCE-010)
+    // -------------------------------------------------------------------
 
     // Verifies: INV-GUIDANCE-010 — R(t) routing from empty store
     #[test]
