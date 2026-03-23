@@ -1342,6 +1342,182 @@ pub fn hypothesis_completed_count(store: &Store) -> usize {
 }
 
 // ---------------------------------------------------------------------------
+// Calibration Metrics (HL-4, ADR-FOUNDATION-018)
+// ---------------------------------------------------------------------------
+
+/// Calibration trend (improving, stable, or degrading).
+#[derive(Clone, Debug, PartialEq)]
+pub enum CalibrationTrend {
+    /// Recent predictions are more accurate than all-time.
+    Improving,
+    /// Recent and all-time accuracy are similar.
+    Stable,
+    /// Recent predictions are less accurate than all-time.
+    Degrading,
+    /// Not enough data to determine trend.
+    Insufficient,
+}
+
+/// Calibration report for the hypothesis ledger.
+#[derive(Clone, Debug)]
+pub struct CalibrationReport {
+    /// Total hypotheses recorded.
+    pub total_hypotheses: usize,
+    /// Hypotheses with outcomes measured.
+    pub completed_hypotheses: usize,
+    /// Mean absolute error across completed hypotheses.
+    pub mean_error: f64,
+    /// Per-boundary accuracy: boundary_name → mean error.
+    pub per_boundary_accuracy: std::collections::BTreeMap<String, f64>,
+    /// Trend: comparing last-20 vs all-time mean error.
+    pub trend: CalibrationTrend,
+}
+
+/// Compute calibration metrics from the hypothesis ledger (HL-4).
+///
+/// Scans all hypothesis entities with `:hypothesis/actual` set,
+/// computes error statistics, and determines the calibration trend.
+pub fn compute_calibration_metrics(store: &Store) -> CalibrationReport {
+    let action_attr = crate::datom::Attribute::from_keyword(":hypothesis/action");
+    let actual_attr = crate::datom::Attribute::from_keyword(":hypothesis/actual");
+    let error_attr = crate::datom::Attribute::from_keyword(":hypothesis/error");
+    let boundary_attr = crate::datom::Attribute::from_keyword(":hypothesis/boundary");
+    let completed_attr = crate::datom::Attribute::from_keyword(":hypothesis/completed");
+
+    let total_hypotheses = hypothesis_count(store);
+
+    // Collect completed hypotheses with their errors and boundaries
+    struct HypRecord {
+        error: f64,
+        boundary: String,
+        completed_at: u64,
+    }
+
+    let mut records: Vec<HypRecord> = Vec::new();
+
+    // Find all hypothesis entities (those with :hypothesis/action)
+    let hyp_entities: Vec<EntityId> = store
+        .attribute_datoms(&action_attr)
+        .iter()
+        .filter(|d| d.op == Op::Assert)
+        .map(|d| d.entity)
+        .collect();
+
+    for hyp in &hyp_entities {
+        let datoms = store.entity_datoms(*hyp);
+
+        // Check if completed (has :hypothesis/actual)
+        let has_actual = datoms
+            .iter()
+            .any(|d| d.attribute == actual_attr && d.op == Op::Assert);
+        if !has_actual {
+            continue;
+        }
+
+        let error = datoms
+            .iter()
+            .rev()
+            .find(|d| d.attribute == error_attr && d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                crate::datom::Value::Double(v) => Some(v.into_inner()),
+                _ => None,
+            })
+            .unwrap_or(0.0);
+
+        let boundary = datoms
+            .iter()
+            .find(|d| d.attribute == boundary_attr && d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                crate::datom::Value::String(s) => Some(s.clone()),
+                _ => None,
+            })
+            .unwrap_or_else(|| "unknown".into());
+
+        let completed_at = datoms
+            .iter()
+            .rev()
+            .find(|d| d.attribute == completed_attr && d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                crate::datom::Value::Instant(t) => Some(*t),
+                _ => None,
+            })
+            .unwrap_or(0);
+
+        records.push(HypRecord {
+            error,
+            boundary,
+            completed_at,
+        });
+    }
+
+    let completed_hypotheses = records.len();
+
+    if completed_hypotheses == 0 {
+        return CalibrationReport {
+            total_hypotheses,
+            completed_hypotheses: 0,
+            mean_error: 0.0,
+            per_boundary_accuracy: std::collections::BTreeMap::new(),
+            trend: CalibrationTrend::Insufficient,
+        };
+    }
+
+    // Mean error
+    let mean_error = records.iter().map(|r| r.error).sum::<f64>() / completed_hypotheses as f64;
+
+    // Per-boundary accuracy
+    let mut boundary_errors: std::collections::BTreeMap<String, Vec<f64>> =
+        std::collections::BTreeMap::new();
+    for r in &records {
+        boundary_errors
+            .entry(r.boundary.clone())
+            .or_default()
+            .push(r.error);
+    }
+    let per_boundary_accuracy: std::collections::BTreeMap<String, f64> = boundary_errors
+        .iter()
+        .map(|(k, v)| {
+            let mean = v.iter().sum::<f64>() / v.len() as f64;
+            (k.clone(), mean)
+        })
+        .collect();
+
+    // Trend: compare last-20 vs all-time
+    let trend = if completed_hypotheses < 5 {
+        CalibrationTrend::Insufficient
+    } else {
+        // Sort by completion time
+        let mut sorted = records.iter().collect::<Vec<_>>();
+        sorted.sort_by_key(|r| r.completed_at);
+
+        let recent_n = 20.min(completed_hypotheses);
+        let recent_errors: Vec<f64> = sorted
+            .iter()
+            .rev()
+            .take(recent_n)
+            .map(|r| r.error)
+            .collect();
+        let recent_mean = recent_errors.iter().sum::<f64>() / recent_n as f64;
+
+        if recent_mean < mean_error * 0.8 {
+            CalibrationTrend::Improving
+        } else if recent_mean > mean_error * 1.2 {
+            CalibrationTrend::Degrading
+        } else {
+            CalibrationTrend::Stable
+        }
+    };
+
+    CalibrationReport {
+        total_hypotheses,
+        completed_hypotheses,
+        mean_error,
+        per_boundary_accuracy,
+        trend,
+    }
+}
+
+// ---------------------------------------------------------------------------
 // ACP Action Extraction (INV-BUDGET-009)
 // ---------------------------------------------------------------------------
 
