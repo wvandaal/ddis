@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774384198/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CONVERGENCE-007 \"Topological Hole Detection — Betti Numbers\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0d7c15f378a0f22a72865c1b02444f4a9ee593f4e7a878cd61ae890ff118de2e" :a :db/doc :v "braid status does not display topological metrics when the knowledge graph has 10+ observations with 5+ connections, or beta0 disagrees with the actual number of connected components" :op :assert}
+   {:e #blake3 "4a8b0863efb7abb12d122b6ee8a2cbe6b4dfa5f21f0a6a0438d43c1b706a2e0c" :a :db/ident :v :task/t-f78362d7 :op :assert}
+   {:e #blake3 "4a8b0863efb7abb12d122b6ee8a2cbe6b4dfa5f21f0a6a0438d43c1b706a2e0c" :a :task/created-at :v 1774384196 :op :assert}
+   {:e #blake3 "4a8b0863efb7abb12d122b6ee8a2cbe6b4dfa5f21f0a6a0438d43c1b706a2e0c" :a :task/id :v "t-f78362d7" :op :assert}
+   {:e #blake3 "4a8b0863efb7abb12d122b6ee8a2cbe6b4dfa5f21f0a6a0438d43c1b706a2e0c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "4a8b0863efb7abb12d122b6ee8a2cbe6b4dfa5f21f0a6a0438d43c1b706a2e0c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4a8b0863efb7abb12d122b6ee8a2cbe6b4dfa5f21f0a6a0438d43c1b706a2e0c" :a :task/title :v "Implement INV-CONVERGENCE-007: Topological Hole Detection — Betti Numbers" :op :assert}
+   {:e #blake3 "4a8b0863efb7abb12d122b6ee8a2cbe6b4dfa5f21f0a6a0438d43c1b706a2e0c" :a :task/traces-to :v #blake3 "d6acff011af832981d0425f151587dff592e44937644ac938a9b4c032f0cbec9" :op :assert}
+   {:e #blake3 "4a8b0863efb7abb12d122b6ee8a2cbe6b4dfa5f21f0a6a0438d43c1b706a2e0c" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "d6acff011af832981d0425f151587dff592e44937644ac938a9b4c032f0cbec9" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "d6acff011af832981d0425f151587dff592e44937644ac938a9b4c032f0cbec9" :a :comonad/falsification :v #blake3 "0d7c15f378a0f22a72865c1b02444f4a9ee593f4e7a878cd61ae890ff118de2e" :op :assert}
+   {:e #blake3 "d6acff011af832981d0425f151587dff592e44937644ac938a9b4c032f0cbec9" :a :db/doc :v "Topological Hole Detection — Betti Numbers" :op :assert}
+   {:e #blake3 "d6acff011af832981d0425f151587dff592e44937644ac938a9b4c032f0cbec9" :a :db/ident :v :spec/inv-convergence-007 :op :assert}
+   {:e #blake3 "d6acff011af832981d0425f151587dff592e44937644ac938a9b4c032f0cbec9" :a :element/traces-to :v "ADR-CONVERGENCE-001" :op :assert}
+   {:e #blake3 "d6acff011af832981d0425f151587dff592e44937644ac938a9b4c032f0cbec9" :a :spec/confidence :v 0.8 :op :assert}
+   {:e #blake3 "d6acff011af832981d0425f151587dff592e44937644ac938a9b4c032f0cbec9" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "d6acff011af832981d0425f151587dff592e44937644ac938a9b4c032f0cbec9" :a :spec/falsification :v "braid status does not display topological metrics when the knowledge graph has 10+ observations with 5+ connections, or beta0 disagrees with the actual number of connected components" :op :assert}
+   {:e #blake3 "d6acff011af832981d0425f151587dff592e44937644ac938a9b4c032f0cbec9" :a :spec/id :v "INV-CONVERGENCE-007" :op :assert}
+   {:e #blake3 "d6acff011af832981d0425f151587dff592e44937644ac938a9b4c032f0cbec9" :a :spec/namespace :v :spec.ns/CONVERGENCE :op :assert}
+   {:e #blake3 "d6acff011af832981d0425f151587dff592e44937644ac938a9b4c032f0cbec9" :a :spec/statement :v "The knowledge complex (observations as 0-simplices, connections as 1-simplices) has computable Betti numbers: beta0 = connected components (FEGH bridge targets), beta1 = loops (falsification targets), beta2 = voids (exploration targets). beta0 is computed from the connection graph's connected components. beta1 is computed from cycle detection in the connection graph. Betti numbers are surfaced in braid status as 'topology: N components, M loops, K voids'." :op :assert}
+ ]}

@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774384195/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CONVERGENCE-006 \"Hypothesis Prompt Compilation\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "629a2c817450e2a9e10650d03a8c5f3b1470f18a01cf7ad12ca83dd0ce22a683" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "629a2c817450e2a9e10650d03a8c5f3b1470f18a01cf7ad12ca83dd0ce22a683" :a :comonad/falsification :v #blake3 "bd89890049493600c1ca76cd1bec51ecfd17472844291afaf78f84dc1f2d703a" :op :assert}
+   {:e #blake3 "629a2c817450e2a9e10650d03a8c5f3b1470f18a01cf7ad12ca83dd0ce22a683" :a :db/doc :v "Hypothesis Prompt Compilation" :op :assert}
+   {:e #blake3 "629a2c817450e2a9e10650d03a8c5f3b1470f18a01cf7ad12ca83dd0ce22a683" :a :db/ident :v :spec/inv-convergence-006 :op :assert}
+   {:e #blake3 "629a2c817450e2a9e10650d03a8c5f3b1470f18a01cf7ad12ca83dd0ce22a683" :a :element/traces-to :v "ADR-CONVERGENCE-001,INV-CONVERGENCE-003" :op :assert}
+   {:e #blake3 "629a2c817450e2a9e10650d03a8c5f3b1470f18a01cf7ad12ca83dd0ce22a683" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "629a2c817450e2a9e10650d03a8c5f3b1470f18a01cf7ad12ca83dd0ce22a683" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "629a2c817450e2a9e10650d03a8c5f3b1470f18a01cf7ad12ca83dd0ce22a683" :a :spec/falsification :v "A bridge hypothesis is surfaced with only entity IDs (no observation text, no file paths, no grounding) when temperature <= 0.5, or a hypothesis at temperature > 0.8 contains line-number-level specificity" :op :assert}
+   {:e #blake3 "629a2c817450e2a9e10650d03a8c5f3b1470f18a01cf7ad12ca83dd0ce22a683" :a :spec/id :v "INV-CONVERGENCE-006" :op :assert}
+   {:e #blake3 "629a2c817450e2a9e10650d03a8c5f3b1470f18a01cf7ad12ca83dd0ce22a683" :a :spec/namespace :v :spec.ns/CONVERGENCE :op :assert}
+   {:e #blake3 "629a2c817450e2a9e10650d03a8c5f3b1470f18a01cf7ad12ca83dd0ce22a683" :a :spec/statement :v "Every bridge hypothesis surfaced to an agent must be compiled from: (1) source observation cluster text, (2) target observation cluster text, (3) temperature-calibrated phrasing breadth, (4) grounding details (file paths, line numbers, function names, spec IDs extracted from observations). The compiled hypothesis must contain at least one specific file path or function name at temperature <= 0.5. At temperature > 0.8, hypotheses may be open-ended. Phrasing pattern is recorded in :hypothesis/phrasing-pattern for calibration." :op :assert}
+   {:e #blake3 "97e650e236942822cfa7bdd337d1a65fac32e0c7c5760f3e110b7112be9d2d80" :a :db/ident :v :task/t-c1999149 :op :assert}
+   {:e #blake3 "97e650e236942822cfa7bdd337d1a65fac32e0c7c5760f3e110b7112be9d2d80" :a :task/created-at :v 1774384193 :op :assert}
+   {:e #blake3 "97e650e236942822cfa7bdd337d1a65fac32e0c7c5760f3e110b7112be9d2d80" :a :task/id :v "t-c1999149" :op :assert}
+   {:e #blake3 "97e650e236942822cfa7bdd337d1a65fac32e0c7c5760f3e110b7112be9d2d80" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "97e650e236942822cfa7bdd337d1a65fac32e0c7c5760f3e110b7112be9d2d80" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "97e650e236942822cfa7bdd337d1a65fac32e0c7c5760f3e110b7112be9d2d80" :a :task/title :v "Implement INV-CONVERGENCE-006: Hypothesis Prompt Compilation" :op :assert}
+   {:e #blake3 "97e650e236942822cfa7bdd337d1a65fac32e0c7c5760f3e110b7112be9d2d80" :a :task/traces-to :v #blake3 "629a2c817450e2a9e10650d03a8c5f3b1470f18a01cf7ad12ca83dd0ce22a683" :op :assert}
+   {:e #blake3 "97e650e236942822cfa7bdd337d1a65fac32e0c7c5760f3e110b7112be9d2d80" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "bd89890049493600c1ca76cd1bec51ecfd17472844291afaf78f84dc1f2d703a" :a :db/doc :v "A bridge hypothesis is surfaced with only entity IDs (no observation text, no file paths, no grounding) when temperature <= 0.5, or a hypothesis at temperature > 0.8 contains line-number-level specificity" :op :assert}
+ ]}

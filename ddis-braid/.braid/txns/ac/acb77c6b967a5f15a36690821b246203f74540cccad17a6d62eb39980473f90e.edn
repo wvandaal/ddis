@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774384189/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-CONVERGENCE-002 \"Daemon Cognitive Loop — Active Inference\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7ea4007493b74fa1a18c3e1fbc10141f6bc4e896a1d44d8feadcc0f844c76d68" :a :db/ident :v :task/t-877bb2c6 :op :assert}
+   {:e #blake3 "7ea4007493b74fa1a18c3e1fbc10141f6bc4e896a1d44d8feadcc0f844c76d68" :a :task/created-at :v 1774384188 :op :assert}
+   {:e #blake3 "7ea4007493b74fa1a18c3e1fbc10141f6bc4e896a1d44d8feadcc0f844c76d68" :a :task/id :v "t-877bb2c6" :op :assert}
+   {:e #blake3 "7ea4007493b74fa1a18c3e1fbc10141f6bc4e896a1d44d8feadcc0f844c76d68" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "7ea4007493b74fa1a18c3e1fbc10141f6bc4e896a1d44d8feadcc0f844c76d68" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7ea4007493b74fa1a18c3e1fbc10141f6bc4e896a1d44d8feadcc0f844c76d68" :a :task/title :v "Implement ADR-CONVERGENCE-002: Daemon Cognitive Loop — Active Inference" :op :assert}
+   {:e #blake3 "7ea4007493b74fa1a18c3e1fbc10141f6bc4e896a1d44d8feadcc0f844c76d68" :a :task/traces-to :v #blake3 "dd7bdd5a7dbe45c99bb95ff351a2ea54fc1996067ceb09bfd9c9ec4851943a3c" :op :assert}
+   {:e #blake3 "7ea4007493b74fa1a18c3e1fbc10141f6bc4e896a1d44d8feadcc0f844c76d68" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "dd7bdd5a7dbe45c99bb95ff351a2ea54fc1996067ceb09bfd9c9ec4851943a3c" :a :adr/decision :v "The daemon runs a cognitive_tick() every 5s between agent requests. The tick: perceives (refresh + filesystem watch), connects (auto-connect new observations), hypothesizes (temperature-adaptive FEGH), self-investigates (structural checks: file existence, imports, test coverage, LOC), reflects (calibrate phrasing patterns), prepares (cache for instant response). Structural investigation is autonomous — no LLM needed. The daemon answers its own structural questions and records findings as observations. This transforms the daemon from passive server to active cognitive agent implementing Friston's active inference loop." :op :assert}
+   {:e #blake3 "dd7bdd5a7dbe45c99bb95ff351a2ea54fc1996067ceb09bfd9c9ec4851943a3c" :a :adr/problem :v "Daemon sits idle between requests. Agent arrives to blank slate — must re-derive structural facts the daemon could have checked. Orientation scored 4.3/10 because no preparation happened between sessions." :op :assert}
+   {:e #blake3 "dd7bdd5a7dbe45c99bb95ff351a2ea54fc1996067ceb09bfd9c9ec4851943a3c" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "dd7bdd5a7dbe45c99bb95ff351a2ea54fc1996067ceb09bfd9c9ec4851943a3c" :a :db/doc :v "Daemon Cognitive Loop — Active Inference" :op :assert}
+   {:e #blake3 "dd7bdd5a7dbe45c99bb95ff351a2ea54fc1996067ceb09bfd9c9ec4851943a3c" :a :db/ident :v :spec/adr-convergence-002 :op :assert}
+   {:e #blake3 "dd7bdd5a7dbe45c99bb95ff351a2ea54fc1996067ceb09bfd9c9ec4851943a3c" :a :element/traces-to :v "ADR-CONVERGENCE-001,ADR-FOUNDATION-031,C7" :op :assert}
+   {:e #blake3 "dd7bdd5a7dbe45c99bb95ff351a2ea54fc1996067ceb09bfd9c9ec4851943a3c" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "dd7bdd5a7dbe45c99bb95ff351a2ea54fc1996067ceb09bfd9c9ec4851943a3c" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "dd7bdd5a7dbe45c99bb95ff351a2ea54fc1996067ceb09bfd9c9ec4851943a3c" :a :spec/id :v "ADR-CONVERGENCE-002" :op :assert}
+   {:e #blake3 "dd7bdd5a7dbe45c99bb95ff351a2ea54fc1996067ceb09bfd9c9ec4851943a3c" :a :spec/namespace :v :spec.ns/CONVERGENCE :op :assert}
+ ]}
