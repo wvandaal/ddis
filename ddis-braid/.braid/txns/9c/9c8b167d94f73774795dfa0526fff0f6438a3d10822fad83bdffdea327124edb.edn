@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774366976/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Update t-c126acce → in-progress"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/status :v :task.status/in-progress :op :assert}
+ ]}

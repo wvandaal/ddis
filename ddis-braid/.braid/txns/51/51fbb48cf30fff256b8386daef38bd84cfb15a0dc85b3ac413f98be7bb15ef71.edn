@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774367042/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c126acce"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/close-reason :v "DOGFOOD COMPLETE on 79K store: (1) 18 capabilities registered. (2) Latency 340-463ms (under 5s threshold). (3) 3 reflexive bridge hypotheses (ΔF(S) 0.96-0.99). (4) Hypotheses recorded as :hypothesis/reflexive-*. (5) 5 runtime datoms with command/latency/outcome. (6) All item_type=reflexive. The system observes itself." :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/closed-at :v 1774367041 :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/status :v :task.status/closed :op :assert}
+ ]}

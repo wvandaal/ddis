@@ -1,0 +1,79 @@
+{:tx/id #hlc "1774366999/0/c3d89db29683c1a81cb5f0a24f045b16"
+ :tx/agent "c3d89db29683c1a81cb5f0a24f045b16"
+ :tx/provenance :derived
+ :tx/rationale "PERF-4a: capability census — binary self-reflection"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2d1a35a132318fe5c8f2d6aefa2124d6e5951eac2751075221df85f98e8b45af" :a :capability/file-path :v "crates/braid-kernel/src/harvest.rs" :op :assert}
+   {:e #blake3 "2d1a35a132318fe5c8f2d6aefa2124d6e5951eac2751075221df85f98e8b45af" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "2d1a35a132318fe5c8f2d6aefa2124d6e5951eac2751075221df85f98e8b45af" :a :db/doc :v "Session knowledge extraction with candidate scoring" :op :assert}
+   {:e #blake3 "2d1a35a132318fe5c8f2d6aefa2124d6e5951eac2751075221df85f98e8b45af" :a :db/ident :v :capability/harvest-pipeline :op :assert}
+   {:e #blake3 "2f662abb5d4fe1961f7fa1a808aa48f596dd38286689995393fd99068b3715d2" :a :capability/file-path :v "crates/braid-kernel/src/topology.rs" :op :assert}
+   {:e #blake3 "2f662abb5d4fe1961f7fa1a808aa48f596dd38286689995393fd99068b3715d2" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "2f662abb5d4fe1961f7fa1a808aa48f596dd38286689995393fd99068b3715d2" :a :db/doc :v "Spectral task partition for multi-agent coordination" :op :assert}
+   {:e #blake3 "2f662abb5d4fe1961f7fa1a808aa48f596dd38286689995393fd99068b3715d2" :a :db/ident :v :capability/topology-planning :op :assert}
+   {:e #blake3 "3e44840c021697f5c9f241dc29c5285933917f882946fe56ce7f16920e90a879" :a :capability/file-path :v "crates/braid/src/layout.rs" :op :assert}
+   {:e #blake3 "3e44840c021697f5c9f241dc29c5285933917f882946fe56ce7f16920e90a879" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "3e44840c021697f5c9f241dc29c5285933917f882946fe56ce7f16920e90a879" :a :db/doc :v "Bincode-serialized store.bin for O(1) startup" :op :assert}
+   {:e #blake3 "3e44840c021697f5c9f241dc29c5285933917f882946fe56ce7f16920e90a879" :a :db/ident :v :capability/store-binary-cache :op :assert}
+   {:e #blake3 "411c8baee02e1bdc0c0c896ea9409af106a2a9490e8cf331b1b84019390e6128" :a :capability/file-path :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "411c8baee02e1bdc0c0c896ea9409af106a2a9490e8cf331b1b84019390e6128" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "411c8baee02e1bdc0c0c896ea9409af106a2a9490e8cf331b1b84019390e6128" :a :db/doc :v "Contextual observation auto-routing (finding/task/ADR/question)" :op :assert}
+   {:e #blake3 "411c8baee02e1bdc0c0c896ea9409af106a2a9490e8cf331b1b84019390e6128" :a :db/ident :v :capability/cotx-routing :op :assert}
+   {:e #blake3 "45c54cfc8683f1d22445dfed0b38c93b0a6ef871f9eb7d5a64a832e8ea998d0a" :a :capability/file-path :v "crates/braid/src/daemon.rs" :op :assert}
+   {:e #blake3 "45c54cfc8683f1d22445dfed0b38c93b0a6ef871f9eb7d5a64a832e8ea998d0a" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "45c54cfc8683f1d22445dfed0b38c93b0a6ef871f9eb7d5a64a832e8ea998d0a" :a :db/doc :v "Persistent LiveStore with JSON-RPC over Unix socket" :op :assert}
+   {:e #blake3 "45c54cfc8683f1d22445dfed0b38c93b0a6ef871f9eb7d5a64a832e8ea998d0a" :a :db/ident :v :capability/unix-socket-daemon :op :assert}
+   {:e #blake3 "4d8c3ef71ad657e41f368328a12dab8034ec12cbdc4d73fd1d8434cd1cfafa81" :a :capability/file-path :v "crates/braid-kernel/src/routing.rs" :op :assert}
+   {:e #blake3 "4d8c3ef71ad657e41f368328a12dab8034ec12cbdc4d73fd1d8434cd1cfafa81" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "4d8c3ef71ad657e41f368328a12dab8034ec12cbdc4d73fd1d8434cd1cfafa81" :a :db/doc :v "Predicted vs actual outcome tracking with calibration" :op :assert}
+   {:e #blake3 "4d8c3ef71ad657e41f368328a12dab8034ec12cbdc4d73fd1d8434cd1cfafa81" :a :db/ident :v :capability/hypothesis-ledger :op :assert}
+   {:e #blake3 "5f304276bfd855d9ab052db56c056e5dcfaf7837b5687c9973e91ceb12376b98" :a :capability/file-path :v "crates/braid-kernel/src/merge.rs" :op :assert}
+   {:e #blake3 "5f304276bfd855d9ab052db56c056e5dcfaf7837b5687c9973e91ceb12376b98" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "5f304276bfd855d9ab052db56c056e5dcfaf7837b5687c9973e91ceb12376b98" :a :db/doc :v "Set-union merge with per-attribute resolution modes" :op :assert}
+   {:e #blake3 "5f304276bfd855d9ab052db56c056e5dcfaf7837b5687c9973e91ceb12376b98" :a :db/ident :v :capability/crdt-merge :op :assert}
+   {:e #blake3 "85826893ba4156cea175bedaaca8e3595cfbb55950189ee650d905695a4418d8" :a :capability/file-path :v "crates/braid/src/live_store.rs" :op :assert}
+   {:e #blake3 "85826893ba4156cea175bedaaca8e3595cfbb55950189ee650d905695a4418d8" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "85826893ba4156cea175bedaaca8e3595cfbb55950189ee650d905695a4418d8" :a :db/doc :v "Apply new txn files without full store rebuild" :op :assert}
+   {:e #blake3 "85826893ba4156cea175bedaaca8e3595cfbb55950189ee650d905695a4418d8" :a :db/ident :v :capability/incremental-tx-loading :op :assert}
+   {:e #blake3 "8c31f7c140d2d5092fa66e0ce53d05edc9b950d43de068636f44be2392346551" :a :capability/file-path :v "crates/braid-kernel/src/seed.rs" :op :assert}
+   {:e #blake3 "8c31f7c140d2d5092fa66e0ce53d05edc9b950d43de068636f44be2392346551" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "8c31f7c140d2d5092fa66e0ce53d05edc9b950d43de068636f44be2392346551" :a :db/doc :v "Task-conditioned context assembly with budget management" :op :assert}
+   {:e #blake3 "8c31f7c140d2d5092fa66e0ce53d05edc9b950d43de068636f44be2392346551" :a :db/ident :v :capability/seed-assembly :op :assert}
+   {:e #blake3 "aa439088cbf78be3997929a6255a0d8ec31cfeb9af2d044a26e7bc83bcb52cd1" :a :capability/file-path :v "crates/braid/src/live_store.rs" :op :assert}
+   {:e #blake3 "aa439088cbf78be3997929a6255a0d8ec31cfeb9af2d044a26e7bc83bcb52cd1" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "aa439088cbf78be3997929a6255a0d8ec31cfeb9af2d044a26e7bc83bcb52cd1" :a :db/doc :v "O(1) mtime-based detection of CLI writes during daemon mode" :op :assert}
+   {:e #blake3 "aa439088cbf78be3997929a6255a0d8ec31cfeb9af2d044a26e7bc83bcb52cd1" :a :db/ident :v :capability/external-write-detection :op :assert}
+   {:e #blake3 "bb958ba038b2c274ec179ebe2f2e644bf5e0595fc3298f9ed7962a9067ac9b29" :a :capability/file-path :v "crates/braid-kernel/src/routing.rs" :op :assert}
+   {:e #blake3 "bb958ba038b2c274ec179ebe2f2e644bf5e0595fc3298f9ed7962a9067ac9b29" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "bb958ba038b2c274ec179ebe2f2e644bf5e0595fc3298f9ed7962a9067ac9b29" :a :db/doc :v "R(t) task impact scoring with calibration" :op :assert}
+   {:e #blake3 "bb958ba038b2c274ec179ebe2f2e644bf5e0595fc3298f9ed7962a9067ac9b29" :a :db/ident :v :capability/routing-engine :op :assert}
+   {:e #blake3 "bbd6b18697f66c463ba98ed60400de224295bca33621419346c3970c633184dd" :a :capability/file-path :v "crates/braid/src/daemon.rs" :op :assert}
+   {:e #blake3 "bbd6b18697f66c463ba98ed60400de224295bca33621419346c3970c633184dd" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "bbd6b18697f66c463ba98ed60400de224295bca33621419346c3970c633184dd" :a :db/doc :v "Daemon emits :runtime/* datoms for reflexive F(S)" :op :assert}
+   {:e #blake3 "bbd6b18697f66c463ba98ed60400de224295bca33621419346c3970c633184dd" :a :db/ident :v :capability/runtime-self-observation :op :assert}
+   {:e #blake3 "c5f5cd2751760e7dc1fc104dc0002c05f90afbc2c052c945ab279dd4f022cd6c" :a :capability/file-path :v "crates/braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "c5f5cd2751760e7dc1fc104dc0002c05f90afbc2c052c945ab279dd4f022cd6c" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "c5f5cd2751760e7dc1fc104dc0002c05f90afbc2c052c945ab279dd4f022cd6c" :a :db/doc :v "Incremental fitness/coherence via Store::observe_datom" :op :assert}
+   {:e #blake3 "c5f5cd2751760e7dc1fc104dc0002c05f90afbc2c052c945ab279dd4f022cd6c" :a :db/ident :v :capability/materialized-views :op :assert}
+   {:e #blake3 "c9a3c54d015e2859d4cbe446c0c1b291182611487b8a4b289f6e272585820201" :a :capability/file-path :v "crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "c9a3c54d015e2859d4cbe446c0c1b291182611487b8a4b289f6e272585820201" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "c9a3c54d015e2859d4cbe446c0c1b291182611487b8a4b289f6e272585820201" :a :db/doc :v "Spec-impl alignment boundary evaluation" :op :assert}
+   {:e #blake3 "c9a3c54d015e2859d4cbe446c0c1b291182611487b8a4b289f6e272585820201" :a :db/ident :v :capability/bilateral-scan :op :assert}
+   {:e #blake3 "cb390ad841a54111e1a409deee52d468d1a5f374c9b40d685733bd3b1295bdfc" :a :capability/file-path :v "crates/braid/src/live_store.rs" :op :assert}
+   {:e #blake3 "cb390ad841a54111e1a409deee52d468d1a5f374c9b40d685733bd3b1295bdfc" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "cb390ad841a54111e1a409deee52d468d1a5f374c9b40d685733bd3b1295bdfc" :a :db/doc :v "Every write is durable before returning (fsync + in-memory)" :op :assert}
+   {:e #blake3 "cb390ad841a54111e1a409deee52d468d1a5f374c9b40d685733bd3b1295bdfc" :a :db/ident :v :capability/write-through-persistence :op :assert}
+   {:e #blake3 "d85aaec8400f3c7889ceafdf66fdb3034d3862f60e5e965c6075657017400c8d" :a :capability/file-path :v "crates/braid-kernel/src/query/evaluator.rs" :op :assert}
+   {:e #blake3 "d85aaec8400f3c7889ceafdf66fdb3034d3862f60e5e965c6075657017400c8d" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "d85aaec8400f3c7889ceafdf66fdb3034d3862f60e5e965c6075657017400c8d" :a :db/doc :v "Stratified Datalog evaluation with CALM compliance" :op :assert}
+   {:e #blake3 "d85aaec8400f3c7889ceafdf66fdb3034d3862f60e5e965c6075657017400c8d" :a :db/ident :v :capability/datalog-query :op :assert}
+   {:e #blake3 "f24cfb6e717ff35e66bfa013ded9b5f9b454632da01429b0032cf011d0278678" :a :capability/file-path :v "crates/braid-kernel/src/routing.rs" :op :assert}
+   {:e #blake3 "f24cfb6e717ff35e66bfa013ded9b5f9b454632da01429b0032cf011d0278678" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "f24cfb6e717ff35e66bfa013ded9b5f9b454632da01429b0032cf011d0278678" :a :db/doc :v "FEGH free-energy gradient over hypothetical observations" :op :assert}
+   {:e #blake3 "f24cfb6e717ff35e66bfa013ded9b5f9b454632da01429b0032cf011d0278678" :a :db/ident :v :capability/bridge-hypotheses :op :assert}
+   {:e #blake3 "f9077ee14436d528b336e42567471d676c47dc222d534ab9d5d33ae04b8f741a" :a :capability/file-path :v "crates/braid-kernel/src/topology.rs" :op :assert}
+   {:e #blake3 "f9077ee14436d528b336e42567471d676c47dc222d534ab9d5d33ae04b8f741a" :a :capability/implemented :v true :op :assert}
+   {:e #blake3 "f9077ee14436d528b336e42567471d676c47dc222d534ab9d5d33ae04b8f741a" :a :db/doc :v "Fiedler-based graph partition for topology planning" :op :assert}
+   {:e #blake3 "f9077ee14436d528b336e42567471d676c47dc222d534ab9d5d33ae04b8f741a" :a :db/ident :v :capability/spectral-partition :op :assert}
+ ]}
