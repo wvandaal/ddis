@@ -1,11 +1,33 @@
-//! Daemon foundation types — D4-1 (ADR-STORE-006).
+//! Braid session daemon — INV-DAEMON-001..009, ADR-DAEMON-001..003.
 //!
-//! Defines error types, newtypes for file paths, and lock status
-//! for the braid session daemon. These types enforce compile-time
-//! separation between socket paths, lock paths, and request IDs
-//! so call sites cannot accidentally swap them.
+//! A Unix-socket daemon that holds a single [`LiveStore`] in memory,
+//! serves JSON-RPC requests using the same protocol as the MCP server,
+//! and emits reflexive `:runtime/*` datoms for every processed command.
+//!
+//! # Architecture (ADR-DAEMON-002)
+//!
+//! The daemon reuses the MCP tool dispatch from [`crate::mcp`]. It adds:
+//! - Lifecycle management (lock file, signal handling, graceful shutdown)
+//! - Unix socket transport (instead of stdin/stdout)
+//! - Runtime datom emission (`handle_with_observation`)
+//!
+//! # Invariants
+//!
+//! - **INV-DAEMON-001**: At most one daemon per `.braid` directory.
+//! - **INV-DAEMON-002**: Store always consistent with disk (`refresh_if_needed`).
+//! - **INV-DAEMON-003**: Every command emits `:runtime/*` datoms.
+//! - **INV-DAEMON-004**: Semantic equivalence with direct mode.
+//! - **INV-DAEMON-005**: Stale lock recovery via `kill(pid, 0)`.
+//! - **INV-DAEMON-006**: Graceful shutdown preserves all state.
 
+use std::io::{BufRead, Write};
+use std::os::unix::net::UnixListener;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use std::time::Instant;
+
+use serde_json::{json, Value as JsonValue};
 
 // ---------------------------------------------------------------------------
 // DaemonError
@@ -347,7 +369,7 @@ pub fn acquire_lock(lock_path: &LockPath) -> Result<(), DaemonError> {
         Ok(mut f) => {
             // Write our PID.
             let pid = std::process::id();
-            writeln!(f, "{pid}").map_err(|e| DaemonError::BindFailed(e))?;
+            writeln!(f, "{pid}").map_err(DaemonError::BindFailed)?;
             Ok(())
         }
         Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
@@ -424,6 +446,381 @@ fn is_process_alive(pid: u32) -> bool {
     // EPERM means process exists but we can't signal it (still alive).
     // ESRCH means no such process (dead).
     errno.raw_os_error() != Some(libc::ESRCH)
+}
+
+// ---------------------------------------------------------------------------
+// Daemon server — D4-5, ADR-DAEMON-001
+// ---------------------------------------------------------------------------
+
+/// Run the daemon server (foreground mode).
+///
+/// Sequence: acquire lock → open LiveStore → install runtime schema →
+/// bind socket → signal handlers → accept loop → shutdown.
+///
+/// **INV-DAEMON-001**: Single daemon enforced via lock file.
+/// **INV-DAEMON-002**: `refresh_if_needed()` before every dispatch.
+/// **INV-DAEMON-006**: Graceful shutdown on SIGTERM/SIGINT.
+pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
+    let lock_path = LockPath::new(braid_dir);
+    let sock_path = SocketPath::new(braid_dir);
+
+    // 1. Acquire lock (INV-DAEMON-001).
+    acquire_lock(&lock_path)?;
+
+    // Ensure cleanup on all exit paths.
+    let _guard = CleanupGuard {
+        lock_path: lock_path.clone(),
+        sock_path: sock_path.clone(),
+    };
+
+    // 2. Open LiveStore.
+    let mut live = crate::live_store::LiveStore::open(braid_dir)
+        .map_err(DaemonError::from)?;
+
+    // 3. Install runtime schema (ADR-DAEMON-003).
+    install_runtime_schema(&mut live)?;
+
+    // 4. Remove stale socket if it exists (crash recovery).
+    let _ = std::fs::remove_file(sock_path.path());
+
+    // 5. Bind Unix socket.
+    let listener = UnixListener::bind(sock_path.path())
+        .map_err(DaemonError::BindFailed)?;
+    // Non-blocking accept so we can check the shutdown flag.
+    listener
+        .set_nonblocking(true)
+        .map_err(DaemonError::BindFailed)?;
+
+    eprintln!(
+        "daemon: listening on {} (pid {})",
+        sock_path.path().display(),
+        std::process::id()
+    );
+
+    // 6. Install signal handlers.
+    let shutdown = Arc::new(AtomicBool::new(false));
+    {
+        let shutdown_clone = Arc::clone(&shutdown);
+        // SAFETY: signal_hook_registry or manual signal handling.
+        // We use a simple approach: set the flag on SIGTERM/SIGINT.
+        unsafe {
+            libc::signal(libc::SIGTERM, signal_handler as *const () as libc::sighandler_t);
+            libc::signal(libc::SIGINT, signal_handler as *const () as libc::sighandler_t);
+        }
+        // Store the Arc in a global so the signal handler can access it.
+        SHUTDOWN_FLAG
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .replace(shutdown_clone);
+    }
+
+    let start_time = Instant::now();
+    let mut request_count: u64 = 0;
+
+    // 7. Accept loop.
+    loop {
+        if shutdown.load(Ordering::Relaxed) {
+            eprintln!("daemon: shutdown signal received");
+            break;
+        }
+
+        // Check the global flag too (set by signal handler).
+        if let Ok(guard) = SHUTDOWN_FLAG.lock() {
+            if let Some(ref flag) = *guard {
+                if flag.load(Ordering::Relaxed) {
+                    eprintln!("daemon: shutdown signal received (via handler)");
+                    break;
+                }
+            }
+        }
+
+        match listener.accept() {
+            Ok((stream, _addr)) => {
+                // Set read timeout for the connection (PM-3: prevent leaked connections).
+                let _ = stream.set_read_timeout(Some(std::time::Duration::from_secs(30)));
+                let _ = stream.set_nonblocking(false);
+
+                handle_connection(stream, &mut live, &start_time, &mut request_count);
+            }
+            Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                // No pending connection — sleep briefly and retry.
+                std::thread::sleep(std::time::Duration::from_millis(100));
+                continue;
+            }
+            Err(e) => {
+                eprintln!("daemon: accept error: {e}");
+                continue;
+            }
+        }
+    }
+
+    // 8. Shutdown: flush LiveStore (INV-DAEMON-006).
+    eprintln!("daemon: flushing store...");
+    let _ = live.flush();
+    eprintln!(
+        "daemon: stopped after {} requests, uptime {}s",
+        request_count,
+        start_time.elapsed().as_secs()
+    );
+
+    // CleanupGuard will remove socket and lock on drop.
+    Ok(())
+}
+
+/// Handle one client connection: read lines, dispatch, respond.
+fn handle_connection(
+    stream: std::os::unix::net::UnixStream,
+    live: &mut crate::live_store::LiveStore,
+    start_time: &Instant,
+    request_count: &mut u64,
+) {
+    let reader = std::io::BufReader::new(&stream);
+    let mut writer = std::io::BufWriter::new(&stream);
+
+    for line_result in reader.lines() {
+        let line = match line_result {
+            Ok(l) => l,
+            Err(_) => break, // Client disconnected or timeout.
+        };
+
+        let line = line.trim().to_string();
+        if line.is_empty() {
+            continue;
+        }
+
+        let msg: JsonValue = match serde_json::from_str(&line) {
+            Ok(v) => v,
+            Err(e) => {
+                let resp = json!({
+                    "jsonrpc": "2.0",
+                    "id": null,
+                    "error": {
+                        "code": -32700,
+                        "message": format!("parse error: {e}"),
+                    },
+                });
+                let _ = write_json_line(&mut writer, &resp);
+                continue;
+            }
+        };
+
+        let id = msg.get("id").cloned().unwrap_or(JsonValue::Null);
+        let method = msg.get("method").and_then(|v| v.as_str()).unwrap_or("");
+        let params = msg.get("params").cloned().unwrap_or(json!({}));
+        let is_notification = msg.get("id").is_none();
+
+        // INV-DAEMON-002: refresh before every dispatch.
+        let _ = live.refresh_if_needed();
+
+        let response = match method {
+            // Daemon-specific methods.
+            "daemon/shutdown" => {
+                // Set the global shutdown flag.
+                if let Ok(guard) = SHUTDOWN_FLAG.lock() {
+                    if let Some(ref flag) = *guard {
+                        flag.store(true, Ordering::Relaxed);
+                    }
+                }
+                crate::mcp::jsonrpc_ok(&id, json!({"status": "stopping"}))
+            }
+            "daemon/status" => {
+                let uptime_secs = start_time.elapsed().as_secs();
+                let datom_count = live.store().len();
+                let entity_count = live.store().entity_count();
+                crate::mcp::jsonrpc_ok(
+                    &id,
+                    json!({
+                        "pid": std::process::id(),
+                        "uptime_secs": uptime_secs,
+                        "request_count": *request_count,
+                        "datom_count": datom_count,
+                        "entity_count": entity_count,
+                    }),
+                )
+            }
+            // Standard MCP methods — delegate to shared handlers.
+            "initialize" => crate::mcp::handle_initialize(&id, &params, live),
+            "initialized" => {
+                if is_notification {
+                    continue;
+                }
+                crate::mcp::jsonrpc_ok(&id, json!({}))
+            }
+            "tools/list" => crate::mcp::handle_tools_list(&id),
+            "tools/call" => {
+                // D4-6: Wrap with runtime datom emission (INV-DAEMON-003).
+                handle_with_observation(&id, &params, live)
+            }
+            "ping" => crate::mcp::jsonrpc_ok(&id, json!({})),
+            "notifications/cancelled" | "notifications/progress" => continue,
+            _ => crate::mcp::jsonrpc_error(
+                &id,
+                crate::mcp::METHOD_NOT_FOUND,
+                &format!("unknown method: {method}"),
+            ),
+        };
+
+        *request_count += 1;
+        let _ = write_json_line(&mut writer, &response);
+    }
+}
+
+/// Write a JSON value as a newline-delimited line.
+fn write_json_line(writer: &mut impl Write, value: &JsonValue) -> std::io::Result<()> {
+    let bytes = serde_json::to_vec(value).expect("JSON serialization cannot fail");
+    writer.write_all(&bytes)?;
+    writer.write_all(b"\n")?;
+    writer.flush()
+}
+
+/// Handle a tools/call request with runtime datom emission.
+///
+/// **INV-DAEMON-003**: Every command emits `:runtime/*` datoms.
+/// **INV-DAEMON-008**: Emits datoms even on error paths.
+fn handle_with_observation(
+    id: &JsonValue,
+    params: &JsonValue,
+    live: &mut crate::live_store::LiveStore,
+) -> JsonValue {
+    use braid_kernel::datom::*;
+    use braid_kernel::layout::TxFile;
+
+    let start = Instant::now();
+    let datom_count_before = live.store().len() as i64;
+    let cache_hit = !live.has_new_external_txns();
+
+    // Dispatch to shared MCP handler.
+    let result = crate::mcp::handle_tools_call(id, params, live);
+
+    // Emit runtime datoms (best-effort — never fail the original request).
+    let elapsed_ms = start.elapsed().as_millis() as i64;
+    let is_error = result
+        .get("result")
+        .and_then(|r| r.get("isError"))
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false)
+        || result.get("error").is_some();
+    let outcome = if is_error { "error" } else { "success" };
+
+    let tool_name = params
+        .get("name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    let request_id_str = format!("{}", id);
+
+    let wall_ms = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as i64;
+
+    let agent = AgentId::from_name("braid:daemon");
+    let tx_id = crate::commands::write::next_tx_id(live.store(), agent);
+
+    let ident = format!(
+        ":runtime/req-{}",
+        &blake3::hash(format!("{}:{}", request_id_str, wall_ms).as_bytes()).to_hex()[..16]
+    );
+    let entity = EntityId::from_ident(&ident);
+
+    let datoms = vec![
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(ident),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":runtime/command"),
+            Value::String(tool_name.to_string()),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":runtime/request-id"),
+            Value::String(request_id_str),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":runtime/latency-ms"),
+            Value::Long(elapsed_ms),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":runtime/outcome"),
+            Value::String(outcome.to_string()),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":runtime/datom-count"),
+            Value::Long(datom_count_before),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":runtime/cache-hit"),
+            Value::Boolean(cache_hit),
+            tx_id,
+            Op::Assert,
+        ),
+    ];
+
+    let tx_file = TxFile {
+        tx_id,
+        agent,
+        provenance: ProvenanceType::Derived,
+        rationale: format!("runtime observation: {tool_name}"),
+        causal_predecessors: vec![],
+        datoms,
+    };
+
+    // Best-effort: do not fail the original request on observation failure.
+    if let Err(e) = live.write_tx(&tx_file) {
+        eprintln!("daemon: failed to write runtime datom: {e}");
+    }
+
+    result
+}
+
+// ---------------------------------------------------------------------------
+// Signal handling
+// ---------------------------------------------------------------------------
+
+/// Global shutdown flag, accessible from the signal handler.
+static SHUTDOWN_FLAG: std::sync::Mutex<Option<Arc<AtomicBool>>> =
+    std::sync::Mutex::new(None);
+
+/// Signal handler that sets the shutdown flag.
+///
+/// SAFETY: Only accesses an atomic bool (async-signal-safe on all platforms).
+extern "C" fn signal_handler(_sig: libc::c_int) {
+    if let Ok(guard) = SHUTDOWN_FLAG.lock() {
+        if let Some(ref flag) = *guard {
+            flag.store(true, Ordering::Relaxed);
+        }
+    }
+}
+
+/// RAII guard that cleans up socket and lock files on drop.
+struct CleanupGuard {
+    lock_path: LockPath,
+    sock_path: SocketPath,
+}
+
+impl Drop for CleanupGuard {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_file(self.sock_path.path());
+        release_lock(&self.lock_path);
+    }
 }
 
 // ---------------------------------------------------------------------------

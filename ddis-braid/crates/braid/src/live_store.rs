@@ -133,6 +133,21 @@ impl LiveStore {
         &self.store
     }
 
+    /// Quick check: are there new external transactions since last refresh?
+    ///
+    /// Returns `true` if the txns/ directory mtime has changed since the
+    /// last `open()` or `refresh_if_needed()` call. This is an O(1) stat()
+    /// check that does NOT apply the new transactions — call
+    /// `refresh_if_needed()` to actually apply them.
+    ///
+    /// Used by the daemon to record `:runtime/cache-hit` (INV-DAEMON-003).
+    pub fn has_new_external_txns(&self) -> bool {
+        let current_mtime = std::fs::metadata(self.path.join("txns"))
+            .and_then(|m| m.modified())
+            .ok();
+        current_mtime != self.txns_dir_mtime
+    }
+
     /// Access to the underlying filesystem layout.
     ///
     /// Use for operations that need direct filesystem access:

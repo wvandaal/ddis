@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774364325/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-79103fb0"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "88a8451529c2c85f1936ce11bc16299e547dc1d5f8085d8a51ee5b930f58cca9" :a :task/close-reason :v "serve_daemon: lock → LiveStore → runtime schema → socket bind → signal handlers → accept loop → shutdown. handle_connection dispatches JSON-RPC. daemon/shutdown and daemon/status methods. CleanupGuard RAII. Clippy clean." :op :assert}
+   {:e #blake3 "88a8451529c2c85f1936ce11bc16299e547dc1d5f8085d8a51ee5b930f58cca9" :a :task/closed-at :v 1774364324 :op :assert}
+   {:e #blake3 "88a8451529c2c85f1936ce11bc16299e547dc1d5f8085d8a51ee5b930f58cca9" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "88a8451529c2c85f1936ce11bc16299e547dc1d5f8085d8a51ee5b930f58cca9" :a :task/status :v :task.status/closed :op :assert}
+ ]}
