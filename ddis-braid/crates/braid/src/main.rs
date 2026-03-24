@@ -8,6 +8,7 @@ pub mod inject;
 pub mod layout;
 pub mod live_store;
 pub mod mcp;
+pub mod daemon;
 pub mod output;
 
 /// Braid — append-only datom store for human/AI coherence verification.

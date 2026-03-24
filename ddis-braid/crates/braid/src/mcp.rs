@@ -66,16 +66,16 @@ use crate::live_store::LiveStore;
 // Protocol constants
 // ---------------------------------------------------------------------------
 
-const SERVER_NAME: &str = "braid";
-const SERVER_VERSION: &str = env!("CARGO_PKG_VERSION");
-const PROTOCOL_VERSION: &str = "2024-11-05";
+pub(crate) const SERVER_NAME: &str = "braid";
+pub(crate) const SERVER_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub(crate) const PROTOCOL_VERSION: &str = "2024-11-05";
 
 // ---------------------------------------------------------------------------
 // JSON-RPC helpers
 // ---------------------------------------------------------------------------
 
 /// Build a JSON-RPC success response.
-fn jsonrpc_ok(id: &JsonValue, result: JsonValue) -> JsonValue {
+pub(crate) fn jsonrpc_ok(id: &JsonValue, result: JsonValue) -> JsonValue {
     json!({
         "jsonrpc": "2.0",
         "id": id,
@@ -84,7 +84,7 @@ fn jsonrpc_ok(id: &JsonValue, result: JsonValue) -> JsonValue {
 }
 
 /// Build a JSON-RPC error response.
-fn jsonrpc_error(id: &JsonValue, code: i64, message: &str) -> JsonValue {
+pub(crate) fn jsonrpc_error(id: &JsonValue, code: i64, message: &str) -> JsonValue {
     json!({
         "jsonrpc": "2.0",
         "id": id,
@@ -96,8 +96,8 @@ fn jsonrpc_error(id: &JsonValue, code: i64, message: &str) -> JsonValue {
 }
 
 // Standard JSON-RPC error codes.
-const METHOD_NOT_FOUND: i64 = -32601;
-const INVALID_PARAMS: i64 = -32602;
+pub(crate) const METHOD_NOT_FOUND: i64 = -32601;
+pub(crate) const INVALID_PARAMS: i64 = -32602;
 // const INTERNAL_ERROR is reserved for future use when tool execution
 // failures need to be reported as JSON-RPC internal errors rather than
 // MCP-level isError responses.
@@ -112,7 +112,7 @@ const INVALID_PARAMS: i64 = -32602;
 /// - Lead with WHEN to use this tool (activation pattern)
 /// - Show a concrete example (demonstrations > constraints)
 /// - End with what the output looks like (set expectations)
-fn tool_definitions() -> JsonValue {
+pub(crate) fn tool_definitions() -> JsonValue {
     json!({
         "tools": [
             {
@@ -316,7 +316,7 @@ fn tool_definitions() -> JsonValue {
 // ---------------------------------------------------------------------------
 
 /// Execute a tool call and return the MCP content response.
-fn call_tool(
+pub(crate) fn call_tool(
     live: &mut LiveStore,
     name: &str,
     arguments: &JsonValue,
@@ -939,7 +939,7 @@ fn tool_task_create(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue,
 // ---------------------------------------------------------------------------
 
 /// Parse a string into a DatomValue (integer, float, boolean, keyword, or string).
-fn parse_value(s: &str) -> DatomValue {
+pub(crate) fn parse_value(s: &str) -> DatomValue {
     if let Ok(n) = s.parse::<i64>() {
         return DatomValue::Long(n);
     }
@@ -1069,7 +1069,7 @@ pub fn serve(path: &Path) -> Result<(), BraidError> {
 }
 
 /// Write a JSON-RPC response as a single line to stdout.
-fn write_response(writer: &mut impl Write, response: &JsonValue) {
+pub(crate) fn write_response(writer: &mut impl Write, response: &JsonValue) {
     let bytes = serde_json::to_vec(response).expect("JSON serialization cannot fail");
     // Write as a single line followed by newline.
     let _ = writer.write_all(&bytes);
@@ -1082,7 +1082,7 @@ fn write_response(writer: &mut impl Write, response: &JsonValue) {
 /// INV-INTERFACE-008: The instructions field provides basin activation —
 /// a ~100 token orientation that anchors the agent's reasoning trajectory
 /// before any tool calls. Uses live store metrics when available.
-fn handle_initialize(id: &JsonValue, _params: &JsonValue, live: &mut LiveStore) -> JsonValue {
+pub(crate) fn handle_initialize(id: &JsonValue, _params: &JsonValue, live: &mut LiveStore) -> JsonValue {
     // Build dynamic instructions from store state.
     let instructions = {
         let store = live.store();
@@ -1119,7 +1119,7 @@ fn handle_initialize(id: &JsonValue, _params: &JsonValue, live: &mut LiveStore) 
 }
 
 /// Handle `tools/list` — return tool definitions.
-fn handle_tools_list(id: &JsonValue) -> JsonValue {
+pub(crate) fn handle_tools_list(id: &JsonValue) -> JsonValue {
     jsonrpc_ok(id, tool_definitions())
 }
 
@@ -1128,7 +1128,7 @@ fn handle_tools_list(id: &JsonValue) -> JsonValue {
 /// INV-GUIDANCE-001: Every tool response includes an M(t) guidance footer.
 /// This is the MCP equivalent of the CLI's `try_build_footer` — ensuring
 /// methodology adherence signals are continuous, not optional.
-fn handle_tools_call(id: &JsonValue, params: &JsonValue, live: &mut LiveStore) -> JsonValue {
+pub(crate) fn handle_tools_call(id: &JsonValue, params: &JsonValue, live: &mut LiveStore) -> JsonValue {
     let name = match params.get("name").and_then(|v| v.as_str()) {
         Some(n) => n,
         None => return jsonrpc_error(id, INVALID_PARAMS, "missing 'name' in tools/call params"),
@@ -1164,7 +1164,7 @@ fn handle_tools_call(id: &JsonValue, params: &JsonValue, live: &mut LiveStore) -
 /// INV-INTERFACE-010 anti-drift injection: when M(t) < 0.5 (drift signal
 /// active), an additional anti-drift warning is prepended before the normal
 /// M(t) footer to redirect the agent back to methodology.
-fn append_guidance_footer(result: &mut JsonValue, live: &LiveStore) {
+pub(crate) fn append_guidance_footer(result: &mut JsonValue, live: &LiveStore) {
     let store = live.store();
 
     // Compute M(t) to check for drift signal.

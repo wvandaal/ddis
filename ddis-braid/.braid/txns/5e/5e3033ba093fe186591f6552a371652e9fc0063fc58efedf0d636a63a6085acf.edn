@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774363732/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8e3120b9"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5fddb4854378707b40dd86db1c0238235a08b1ad3f597780135371e32b678f41" :a :task/close-reason :v "DaemonError (9 variants) + SocketPath/LockPath/RequestId newtypes + LockStatus enum + 13 unit tests. All compile, clippy clean." :op :assert}
+   {:e #blake3 "5fddb4854378707b40dd86db1c0238235a08b1ad3f597780135371e32b678f41" :a :task/closed-at :v 1774363731 :op :assert}
+   {:e #blake3 "5fddb4854378707b40dd86db1c0238235a08b1ad3f597780135371e32b678f41" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "5fddb4854378707b40dd86db1c0238235a08b1ad3f597780135371e32b678f41" :a :task/status :v :task.status/closed :op :assert}
+ ]}
