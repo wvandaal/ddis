@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774367303/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DOGFOOD-1 verified on Go CLI (62.5K LOC, external project). Daemon started on 1,491-datom store. Results: 18 capabilities registered, 3 reflexive bridge hypotheses (ΔF(S) 0.86-0.98), 5 runtime datoms (3-36ms latency). Store grew to 1,753 datoms. Key finding: daemon serves queries in 3-36ms on small stores (vs 340-463ms on 79K braid store). braid_observe via daemon MCP tool had path issue (0ms error) — filed observation, not blocking. C8 (substrate independence) validated: braid works on a Go project with zero Go-specific logic."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fd83dd88087018af0e1787823a6bae6d9e66510d6b8f176df46c85b0a32e31bc" :a :db/doc :v "DOGFOOD-1 verified on Go CLI (62.5K LOC, external project). Daemon started on 1,491-datom store. Results: 18 capabilities registered, 3 reflexive bridge hypotheses (ΔF(S) 0.86-0.98), 5 runtime datoms (3-36ms latency). Store grew to 1,753 datoms. Key finding: daemon serves queries in 3-36ms on small stores (vs 340-463ms on 79K braid store). braid_observe via daemon MCP tool had path issue (0ms error) — filed observation, not blocking. C8 (substrate independence) validated: braid works on a Go project with zero Go-specific logic." :op :assert}
+   {:e #blake3 "fd83dd88087018af0e1787823a6bae6d9e66510d6b8f176df46c85b0a32e31bc" :a :db/ident :v :observation/dogfood-1-verified-on-go-cli-625k-loc-external-project :op :assert}
+   {:e #blake3 "fd83dd88087018af0e1787823a6bae6d9e66510d6b8f176df46c85b0a32e31bc" :a :exploration/body :v "DOGFOOD-1 verified on Go CLI (62.5K LOC, external project). Daemon started on 1,491-datom store. Results: 18 capabilities registered, 3 reflexive bridge hypotheses (ΔF(S) 0.86-0.98), 5 runtime datoms (3-36ms latency). Store grew to 1,753 datoms. Key finding: daemon serves queries in 3-36ms on small stores (vs 340-463ms on 79K braid store). braid_observe via daemon MCP tool had path issue (0ms error) — filed observation, not blocking. C8 (substrate independence) validated: braid works on a Go project with zero Go-specific logic." :op :assert}
+   {:e #blake3 "fd83dd88087018af0e1787823a6bae6d9e66510d6b8f176df46c85b0a32e31bc" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "fd83dd88087018af0e1787823a6bae6d9e66510d6b8f176df46c85b0a32e31bc" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "fd83dd88087018af0e1787823a6bae6d9e66510d6b8f176df46c85b0a32e31bc" :a :exploration/content-hash :v #bytes "5a25042b41ceda7aa5006846f05963193cab9ec2e1e295713be7f296f0e0d22f" :op :assert}
+   {:e #blake3 "fd83dd88087018af0e1787823a6bae6d9e66510d6b8f176df46c85b0a32e31bc" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "fd83dd88087018af0e1787823a6bae6d9e66510d6b8f176df46c85b0a32e31bc" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "fd83dd88087018af0e1787823a6bae6d9e66510d6b8f176df46c85b0a32e31bc" :a :exploration/source-session :v #blake3 "510ced31ee0af2f1fe4416d97a56c569813993225a2b73ff642cb33c2707da60" :op :assert}
+ ]}
