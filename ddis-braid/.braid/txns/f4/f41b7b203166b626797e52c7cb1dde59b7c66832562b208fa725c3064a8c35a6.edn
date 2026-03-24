@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774324260/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-034 \"LiveStore Write-Through Persistence\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0a52f997669d24ea99b9f7f75950605f9375e701fd67993362c80bd4f5fce702" :a :db/ident :v :task/t-a9768fdd :op :assert}
+   {:e #blake3 "0a52f997669d24ea99b9f7f75950605f9375e701fd67993362c80bd4f5fce702" :a :task/created-at :v 1774324259 :op :assert}
+   {:e #blake3 "0a52f997669d24ea99b9f7f75950605f9375e701fd67993362c80bd4f5fce702" :a :task/id :v "t-a9768fdd" :op :assert}
+   {:e #blake3 "0a52f997669d24ea99b9f7f75950605f9375e701fd67993362c80bd4f5fce702" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "0a52f997669d24ea99b9f7f75950605f9375e701fd67993362c80bd4f5fce702" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0a52f997669d24ea99b9f7f75950605f9375e701fd67993362c80bd4f5fce702" :a :task/title :v "Implement ADR-FOUNDATION-034: LiveStore Write-Through Persistence" :op :assert}
+   {:e #blake3 "0a52f997669d24ea99b9f7f75950605f9375e701fd67993362c80bd4f5fce702" :a :task/traces-to :v #blake3 "ed3b10a7c6da67c326fbccd337ba0e240550819ce429a68e22fafffd1d2c2aba" :op :assert}
+   {:e #blake3 "0a52f997669d24ea99b9f7f75950605f9375e701fd67993362c80bd4f5fce702" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "b895d0309ec614860e59061336aef149ee62f6f5ba68ee341f71bdaf9a49df45" :a :db/doc :v "Violated if: (1) after write_tx, store.bin does not contain written datoms (checkpoint != fold invariant), (2) two LiveStores processing same txn set produce different stores (commutativity failure), (3) daemon requires different persistence code paths than CLI (abstraction leak)" :op :assert}
+   {:e #blake3 "ed3b10a7c6da67c326fbccd337ba0e240550819ce429a68e22fafffd1d2c2aba" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "ed3b10a7c6da67c326fbccd337ba0e240550819ce429a68e22fafffd1d2c2aba" :a :comonad/falsification :v #blake3 "b895d0309ec614860e59061336aef149ee62f6f5ba68ee341f71bdaf9a49df45" :op :assert}
+   {:e #blake3 "ed3b10a7c6da67c326fbccd337ba0e240550819ce429a68e22fafffd1d2c2aba" :a :db/doc :v "LiveStore Write-Through Persistence" :op :assert}
+   {:e #blake3 "ed3b10a7c6da67c326fbccd337ba0e240550819ce429a68e22fafffd1d2c2aba" :a :db/ident :v :spec/adr-foundation-034 :op :assert}
+   {:e #blake3 "ed3b10a7c6da67c326fbccd337ba0e240550819ce429a68e22fafffd1d2c2aba" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "ed3b10a7c6da67c326fbccd337ba0e240550819ce429a68e22fafffd1d2c2aba" :a :spec/falsification :v "Violated if: (1) after write_tx, store.bin does not contain written datoms (checkpoint != fold invariant), (2) two LiveStores processing same txn set produce different stores (commutativity failure), (3) daemon requires different persistence code paths than CLI (abstraction leak)" :op :assert}
+   {:e #blake3 "ed3b10a7c6da67c326fbccd337ba0e240550819ce429a68e22fafffd1d2c2aba" :a :spec/id :v "ADR-FOUNDATION-034" :op :assert}
+   {:e #blake3 "ed3b10a7c6da67c326fbccd337ba0e240550819ce429a68e22fafffd1d2c2aba" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "ed3b10a7c6da67c326fbccd337ba0e240550819ce429a68e22fafffd1d2c2aba" :a :spec/statement :v "Unify DiskLayout and Store into a single self-persisting object where every write atomically updates in-memory state, transaction log, and binary cache. The Store IS the cache. ALTERNATIVES REJECTED: (1) Deferred write — breaks Hebbian feedback. (2) Conditional write — frequency reduction, not architecture fix. (3) Incremental cache on write — redundant deserialization. (4) Skip UAQ-6 — kills attention loop (NEG-010). RATIONALE: 5 caches with 3 invalidation strategies and 2 stale bugs reduced to 1 cache, 0 invalidation strategies. C1 (append-only) provides crash safety. The daemon becomes a trivial extension. ALGEBRAIC PROPERTY: write-through is CRDT merge (C4) at the persistence layer — each write is merge with single-datom delta. Same operation at four scales: single datom, session harvest, multi-agent refresh, cross-project transfer." :op :assert}
+ ]}

@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774324276/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-STORE-020 \"Write-Through Consistency\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "64c7792ca0be60508f35143f9d29363005597b8d9b0a873b1003745a069da8f4" :a :db/ident :v :task/t-5d804a1b :op :assert}
+   {:e #blake3 "64c7792ca0be60508f35143f9d29363005597b8d9b0a873b1003745a069da8f4" :a :task/created-at :v 1774324275 :op :assert}
+   {:e #blake3 "64c7792ca0be60508f35143f9d29363005597b8d9b0a873b1003745a069da8f4" :a :task/id :v "t-5d804a1b" :op :assert}
+   {:e #blake3 "64c7792ca0be60508f35143f9d29363005597b8d9b0a873b1003745a069da8f4" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "64c7792ca0be60508f35143f9d29363005597b8d9b0a873b1003745a069da8f4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "64c7792ca0be60508f35143f9d29363005597b8d9b0a873b1003745a069da8f4" :a :task/title :v "Implement INV-STORE-020: Write-Through Consistency" :op :assert}
+   {:e #blake3 "64c7792ca0be60508f35143f9d29363005597b8d9b0a873b1003745a069da8f4" :a :task/traces-to :v #blake3 "7096af37a7d29857a863a2c1c52e3c4e28f56ae7ad354719bf81a2026dbe180a" :op :assert}
+   {:e #blake3 "64c7792ca0be60508f35143f9d29363005597b8d9b0a873b1003745a069da8f4" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "7096af37a7d29857a863a2c1c52e3c4e28f56ae7ad354719bf81a2026dbe180a" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "7096af37a7d29857a863a2c1c52e3c4e28f56ae7ad354719bf81a2026dbe180a" :a :comonad/falsification :v #blake3 "ca67de46a9bfb991432daed52ffbc0304ef01adbfc1751caf49ef26c26a0983a" :op :assert}
+   {:e #blake3 "7096af37a7d29857a863a2c1c52e3c4e28f56ae7ad354719bf81a2026dbe180a" :a :db/doc :v "Write-Through Consistency" :op :assert}
+   {:e #blake3 "7096af37a7d29857a863a2c1c52e3c4e28f56ae7ad354719bf81a2026dbe180a" :a :db/ident :v :spec/inv-store-020 :op :assert}
+   {:e #blake3 "7096af37a7d29857a863a2c1c52e3c4e28f56ae7ad354719bf81a2026dbe180a" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "7096af37a7d29857a863a2c1c52e3c4e28f56ae7ad354719bf81a2026dbe180a" :a :spec/falsification :v "Violated if any of: (A) live.store().len() after write_tx does not include the new datoms. (B) Deserializing store.bin after write_tx produces a different datom count than live.store().len(). (C) A full rebuild from txn files produces a different datom count than the cached store. (D) fitness() differs between in-memory and cached stores." :op :assert}
+   {:e #blake3 "7096af37a7d29857a863a2c1c52e3c4e28f56ae7ad354719bf81a2026dbe180a" :a :spec/id :v "INV-STORE-020" :op :assert}
+   {:e #blake3 "7096af37a7d29857a863a2c1c52e3c4e28f56ae7ad354719bf81a2026dbe180a" :a :spec/namespace :v :spec.ns/STORE :op :assert}
+   {:e #blake3 "7096af37a7d29857a863a2c1c52e3c4e28f56ae7ad354719bf81a2026dbe180a" :a :spec/statement :v "After any LiveStore::write_tx(tx), the following three representations are consistent: (1) The in-memory Store contains all datoms from tx. (2) The transaction file exists on disk at .braid/txns/{shard}/{hash}.edn with correct content. (3) The binary cache at .braid/.cache/store.bin, when deserialized, produces a Store with identical datom set and fitness to the in-memory Store. Formally: let S_mem be the in-memory store after write_tx, let S_disk be Store::from_datoms(all txn files), let S_cache be deserialize(store.bin). Then S_mem.datom_set() == S_disk.datom_set() == S_cache.datom_set() and S_mem.fitness() == S_cache.fitness(). This is the checkpoint-equals-fold invariant." :op :assert}
+   {:e #blake3 "ca67de46a9bfb991432daed52ffbc0304ef01adbfc1751caf49ef26c26a0983a" :a :db/doc :v "Violated if any of: (A) live.store().len() after write_tx does not include the new datoms. (B) Deserializing store.bin after write_tx produces a different datom count than live.store().len(). (C) A full rebuild from txn files produces a different datom count than the cached store. (D) fitness() differs between in-memory and cached stores." :op :assert}
+ ]}

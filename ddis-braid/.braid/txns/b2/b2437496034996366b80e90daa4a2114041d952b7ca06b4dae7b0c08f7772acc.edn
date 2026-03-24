@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774324379/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1c606489e1091866103326eb9fd23f2d33c57d79337e0aa799ad67e3686f0a87" :a :db/ident :v :recon/trace-3854a000af8ff348 :op :assert}
+   {:e #blake3 "1c606489e1091866103326eb9fd23f2d33c57d79337e0aa799ad67e3686f0a87" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "1c606489e1091866103326eb9fd23f2d33c57d79337e0aa799ad67e3686f0a87" :a :recon/trace-neighborhood :v "FOUNDATION" :op :assert}
+   {:e #blake3 "1c606489e1091866103326eb9fd23f2d33c57d79337e0aa799ad67e3686f0a87" :a :recon/trace-neighbors :v ":task/t-0a1ef40a" :op :assert}
+   {:e #blake3 "1c606489e1091866103326eb9fd23f2d33c57d79337e0aa799ad67e3686f0a87" :a :recon/trace-neighbors :v ":task/t-449ec46d" :op :assert}
+   {:e #blake3 "1c606489e1091866103326eb9fd23f2d33c57d79337e0aa799ad67e3686f0a87" :a :recon/trace-neighbors :v ":task/t-5d804a1b" :op :assert}
+   {:e #blake3 "1c606489e1091866103326eb9fd23f2d33c57d79337e0aa799ad67e3686f0a87" :a :recon/trace-neighbors :v ":task/t-9a671f5a" :op :assert}
+   {:e #blake3 "1c606489e1091866103326eb9fd23f2d33c57d79337e0aa799ad67e3686f0a87" :a :recon/trace-neighbors :v ":task/t-a9768fdd" :op :assert}
+   {:e #blake3 "1c606489e1091866103326eb9fd23f2d33c57d79337e0aa799ad67e3686f0a87" :a :recon/trace-neighbors :v ":task/t-b22fcbcb" :op :assert}
+   {:e #blake3 "1c606489e1091866103326eb9fd23f2d33c57d79337e0aa799ad67e3686f0a87" :a :recon/trace-neighbors :v ":task/t-bbd407e0" :op :assert}
+   {:e #blake3 "1c606489e1091866103326eb9fd23f2d33c57d79337e0aa799ad67e3686f0a87" :a :recon/trace-neighbors :v ":task/t-d500e691" :op :assert}
+   {:e #blake3 "1c606489e1091866103326eb9fd23f2d33c57d79337e0aa799ad67e3686f0a87" :a :recon/trace-refs :v "ADR-FOUNDATION-034" :op :assert}
+   {:e #blake3 "1c606489e1091866103326eb9fd23f2d33c57d79337e0aa799ad67e3686f0a87" :a :recon/trace-refs :v "INV-STORE-020" :op :assert}
+ ]}

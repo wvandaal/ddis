@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774324291/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: LIVESTORE-HOTFIX: Add fitness.json, coherence.json, analytics.json to invalidate_cache(). CONTEXT: Cache audit found that invalidate_cache() in layout.rs only deletes store.bin and meta.json. Three derived caches (fitness.json, coherence.json, analytics.json) survive, creating stale-data risk. While LIVESTORE-3 will eliminate these caches entirely, this IMMEDIATE hotfix ensures correctness until then. APPROACH: Add three fs::remove_file calls to invalidate_cache() in layout.rs:177-180. Also add them to any other code path that creates these files (belt-and-suspenders). ACCEPTANCE: (A) After write_tx(), fitness.json does not exist. (B) After write_tx(), coherence.json does not exist. (C) After write_tx(), analytics.json does not exist. (D) All tests pass. DEPENDS-ON: none (immediate fix). TRACES: INV-STORE-020. FILE: crates/braid/src/layout.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :db/ident :v :task/t-449ec46d :op :assert}
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :task/acceptance :v "(A) After write_tx(), fitness.json does not exist. (B) After write_tx(), coherence.json does not exist. (C) After write_tx(), analytics.json does not exist. (D) All tests pass. DEPENDS-ON: none (immediate fix). TRACES: INV-STORE-020." :op :assert}
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :task/approach :v "Add three fs::remove_file calls to invalidate_cache() in layout.rs:177-180. Also add them to any other code path that creates these files (belt-and-suspenders)." :op :assert}
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :task/body :v "APPROACH: Add three fs::remove_file calls to invalidate_cache() in layout.rs:177-180. Also add them to any other code path that creates these files (belt-and-suspenders). ACCEPTANCE: (A) After write_tx(), fitness.json does not exist. (B) After write_tx(), coherence.json does not exist. (C) After write_tx(), analytics.json does not exist. (D) All tests pass. DEPENDS-ON: none (immediate fix). TRACES: INV-STORE-020. FILE: crates/braid/src/layout.rs" :op :assert}
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :task/created-at :v 1774324290 :op :assert}
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :task/files :v "crates/braid/src/layout.rs" :op :assert}
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :task/id :v "t-449ec46d" :op :assert}
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :task/title :v "LIVESTORE-HOTFIX: Add fitness.json, coherence.json, analytics.json to invalidate_cache(). CONTEXT: Cache audit found that invalidate_cache() in layout.rs only deletes store.bin and meta.json. Three derived caches (fitness.json, coherence.json, analytics.json) survive, creating stale-data risk. While LIVESTORE-3 will eliminate these caches entirely, this IMMEDIATE hotfix ensures correctness until then" :op :assert}
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :task/title-l0 :v "LIVESTORE-HOTFIX" :op :assert}
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :task/title-l1 :v "LIVESTORE-HOTFIX: Add fitness.json, coherence.json, analytics.json to invalid..." :op :assert}
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :task/traces-to :v #blake3 "7096af37a7d29857a863a2c1c52e3c4e28f56ae7ad354719bf81a2026dbe180a" :op :assert}
+   {:e #blake3 "6f4b01d19b8e4a75b5ea77a4dab9b65f573acdd567eb819c5434b2b19e61f038" :a :task/type :v :task.type/bug :op :assert}
+ ]}
