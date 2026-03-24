@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774368830/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The Go CLI implements the bilateral cycle: discover, refine, drift, absorb. Each phase maps to CLI commands operating on a SQLite database storing DDIS spec elements."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7db53d480f6d3bb06271f5be5621af1899fb423d8196ba713c0b0e0848d1d66d" :a :db/doc :v "The Go CLI implements the bilateral cycle: discover, refine, drift, absorb. Each phase maps to CLI commands operating on a SQLite database storing DDIS spec elements." :op :assert}
+   {:e #blake3 "7db53d480f6d3bb06271f5be5621af1899fb423d8196ba713c0b0e0848d1d66d" :a :db/ident :v :observation/the-go-cli-implements-the-bilateral-cycle-discover-refine :op :assert}
+   {:e #blake3 "7db53d480f6d3bb06271f5be5621af1899fb423d8196ba713c0b0e0848d1d66d" :a :exploration/body :v "The Go CLI implements the bilateral cycle: discover, refine, drift, absorb. Each phase maps to CLI commands operating on a SQLite database storing DDIS spec elements." :op :assert}
+   {:e #blake3 "7db53d480f6d3bb06271f5be5621af1899fb423d8196ba713c0b0e0848d1d66d" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "7db53d480f6d3bb06271f5be5621af1899fb423d8196ba713c0b0e0848d1d66d" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "7db53d480f6d3bb06271f5be5621af1899fb423d8196ba713c0b0e0848d1d66d" :a :exploration/content-hash :v #bytes "b4d031f858f868cb301ed05ac6a3f2fa9f32b695c3d7eea682edfcbcf54b8887" :op :assert}
+   {:e #blake3 "7db53d480f6d3bb06271f5be5621af1899fb423d8196ba713c0b0e0848d1d66d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7db53d480f6d3bb06271f5be5621af1899fb423d8196ba713c0b0e0848d1d66d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7db53d480f6d3bb06271f5be5621af1899fb423d8196ba713c0b0e0848d1d66d" :a :exploration/source-session :v #blake3 "0f5a27075d4ed181794e1aa0926fab9a30b5c1e301ccceac3f82b550128fb11f" :op :assert}
+ ]}
