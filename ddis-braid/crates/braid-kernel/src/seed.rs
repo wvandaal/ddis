@@ -245,6 +245,61 @@ pub struct SeedOutput {
 }
 
 // ---------------------------------------------------------------------------
+// C8-FIX-3: Project identity detection for seed filtering
+// ---------------------------------------------------------------------------
+
+/// Detect whether the store belongs to the braid project itself.
+///
+/// Returns `true` if the store contains spec elements with braid-internal
+/// namespace prefixes (`:spec/INV-STORE-*`, `:spec/ADR-SEED-*`, etc.) — these
+/// are braid's own specification elements bootstrapped via `braid init` with
+/// the braid spec/ directory. External projects (Go, Python, etc.) will not
+/// have these entities.
+///
+/// This enables the seed assembly to avoid polluting external project seeds
+/// with braid-internal content (crate names, Rust patterns, cargo commands).
+/// Shared content (CLI commands, datom model) appears in all seeds.
+///
+/// C8: The kernel detects project identity from store content, not from
+/// hardcoded paths or environment variables.
+fn is_braid_project(store: &Store) -> bool {
+    let ident_attr = Attribute::from_keyword(":db/ident");
+
+    // Check for braid-specific spec elements: namespaces like STORE, SEED,
+    // SCHEMA, KERNEL are unique to braid's self-bootstrap. An external project
+    // might have :spec/ entities, but not these internal namespaces.
+    let braid_spec_prefixes = [
+        ":spec/INV-STORE-",
+        ":spec/INV-SEED-",
+        ":spec/INV-SCHEMA-",
+        ":spec/ADR-STORE-",
+        ":spec/ADR-SEED-",
+        ":spec/ADR-SCHEMA-",
+    ];
+
+    let has_braid_specs = store.attribute_datoms(&ident_attr).iter().any(|d| {
+        if d.op != Op::Assert {
+            return false;
+        }
+        match &d.value {
+            Value::Keyword(k) => braid_spec_prefixes.iter().any(|prefix| k.starts_with(prefix)),
+            _ => false,
+        }
+    });
+
+    // Secondary signal: braid's own impl entities
+    if has_braid_specs {
+        return true;
+    }
+
+    // Check for :impl/braid-kernel or :impl/braid entities (created by trace)
+    store.attribute_datoms(&ident_attr).iter().any(|d| {
+        d.op == Op::Assert
+            && matches!(&d.value, Value::Keyword(k) if k == ":impl/braid-kernel" || k == ":impl/braid")
+    })
+}
+
+// ---------------------------------------------------------------------------
 // Entity reference graph (shared infrastructure for seed v2)
 // ---------------------------------------------------------------------------
 
@@ -652,6 +707,14 @@ fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> St
     };
 
     // === Project identity (1 dense line with spec-language activation) ===
+    // C8-FIX-3: Use project-appropriate identity. External projects get a
+    // generic "braid store" identity without braid-internal implementation details.
+    let is_braid = is_braid_project(store);
+    let project_label = if is_braid {
+        "Braid: append-only datom store (CRDT merge, content-addressed)"
+    } else {
+        "Braid store (append-only, CRDT merge)"
+    };
     let (codebase_headline, test_line) = if let Some(latest) = excerpts.first() {
         if let Some(ref snapshot) = latest.codebase_snapshot {
             let first_line = snapshot.lines().next().unwrap_or("");
@@ -662,7 +725,7 @@ fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> St
                 .unwrap_or("");
             (
                 format!(
-                    "Braid: append-only datom store (CRDT merge, content-addressed). {} datoms, {} entities. {}",
+                    "{project_label}. {} datoms, {} entities. {}",
                     current_datoms, current_entities, first_line
                 ),
                 if tests.is_empty() {
@@ -674,7 +737,7 @@ fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> St
         } else {
             (
                 format!(
-                    "Braid: append-only datom store (CRDT merge, content-addressed). {} datoms, {} entities.",
+                    "{project_label}. {} datoms, {} entities.",
                     current_datoms, current_entities
                 ),
                 String::new(),
@@ -683,7 +746,7 @@ fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> St
     } else {
         (
             format!(
-                "Braid: append-only datom store (CRDT merge, content-addressed). {} datoms, {} entities.",
+                "{project_label}. {} datoms, {} entities.",
                 current_datoms, current_entities
             ),
             String::new(),
@@ -705,12 +768,29 @@ fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> St
     if let Some(latest) = excerpts.first() {
         if let Some(ref snapshot) = latest.codebase_snapshot {
             let lines: Vec<&str> = snapshot.lines().collect();
-            let file_lines: Vec<&&str> = lines
-                .iter()
-                .skip(1)
-                .filter(|l| l.trim().starts_with("ddis-braid/") || l.trim().starts_with("crates/"))
-                .take(5)
-                .collect();
+            // C8-FIX-3: Show key files from snapshot regardless of project type.
+            // For braid: crates/ and ddis-braid/ paths. For external projects:
+            // any non-empty file path lines from the snapshot.
+            let file_lines: Vec<&&str> = if is_braid {
+                lines
+                    .iter()
+                    .skip(1)
+                    .filter(|l| {
+                        l.trim().starts_with("ddis-braid/") || l.trim().starts_with("crates/")
+                    })
+                    .take(5)
+                    .collect()
+            } else {
+                lines
+                    .iter()
+                    .skip(1)
+                    .filter(|l| {
+                        let t = l.trim();
+                        !t.is_empty() && (t.contains('/') || t.contains('.'))
+                    })
+                    .take(5)
+                    .collect()
+            };
             if !file_lines.is_empty() {
                 parts.push("Key files:".to_string());
                 for line in file_lines {
@@ -2430,25 +2510,43 @@ pub fn assemble(
         // this can immediately start working: knows the types, patterns, commands,
         // and current focus. ~100 tokens, worth 10x that in orientation time saved.
         {
-            // Derive current stage from most recent harvest task
+            // C8-FIX-3: Compute once for the entire cheat sheet block.
+            let is_braid = is_braid_project(store);
+
+            // Derive current stage/status from most recent harvest task.
+            // C8-FIX-3: Stage hints are braid-internal; external projects get
+            // a session-count based status instead.
             let stage_hint = {
                 let sessions = discover_recent_sessions(store, 1);
-                sessions
-                    .first()
-                    .and_then(|s| s.task.as_deref())
-                    .map(|t| {
-                        if t.to_lowercase().contains("stage 0")
-                            || t.to_lowercase().contains("harvest")
-                            || t.to_lowercase().contains("seed")
-                        {
-                            "Stage 0: harvest/seed cycle replaces HARVEST.md"
-                        } else if t.to_lowercase().contains("stage 1") {
-                            "Stage 1: budget-aware output + guidance injection"
-                        } else {
-                            "Stage 0"
-                        }
-                    })
-                    .unwrap_or("Stage 0")
+                if is_braid {
+                    sessions
+                        .first()
+                        .and_then(|s| s.task.as_deref())
+                        .map(|t| {
+                            if t.to_lowercase().contains("stage 0")
+                                || t.to_lowercase().contains("harvest")
+                                || t.to_lowercase().contains("seed")
+                            {
+                                "Stage 0: harvest/seed cycle replaces HARVEST.md"
+                            } else if t.to_lowercase().contains("stage 1") {
+                                "Stage 1: budget-aware output + guidance injection"
+                            } else {
+                                "Stage 0"
+                            }
+                        })
+                        .unwrap_or("Stage 0")
+                } else {
+                    let session_count = discover_recent_sessions(store, 100).len();
+                    if session_count == 0 {
+                        "new project (no prior sessions)"
+                    } else {
+                        // Leak a &'static str by boxing — these are few and small
+                        // (seed runs once per session, not in a hot loop).
+                        // Alternative: use String and format! below. But stage_hint
+                        // is &str throughout, so we match the existing type.
+                        "active project"
+                    }
+                }
             };
 
             // Count unique attributes used in the store
@@ -2458,21 +2556,43 @@ pub fn assemble(
                 .map(|d| d.attribute.as_str())
                 .collect();
 
+            // C8-FIX-3: Braid-internal implementation details (crate layout,
+            // Rust patterns, cargo commands) are only useful when working ON braid.
+            // External projects get generic braid CLI + datom model lines instead.
             let mut cheat = vec![
                 format!("Project context: {stage_hint}"),
                 format!(
                     "Core: datom [e,a,v,tx,op]. Store = grow-only set (CRDT merge = set union). {} distinct attributes in use.",
                     unique_attrs.len()
                 ),
-                "Crates: braid-kernel (store, schema, query, harvest, seed, guidance, merge), braid (CLI)."
-                    .to_string(),
+            ];
+            if is_braid {
+                // Braid-internal: crate layout, Rust patterns, cargo quality gates
+                cheat.push(
+                    "Crates: braid-kernel (store, schema, query, harvest, seed, guidance, merge), braid (CLI)."
+                        .to_string(),
+                );
+                cheat.push(
+                    "Patterns: Store::genesis() for tests. BraidError for errors. EntityId::from_ident(). Value::{String,Keyword,Long,Double}."
+                        .to_string(),
+                );
+                cheat.push(
+                    "Quality: cargo check && cargo clippy --all-targets -- -D warnings && cargo fmt --check && cargo test."
+                        .to_string(),
+                );
+            }
+            // CLI line is always useful — it describes the tool the agent uses
+            cheat.push(
                 "CLI: braid {init, status, transact, query, harvest, seed, observe, guidance, merge, log, schema}."
                     .to_string(),
-                "Patterns: Store::genesis() for tests. BraidError for errors. EntityId::from_ident(). Value::{String,Keyword,Long,Double}."
-                    .to_string(),
-                "Quality: cargo check && cargo clippy --all-targets -- -D warnings && cargo fmt --check && cargo test."
-                    .to_string(),
-            ];
+            );
+            if !is_braid {
+                // External project: add workflow-oriented guidance instead of internals
+                cheat.push(
+                    "Workflow: observe \u{2192} harvest \u{2192} seed. Use braid observe to capture insights, braid harvest --commit at session end."
+                        .to_string(),
+                );
+            }
 
             // Add test count if available from codebase snapshot
             let sessions = discover_recent_sessions(store, 1);

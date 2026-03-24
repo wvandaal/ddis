@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774368894/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-5da9064a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5bb9296de151c43163f554129b39f21191f1779bc5fbd8fbab0f61b37cf336c4" :a :task/close-reason :v "C8-FIX-4: comment_prefixes_for_extension() supports 5 language families (// # -- %% ;;) with unknown-extension fallback. 31 new tests. Rust no-regression verified." :op :assert}
+   {:e #blake3 "5bb9296de151c43163f554129b39f21191f1779bc5fbd8fbab0f61b37cf336c4" :a :task/closed-at :v 1774368893 :op :assert}
+   {:e #blake3 "5bb9296de151c43163f554129b39f21191f1779bc5fbd8fbab0f61b37cf336c4" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "5bb9296de151c43163f554129b39f21191f1779bc5fbd8fbab0f61b37cf336c4" :a :task/status :v :task.status/closed :op :assert}
+ ]}

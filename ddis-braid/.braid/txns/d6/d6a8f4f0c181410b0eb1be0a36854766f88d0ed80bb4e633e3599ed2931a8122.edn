@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774368910/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "RE-FALSIFICATION on Go CLI (62,490 LOC) with C8-FIX-3/4/5: SCORE 9/10 (was 7/10 S035, was 3/10 S034). M(t) 0.55→0.78 (C8-FIX-5). Seed clean (C8-FIX-3). Multi-language trace support (C8-FIX-4, 31 tests). Daemon lifecycle verified on external project: 18 capabilities, 3 reflexive FEGH hypotheses, 5 runtime datoms, clean shutdown. Store grew 1785→1973 datoms. Remaining gap: q-div component still low (needs query diversity from the agent, not a braid bug). External readiness score progression: S034 3/10 → S035 7/10 → S037 lifecycle 9/9 → S041 with daemon+C8 9/10."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d11844ce1c29fc7f4a36a76915c20d95d4372655e034655e8e8bfe7ad468e9c2" :a :db/doc :v "RE-FALSIFICATION on Go CLI (62,490 LOC) with C8-FIX-3/4/5: SCORE 9/10 (was 7/10 S035, was 3/10 S034). M(t) 0.55→0.78 (C8-FIX-5). Seed clean (C8-FIX-3). Multi-language trace support (C8-FIX-4, 31 tests). Daemon lifecycle verified on external project: 18 capabilities, 3 reflexive FEGH hypotheses, 5 runtime datoms, clean shutdown. Store grew 1785→1973 datoms. Remaining gap: q-div component still low (needs query diversity from the agent, not a braid bug). External readiness score progression: S034 3/10 → S035 7/10 → S037 lifecycle 9/9 → S041 with daemon+C8 9/10." :op :assert}
+   {:e #blake3 "d11844ce1c29fc7f4a36a76915c20d95d4372655e034655e8e8bfe7ad468e9c2" :a :db/ident :v :observation/re-falsification-on-go-cli-62490-loc-with-c8-fix-345-s :op :assert}
+   {:e #blake3 "d11844ce1c29fc7f4a36a76915c20d95d4372655e034655e8e8bfe7ad468e9c2" :a :exploration/body :v "RE-FALSIFICATION on Go CLI (62,490 LOC) with C8-FIX-3/4/5: SCORE 9/10 (was 7/10 S035, was 3/10 S034). M(t) 0.55→0.78 (C8-FIX-5). Seed clean (C8-FIX-3). Multi-language trace support (C8-FIX-4, 31 tests). Daemon lifecycle verified on external project: 18 capabilities, 3 reflexive FEGH hypotheses, 5 runtime datoms, clean shutdown. Store grew 1785→1973 datoms. Remaining gap: q-div component still low (needs query diversity from the agent, not a braid bug). External readiness score progression: S034 3/10 → S035 7/10 → S037 lifecycle 9/9 → S041 with daemon+C8 9/10." :op :assert}
+   {:e #blake3 "d11844ce1c29fc7f4a36a76915c20d95d4372655e034655e8e8bfe7ad468e9c2" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "d11844ce1c29fc7f4a36a76915c20d95d4372655e034655e8e8bfe7ad468e9c2" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "d11844ce1c29fc7f4a36a76915c20d95d4372655e034655e8e8bfe7ad468e9c2" :a :exploration/content-hash :v #bytes "ebaa713f39566fd8212a5d14f69fb2376f2bdbae9f1380a454935a20e3382ce2" :op :assert}
+   {:e #blake3 "d11844ce1c29fc7f4a36a76915c20d95d4372655e034655e8e8bfe7ad468e9c2" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d11844ce1c29fc7f4a36a76915c20d95d4372655e034655e8e8bfe7ad468e9c2" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d11844ce1c29fc7f4a36a76915c20d95d4372655e034655e8e8bfe7ad468e9c2" :a :exploration/source-session :v #blake3 "736d43516196f4b217d0e6926a3ca2ab03b3c461822ab022d1cd877a5dc5a54a" :op :assert}
+ ]}

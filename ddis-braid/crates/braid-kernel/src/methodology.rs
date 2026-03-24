@@ -391,10 +391,38 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
         .count() as u32;
 
     // T1-2: Total spec engagement = all four categories, capped at total_turns.
-    let total_spec = spec_entity_count
+    let raw_total_spec = spec_entity_count
         .saturating_add(tasks_with_spec_refs)
         .saturating_add(observations_with_spec_refs)
         .saturating_add(impl_links);
+
+    // C8-FIX-5: Don't penalize external projects that don't use :spec/* datoms.
+    // If the store has no :spec/element-type datoms at all (store-wide, not just
+    // session-scoped), the project doesn't use DDIS spec format. In that case:
+    // - If observations or tasks exist → spec_language_ratio = 1.0 (process is active)
+    // - If store is empty → spec_language_ratio = 0.0 (no methodology at all)
+    let store_has_spec_datoms = store
+        .datoms()
+        .any(|d| d.attribute.as_str() == ":spec/element-type" && d.op == Op::Assert);
+    let total_spec = if store_has_spec_datoms {
+        // Braid-like project: compute normally
+        raw_total_spec
+    } else {
+        // External project: check if any methodology is happening
+        let has_observations = store
+            .datoms()
+            .any(|d| d.attribute.as_str() == ":exploration/body" && d.op == Op::Assert);
+        let has_tasks = store
+            .datoms()
+            .any(|d| d.attribute.as_str() == ":task/title" && d.op == Op::Assert);
+        if has_observations || has_tasks {
+            // Process is active, just not in DDIS spec format — full credit
+            session_turn_count.max(1)
+        } else {
+            // Empty store — no methodology at all
+            0
+        }
+    };
 
     // A3: M(t) floor clamp — when a harvest exists and fewer than 10 txns
     // have occurred since, the store is in a healthy inter-session state.

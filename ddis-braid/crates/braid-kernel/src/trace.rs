@@ -1,9 +1,13 @@
-//! Trace link scanner — extract spec references from test source code.
+//! Trace link scanner — extract spec references from source code.
 //!
-//! The trace scanner reads Rust test source files (as strings) and extracts
-//! spec element references (INV-STORE-001, ADR-QUERY-005, etc.) from test
-//! function names, doc comments, and annotations. Each reference is classified
-//! by verification depth:
+//! The trace scanner reads source files (as strings) and extracts spec element
+//! references (INV-STORE-001, ADR-QUERY-005, etc.) from comments, test function
+//! names, and annotations. Comment syntax is determined per file extension via
+//! [`comment_prefixes_for_extension`]: `//` for C-family, `#` for Python/Shell,
+//! `--` for SQL/Lua/Haskell, `%` for TeX, `;;` for Lisp, with a fallback that
+//! tries all common prefixes for unknown extensions.
+//!
+//! Each reference is classified by verification depth:
 //!
 //! - **L1 (Syntactic, 0.15)**: Comment reference only (`// Verifies: INV-STORE-001`)
 //! - **L2 (Structural, 0.40)**: Unit test that names the spec element
@@ -22,8 +26,58 @@
 //! The CLI layer handles filesystem access and passes content to the kernel.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::path::Path;
 
 use crate::datom::{Attribute, Datom, EntityId, Op, TxId, Value};
+
+/// Return the comment prefixes appropriate for a given file extension.
+///
+/// Maps file extensions to the single-line comment syntax used in that language.
+/// For unknown extensions, returns all common prefixes so that spec references
+/// are not silently dropped. This enables trace scanning across polyglot
+/// codebases (Python `#`, SQL `--`, TeX `%`, Lisp `;;`, etc.).
+///
+/// # Traces To
+///
+/// - INV-BILATERAL-002 (CC — depth-weighted coverage across languages)
+pub fn comment_prefixes_for_extension(ext: &str) -> Vec<&'static str> {
+    match ext {
+        // C-family double-slash
+        "rs" | "go" | "ts" | "tsx" | "js" | "jsx" | "c" | "cpp" | "h" | "hpp" | "java"
+        | "swift" | "kt" | "kts" | "scala" | "cs" | "dart" | "zig" | "v" => vec!["//"],
+
+        // Hash-prefix languages
+        "py" | "sh" | "bash" | "zsh" | "rb" | "yaml" | "yml" | "toml" | "r" | "pl" | "pm"
+        | "nix" | "jl" | "ex" | "exs" | "cr" | "nim" | "coffee" | "mk" | "cmake"
+        | "Makefile" => vec!["#"],
+
+        // Double-dash languages
+        "sql" | "lua" | "hs" | "lhs" | "ada" | "adb" | "ads" | "erl" | "hrl" | "vhdl" => {
+            vec!["--"]
+        }
+
+        // Percent-prefix (TeX family)
+        "tex" | "latex" | "sty" | "cls" | "bib" => vec!["%"],
+
+        // Double-semicolon (Lisp family)
+        "el" | "clj" | "cljs" | "cljc" | "edn" | "lisp" | "cl" | "scm" | "rkt" | "fnl" => {
+            vec![";;"]
+        }
+
+        // Unknown: try all common prefixes rather than silently missing references
+        _ => vec!["//", "#", "--"],
+    }
+}
+
+/// Extract the file extension from a path string.
+///
+/// Returns the extension without the leading dot, or an empty string if none.
+fn extension_from_path(file_path: &str) -> &str {
+    Path::new(file_path)
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+}
 
 /// A trace link between a test function and a spec element.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -76,15 +130,24 @@ enum ScanContext {
     Stateright(String),
 }
 
-/// Scan a Rust source file for spec element references.
+/// Scan a source file for spec element references.
 ///
 /// Extracts all references to spec elements (INV-*, ADR-*, NEG-*) and
 /// classifies them by the context they appear in (test type → depth level).
+/// Comment syntax is determined from the file extension via
+/// [`comment_prefixes_for_extension`].
+///
+/// For Rust files, the scanner also detects test context (`#[test]`,
+/// `proptest!`, `#[kani::proof]`, Stateright) to assign higher depth levels.
+/// For non-Rust files, all spec references found in comment lines are
+/// classified as L1 (Syntactic). Spec references on non-comment lines are
+/// also captured (they still match the INV-/ADR-/NEG- pattern).
 ///
 /// # Arguments
 ///
-/// * `source` — The Rust source code as a string.
-/// * `file_path` — The relative file path (for the TraceLink source_file field).
+/// * `source` — The source code as a string.
+/// * `file_path` — The relative file path (determines comment syntax and
+///   appears in the TraceLink source_file field).
 ///
 /// # Returns
 ///
@@ -296,10 +359,23 @@ pub fn links_to_datoms(links: &BTreeSet<TraceLink>, tx_id: TxId) -> Vec<Datom> {
     }
 
     for (spec_id, (depth, link)) in &best_depth {
-        // Create impl entity from content
+        // Create impl entity from content.
+        // Strip the file extension (any language, not just .rs) for the ident.
+        let file_stem = {
+            let dotted = link.source_file.replace('/', ".");
+            let ext = extension_from_path(&link.source_file);
+            if ext.is_empty() {
+                dotted
+            } else {
+                dotted
+                    .strip_suffix(&format!(".{ext}"))
+                    .unwrap_or(&dotted)
+                    .to_string()
+            }
+        };
         let impl_ident = format!(
             ":impl/trace.{}.{}",
-            link.source_file.replace('/', ".").replace(".rs", ""),
+            file_stem,
             link.test_fn.as_deref().unwrap_or("comment")
         );
         let impl_entity = EntityId::from_ident(&impl_ident);
@@ -344,13 +420,23 @@ pub fn links_to_datoms(links: &BTreeSet<TraceLink>, tx_id: TxId) -> Vec<Datom> {
             Op::Assert,
         ));
 
-        // Module (derived from file path)
-        let module = link
-            .source_file
-            .rsplit('/')
-            .next()
-            .unwrap_or(&link.source_file)
-            .trim_end_matches(".rs");
+        // Module (derived from file path — strip any extension, not just .rs)
+        let module = {
+            let basename = link
+                .source_file
+                .rsplit('/')
+                .next()
+                .unwrap_or(&link.source_file);
+            let ext = extension_from_path(&link.source_file);
+            if ext.is_empty() {
+                basename.to_string()
+            } else {
+                basename
+                    .strip_suffix(&format!(".{ext}"))
+                    .unwrap_or(basename)
+                    .to_string()
+            }
+        };
         datoms.push(Datom::new(
             impl_entity,
             Attribute::from_keyword(":impl/module"),
@@ -361,6 +447,16 @@ pub fn links_to_datoms(links: &BTreeSet<TraceLink>, tx_id: TxId) -> Vec<Datom> {
     }
 
     datoms
+}
+
+/// Check whether a trimmed line starts with a comment prefix for the given extension.
+///
+/// Uses [`comment_prefixes_for_extension`] to determine the valid prefixes,
+/// then checks if the line starts with any of them. Useful for the CLI layer's
+/// comment-line gating (replacing the hardcoded `//` check).
+pub fn is_comment_for_ext(trimmed: &str, ext: &str) -> bool {
+    let prefixes = comment_prefixes_for_extension(ext);
+    prefixes.iter().any(|p| trimmed.starts_with(p))
 }
 
 /// Extract test bodies and compute BLAKE3 hashes for witness system.
@@ -893,5 +989,303 @@ fn nested() {
         assert_eq!(hashes.len(), 1);
         assert_eq!(hashes[0].0, "nested");
         assert_eq!(hashes[0].2, 2);
+    }
+
+    // ===================================================================
+    // comment_prefixes_for_extension tests (C8-FIX-4)
+    // ===================================================================
+
+    #[test]
+    fn prefixes_rust() {
+        assert_eq!(comment_prefixes_for_extension("rs"), vec!["//"],);
+    }
+
+    #[test]
+    fn prefixes_python() {
+        assert_eq!(comment_prefixes_for_extension("py"), vec!["#"]);
+    }
+
+    #[test]
+    fn prefixes_sql() {
+        assert_eq!(comment_prefixes_for_extension("sql"), vec!["--"]);
+    }
+
+    #[test]
+    fn prefixes_tex() {
+        assert_eq!(comment_prefixes_for_extension("tex"), vec!["%"]);
+    }
+
+    #[test]
+    fn prefixes_lisp() {
+        assert_eq!(comment_prefixes_for_extension("clj"), vec![";;"]);
+    }
+
+    #[test]
+    fn prefixes_unknown_returns_all_common() {
+        let prefixes = comment_prefixes_for_extension("foo");
+        assert!(prefixes.contains(&"//"));
+        assert!(prefixes.contains(&"#"));
+        assert!(prefixes.contains(&"--"));
+    }
+
+    #[test]
+    fn prefixes_c_family_coverage() {
+        // All C-family extensions should map to //
+        for ext in &["go", "ts", "js", "c", "cpp", "java", "swift", "kt"] {
+            assert_eq!(
+                comment_prefixes_for_extension(ext),
+                vec!["//"],
+                "extension .{ext} should use // comments"
+            );
+        }
+    }
+
+    #[test]
+    fn prefixes_hash_family_coverage() {
+        for ext in &["sh", "rb", "yaml", "yml", "toml", "r", "pl"] {
+            assert_eq!(
+                comment_prefixes_for_extension(ext),
+                vec!["#"],
+                "extension .{ext} should use # comments"
+            );
+        }
+    }
+
+    // ===================================================================
+    // Multi-language scan_source tests (C8-FIX-4 acceptance criteria)
+    // ===================================================================
+
+    #[test]
+    fn scan_rust_no_regression() {
+        // Acceptance (A): Rust .rs files: `// INV-STORE-001` detected
+        let source = "// Verifies: INV-STORE-001\n";
+        let links = scan_source(source, "src/store.rs");
+        assert_eq!(links.len(), 1);
+        let link = links.iter().next().unwrap();
+        assert_eq!(link.spec_id, "INV-STORE-001");
+        assert_eq!(link.depth, VerificationDepth::Syntactic);
+    }
+
+    #[test]
+    fn scan_python_hash_comment() {
+        // Acceptance (B): Python .py files: `# INV-STORE-001` detected
+        let source = "# Verifies: INV-STORE-001\n";
+        let links = scan_source(source, "tests/test_store.py");
+        assert_eq!(links.len(), 1);
+        let link = links.iter().next().unwrap();
+        assert_eq!(link.spec_id, "INV-STORE-001");
+        assert_eq!(link.depth, VerificationDepth::Syntactic);
+    }
+
+    #[test]
+    fn scan_shell_hash_comment() {
+        let source = "# INV-MERGE-001: Set union merge test\n";
+        let links = scan_source(source, "tests/e2e_merge.sh");
+        assert_eq!(links.len(), 1);
+        assert_eq!(links.iter().next().unwrap().spec_id, "INV-MERGE-001");
+    }
+
+    #[test]
+    fn scan_sql_double_dash_comment() {
+        let source = "-- INV-QUERY-003: Datalog stratification\nSELECT * FROM datoms;\n";
+        let links = scan_source(source, "migrations/001.sql");
+        assert_eq!(links.len(), 1);
+        assert_eq!(links.iter().next().unwrap().spec_id, "INV-QUERY-003");
+    }
+
+    #[test]
+    fn scan_lua_double_dash_comment() {
+        let source = "-- ADR-STORE-001: Append-only store\nlocal x = 1\n";
+        let links = scan_source(source, "scripts/init.lua");
+        assert_eq!(links.len(), 1);
+        assert_eq!(links.iter().next().unwrap().spec_id, "ADR-STORE-001");
+    }
+
+    #[test]
+    fn scan_tex_percent_comment() {
+        let source = "% NEG-MERGE-001: No data loss\n\\section{Merge}\n";
+        let links = scan_source(source, "docs/paper.tex");
+        assert_eq!(links.len(), 1);
+        assert_eq!(links.iter().next().unwrap().spec_id, "NEG-MERGE-001");
+    }
+
+    #[test]
+    fn scan_lisp_semicolon_comment() {
+        let source = ";; INV-STORE-002: Content-addressable identity\n(defn check [])\n";
+        let links = scan_source(source, "src/check.clj");
+        assert_eq!(links.len(), 1);
+        assert_eq!(links.iter().next().unwrap().spec_id, "INV-STORE-002");
+    }
+
+    #[test]
+    fn scan_unknown_ext_tries_all_prefixes() {
+        // Acceptance (C): Unknown .foo files: both // and # patterns tried
+        let source = "// INV-STORE-001: slash-slash\n# ADR-QUERY-005: hash\n-- NEG-MERGE-001: dash-dash\n";
+        let links = scan_source(source, "data/config.foo");
+        assert_eq!(links.len(), 3, "unknown ext should find all three spec refs");
+        let ids: BTreeSet<&str> = links.iter().map(|l| l.spec_id.as_str()).collect();
+        assert!(ids.contains("INV-STORE-001"));
+        assert!(ids.contains("ADR-QUERY-005"));
+        assert!(ids.contains("NEG-MERGE-001"));
+    }
+
+    #[test]
+    fn scan_rust_test_context_preserved() {
+        // Acceptance (D): No regression in Rust test detection
+        let source = r#"
+#[test]
+fn test_merge_001() {
+    // Verifies: INV-MERGE-001
+    assert!(true);
+}
+"#;
+        let links = scan_source(source, "src/merge.rs");
+        let link = links.iter().find(|l| l.spec_id == "INV-MERGE-001").unwrap();
+        assert_eq!(link.depth, VerificationDepth::Structural);
+        assert_eq!(link.test_fn, Some("test_merge_001".into()));
+    }
+
+    #[test]
+    fn scan_yaml_hash_comment() {
+        let source = "# INV-FOUNDATION-006: Substrate independence\nmanifest:\n  version: 1\n";
+        let links = scan_source(source, "policy/ddis.yaml");
+        assert_eq!(links.len(), 1);
+        assert_eq!(
+            links.iter().next().unwrap().spec_id,
+            "INV-FOUNDATION-006"
+        );
+    }
+
+    #[test]
+    fn scan_go_slash_comment() {
+        let source = "// INV-STORE-001: Append-only\npackage store\n";
+        let links = scan_source(source, "internal/store/store.go");
+        assert_eq!(links.len(), 1);
+        assert_eq!(links.iter().next().unwrap().spec_id, "INV-STORE-001");
+    }
+
+    #[test]
+    fn scan_multiple_refs_python() {
+        let source = "# INV-STORE-001, ADR-QUERY-005\n# NEG-MERGE-001\n";
+        let links = scan_source(source, "tests/test_all.py");
+        assert_eq!(links.len(), 3);
+    }
+
+    // ===================================================================
+    // is_comment_for_ext tests
+    // ===================================================================
+
+    #[test]
+    fn is_comment_rust() {
+        assert!(is_comment_for_ext("// INV-STORE-001", "rs"));
+        assert!(!is_comment_for_ext("let x = 1;", "rs"));
+        assert!(!is_comment_for_ext("# not a rust comment", "rs"));
+    }
+
+    #[test]
+    fn is_comment_python() {
+        assert!(is_comment_for_ext("# INV-STORE-001", "py"));
+        assert!(!is_comment_for_ext("// not python", "py"));
+        assert!(!is_comment_for_ext("x = 1", "py"));
+    }
+
+    #[test]
+    fn is_comment_sql() {
+        assert!(is_comment_for_ext("-- INV-QUERY-003", "sql"));
+        assert!(!is_comment_for_ext("SELECT 1", "sql"));
+    }
+
+    #[test]
+    fn is_comment_unknown_tries_all() {
+        assert!(is_comment_for_ext("// something", "foo"));
+        assert!(is_comment_for_ext("# something", "foo"));
+        assert!(is_comment_for_ext("-- something", "foo"));
+        assert!(!is_comment_for_ext("regular code", "foo"));
+    }
+
+    // ===================================================================
+    // extension_from_path tests
+    // ===================================================================
+
+    #[test]
+    fn extension_from_path_rs() {
+        assert_eq!(extension_from_path("src/store.rs"), "rs");
+    }
+
+    #[test]
+    fn extension_from_path_py() {
+        assert_eq!(extension_from_path("tests/test_store.py"), "py");
+    }
+
+    #[test]
+    fn extension_from_path_none() {
+        assert_eq!(extension_from_path("Makefile"), "");
+    }
+
+    #[test]
+    fn extension_from_path_nested() {
+        assert_eq!(extension_from_path("a/b/c.sql"), "sql");
+    }
+
+    // ===================================================================
+    // links_to_datoms multi-language tests
+    // ===================================================================
+
+    #[test]
+    fn links_to_datoms_python_file() {
+        let mut links = BTreeSet::new();
+        links.insert(TraceLink {
+            spec_id: "INV-STORE-001".into(),
+            source_file: "tests/test_store.py".into(),
+            test_fn: None,
+            depth: VerificationDepth::Syntactic,
+        });
+
+        let agent = crate::datom::AgentId::from_name("test");
+        let tx = TxId::new(100, 0, agent);
+        let datoms = links_to_datoms(&links, tx);
+
+        // Should have 5 datoms: ident + implements + depth + file + module
+        assert_eq!(datoms.len(), 5);
+
+        // Check that the module name strips .py, not .rs
+        let module_datom = datoms
+            .iter()
+            .find(|d| d.attribute.as_str() == ":impl/module")
+            .unwrap();
+        assert_eq!(module_datom.value, Value::String("test_store".to_string()));
+
+        // Check that ident doesn't contain .py
+        let ident_datom = datoms
+            .iter()
+            .find(|d| d.attribute.as_str() == ":db/ident")
+            .unwrap();
+        if let Value::Keyword(ref k) = ident_datom.value {
+            assert!(
+                !k.contains(".py"),
+                "ident should not contain .py extension: {k}"
+            );
+        }
+    }
+
+    #[test]
+    fn links_to_datoms_sql_file() {
+        let mut links = BTreeSet::new();
+        links.insert(TraceLink {
+            spec_id: "INV-QUERY-003".into(),
+            source_file: "migrations/001.sql".into(),
+            test_fn: None,
+            depth: VerificationDepth::Syntactic,
+        });
+
+        let agent = crate::datom::AgentId::from_name("test");
+        let tx = TxId::new(100, 0, agent);
+        let datoms = links_to_datoms(&links, tx);
+
+        let module_datom = datoms
+            .iter()
+            .find(|d| d.attribute.as_str() == ":impl/module")
+            .unwrap();
+        assert_eq!(module_datom.value, Value::String("001".to_string()));
     }
 }

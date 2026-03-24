@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774368896/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f843f44c"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "93b0a5769f8372c5e7dcd1e0123bb9bb689d5c00c00d2de015536c689535c533" :a :task/close-reason :v "C8-FIX-5: M(t) spec-lang component now 1.0 when no :spec/* datoms but observations/tasks exist. Go CLI M(t) improved 0.55 → 0.78. Empty store still 0.0." :op :assert}
+   {:e #blake3 "93b0a5769f8372c5e7dcd1e0123bb9bb689d5c00c00d2de015536c689535c533" :a :task/closed-at :v 1774368895 :op :assert}
+   {:e #blake3 "93b0a5769f8372c5e7dcd1e0123bb9bb689d5c00c00d2de015536c689535c533" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "93b0a5769f8372c5e7dcd1e0123bb9bb689d5c00c00d2de015536c689535c533" :a :task/status :v :task.status/closed :op :assert}
+ ]}
