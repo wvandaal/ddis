@@ -26,6 +26,7 @@
 //! // Drop also flushes (best-effort)
 //! ```
 
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
 use braid_kernel::layout::TxFile;
@@ -51,6 +52,12 @@ pub struct LiveStore {
     /// Whether the in-memory store has been modified since the last flush.
     /// When true, `flush()` will serialize `store.bin`.
     dirty: bool,
+    /// LIVESTORE-6: Transaction hashes known at open/last-refresh time.
+    /// Used by `refresh_if_needed()` to detect external writes without
+    /// listing all 7K+ txn files on every call.
+    known_hashes: HashSet<String>,
+    /// Cached mtime of the txns/ directory for O(1) staleness check.
+    txns_dir_mtime: Option<std::time::SystemTime>,
 }
 
 impl LiveStore {
@@ -62,11 +69,22 @@ impl LiveStore {
     pub fn open(path: &Path) -> Result<Self, BraidError> {
         let layout = DiskLayout::open(path)?;
         let store = layout.load_store()?;
+        // LIVESTORE-6: Snapshot known hashes and txns/ mtime at open time.
+        let known_hashes: HashSet<String> = layout
+            .list_tx_hashes()
+            .unwrap_or_default()
+            .into_iter()
+            .collect();
+        let txns_dir_mtime = std::fs::metadata(path.join("txns"))
+            .and_then(|m| m.modified())
+            .ok();
         Ok(LiveStore {
             layout,
             store,
             path: path.to_path_buf(),
             dirty: false,
+            known_hashes,
+            txns_dir_mtime,
         })
     }
 
@@ -88,11 +106,21 @@ impl LiveStore {
         }
         let layout = DiskLayout::init(path)?;
         let store = layout.load_store()?;
+        let known_hashes: HashSet<String> = layout
+            .list_tx_hashes()
+            .unwrap_or_default()
+            .into_iter()
+            .collect();
+        let txns_dir_mtime = std::fs::metadata(path.join("txns"))
+            .and_then(|m| m.modified())
+            .ok();
         Ok(LiveStore {
             layout,
             store,
             path: path.to_path_buf(),
             dirty: false,
+            known_hashes,
+            txns_dir_mtime,
         })
     }
 
@@ -140,6 +168,9 @@ impl LiveStore {
     pub fn write_tx(&mut self, tx: &TxFile) -> Result<braid_kernel::layout::TxFilePath, BraidError> {
         // Step 1: Write EDN to disk (durable before we return).
         let file_path = self.layout.write_tx_no_invalidate(tx)?;
+        // LIVESTORE-6: Track this hash so refresh_if_needed() knows it's ours.
+        self.known_hashes
+            .insert(file_path.filename.trim_end_matches(".edn").to_string());
 
         // Step 2: Apply to in-memory store.
         // Build a kernel Transaction from the TxFile's datoms.
@@ -189,6 +220,83 @@ impl LiveStore {
         }
 
         Ok(file_path)
+    }
+
+    /// Detect and apply external transactions written by other processes.
+    ///
+    /// LIVESTORE-6: Multi-agent awareness. In environments where multiple braid
+    /// processes (or MCP servers) write concurrently, this method detects new
+    /// transaction files and applies them incrementally.
+    ///
+    /// **O(1) fast path**: Checks the txns/ directory mtime via `stat()`. If
+    /// unchanged since last check, returns `Ok(false)` immediately (~1ms).
+    ///
+    /// **Incremental path**: If mtime changed, lists txn hashes, diffs against
+    /// known set, reads and applies new transactions via `store.transact()`.
+    ///
+    /// Returns `true` if the store was updated with external transactions.
+    pub fn refresh_if_needed(&mut self) -> Result<bool, BraidError> {
+        // Fast path: stat() the txns/ directory. If mtime unchanged, no new files.
+        let current_mtime = std::fs::metadata(self.path.join("txns"))
+            .and_then(|m| m.modified())
+            .ok();
+
+        if current_mtime == self.txns_dir_mtime {
+            return Ok(false); // No external changes.
+        }
+
+        // Slow path: mtime changed — list all hashes and diff.
+        let all_hashes: HashSet<String> = self
+            .layout
+            .list_tx_hashes()?
+            .into_iter()
+            .collect();
+
+        let new_hashes: Vec<&String> = all_hashes
+            .difference(&self.known_hashes)
+            .collect();
+
+        if new_hashes.is_empty() {
+            // Mtime changed but no new files (e.g., metadata update).
+            self.txns_dir_mtime = current_mtime;
+            return Ok(false);
+        }
+
+        // Apply new transactions incrementally.
+        for hash in &new_hashes {
+            if let Ok(tx) = self.layout.read_tx(hash) {
+                let mut builder = braid_kernel::store::Transaction::new(
+                    tx.agent,
+                    tx.provenance,
+                    &tx.rationale,
+                );
+                for datom in &tx.datoms {
+                    if datom.op == braid_kernel::datom::Op::Assert {
+                        builder = builder.assert(
+                            datom.entity,
+                            datom.attribute.clone(),
+                            datom.value.clone(),
+                        );
+                    } else {
+                        builder = builder.retract(
+                            datom.entity,
+                            datom.attribute.clone(),
+                            datom.value.clone(),
+                        );
+                    }
+                }
+                // Best-effort: if commit/transact fails, skip this txn.
+                if let Ok(committed) = builder.commit(&self.store) {
+                    let _ = self.store.transact(committed);
+                }
+            }
+        }
+
+        // Update tracking state.
+        self.known_hashes = all_hashes;
+        self.txns_dir_mtime = current_mtime;
+        self.dirty = true; // The store changed — flush will update store.bin.
+        Ok(true)
     }
 
     /// Serialize the in-memory store to `store.bin` if dirty.
@@ -388,5 +496,61 @@ mod tests {
         live.flush().unwrap();
         let reopened = LiveStore::open(&braid_path).unwrap();
         assert_eq!(live.store().len(), reopened.store().len());
+    }
+
+    #[test]
+    fn refresh_detects_external_write() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+        let mut live = LiveStore::create(&braid_path).unwrap();
+
+        let initial_count = live.store().len();
+
+        // Simulate an external write: create a txn file directly via DiskLayout
+        // (bypassing our LiveStore — as another process would).
+        let agent = braid_kernel::datom::AgentId::from_name("test:external");
+        let tx_id = braid_kernel::datom::TxId::new(2000, 0, agent);
+        let entity = braid_kernel::datom::EntityId::from_ident(":test/external-write");
+        let datom = braid_kernel::datom::Datom::new(
+            entity,
+            braid_kernel::datom::Attribute::from_keyword(":db/doc"),
+            braid_kernel::datom::Value::String("written by another process".into()),
+            tx_id,
+            braid_kernel::datom::Op::Assert,
+        );
+        let tx_file = braid_kernel::layout::TxFile {
+            tx_id,
+            agent,
+            provenance: braid_kernel::datom::ProvenanceType::Derived,
+            rationale: "external write test".into(),
+            causal_predecessors: vec![],
+            datoms: vec![datom],
+        };
+        // Write via the raw layout (simulating external process)
+        live.layout().write_tx_no_invalidate(&tx_file).unwrap();
+
+        // Before refresh: LiveStore doesn't know about the external write
+        assert_eq!(live.store().len(), initial_count);
+
+        // After refresh: LiveStore detects and applies the external transaction
+        let refreshed = live.refresh_if_needed().unwrap();
+        assert!(refreshed, "refresh should detect the external write");
+        assert!(
+            live.store().len() > initial_count,
+            "store should have more datoms after refresh: {} -> {}",
+            initial_count,
+            live.store().len()
+        );
+    }
+
+    #[test]
+    fn refresh_noop_when_no_external_changes() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+        let mut live = LiveStore::create(&braid_path).unwrap();
+
+        // No external writes — refresh should return false
+        let refreshed = live.refresh_if_needed().unwrap();
+        assert!(!refreshed, "no external changes, should return false");
     }
 }
