@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774381457/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Convergence Engine — Transform braid from O(N) notebook to O(N*log(N)) intelligence amplifier via structural bootstrap, auto-connection, temperature-adaptive FEGH, and five loop closures. CONTEXT: DOGFOOD-2 scored 4.0/10 (3 agents, Go CLI 62.5K LOC). Root cause: braid stores observations as isolated atoms with zero autonomous connections. The system is stuck at the trivial fixed point (K=0, H=0) because the coupled dynamics dK/dt=f(H), dH/dt=-g(K) never start — f(H)=0 when H=0 (no hypotheses). The fix is a four-phase convergent architecture: Phase 0 structural bootstrap (filesystem hypotheses), Phase 1 semantic exploration (auto-connection + FEGH), Phase 2 logical refinement (precise gaps), Phase 3 convergence (fixed point). VERIFICATION: DOGFOOD-2 Sessions 2-3 re-falsification. Target: 7+/10 overall (was 4.0/10). FEGH hypothesis: exploration rises from 2.5/10 to 7+/10. If <=5/10 after all fixes, the convergence architecture is falsified."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c00028d5049955a22341823549b8f506e244cfb24d477310ef25ea60de43e7fa" :a :db/ident :v :task/t-fa072ee0 :op :assert}
+   {:e #blake3 "c00028d5049955a22341823549b8f506e244cfb24d477310ef25ea60de43e7fa" :a :task/created-at :v 1774381456 :op :assert}
+   {:e #blake3 "c00028d5049955a22341823549b8f506e244cfb24d477310ef25ea60de43e7fa" :a :task/id :v "t-fa072ee0" :op :assert}
+   {:e #blake3 "c00028d5049955a22341823549b8f506e244cfb24d477310ef25ea60de43e7fa" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "c00028d5049955a22341823549b8f506e244cfb24d477310ef25ea60de43e7fa" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c00028d5049955a22341823549b8f506e244cfb24d477310ef25ea60de43e7fa" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c00028d5049955a22341823549b8f506e244cfb24d477310ef25ea60de43e7fa" :a :task/title :v "EPIC: Convergence Engine — Transform braid from O(N) notebook to O(N*log(N)) intelligence amplifier via structural bootstrap, auto-connection, temperature-adaptive FEGH, and five loop closures. CONTEXT: DOGFOOD-2 scored 4.0/10 (3 agents, Go CLI 62.5K LOC). Root cause: braid stores observations as isolated atoms with zero autonomous connections. The system is stuck at the trivial fixed point (K=0, H=0) because the coupled dynamics dK/dt=f(H), dH/dt=-g(K) never start — f(H)=0 when H=0 (no hypotheses). The fix is a four-phase convergent architecture: Phase 0 structural bootstrap (filesystem hypotheses), Phase 1 semantic exploration (auto-connection + FEGH), Phase 2 logical refinement (precise gaps), Phase 3 convergence (fixed point). VERIFICATION: DOGFOOD-2 Sessions 2-3 re-falsification. Target: 7+/10 overall (was 4.0/10). FEGH hypothesis: exploration rises from 2.5/10 to 7+/10. If <=5/10 after all fixes, the convergence architecture is falsified." :op :assert}
+   {:e #blake3 "c00028d5049955a22341823549b8f506e244cfb24d477310ef25ea60de43e7fa" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "c00028d5049955a22341823549b8f506e244cfb24d477310ef25ea60de43e7fa" :a :task/title-l1 :v "EPIC: Convergence Engine — Transform braid from O(N) notebook to O(N*log(N)..." :op :assert}
+   {:e #blake3 "c00028d5049955a22341823549b8f506e244cfb24d477310ef25ea60de43e7fa" :a :task/traces-to :v #blake3 "b78aebb357c66bb8981ffc60fce8507b1eab23546835e3039f0ed584e7a76198" :op :assert}
+   {:e #blake3 "c00028d5049955a22341823549b8f506e244cfb24d477310ef25ea60de43e7fa" :a :task/type :v :task.type/epic :op :assert}
+ ]}
