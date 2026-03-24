@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774386260/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-CONVERGENCE-005 \"Theory of Mind for LLM Agents\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "698c163986a7a2902878e110c39de43d5a89778fe5665f8d7b73b47ccba2cdf2" :a :db/ident :v :task/t-c4b070ed :op :assert}
+   {:e #blake3 "698c163986a7a2902878e110c39de43d5a89778fe5665f8d7b73b47ccba2cdf2" :a :task/created-at :v 1774386259 :op :assert}
+   {:e #blake3 "698c163986a7a2902878e110c39de43d5a89778fe5665f8d7b73b47ccba2cdf2" :a :task/id :v "t-c4b070ed" :op :assert}
+   {:e #blake3 "698c163986a7a2902878e110c39de43d5a89778fe5665f8d7b73b47ccba2cdf2" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "698c163986a7a2902878e110c39de43d5a89778fe5665f8d7b73b47ccba2cdf2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "698c163986a7a2902878e110c39de43d5a89778fe5665f8d7b73b47ccba2cdf2" :a :task/title :v "Implement ADR-CONVERGENCE-005: Theory of Mind for LLM Agents" :op :assert}
+   {:e #blake3 "698c163986a7a2902878e110c39de43d5a89778fe5665f8d7b73b47ccba2cdf2" :a :task/traces-to :v #blake3 "830894788ef5e0d91f9eff619f4f8c470dd9b3c8d1ff7c7ae60dbcc9e0727e33" :op :assert}
+   {:e #blake3 "698c163986a7a2902878e110c39de43d5a89778fe5665f8d7b73b47ccba2cdf2" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "830894788ef5e0d91f9eff619f4f8c470dd9b3c8d1ff7c7ae60dbcc9e0727e33" :a :adr/decision :v "Model the agent's cognitive state from observable signals: attention breadth (keyword entropy of recent observations), contradiction density (H1 signals), progress rate (delta-F(S) per observation), depth trend (observation specificity over time), engagement rate (suggestion follow-through). Classify into 5 modes: Lost, Stuck, Confused, InFlow, Skimming. Each mode selects a different intervention strategy for the responsive observation micro-hypothesis. This transforms braid from tool (calibrated to knowledge state) to cognitive companion (calibrated to agent state)." :op :assert}
+   {:e #blake3 "830894788ef5e0d91f9eff619f4f8c470dd9b3c8d1ff7c7ae60dbcc9e0727e33" :a :adr/problem :v "The 4.0/10 dogfood score came from static guidance. Even with responsive observation (8/10), the system responds identically to a stuck agent and a flowing agent because it has no model of the agent's cognitive state — only the knowledge state (F(S))." :op :assert}
+   {:e #blake3 "830894788ef5e0d91f9eff619f4f8c470dd9b3c8d1ff7c7ae60dbcc9e0727e33" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "830894788ef5e0d91f9eff619f4f8c470dd9b3c8d1ff7c7ae60dbcc9e0727e33" :a :db/doc :v "Theory of Mind for LLM Agents" :op :assert}
+   {:e #blake3 "830894788ef5e0d91f9eff619f4f8c470dd9b3c8d1ff7c7ae60dbcc9e0727e33" :a :db/ident :v :spec/adr-convergence-005 :op :assert}
+   {:e #blake3 "830894788ef5e0d91f9eff619f4f8c470dd9b3c8d1ff7c7ae60dbcc9e0727e33" :a :element/traces-to :v "ADR-CONVERGENCE-001,ADR-CONVERGENCE-002" :op :assert}
+   {:e #blake3 "830894788ef5e0d91f9eff619f4f8c470dd9b3c8d1ff7c7ae60dbcc9e0727e33" :a :spec/confidence :v 0.85 :op :assert}
+   {:e #blake3 "830894788ef5e0d91f9eff619f4f8c470dd9b3c8d1ff7c7ae60dbcc9e0727e33" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "830894788ef5e0d91f9eff619f4f8c470dd9b3c8d1ff7c7ae60dbcc9e0727e33" :a :spec/id :v "ADR-CONVERGENCE-005" :op :assert}
+   {:e #blake3 "830894788ef5e0d91f9eff619f4f8c470dd9b3c8d1ff7c7ae60dbcc9e0727e33" :a :spec/namespace :v :spec.ns/CONVERGENCE :op :assert}
+ ]}

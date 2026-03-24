@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774386353/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Link CE-MIND to spec"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a0cc5cbb73ebe35136fc48c3b31a58ee201398eeb4d7eef1d9f4d2353663b8c4" :a :task/traces-to :v :spec/adr-convergence-005 :op :assert}
+ ]}

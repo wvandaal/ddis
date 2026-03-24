@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774386257/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CONVERGENCE-008 \"Responsive Observation — Continuous Socratic Dialogue\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3b35e2c8bd9d6cc1418a5bec6ca86a02cd007cb61097889de8d429e53f6d80f5" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "3b35e2c8bd9d6cc1418a5bec6ca86a02cd007cb61097889de8d429e53f6d80f5" :a :comonad/falsification :v #blake3 "e753990af6d6524a23cf218aed82056ff7bfe187da42bf6bd3233c3ebcaeaba1" :op :assert}
+   {:e #blake3 "3b35e2c8bd9d6cc1418a5bec6ca86a02cd007cb61097889de8d429e53f6d80f5" :a :db/doc :v "Responsive Observation — Continuous Socratic Dialogue" :op :assert}
+   {:e #blake3 "3b35e2c8bd9d6cc1418a5bec6ca86a02cd007cb61097889de8d429e53f6d80f5" :a :db/ident :v :spec/inv-convergence-008 :op :assert}
+   {:e #blake3 "3b35e2c8bd9d6cc1418a5bec6ca86a02cd007cb61097889de8d429e53f6d80f5" :a :element/traces-to :v "ADR-CONVERGENCE-001,INV-CONVERGENCE-006" :op :assert}
+   {:e #blake3 "3b35e2c8bd9d6cc1418a5bec6ca86a02cd007cb61097889de8d429e53f6d80f5" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "3b35e2c8bd9d6cc1418a5bec6ca86a02cd007cb61097889de8d429e53f6d80f5" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "3b35e2c8bd9d6cc1418a5bec6ca86a02cd007cb61097889de8d429e53f6d80f5" :a :spec/falsification :v "An observation creates 2+ auto-connections AND detects a topological event, but the response contains no micro-hypothesis, OR a micro-hypothesis is generated that references no existing observation keywords" :op :assert}
+   {:e #blake3 "3b35e2c8bd9d6cc1418a5bec6ca86a02cd007cb61097889de8d429e53f6d80f5" :a :spec/id :v "INV-CONVERGENCE-008" :op :assert}
+   {:e #blake3 "3b35e2c8bd9d6cc1418a5bec6ca86a02cd007cb61097889de8d429e53f6d80f5" :a :spec/namespace :v :spec.ns/CONVERGENCE :op :assert}
+   {:e #blake3 "3b35e2c8bd9d6cc1418a5bec6ca86a02cd007cb61097889de8d429e53f6d80f5" :a :spec/statement :v "Every braid observe command that creates new auto-connections or detects a topological event (new hub, H1 contradiction, H2 void boundary) must return a micro-hypothesis in the response output. The micro-hypothesis is compiled via compile_hypothesis_prompt at the current temperature and recorded in the hypothesis ledger. Observations that create no connections and detect no events return standard output (no forced micro-hypothesis). The micro-hypothesis must reference at least one existing observation by keyword." :op :assert}
+   {:e #blake3 "bf5b9fd58055b69f77d0624152a4aa94dc6aa5d806b271bcfce86eb4d4ddf004" :a :db/ident :v :task/t-07a37b9c :op :assert}
+   {:e #blake3 "bf5b9fd58055b69f77d0624152a4aa94dc6aa5d806b271bcfce86eb4d4ddf004" :a :task/created-at :v 1774386256 :op :assert}
+   {:e #blake3 "bf5b9fd58055b69f77d0624152a4aa94dc6aa5d806b271bcfce86eb4d4ddf004" :a :task/id :v "t-07a37b9c" :op :assert}
+   {:e #blake3 "bf5b9fd58055b69f77d0624152a4aa94dc6aa5d806b271bcfce86eb4d4ddf004" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "bf5b9fd58055b69f77d0624152a4aa94dc6aa5d806b271bcfce86eb4d4ddf004" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bf5b9fd58055b69f77d0624152a4aa94dc6aa5d806b271bcfce86eb4d4ddf004" :a :task/title :v "Implement INV-CONVERGENCE-008: Responsive Observation — Continuous Socratic Dialogue" :op :assert}
+   {:e #blake3 "bf5b9fd58055b69f77d0624152a4aa94dc6aa5d806b271bcfce86eb4d4ddf004" :a :task/traces-to :v #blake3 "3b35e2c8bd9d6cc1418a5bec6ca86a02cd007cb61097889de8d429e53f6d80f5" :op :assert}
+   {:e #blake3 "bf5b9fd58055b69f77d0624152a4aa94dc6aa5d806b271bcfce86eb4d4ddf004" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "e753990af6d6524a23cf218aed82056ff7bfe187da42bf6bd3233c3ebcaeaba1" :a :db/doc :v "An observation creates 2+ auto-connections AND detects a topological event, but the response contains no micro-hypothesis, OR a micro-hypothesis is generated that references no existing observation keywords" :op :assert}
+ ]}
