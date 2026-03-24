@@ -758,6 +758,24 @@ Examples:
         action: McpAction,
     },
 
+    /// Manage the braid session daemon (INV-DAEMON-001..009).
+    ///
+    /// The daemon holds a single LiveStore in memory and serves
+    /// CLI commands via a Unix socket, emitting reflexive :runtime/*
+    /// datoms for every processed command.
+    #[command(after_long_help = "\
+Examples:
+  braid daemon start --foreground   # start daemon in current terminal
+  braid daemon status               # check if daemon is running
+  braid daemon stop                 # gracefully stop the daemon
+
+The daemon accelerates all CLI commands by keeping the store warm.
+When running, CLI commands auto-route through the daemon socket.")]
+    Daemon {
+        #[command(subcommand)]
+        action: DaemonAction,
+    },
+
     // ── SHORTCUTS (WP6) ──────────────────────────────────────────────
     /// Top unblocked task + claim command.
     ///
@@ -1617,6 +1635,37 @@ pub enum McpAction {
     },
 }
 
+/// Daemon lifecycle subcommands (D4-7).
+#[derive(Subcommand)]
+pub enum DaemonAction {
+    /// Start the daemon (foreground mode).
+    ///
+    /// Acquires a lock file, opens the store, binds a Unix socket,
+    /// and begins accepting JSON-RPC requests. Blocks until shutdown.
+    Start {
+        /// Path to the .braid directory.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+    },
+    /// Stop a running daemon.
+    ///
+    /// Connects to the daemon socket and sends a shutdown request.
+    Stop {
+        /// Path to the .braid directory.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+    },
+    /// Check daemon status.
+    ///
+    /// Reports whether the daemon is running, its PID, uptime, and
+    /// request count.
+    Status {
+        /// Path to the .braid directory.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+    },
+}
+
 /// Session lifecycle subcommands.
 #[derive(Subcommand)]
 pub enum SessionAction {
@@ -1689,7 +1738,7 @@ pub enum SessionAction {
 /// Extract the store path from a command variant (if the command uses a store).
 pub fn store_path(cmd: &Command) -> Option<&Path> {
     match cmd {
-        Command::Mcp { .. } => None,
+        Command::Mcp { .. } | Command::Daemon { .. } => None,
         Command::Init { path, .. }
         | Command::Status { path, .. }
         | Command::Bilateral { path, .. }
@@ -1816,6 +1865,7 @@ pub fn command_name_for(cmd: &Command) -> &'static str {
         Command::Task { .. } => "task",
         Command::Config { .. } => "config",
         Command::Mcp { .. } => "mcp",
+        Command::Daemon { .. } => "daemon",
         Command::Next { .. } => "next",
         Command::Done { .. } => "done",
         Command::Note { .. } => "note",
@@ -2098,7 +2148,7 @@ fn resolve_store_path(path: PathBuf) -> PathBuf {
 /// Rewrite all `path` fields in a Command to resolved paths.
 fn resolve_command_paths(mut cmd: Command) -> Command {
     match &mut cmd {
-        Command::Mcp { .. } => {}
+        Command::Mcp { .. } | Command::Daemon { .. } => {}
         Command::Init { path, .. }
         | Command::Status { path, .. }
         | Command::Bilateral { path, .. }
@@ -2806,6 +2856,23 @@ pub fn run(
                 Ok(String::new())
             }
         },
+        Command::Daemon { action } => {
+            use crate::daemon;
+            match action {
+                DaemonAction::Start { path } => {
+                    daemon::serve_daemon(&path).map_err(|e| {
+                        crate::error::BraidError::Validation(e.to_string())
+                    })?;
+                    Ok(String::new())
+                }
+                DaemonAction::Stop { path } => {
+                    daemon_stop(&path)
+                }
+                DaemonAction::Status { path } => {
+                    daemon_status(&path)
+                }
+            }
+        },
 
         // ── Shortcuts (WP6: delegates to existing handlers) ──────────
         Command::Next { path, skip } => {
@@ -3146,6 +3213,119 @@ pub fn run(
             ))
         }
         Err(e) => Err(e),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Daemon CLI helpers (D4-7)
+// ---------------------------------------------------------------------------
+
+/// Stop a running daemon by connecting to its socket and sending shutdown.
+fn daemon_stop(braid_dir: &Path) -> Result<String, crate::error::BraidError> {
+    use std::io::{BufRead, Write};
+    use std::os::unix::net::UnixStream;
+
+    let sock_path = crate::daemon::SocketPath::new(braid_dir);
+    let lock_path = crate::daemon::LockPath::new(braid_dir);
+
+    // Check if daemon is running.
+    match crate::daemon::check_lock(&lock_path) {
+        crate::daemon::LockStatus::Absent => {
+            return Ok("daemon not running\n".to_string())
+        }
+        crate::daemon::LockStatus::Stale(pid) => {
+            // Clean up stale lock.
+            crate::daemon::release_lock(&lock_path);
+            let _ = std::fs::remove_file(sock_path.path());
+            return Ok(format!(
+                "stale lock removed (pid {pid} was dead)\n"
+            ))
+        }
+        crate::daemon::LockStatus::Live(_) => {} // Proceed with stop.
+    }
+
+    let stream = UnixStream::connect(sock_path.path()).map_err(|e| {
+        crate::error::BraidError::Validation(format!("cannot connect to daemon: {e}"))
+    })?;
+    stream
+        .set_read_timeout(Some(std::time::Duration::from_secs(5)))
+        .ok();
+
+    let mut writer = std::io::BufWriter::new(&stream);
+    let request = serde_json::json!({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "daemon/shutdown",
+        "params": {},
+    });
+    let bytes = serde_json::to_vec(&request).unwrap();
+    writer.write_all(&bytes).map_err(|e| {
+        crate::error::BraidError::Validation(format!("cannot send shutdown: {e}"))
+    })?;
+    writer.write_all(b"\n").ok();
+    writer.flush().ok();
+
+    // Read response.
+    let reader = std::io::BufReader::new(&stream);
+    if let Some(Ok(_line)) = reader.lines().next() {
+        // Response received — daemon acknowledged shutdown.
+    }
+
+    Ok("daemon stopping\n".to_string())
+}
+
+/// Check daemon status by inspecting lock file and querying via socket.
+fn daemon_status(braid_dir: &Path) -> Result<String, crate::error::BraidError> {
+    use std::io::{BufRead, Write};
+    use std::os::unix::net::UnixStream;
+
+    let sock_path = crate::daemon::SocketPath::new(braid_dir);
+    let lock_path = crate::daemon::LockPath::new(braid_dir);
+
+    let status = crate::daemon::check_lock(&lock_path);
+    match status {
+        crate::daemon::LockStatus::Absent => Ok("daemon: not running\n".to_string()),
+        crate::daemon::LockStatus::Stale(pid) => Ok(format!(
+            "daemon: stale lock (pid {pid} is dead)\n  fix: braid daemon stop\n"
+        )),
+        crate::daemon::LockStatus::Live(pid) => {
+            // Try to connect and get detailed status.
+            match UnixStream::connect(sock_path.path()) {
+                Ok(stream) => {
+                    stream
+                        .set_read_timeout(Some(std::time::Duration::from_secs(2)))
+                        .ok();
+
+                    let mut writer = std::io::BufWriter::new(&stream);
+                    let request = serde_json::json!({
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "daemon/status",
+                        "params": {},
+                    });
+                    let bytes = serde_json::to_vec(&request).unwrap();
+                    let _ = writer.write_all(&bytes);
+                    let _ = writer.write_all(b"\n");
+                    let _ = writer.flush();
+
+                    let reader = std::io::BufReader::new(&stream);
+                    let detailed = reader.lines().next().and_then(|r| r.ok()).and_then(|line| {
+                        let resp: serde_json::Value = serde_json::from_str(&line).ok()?;
+                        let result = resp.get("result")?;
+                        let uptime = result.get("uptime_secs").and_then(|v| v.as_u64()).unwrap_or(0);
+                        let reqs = result.get("request_count").and_then(|v| v.as_u64()).unwrap_or(0);
+                        let datoms = result.get("datom_count").and_then(|v| v.as_u64()).unwrap_or(0);
+                        Some(format!(
+                            "daemon: running (pid {pid})\n  uptime: {uptime}s\n  requests: {reqs}\n  datoms: {datoms}\n"
+                        ))
+                    });
+                    Ok(detailed.unwrap_or_else(|| format!("daemon: running (pid {pid})\n")))
+                }
+                Err(_) => Ok(format!(
+                    "daemon: lock held (pid {pid}) but socket unreachable\n  fix: check process {pid}\n"
+                )),
+            }
+        }
     }
 }
 

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774364850/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-015b9c02"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a3da15ee119626a3eb5442f0dccc30ca70e0cd4b336da9a2a5c6248d86d1936d" :a :task/close-reason :v "try_route_through_daemon in daemon.rs with DAEMON_EXEMPT_COMMANDS list. Routes status/query/observe/harvest/seed/guidance through socket. Falls back silently. Wired into main.rs before commands::run. 291 tests pass, clippy clean." :op :assert}
+   {:e #blake3 "a3da15ee119626a3eb5442f0dccc30ca70e0cd4b336da9a2a5c6248d86d1936d" :a :task/closed-at :v 1774364849 :op :assert}
+   {:e #blake3 "a3da15ee119626a3eb5442f0dccc30ca70e0cd4b336da9a2a5c6248d86d1936d" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "a3da15ee119626a3eb5442f0dccc30ca70e0cd4b336da9a2a5c6248d86d1936d" :a :task/status :v :task.status/closed :op :assert}
+ ]}

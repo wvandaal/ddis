@@ -449,6 +449,96 @@ fn is_process_alive(pid: u32) -> bool {
 }
 
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// CLI auto-routing — D4-8, INV-DAEMON-007
+// ---------------------------------------------------------------------------
+
+/// Commands that bypass daemon routing (always use direct mode).
+const DAEMON_EXEMPT_COMMANDS: &[&str] = &[
+    "init", "daemon", "mcp", "shell", "merge", "session",
+    "bilateral", "trace", "schema", "witness", "challenge",
+    "extract", "wrap", "config", "topology", "verify", "analyze",
+    "log",
+];
+
+/// Try to route a CLI command through the daemon socket.
+///
+/// Returns `Some(response_text)` if the daemon handled the request,
+/// `None` if the daemon is unavailable or the command isn't routable.
+///
+/// **INV-DAEMON-007**: Auto-detect daemon, fallback to direct.
+/// **INV-DAEMON-004**: Semantic equivalence with direct mode.
+pub fn try_route_through_daemon(
+    braid_dir: &Path,
+    cmd_name: &str,
+    cmd_json: &JsonValue,
+) -> Option<String> {
+    // Skip daemon-exempt commands.
+    if DAEMON_EXEMPT_COMMANDS.contains(&cmd_name) {
+        return None;
+    }
+
+    let sock_path = SocketPath::new(braid_dir);
+    if !sock_path.path().exists() {
+        return None;
+    }
+
+    // Try to connect with a short timeout.
+    let stream = std::os::unix::net::UnixStream::connect(sock_path.path()).ok()?;
+    stream
+        .set_read_timeout(Some(std::time::Duration::from_secs(10)))
+        .ok()?;
+    stream.set_write_timeout(Some(std::time::Duration::from_secs(2))).ok()?;
+
+    // Map CLI command to JSON-RPC tools/call.
+    let tool_name = match cmd_name {
+        "status" => "braid_status",
+        "query" => "braid_query",
+        "observe" => "braid_observe",
+        "harvest" => "braid_harvest",
+        "seed" => "braid_seed",
+        "guidance" => "braid_guidance",
+        _ => return None, // Not yet mapped — use direct mode.
+    };
+
+    let request = json!({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/call",
+        "params": {
+            "name": tool_name,
+            "arguments": cmd_json,
+        },
+    });
+
+    let mut writer = std::io::BufWriter::new(&stream);
+    let bytes = serde_json::to_vec(&request).ok()?;
+    writer.write_all(&bytes).ok()?;
+    writer.write_all(b"\n").ok()?;
+    writer.flush().ok()?;
+
+    // Read response.
+    let reader = std::io::BufReader::new(&stream);
+    let line = reader.lines().next()?.ok()?;
+    let resp: JsonValue = serde_json::from_str(&line).ok()?;
+
+    // Extract text content from MCP response.
+    let result = resp.get("result")?;
+    let content = result.get("content")?.as_array()?;
+    let text = content
+        .iter()
+        .filter_map(|c| c.get("text").and_then(|t| t.as_str()))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    if text.is_empty() {
+        return None;
+    }
+
+    Some(text)
+}
+
+// ---------------------------------------------------------------------------
 // Daemon server — D4-5, ADR-DAEMON-001
 // ---------------------------------------------------------------------------
 

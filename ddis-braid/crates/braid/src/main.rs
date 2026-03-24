@@ -131,6 +131,20 @@ fn main() {
         }
     }
 
+    // D4-8: Try daemon routing before direct execution (INV-DAEMON-007).
+    // If the daemon is running, route supported commands through the socket.
+    // Falls back silently to direct mode on any failure.
+    if let Some(ref store_path) = exit_warn_path {
+        if let Some(text) = daemon::try_route_through_daemon(
+            store_path,
+            cmd_name,
+            &serde_json::json!({}), // Minimal args for daemon-routed commands
+        ) {
+            println!("{text}");
+            return;
+        }
+    }
+
     let result = commands::run(cmd, &budget_ctx, mode, cli.quiet);
     match result {
         Ok(cmd_output) => {

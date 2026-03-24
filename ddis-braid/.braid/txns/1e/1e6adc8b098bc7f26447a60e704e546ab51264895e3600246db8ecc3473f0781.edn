@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774364762/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-375f8ad4"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "05a1d653bb3d14dd6cc3759ce5e0890fe3106a66efcbc85bbf6931c602b7a7ff" :a :task/close-reason :v "DaemonAction enum (Start/Stop/Status), Command::Daemon variant, daemon_stop (socket shutdown), daemon_status (lock check + socket query with detailed response parsing). All 291 tests pass, clippy clean." :op :assert}
+   {:e #blake3 "05a1d653bb3d14dd6cc3759ce5e0890fe3106a66efcbc85bbf6931c602b7a7ff" :a :task/closed-at :v 1774364761 :op :assert}
+   {:e #blake3 "05a1d653bb3d14dd6cc3759ce5e0890fe3106a66efcbc85bbf6931c602b7a7ff" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "05a1d653bb3d14dd6cc3759ce5e0890fe3106a66efcbc85bbf6931c602b7a7ff" :a :task/status :v :task.status/closed :op :assert}
+ ]}
