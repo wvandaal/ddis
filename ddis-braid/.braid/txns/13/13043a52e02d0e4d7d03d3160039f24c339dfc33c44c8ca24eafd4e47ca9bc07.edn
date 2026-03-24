@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774365437/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-97707ab5"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c660ae5777d293cbdeb9aef21d5a0b99a67257944ea820cd6e11e9e78c57e021" :a :task/close-reason :v "5 new tests: handle_with_observation_emits_datoms, error_path, latency_plausible, request_id_matches, five_calls_five_entities. All pass. INV-DAEMON-003 and INV-DAEMON-008 verified." :op :assert}
+   {:e #blake3 "c660ae5777d293cbdeb9aef21d5a0b99a67257944ea820cd6e11e9e78c57e021" :a :task/closed-at :v 1774365436 :op :assert}
+   {:e #blake3 "c660ae5777d293cbdeb9aef21d5a0b99a67257944ea820cd6e11e9e78c57e021" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "c660ae5777d293cbdeb9aef21d5a0b99a67257944ea820cd6e11e9e78c57e021" :a :task/status :v :task.status/closed :op :assert}
+ ]}

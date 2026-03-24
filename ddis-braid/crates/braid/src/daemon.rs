@@ -1202,4 +1202,171 @@ mod tests {
             "second install should be a no-op (idempotent)"
         );
     }
+
+    // ── handle_with_observation tests (D4-TEST-2) ───────────────────────
+
+    /// Helper: create a fresh LiveStore with runtime schema installed.
+    fn setup_live_with_schema() -> (tempfile::TempDir, crate::live_store::LiveStore) {
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let mut live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        install_runtime_schema(&mut live).unwrap();
+        (dir, live)
+    }
+
+    /// Helper: count entities with :runtime/command attribute.
+    fn count_runtime_entities(store: &braid_kernel::Store) -> usize {
+        use braid_kernel::datom::{Attribute, Op};
+        let cmd_attr = Attribute::from_keyword(":runtime/command");
+        store
+            .datoms()
+            .filter(|d| d.attribute == cmd_attr && d.op == Op::Assert)
+            .count()
+    }
+
+    #[test]
+    fn handle_with_observation_emits_datoms() {
+        let (_dir, mut live) = setup_live_with_schema();
+        let before = count_runtime_entities(live.store());
+
+        // Simulate a braid_status tool call.
+        let id = serde_json::json!(1);
+        let params = serde_json::json!({
+            "name": "braid_status",
+            "arguments": {},
+        });
+
+        let _result = handle_with_observation(&id, &params, &mut live);
+
+        let after = count_runtime_entities(live.store());
+        assert_eq!(
+            after,
+            before + 1,
+            "handle_with_observation must emit exactly 1 runtime entity"
+        );
+    }
+
+    #[test]
+    fn handle_with_observation_error_path_emits_datoms() {
+        let (_dir, mut live) = setup_live_with_schema();
+        let before = count_runtime_entities(live.store());
+
+        // Simulate a call to a nonexistent tool (produces isError response).
+        let id = serde_json::json!(42);
+        let params = serde_json::json!({
+            "name": "nonexistent_tool",
+            "arguments": {},
+        });
+
+        let result = handle_with_observation(&id, &params, &mut live);
+
+        // Verify the result is an error.
+        let is_error = result
+            .get("result")
+            .and_then(|r| r.get("isError"))
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        assert!(is_error, "nonexistent tool should produce isError response");
+
+        // INV-DAEMON-008: runtime datom must still be emitted on error.
+        let after = count_runtime_entities(live.store());
+        assert_eq!(
+            after,
+            before + 1,
+            "INV-DAEMON-008: error path must still emit runtime datom"
+        );
+
+        // Verify the outcome is "error".
+        use braid_kernel::datom::{Attribute, Op};
+        let outcome_attr = Attribute::from_keyword(":runtime/outcome");
+        let has_error_outcome = live
+            .store()
+            .datoms()
+            .any(|d| {
+                d.attribute == outcome_attr
+                    && d.op == Op::Assert
+                    && d.value == braid_kernel::datom::Value::String("error".to_string())
+            });
+        assert!(
+            has_error_outcome,
+            "error path runtime datom must have outcome='error'"
+        );
+    }
+
+    #[test]
+    fn handle_with_observation_latency_plausible() {
+        let (_dir, mut live) = setup_live_with_schema();
+
+        let id = serde_json::json!(1);
+        let params = serde_json::json!({
+            "name": "braid_status",
+            "arguments": {},
+        });
+
+        let _result = handle_with_observation(&id, &params, &mut live);
+
+        // Find the runtime datom's latency.
+        use braid_kernel::datom::{Attribute, Op, Value};
+        let lat_attr = Attribute::from_keyword(":runtime/latency-ms");
+        let latency = live
+            .store()
+            .datoms()
+            .find(|d| d.attribute == lat_attr && d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                Value::Long(ms) => Some(*ms),
+                _ => None,
+            });
+
+        let ms = latency.expect(":runtime/latency-ms must exist");
+        assert!(ms > 0, "latency must be positive, got {ms}");
+        assert!(ms < 60_000, "latency must be < 60s, got {ms}ms");
+    }
+
+    #[test]
+    fn handle_with_observation_request_id_matches() {
+        let (_dir, mut live) = setup_live_with_schema();
+
+        let id = serde_json::json!("req-abc-123");
+        let params = serde_json::json!({
+            "name": "braid_status",
+            "arguments": {},
+        });
+
+        let _result = handle_with_observation(&id, &params, &mut live);
+
+        // Find the runtime datom's request-id.
+        use braid_kernel::datom::{Attribute, Op, Value};
+        let rid_attr = Attribute::from_keyword(":runtime/request-id");
+        let request_id = live
+            .store()
+            .datoms()
+            .find(|d| d.attribute == rid_attr && d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                Value::String(s) => Some(s.clone()),
+                _ => None,
+            });
+
+        let rid = request_id.expect(":runtime/request-id must exist");
+        assert!(
+            rid.contains("req-abc-123"),
+            "request-id must contain the original JSON-RPC id, got: {rid}"
+        );
+    }
+
+    #[test]
+    fn handle_with_observation_five_calls_five_entities() {
+        let (_dir, mut live) = setup_live_with_schema();
+
+        for i in 1..=5 {
+            let id = serde_json::json!(i);
+            let params = serde_json::json!({
+                "name": "braid_status",
+                "arguments": {},
+            });
+            let _ = handle_with_observation(&id, &params, &mut live);
+        }
+
+        let count = count_runtime_entities(live.store());
+        assert_eq!(count, 5, "5 tool calls must produce exactly 5 runtime entities");
+    }
 }
