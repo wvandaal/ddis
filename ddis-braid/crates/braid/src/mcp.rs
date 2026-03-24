@@ -60,7 +60,7 @@ use ordered_float::OrderedFloat;
 
 use crate::commands::query::{format_value, parse_datalog};
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 
 // ---------------------------------------------------------------------------
 // Protocol constants
@@ -317,22 +317,22 @@ fn tool_definitions() -> JsonValue {
 
 /// Execute a tool call and return the MCP content response.
 fn call_tool(
-    layout: &DiskLayout,
+    live: &mut LiveStore,
     name: &str,
     arguments: &JsonValue,
 ) -> Result<JsonValue, BraidError> {
     match name {
-        "braid_status" => tool_status(layout),
-        "braid_query" => tool_query(layout, arguments),
-        "braid_write" => tool_write(layout, arguments),
-        "braid_harvest" => tool_harvest(layout, arguments),
-        "braid_seed" => tool_seed(layout, arguments),
-        "braid_observe" => tool_observe(layout, arguments),
-        "braid_guidance" => tool_guidance(layout),
-        "braid_task_ready" => tool_task_ready(layout),
-        "braid_task_go" => tool_task_go(layout, arguments),
-        "braid_task_close" => tool_task_close(layout, arguments),
-        "braid_task_create" => tool_task_create(layout, arguments),
+        "braid_status" => tool_status(live),
+        "braid_query" => tool_query(live, arguments),
+        "braid_write" => tool_write(live, arguments),
+        "braid_harvest" => tool_harvest(live, arguments),
+        "braid_seed" => tool_seed(live, arguments),
+        "braid_observe" => tool_observe(live, arguments),
+        "braid_guidance" => tool_guidance(live),
+        "braid_task_ready" => tool_task_ready(live),
+        "braid_task_go" => tool_task_go(live, arguments),
+        "braid_task_close" => tool_task_close(live, arguments),
+        "braid_task_create" => tool_task_create(live, arguments),
         _ => Ok(json!({
             "content": [{
                 "type": "text",
@@ -348,9 +348,9 @@ fn call_tool(
 /// Returns the same rich dashboard as `braid status` CLI (agent mode):
 /// F(S), M(t), coherence, harvest warning, task counts, and next action.
 /// This is the primary orientation tool — use at session start.
-fn tool_status(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
+fn tool_status(live: &mut LiveStore) -> Result<JsonValue, BraidError> {
     let output = crate::commands::status::run(
-        layout.root.as_path(),
+        live.layout().root.as_path(),
         "braid:mcp",
         false, // json
         false, // verbose
@@ -374,13 +374,13 @@ fn tool_status(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
 }
 
 /// `braid_query` — Query the store by entity/attribute filter.
-fn tool_query(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
-    let store = layout.load_store()?;
+fn tool_query(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, BraidError> {
+    let store = live.store();
 
     // INV-QUERY-002, INV-INTERFACE-010: Datalog parameter takes priority.
     // If present, parse and evaluate the Datalog query against the store.
     if let Some(datalog_src) = args.get("datalog").and_then(|v| v.as_str()) {
-        return tool_query_datalog(&store, datalog_src);
+        return tool_query_datalog(store, datalog_src);
     }
 
     // Fallback: entity/attribute filter scan.
@@ -470,7 +470,7 @@ fn tool_query_datalog(
 }
 
 /// `braid_write` — Assert a datom into the store.
-fn tool_write(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
+fn tool_write(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, BraidError> {
     let entity_str = args
         .get("entity")
         .and_then(|v| v.as_str())
@@ -488,14 +488,13 @@ fn tool_write(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidE
         .and_then(|v| v.as_str())
         .unwrap_or("MCP transact");
 
-    let store = layout.load_store()?;
     let agent = AgentId::from_name("braid:mcp");
 
     let entity = EntityId::from_ident(entity_str);
     let attribute = Attribute::from_keyword(attribute_str);
     let value = parse_value(value_str);
 
-    let tx_id = crate::commands::write::next_tx_id(&store, agent);
+    let tx_id = crate::commands::write::next_tx_id(live.store(), agent);
 
     let datom = braid_kernel::datom::Datom::new(entity, attribute, value, tx_id, Op::Assert);
 
@@ -508,7 +507,7 @@ fn tool_write(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidE
         datoms: vec![datom],
     };
 
-    let file_path = layout.write_tx(&tx)?;
+    let file_path = live.write_tx(&tx)?;
 
     Ok(json!({
         "content": [{
@@ -519,13 +518,13 @@ fn tool_write(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidE
 }
 
 /// `braid_harvest` — Run the harvest pipeline.
-fn tool_harvest(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
+fn tool_harvest(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, BraidError> {
     let task = args
         .get("task")
         .and_then(|v| v.as_str())
         .ok_or_else(|| BraidError::Parse("missing required parameter: task".into()))?;
 
-    let store = layout.load_store()?;
+    let store = live.store();
     let agent = AgentId::from_name("braid:mcp");
 
     let mut session_knowledge: Vec<(String, DatomValue)> = Vec::new();
@@ -537,7 +536,7 @@ fn tool_harvest(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
         }
     }
 
-    let session_boundary = braid_kernel::guidance::last_harvest_wall_time(&store);
+    let session_boundary = braid_kernel::guidance::last_harvest_wall_time(store);
 
     let context = SessionContext {
         agent,
@@ -547,7 +546,7 @@ fn tool_harvest(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
         session_knowledge,
     };
 
-    let result = harvest_pipeline(&store, &context);
+    let result = harvest_pipeline(store, &context);
 
     let mut out = String::new();
     out.push_str(&format!(
@@ -583,16 +582,16 @@ fn tool_harvest(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
 }
 
 /// `braid_seed` — Generate a seed context for a new session.
-fn tool_seed(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
+fn tool_seed(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, BraidError> {
     let task = args
         .get("task")
         .and_then(|v| v.as_str())
         .ok_or_else(|| BraidError::Parse("missing required parameter: task".into()))?;
     let budget = args.get("budget").and_then(|v| v.as_u64()).unwrap_or(2000) as usize;
 
-    let store = layout.load_store()?;
+    let store = live.store();
     let agent = AgentId::from_name("braid:mcp");
-    let seed = assemble_seed(&store, task, budget, agent);
+    let seed = assemble_seed(store, task, budget, agent);
 
     let mut out = String::new();
     out.push_str(&format!("seed for: {}\n", seed.task));
@@ -661,7 +660,7 @@ fn tool_seed(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidEr
 }
 
 /// `braid_observe` — Capture a knowledge observation.
-fn tool_observe(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
+fn tool_observe(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, BraidError> {
     let text = args
         .get("text")
         .and_then(|v| v.as_str())
@@ -678,8 +677,9 @@ fn tool_observe(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
     let rationale = args.get("rationale").and_then(|v| v.as_str());
     let alternatives = args.get("alternatives").and_then(|v| v.as_str());
 
+    let observe_path = live.layout().root.clone();
     let result = crate::commands::observe::run(crate::commands::observe::ObserveArgs {
-        path: &layout.root,
+        path: &observe_path,
         text,
         confidence,
         tags: &[],
@@ -704,17 +704,17 @@ fn tool_observe(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
 /// Returns M(t) score with sub-metric breakdown, all R(t)-routed actions
 /// with commands, F(S) fitness summary, and drift status. This is the
 /// verbose methodology view — use `braid_status` for quick orientation.
-fn tool_guidance(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
+fn tool_guidance(live: &mut LiveStore) -> Result<JsonValue, BraidError> {
     use braid_kernel::guidance::{
         compute_methodology_score, compute_routing_with_calibration,
         derive_actions_with_routing, format_actions, telemetry_from_store, Trend,
     };
 
-    let store = layout.load_store()?;
-    let telemetry = telemetry_from_store(&store);
+    let store = live.store();
+    let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
-    let (routings, _calibration) = compute_routing_with_calibration(&store);
-    let actions = derive_actions_with_routing(&store, &routings, None);
+    let (routings, _calibration) = compute_routing_with_calibration(store);
+    let actions = derive_actions_with_routing(store, &routings, None);
     let fitness = store.fitness();
 
     let mut out = String::new();
@@ -783,9 +783,9 @@ fn tool_guidance(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
 // ---------------------------------------------------------------------------
 
 /// `braid_task_ready` — List unblocked tasks ranked by R(t) impact.
-fn tool_task_ready(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
-    let store = layout.load_store()?;
-    let ready = braid_kernel::compute_ready_set(&store);
+fn tool_task_ready(live: &mut LiveStore) -> Result<JsonValue, BraidError> {
+    let store = live.store();
+    let ready = braid_kernel::compute_ready_set(store);
 
     if ready.is_empty() {
         return Ok(json!({
@@ -813,19 +813,18 @@ fn tool_task_ready(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
 }
 
 /// `braid_task_go` — Claim a task (set status=in-progress).
-fn tool_task_go(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
+fn tool_task_go(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, BraidError> {
     let id = args
         .get("id")
         .and_then(|v| v.as_str())
         .ok_or_else(|| BraidError::Parse("missing required parameter: id".into()))?;
 
-    let store = layout.load_store()?;
     let agent = AgentId::from_name("braid:mcp");
 
-    let task_entity = braid_kernel::find_task_by_id(&store, id)
+    let task_entity = braid_kernel::find_task_by_id(live.store(), id)
         .ok_or_else(|| BraidError::Parse(format!("task not found: {id}")))?;
 
-    let tx_id = crate::commands::write::next_tx_id(&store, agent);
+    let tx_id = crate::commands::write::next_tx_id(live.store(), agent);
     let datom =
         braid_kernel::update_status_datom(task_entity, braid_kernel::TaskStatus::InProgress, tx_id);
     let tx = TxFile {
@@ -836,10 +835,10 @@ fn tool_task_go(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
         causal_predecessors: vec![],
         datoms: vec![datom],
     };
-    layout.write_tx(&tx)?;
+    live.write_tx(&tx)?;
 
     // Get title for confirmation message
-    let title = braid_kernel::task_summary(&store, task_entity)
+    let title = braid_kernel::task_summary(live.store(), task_entity)
         .map(|t| t.title.clone())
         .unwrap_or_else(|| id.to_string());
 
@@ -849,7 +848,7 @@ fn tool_task_go(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
 }
 
 /// `braid_task_close` — Close a completed task.
-fn tool_task_close(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
+fn tool_task_close(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, BraidError> {
     let id = args
         .get("id")
         .and_then(|v| v.as_str())
@@ -859,13 +858,12 @@ fn tool_task_close(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, B
         .and_then(|v| v.as_str())
         .unwrap_or("completed");
 
-    let store = layout.load_store()?;
     let agent = AgentId::from_name("braid:mcp");
 
-    let task_entity = braid_kernel::find_task_by_id(&store, id)
+    let task_entity = braid_kernel::find_task_by_id(live.store(), id)
         .ok_or_else(|| BraidError::Parse(format!("task not found: {id}")))?;
 
-    let tx_id = crate::commands::write::next_tx_id(&store, agent);
+    let tx_id = crate::commands::write::next_tx_id(live.store(), agent);
     let datoms = braid_kernel::close_task_datoms(task_entity, reason, tx_id);
     let tx = TxFile {
         tx_id,
@@ -875,9 +873,9 @@ fn tool_task_close(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, B
         causal_predecessors: vec![],
         datoms,
     };
-    layout.write_tx(&tx)?;
+    live.write_tx(&tx)?;
 
-    let title = braid_kernel::task_summary(&store, task_entity)
+    let title = braid_kernel::task_summary(live.store(), task_entity)
         .map(|t| t.title.clone())
         .unwrap_or_else(|| id.to_string());
 
@@ -887,7 +885,7 @@ fn tool_task_close(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, B
 }
 
 /// `braid_task_create` — Create a new task.
-fn tool_task_create(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
+fn tool_task_create(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, BraidError> {
     let title = args
         .get("title")
         .and_then(|v| v.as_str())
@@ -907,9 +905,8 @@ fn tool_task_create(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, 
         _ => braid_kernel::TaskType::Task,
     };
 
-    let store = layout.load_store()?;
     let agent = AgentId::from_name("braid:mcp");
-    let tx_id = crate::commands::write::next_tx_id(&store, agent);
+    let tx_id = crate::commands::write::next_tx_id(live.store(), agent);
 
     let params = braid_kernel::CreateTaskParams {
         title,
@@ -930,7 +927,7 @@ fn tool_task_create(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, 
         causal_predecessors: vec![],
         datoms,
     };
-    layout.write_tx(&tx)?;
+    live.write_tx(&tx)?;
 
     Ok(json!({
         "content": [{"type": "text", "text": format!("created: {task_id} \"{title}\" (P{priority} {task_type_str})")}],
@@ -984,25 +981,22 @@ mod hex {
 
 /// Run the MCP server, reading JSON-RPC from stdin and writing to stdout.
 ///
-/// The server is stateful: it keeps the `DiskLayout` open for the lifetime
-/// of the process. Each tool call reloads the store from disk (ensuring it
-/// sees any writes from `braid_write`).
+/// The server is stateful: it keeps a `LiveStore` open for the lifetime
+/// of the process. The store is kept in memory with write-through to disk.
+/// External changes (from CLI commands) are detected via stat() on the
+/// txns/ directory and applied incrementally (LIVESTORE-6).
 ///
-/// # Store Reload Strategy (INV-INTERFACE-002)
+/// # Store Strategy (ADR-STORE-011, INV-STORE-020)
 ///
-/// Currently reloads the store from disk on every tool call via `layout.load_store()`.
-/// This is correct — the store always reflects the latest writes — but incurs
-/// I/O on every call. Stage 1 optimization: use `arc_swap::ArcSwap<Store>` to
-/// cache the store in memory and atomically swap after write tools
-/// (`braid_write`, `braid_task_go`, `braid_task_close`, `braid_task_create`,
-/// `braid_harvest`, `braid_observe`). Read tools (`braid_status`, `braid_query`,
-/// `braid_seed`, `braid_guidance`, `braid_task_ready`) would read the cached
-/// pointer with zero I/O. Key invariant: store must ALWAYS reflect the latest
-/// writes — stale reads are a correctness bug.
+/// One LiveStore, created at startup. Read tools use `live.store()` (O(1)
+/// pointer dereference). Write tools use `live.write_tx()` (disk + in-memory).
+/// Before each request, `refresh_if_needed()` picks up external CLI writes
+/// via O(1) stat() fast-path. This replaces the old strategy of reloading
+/// the entire store from disk on every tool call.
 ///
 /// Protocol: newline-delimited JSON-RPC (one JSON object per line).
 pub fn serve(path: &Path) -> Result<(), BraidError> {
-    let layout = DiskLayout::open(path)?;
+    let mut live = LiveStore::open(path)?;
 
     let stdin = io::stdin();
     let stdout = io::stdout();
@@ -1045,8 +1039,12 @@ pub fn serve(path: &Path) -> Result<(), BraidError> {
         // If this is a notification (no id), skip response for some methods.
         let is_notification = msg.get("id").is_none();
 
+        // LIVESTORE-6: Detect and apply external transactions (from CLI)
+        // before dispatching. O(1) stat() fast-path when nothing changed.
+        let _ = live.refresh_if_needed();
+
         let response = match method {
-            "initialize" => handle_initialize(&id, &params, &layout),
+            "initialize" => handle_initialize(&id, &params, &mut live),
             "initialized" => {
                 // Client acknowledgement — no response needed.
                 if is_notification {
@@ -1055,7 +1053,7 @@ pub fn serve(path: &Path) -> Result<(), BraidError> {
                 jsonrpc_ok(&id, json!({}))
             }
             "tools/list" => handle_tools_list(&id),
-            "tools/call" => handle_tools_call(&id, &params, &layout),
+            "tools/call" => handle_tools_call(&id, &params, &mut live),
             "ping" => jsonrpc_ok(&id, json!({})),
             "notifications/cancelled" | "notifications/progress" => {
                 // Notifications — no response.
@@ -1084,27 +1082,22 @@ fn write_response(writer: &mut impl Write, response: &JsonValue) {
 /// INV-INTERFACE-008: The instructions field provides basin activation —
 /// a ~100 token orientation that anchors the agent's reasoning trajectory
 /// before any tool calls. Uses live store metrics when available.
-fn handle_initialize(id: &JsonValue, _params: &JsonValue, layout: &DiskLayout) -> JsonValue {
-    // Build dynamic instructions from store state (best-effort).
-    let instructions = match layout.load_store() {
-        Ok(store) => {
-            let datoms = store.len();
-            let entities = store.entity_count();
-            let telemetry = braid_kernel::guidance::telemetry_from_store(&store);
-            let m = braid_kernel::compute_methodology_score(&telemetry);
-            format!(
-                "Braid: append-only datom store (CRDT merge, content-addressed). \
-                 {} datoms, {} entities, M(t)={:.2}. \
-                 Workflow: braid_status (orient) → braid_task_ready (pick) → \
-                 braid_task_go (claim) → work → braid_observe (capture) → \
-                 braid_harvest (persist). Use spec-language: reference INV/ADR IDs.",
-                datoms, entities, m.score,
-            )
-        }
-        Err(_) => "Braid: append-only datom store. \
-                    Workflow: braid_status → braid_task_ready → braid_task_go → \
-                    work → braid_observe → braid_harvest."
-            .to_string(),
+fn handle_initialize(id: &JsonValue, _params: &JsonValue, live: &mut LiveStore) -> JsonValue {
+    // Build dynamic instructions from store state.
+    let instructions = {
+        let store = live.store();
+        let datoms = store.len();
+        let entities = store.entity_count();
+        let telemetry = braid_kernel::guidance::telemetry_from_store(store);
+        let m = braid_kernel::compute_methodology_score(&telemetry);
+        format!(
+            "Braid: append-only datom store (CRDT merge, content-addressed). \
+             {} datoms, {} entities, M(t)={:.2}. \
+             Workflow: braid_status (orient) → braid_task_ready (pick) → \
+             braid_task_go (claim) → work → braid_observe (capture) → \
+             braid_harvest (persist). Use spec-language: reference INV/ADR IDs.",
+            datoms, entities, m.score,
+        )
     };
 
     jsonrpc_ok(
@@ -1135,7 +1128,7 @@ fn handle_tools_list(id: &JsonValue) -> JsonValue {
 /// INV-GUIDANCE-001: Every tool response includes an M(t) guidance footer.
 /// This is the MCP equivalent of the CLI's `try_build_footer` — ensuring
 /// methodology adherence signals are continuous, not optional.
-fn handle_tools_call(id: &JsonValue, params: &JsonValue, layout: &DiskLayout) -> JsonValue {
+fn handle_tools_call(id: &JsonValue, params: &JsonValue, live: &mut LiveStore) -> JsonValue {
     let name = match params.get("name").and_then(|v| v.as_str()) {
         Some(n) => n,
         None => return jsonrpc_error(id, INVALID_PARAMS, "missing 'name' in tools/call params"),
@@ -1143,10 +1136,10 @@ fn handle_tools_call(id: &JsonValue, params: &JsonValue, layout: &DiskLayout) ->
 
     let arguments = params.get("arguments").cloned().unwrap_or(json!({}));
 
-    match call_tool(layout, name, &arguments) {
+    match call_tool(live, name, &arguments) {
         Ok(mut result) => {
             // INV-GUIDANCE-001: Append M(t) footer to every successful response.
-            append_guidance_footer(&mut result, layout);
+            append_guidance_footer(&mut result, live);
             jsonrpc_ok(id, result)
         }
         Err(e) => jsonrpc_ok(
@@ -1171,17 +1164,14 @@ fn handle_tools_call(id: &JsonValue, params: &JsonValue, layout: &DiskLayout) ->
 /// INV-INTERFACE-010 anti-drift injection: when M(t) < 0.5 (drift signal
 /// active), an additional anti-drift warning is prepended before the normal
 /// M(t) footer to redirect the agent back to methodology.
-fn append_guidance_footer(result: &mut JsonValue, layout: &DiskLayout) {
-    let store = match layout.load_store() {
-        Ok(s) => s,
-        Err(_) => return, // graceful degradation
-    };
+fn append_guidance_footer(result: &mut JsonValue, live: &LiveStore) {
+    let store = live.store();
 
     // Compute M(t) to check for drift signal.
-    let telemetry = braid_kernel::guidance::telemetry_from_store(&store);
+    let telemetry = braid_kernel::guidance::telemetry_from_store(store);
     let methodology = braid_kernel::guidance::compute_methodology_score(&telemetry);
 
-    let footer = braid_kernel::guidance::build_command_footer(&store, None);
+    let footer = braid_kernel::guidance::build_command_footer(store, None);
     if footer.is_empty() {
         return;
     }
@@ -1296,12 +1286,12 @@ mod tests {
     #[test]
     fn all_tools_produce_output_on_fresh_store() {
         let dir = tempfile::tempdir().unwrap();
-        let layout = DiskLayout::init(dir.path()).unwrap();
+        let mut live = LiveStore::create(dir.path()).unwrap();
 
         // Tools that require no arguments
         let no_arg_tools = ["braid_status"];
         for tool_name in &no_arg_tools {
-            let result = call_tool(&layout, tool_name, &json!({}));
+            let result = call_tool(&mut live, tool_name, &json!({}));
             assert!(result.is_ok(), "Tool {tool_name} should not error");
             let response = result.unwrap();
             let content = response["content"].as_array().expect("content must exist");
@@ -1314,12 +1304,12 @@ mod tests {
         }
 
         // braid_query with no filter
-        let result = call_tool(&layout, "braid_query", &json!({}));
+        let result = call_tool(&mut live, "braid_query", &json!({}));
         assert!(result.is_ok(), "braid_query should not error");
 
         // braid_write
         let result = call_tool(
-            &layout,
+            &mut live,
             "braid_write",
             &json!({
                 "entity": ":test/entity",
@@ -1331,18 +1321,18 @@ mod tests {
 
         // braid_harvest
         let result = call_tool(
-            &layout,
+            &mut live,
             "braid_harvest",
             &json!({ "task": "integration test" }),
         );
         assert!(result.is_ok(), "braid_harvest should not error");
 
         // braid_seed
-        let result = call_tool(&layout, "braid_seed", &json!({ "task": "continue work" }));
+        let result = call_tool(&mut live, "braid_seed", &json!({ "task": "continue work" }));
         assert!(result.is_ok(), "braid_seed should not error");
 
         // braid_guidance
-        let result = call_tool(&layout, "braid_guidance", &json!({}));
+        let result = call_tool(&mut live, "braid_guidance", &json!({}));
         assert!(result.is_ok(), "braid_guidance should not error");
         let response = result.unwrap();
         let content = response["content"].as_array().expect("content must exist");
@@ -1358,9 +1348,9 @@ mod tests {
     #[test]
     fn unknown_tool_returns_error() {
         let dir = tempfile::tempdir().unwrap();
-        let layout = DiskLayout::init(dir.path()).unwrap();
+        let mut live = LiveStore::create(dir.path()).unwrap();
 
-        let result = call_tool(&layout, "nonexistent_tool", &json!({}));
+        let result = call_tool(&mut live, "nonexistent_tool", &json!({}));
         assert!(result.is_ok()); // Should return Ok with isError in content
         let response = result.unwrap();
         assert_eq!(
@@ -1374,9 +1364,9 @@ mod tests {
     #[test]
     fn guidance_tool_returns_methodology_dashboard() {
         let dir = tempfile::tempdir().unwrap();
-        let layout = DiskLayout::init(dir.path()).unwrap();
+        let mut live = LiveStore::create(dir.path()).unwrap();
 
-        let result = call_tool(&layout, "braid_guidance", &json!({}));
+        let result = call_tool(&mut live, "braid_guidance", &json!({}));
         assert!(
             result.is_ok(),
             "braid_guidance should succeed on fresh store"
@@ -1433,15 +1423,15 @@ mod tests {
     #[test]
     fn transact_visible_in_subsequent_status() {
         let dir = tempfile::tempdir().unwrap();
-        let layout = DiskLayout::init(dir.path()).unwrap();
+        let mut live = LiveStore::create(dir.path()).unwrap();
 
         // Get initial status
-        let initial = call_tool(&layout, "braid_status", &json!({})).unwrap();
+        let initial = call_tool(&mut live, "braid_status", &json!({})).unwrap();
         let initial_text = initial["content"][0]["text"].as_str().unwrap();
 
         // Write a datom
         let _tx = call_tool(
-            &layout,
+            &mut live,
             "braid_write",
             &json!({
                 "entity": ":test/mcp-equiv",
@@ -1452,7 +1442,7 @@ mod tests {
         .unwrap();
 
         // Get updated status
-        let updated = call_tool(&layout, "braid_status", &json!({})).unwrap();
+        let updated = call_tool(&mut live, "braid_status", &json!({})).unwrap();
         let updated_text = updated["content"][0]["text"].as_str().unwrap();
 
         // Store should have grown
@@ -1468,8 +1458,8 @@ mod tests {
         let id = json!(1);
         // Create a temp store for the test
         let dir = tempfile::tempdir().unwrap();
-        let layout = DiskLayout::init(dir.path()).unwrap();
-        let response = handle_initialize(&id, &json!({}), &layout);
+        let mut live = LiveStore::create(dir.path()).unwrap();
+        let response = handle_initialize(&id, &json!({}), &mut live);
         assert_eq!(response["jsonrpc"], "2.0");
         assert_eq!(response["id"], 1);
         let result = &response["result"];
@@ -1535,10 +1525,10 @@ mod tests {
     #[test]
     fn datalog_query_returns_results() {
         let dir = tempfile::tempdir().unwrap();
-        let layout = DiskLayout::init(dir.path()).unwrap();
+        let mut live = LiveStore::create(dir.path()).unwrap();
 
         let result = call_tool(
-            &layout,
+            &mut live,
             "braid_query",
             &json!({
                 "datalog": "[:find ?e ?v :where [?e :db/ident ?v]]"
@@ -1567,11 +1557,11 @@ mod tests {
     #[test]
     fn datalog_takes_priority_over_entity_attribute() {
         let dir = tempfile::tempdir().unwrap();
-        let layout = DiskLayout::init(dir.path()).unwrap();
+        let mut live = LiveStore::create(dir.path()).unwrap();
 
         // Provide both datalog and entity — datalog should win
         let result = call_tool(
-            &layout,
+            &mut live,
             "braid_query",
             &json!({
                 "datalog": "[:find ?e ?v :where [?e :db/ident ?v]]",
@@ -1598,10 +1588,10 @@ mod tests {
     #[test]
     fn invalid_datalog_returns_error() {
         let dir = tempfile::tempdir().unwrap();
-        let layout = DiskLayout::init(dir.path()).unwrap();
+        let mut live = LiveStore::create(dir.path()).unwrap();
 
         let result = call_tool(
-            &layout,
+            &mut live,
             "braid_query",
             &json!({
                 "datalog": "not valid datalog"
@@ -1616,10 +1606,10 @@ mod tests {
     #[test]
     fn datalog_scalar_query() {
         let dir = tempfile::tempdir().unwrap();
-        let layout = DiskLayout::init(dir.path()).unwrap();
+        let mut live = LiveStore::create(dir.path()).unwrap();
 
         let result = call_tool(
-            &layout,
+            &mut live,
             "braid_query",
             &json!({
                 "datalog": "[:find ?doc . :where [:db/ident :db/doc ?doc]]"
@@ -1643,7 +1633,7 @@ mod tests {
     #[test]
     fn anti_drift_injection_on_low_methodology() {
         let dir = tempfile::tempdir().unwrap();
-        let layout = DiskLayout::init(dir.path()).unwrap();
+        let mut live = LiveStore::create(dir.path()).unwrap();
 
         // Get status — on a fresh store, M(t) should be low enough to
         // trigger the drift signal (< 0.5) because there's no harvest.
@@ -1654,7 +1644,7 @@ mod tests {
         // pushing past the harvest_is_recent threshold (>= 10 txns).
         for i in 0..12 {
             let _ = call_tool(
-                &layout,
+                &mut live,
                 "braid_write",
                 &json!({
                     "entity": format!(":test/drift-{i}"),
@@ -1666,8 +1656,7 @@ mod tests {
         }
 
         // Now check M(t) directly to confirm drift signal.
-        let store = layout.load_store().unwrap();
-        let telemetry = braid_kernel::guidance::telemetry_from_store(&store);
+        let telemetry = braid_kernel::guidance::telemetry_from_store(live.store());
         let methodology = braid_kernel::guidance::compute_methodology_score(&telemetry);
 
         // If M(t) >= 0.5, the A3 floor clamp is active; skip this test
@@ -1677,9 +1666,9 @@ mod tests {
             // M(t) is above threshold — anti-drift won't fire. This can
             // happen if the store's initial harvest counts as recent.
             // The test is still valid: verify no spurious anti-drift message.
-            let result = call_tool(&layout, "braid_status", &json!({})).unwrap();
+            let result = call_tool(&mut live, "braid_status", &json!({})).unwrap();
             let mut result_with_footer = result;
-            append_guidance_footer(&mut result_with_footer, &layout);
+            append_guidance_footer(&mut result_with_footer, &live);
             let text = result_with_footer["content"][0]["text"].as_str().unwrap();
             assert!(
                 !text.contains("Methodology drift"),
@@ -1689,9 +1678,9 @@ mod tests {
         }
 
         // M(t) < 0.5 confirmed — anti-drift injection should fire.
-        let result = call_tool(&layout, "braid_status", &json!({})).unwrap();
+        let result = call_tool(&mut live, "braid_status", &json!({})).unwrap();
         let mut result_with_footer = result;
-        append_guidance_footer(&mut result_with_footer, &layout);
+        append_guidance_footer(&mut result_with_footer, &live);
         let text = result_with_footer["content"][0]["text"].as_str().unwrap();
 
         assert!(
@@ -1708,11 +1697,11 @@ mod tests {
     #[test]
     fn entity_attribute_filter_still_works() {
         let dir = tempfile::tempdir().unwrap();
-        let layout = DiskLayout::init(dir.path()).unwrap();
+        let mut live = LiveStore::create(dir.path()).unwrap();
 
         // Write a datom first
         let _ = call_tool(
-            &layout,
+            &mut live,
             "braid_write",
             &json!({
                 "entity": ":test/datalog-fallback",
@@ -1724,7 +1713,7 @@ mod tests {
 
         // Query using entity filter (no datalog)
         let result = call_tool(
-            &layout,
+            &mut live,
             "braid_query",
             &json!({
                 "attribute": ":db/doc"

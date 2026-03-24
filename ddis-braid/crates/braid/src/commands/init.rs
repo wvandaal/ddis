@@ -313,9 +313,9 @@ pub fn run(
             std::fs::write(&tx_path, &manifest_bytes)?;
         }
 
-        // Reload store to pick up the manifest (written outside LiveStore API), then validate
-        let updated_store = live.layout().load_store()?;
-        if let Some(config) = braid_kernel::policy::PolicyConfig::from_store(&updated_store) {
+        // Refresh LiveStore to pick up the manifest (written outside write_tx API).
+        live.refresh_if_needed()?;
+        if let Some(config) = braid_kernel::policy::PolicyConfig::from_store(live.store()) {
             let errors = braid_kernel::policy::validate_policy(&config);
             if errors.is_empty() {
                 out.push_str(&format!(
@@ -403,7 +403,12 @@ braid seed --inject AGENTS.md             # Refresh this section
 
     // --- Build structured output ---
 
-    // Get final counts from the live store (already has all writes)
+    // Refresh: trace::run() and seed::run_inject() open their own LiveStore
+    // instances, so datoms they write to disk are invisible to our in-memory
+    // store. refresh_if_needed() picks up those external transactions via
+    // the LIVESTORE-6 stat() fast-path before we compute final counts.
+    live.refresh_if_needed()?;
+
     let final_store = live.store();
     let final_hashes = live.layout().list_tx_hashes()?;
     let final_datom_count = final_store.len();
