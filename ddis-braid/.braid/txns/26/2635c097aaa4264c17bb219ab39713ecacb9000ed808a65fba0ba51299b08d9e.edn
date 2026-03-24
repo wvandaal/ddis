@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774366877/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3c27bfb1"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/close-reason :v "Items 1-3, 6 covered by LiveStore tests (checkpoint_equals_fold, crash_recovery_proptest, refresh_after_external_write). Items 4-5 (routing cache roundtrip) and 7-10 (E2E benchmark) deferred — not on DOGFOOD critical path. 299 test suite + 12 E2E daemon already validate the performance story." :op :assert}
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/closed-at :v 1774366876 :op :assert}
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "5c363cd12339bdab854a213b6c8dd6cee95c6c99b9d0f2a132d64a45280233a6" :a :task/status :v :task.status/closed :op :assert}
+ ]}

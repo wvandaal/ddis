@@ -342,6 +342,254 @@ pub fn install_runtime_schema(
 }
 
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Capability census — PERF-4a
+// ---------------------------------------------------------------------------
+
+/// Compiled-in subsystem capabilities.
+///
+/// Each tuple: (name, description, module_path).
+/// This is the binary's self-model — what the daemon knows it can do.
+const CAPABILITIES: &[(&str, &str, &str)] = &[
+    ("store-binary-cache", "Bincode-serialized store.bin for O(1) startup", "crates/braid/src/layout.rs"),
+    ("incremental-tx-loading", "Apply new txn files without full store rebuild", "crates/braid/src/live_store.rs"),
+    ("external-write-detection", "O(1) mtime-based detection of CLI writes during daemon mode", "crates/braid/src/live_store.rs"),
+    ("write-through-persistence", "Every write is durable before returning (fsync + in-memory)", "crates/braid/src/live_store.rs"),
+    ("materialized-views", "Incremental fitness/coherence via Store::observe_datom", "crates/braid-kernel/src/store.rs"),
+    ("bilateral-scan", "Spec-impl alignment boundary evaluation", "crates/braid-kernel/src/bilateral.rs"),
+    ("spectral-partition", "Fiedler-based graph partition for topology planning", "crates/braid-kernel/src/topology.rs"),
+    ("datalog-query", "Stratified Datalog evaluation with CALM compliance", "crates/braid-kernel/src/query/evaluator.rs"),
+    ("harvest-pipeline", "Session knowledge extraction with candidate scoring", "crates/braid-kernel/src/harvest.rs"),
+    ("seed-assembly", "Task-conditioned context assembly with budget management", "crates/braid-kernel/src/seed.rs"),
+    ("routing-engine", "R(t) task impact scoring with calibration", "crates/braid-kernel/src/routing.rs"),
+    ("bridge-hypotheses", "FEGH free-energy gradient over hypothetical observations", "crates/braid-kernel/src/routing.rs"),
+    ("hypothesis-ledger", "Predicted vs actual outcome tracking with calibration", "crates/braid-kernel/src/routing.rs"),
+    ("topology-planning", "Spectral task partition for multi-agent coordination", "crates/braid-kernel/src/topology.rs"),
+    ("cotx-routing", "Contextual observation auto-routing (finding/task/ADR/question)", "crates/braid-kernel/src/guidance.rs"),
+    ("crdt-merge", "Set-union merge with per-attribute resolution modes", "crates/braid-kernel/src/merge.rs"),
+    ("runtime-self-observation", "Daemon emits :runtime/* datoms for reflexive F(S)", "crates/braid/src/daemon.rs"),
+    ("unix-socket-daemon", "Persistent LiveStore with JSON-RPC over Unix socket", "crates/braid/src/daemon.rs"),
+];
+
+/// Run the capability census: record compiled-in subsystems as `:capability/*` datoms.
+///
+/// Idempotent: checks for `:capability/store-binary-cache` existence before transacting.
+/// The census grounds the store's self-model in the binary's actual capabilities,
+/// preventing tasks from being created for already-implemented features.
+///
+/// **PERF-4a**: The daemon's first act is binary reflection.
+pub fn run_capability_census(
+    live: &mut crate::live_store::LiveStore,
+) -> Result<(), DaemonError> {
+    use braid_kernel::datom::*;
+    use braid_kernel::layout::TxFile;
+
+    // Idempotency check.
+    let check_entity = EntityId::from_ident(":capability/store-binary-cache");
+    let doc_attr = Attribute::from_keyword(":db/doc");
+    let already_run = live
+        .store()
+        .entity_datoms(check_entity)
+        .iter()
+        .any(|d| d.attribute == doc_attr && d.op == Op::Assert);
+
+    if already_run {
+        return Ok(());
+    }
+
+    let agent = AgentId::from_name("braid:daemon");
+    let tx_id = crate::commands::write::next_tx_id(live.store(), agent);
+
+    let mut datoms = Vec::new();
+
+    for &(name, description, module_path) in CAPABILITIES {
+        let ident = format!(":capability/{name}");
+        let entity = EntityId::from_ident(&ident);
+
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(ident),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String(description.to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":capability/implemented"),
+            Value::Boolean(true),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":capability/file-path"),
+            Value::String(module_path.to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+    }
+
+    let tx_file = TxFile {
+        tx_id,
+        agent,
+        provenance: ProvenanceType::Derived,
+        rationale: "PERF-4a: capability census — binary self-reflection".to_string(),
+        causal_predecessors: vec![],
+        datoms,
+    };
+
+    live.write_tx(&tx_file).map_err(DaemonError::from)?;
+    eprintln!(
+        "daemon: capability census complete ({} subsystems registered)",
+        CAPABILITIES.len()
+    );
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Reflexive FEGH — PERF-4b
+// ---------------------------------------------------------------------------
+
+/// Run bridge hypothesis generation on the daemon's own knowledge graph.
+///
+/// This is FEGH-1 applied reflexively: the daemon examines its own store for
+/// disconnected knowledge clusters and generates hypothetical bridging
+/// observations. The results are recorded as `:hypothesis/*` datoms with
+/// `item_type=reflexive`.
+///
+/// **PERF-4b**: The simplest test case for bridge hypotheses because we
+/// control every variable and have immediate ground truth.
+///
+/// Best-effort: failures are logged but don't prevent daemon startup.
+fn run_reflexive_fegh(live: &mut crate::live_store::LiveStore) {
+    use braid_kernel::datom::*;
+    use braid_kernel::layout::TxFile;
+
+    let store = live.store();
+
+    // Only run if we have enough entities for meaningful community detection.
+    if store.entity_count() < 10 {
+        return;
+    }
+
+    let bridges = braid_kernel::routing::generate_bridge_hypotheses(store, 3);
+    if bridges.is_empty() {
+        eprintln!("daemon: reflexive FEGH — no bridge hypotheses (graph may be fully connected)");
+        return;
+    }
+
+    let agent = AgentId::from_name("braid:daemon");
+    let tx_id = crate::commands::write::next_tx_id(store, agent);
+    let wall_ms = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as i64;
+
+    let mut datoms = Vec::new();
+
+    for (i, bridge) in bridges.iter().enumerate() {
+        let ident = format!(
+            ":hypothesis/reflexive-{}-{}",
+            wall_ms,
+            i
+        );
+        let entity = EntityId::from_ident(&ident);
+
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(ident),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String(bridge.question.clone()),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":hypothesis/source-label"),
+            Value::String(bridge.source_label.clone()),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":hypothesis/target-label"),
+            Value::String(bridge.target_label.clone()),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":hypothesis/delta-fs"),
+            Value::Double(ordered_float::OrderedFloat(bridge.delta_fs)),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":hypothesis/alpha"),
+            Value::Double(ordered_float::OrderedFloat(bridge.alpha)),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":hypothesis/item-type"),
+            Value::String("reflexive".to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+    }
+
+    if datoms.is_empty() {
+        return;
+    }
+
+    let tx_file = TxFile {
+        tx_id,
+        agent,
+        provenance: ProvenanceType::Derived,
+        rationale: "PERF-4b: reflexive FEGH — bridge hypotheses on self-model".to_string(),
+        causal_predecessors: vec![],
+        datoms,
+    };
+
+    match live.write_tx(&tx_file) {
+        Ok(_) => {
+            eprintln!(
+                "daemon: reflexive FEGH — {} bridge hypotheses recorded",
+                bridges.len()
+            );
+            for (i, b) in bridges.iter().enumerate() {
+                eprintln!(
+                    "  [{i}] {} ↔ {} (ΔF(S)={:.3}, α={:.3}): {}",
+                    b.source_label,
+                    b.target_label,
+                    b.delta_fs,
+                    b.alpha,
+                    braid_kernel::safe_truncate_bytes(&b.question, 80)
+                );
+            }
+        }
+        Err(e) => {
+            eprintln!("daemon: reflexive FEGH write failed: {e}");
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Lock file management — INV-DAEMON-001, INV-DAEMON-005
 // ---------------------------------------------------------------------------
 
@@ -569,6 +817,12 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
 
     // 3. Install runtime schema (ADR-DAEMON-003).
     install_runtime_schema(&mut live)?;
+
+    // 3a. Capability census (PERF-4a): record compiled-in subsystems.
+    run_capability_census(&mut live)?;
+
+    // 3b. Reflexive FEGH (PERF-4b): bridge hypotheses on self-model.
+    run_reflexive_fegh(&mut live);
 
     // 4. Remove stale socket if it exists (crash recovery).
     let _ = std::fs::remove_file(sock_path.path());
@@ -1205,6 +1459,66 @@ mod tests {
             count_after_first, count_after_second,
             "second install should be a no-op (idempotent)"
         );
+    }
+
+    // ── Capability census tests (PERF-4a) ─────────────────────────────────
+
+    #[test]
+    fn capability_census_creates_datoms() {
+        use braid_kernel::datom::{Attribute, Op};
+
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let mut live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        run_capability_census(&mut live).unwrap();
+
+        // Verify :capability/store-binary-cache exists.
+        let entity = braid_kernel::datom::EntityId::from_ident(":capability/store-binary-cache");
+        let doc_attr = Attribute::from_keyword(":db/doc");
+        let has_doc = live
+            .store()
+            .entity_datoms(entity)
+            .iter()
+            .any(|d| d.attribute == doc_attr && d.op == Op::Assert);
+        assert!(has_doc, ":capability/store-binary-cache must have :db/doc");
+    }
+
+    #[test]
+    fn capability_census_all_subsystems() {
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let mut live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        run_capability_census(&mut live).unwrap();
+
+        // Count capability entities.
+        let cap_attr = braid_kernel::datom::Attribute::from_keyword(":capability/implemented");
+        let count = live
+            .store()
+            .datoms()
+            .filter(|d| d.attribute == cap_attr && d.op == braid_kernel::datom::Op::Assert)
+            .count();
+        assert_eq!(
+            count,
+            CAPABILITIES.len(),
+            "must register all {} capabilities",
+            CAPABILITIES.len()
+        );
+    }
+
+    #[test]
+    fn capability_census_idempotent() {
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let mut live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+
+        let before = live.store().len();
+        run_capability_census(&mut live).unwrap();
+        let after_first = live.store().len();
+        run_capability_census(&mut live).unwrap();
+        let after_second = live.store().len();
+
+        assert!(after_first > before);
+        assert_eq!(after_first, after_second, "second census must be a no-op");
     }
 
     // ── handle_with_observation tests (D4-TEST-2) ───────────────────────

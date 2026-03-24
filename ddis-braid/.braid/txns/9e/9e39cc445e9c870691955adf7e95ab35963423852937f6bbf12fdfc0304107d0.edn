@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774366854/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-00daed1d"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b353ab1b4aa848e1e8411ae05c0ea2d537d52ff46f8ead3337782cbd8b50e69c" :a :task/close-reason :v "run_reflexive_fegh at daemon startup: generates up to 3 bridge hypotheses on self-model via generate_bridge_hypotheses(). Records :hypothesis/* datoms with item_type=reflexive. Best-effort, non-blocking. Clippy clean, 38 daemon tests pass." :op :assert}
+   {:e #blake3 "b353ab1b4aa848e1e8411ae05c0ea2d537d52ff46f8ead3337782cbd8b50e69c" :a :task/closed-at :v 1774366853 :op :assert}
+   {:e #blake3 "b353ab1b4aa848e1e8411ae05c0ea2d537d52ff46f8ead3337782cbd8b50e69c" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "b353ab1b4aa848e1e8411ae05c0ea2d537d52ff46f8ead3337782cbd8b50e69c" :a :task/status :v :task.status/closed :op :assert}
+ ]}

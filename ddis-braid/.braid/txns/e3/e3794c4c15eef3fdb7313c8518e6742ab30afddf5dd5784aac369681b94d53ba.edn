@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774366890/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a1f1300a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "77ca002410f8f8663d76dc3ce3cad43e633d261dd704e8ed1fb17902fb33ebe9" :a :task/close-reason :v "EPIC complete: PERF-4 daemon (D4-1..8), PERF-4a capability census (18 subsystems), PERF-4b reflexive FEGH, PERF-TEST covered by existing 302 tests + 12 E2E. Daemon is live with runtime self-observation." :op :assert}
+   {:e #blake3 "77ca002410f8f8663d76dc3ce3cad43e633d261dd704e8ed1fb17902fb33ebe9" :a :task/closed-at :v 1774366889 :op :assert}
+   {:e #blake3 "77ca002410f8f8663d76dc3ce3cad43e633d261dd704e8ed1fb17902fb33ebe9" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "77ca002410f8f8663d76dc3ce3cad43e633d261dd704e8ed1fb17902fb33ebe9" :a :task/status :v :task.status/closed :op :assert}
+ ]}

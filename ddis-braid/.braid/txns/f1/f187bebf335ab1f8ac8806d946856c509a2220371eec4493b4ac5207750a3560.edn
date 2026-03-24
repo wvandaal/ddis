@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774366893/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8f71bbb2"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :task/close-reason :v "EPIC complete: all D4-1..D4-8 + D4-TEST-1..4 closed. 38 daemon tests, 12 E2E checks, 302 full suite." :op :assert}
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :task/closed-at :v 1774366892 :op :assert}
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :task/status :v :task.status/closed :op :assert}
+ ]}
