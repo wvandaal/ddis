@@ -1,0 +1,377 @@
+//! LiveStore write-through persistence tests.
+//!
+//! Validates INV-STORE-020 (checkpoint == fold), INV-STORE-021 (deferred flush),
+//! ADR-FOUNDATION-034 (write-through CRDT merge), and LIVESTORE-6 (multi-agent awareness).
+//!
+//! Traces to: t-3b7925a5 (LIVESTORE-TEST)
+
+use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, Value};
+use braid_kernel::layout::TxFile;
+use tempfile::TempDir;
+
+// Re-use the crate's LiveStore (it's pub).
+use braid::live_store::LiveStore;
+
+/// Helper: build a simple assert transaction.
+fn make_tx(entity: &str, attr: &str, val: &str, agent_name: &str) -> TxFile {
+    let agent = AgentId::from_name(agent_name);
+    let tx_id = braid_kernel::datom::TxId::new(
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+            + 1,
+        0,
+        agent,
+    );
+    let datom = Datom::new(
+        EntityId::from_ident(entity),
+        Attribute::from_keyword(attr),
+        Value::String(val.to_string()),
+        tx_id,
+        Op::Assert,
+    );
+    TxFile {
+        tx_id,
+        agent,
+        provenance: ProvenanceType::Observed,
+        rationale: format!("test: {val}"),
+        causal_predecessors: vec![],
+        datoms: vec![datom],
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// 1. open_returns_valid_store
+// ──────────────────────────────────────────────────────────────────────────
+
+#[test]
+fn open_returns_valid_store() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join(".braid");
+
+    // Create, then reopen.
+    {
+        let _live = LiveStore::create(&path).unwrap();
+    }
+
+    let live = LiveStore::open(&path).unwrap();
+    // Genesis produces schema datoms — must be > 0.
+    assert!(
+        live.store().len() > 0,
+        "opened store must have genesis datoms"
+    );
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// 2. write_tx_updates_in_memory
+// ──────────────────────────────────────────────────────────────────────────
+
+#[test]
+fn write_tx_updates_in_memory() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join(".braid");
+    let mut live = LiveStore::create(&path).unwrap();
+
+    let before = live.store().len();
+    let tx = make_tx(":test/a", ":db/doc", "hello", "test:write");
+    live.write_tx(&tx).unwrap();
+
+    let after = live.store().len();
+    assert!(
+        after > before,
+        "store must grow after write_tx: {before} -> {after}"
+    );
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// 3. write_tx_persists_to_disk
+// ──────────────────────────────────────────────────────────────────────────
+
+#[test]
+fn write_tx_persists_to_disk() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join(".braid");
+
+    let expected_len;
+    {
+        let mut live = LiveStore::create(&path).unwrap();
+        let tx = make_tx(":test/persist", ":db/doc", "durable", "test:persist");
+        live.write_tx(&tx).unwrap();
+        expected_len = live.store().len();
+    }
+
+    // Reopen from disk — should see the transaction.
+    let live2 = LiveStore::open(&path).unwrap();
+    assert_eq!(
+        live2.store().len(),
+        expected_len,
+        "reopened store must have same datom count"
+    );
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// 4. write_tx_preserves_materialized_views
+// ──────────────────────────────────────────────────────────────────────────
+
+#[test]
+fn write_tx_preserves_materialized_views() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join(".braid");
+    let mut live = LiveStore::create(&path).unwrap();
+
+    let fitness_before = live.store().fitness().total;
+
+    let tx = make_tx(":test/views", ":db/doc", "views-test", "test:views");
+    live.write_tx(&tx).unwrap();
+
+    // Fitness should still compute (may or may not change, but must not panic).
+    let fitness_after = live.store().fitness().total;
+    // F(S) is >=0 and <=1.
+    assert!(
+        (0.0..=1.0).contains(&fitness_after),
+        "fitness must be in [0,1], got {fitness_after}"
+    );
+    let _ = fitness_before; // suppress unused warning
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// 5. flush_writes_store_bin
+// ──────────────────────────────────────────────────────────────────────────
+
+#[test]
+fn flush_writes_store_bin() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join(".braid");
+    let mut live = LiveStore::create(&path).unwrap();
+
+    let tx = make_tx(":test/flush", ":db/doc", "flush-test", "test:flush");
+    live.write_tx(&tx).unwrap();
+
+    assert!(live.is_dirty(), "store should be dirty after write");
+    live.flush().unwrap();
+    assert!(!live.is_dirty(), "store should be clean after flush");
+
+    // store.bin should exist (or .cache/ equivalent).
+    let cache_dir = path.join(".cache");
+    if cache_dir.is_dir() {
+        let has_bin = std::fs::read_dir(&cache_dir)
+            .unwrap()
+            .any(|e| e.unwrap().path().extension().map(|x| x == "bin").unwrap_or(false));
+        assert!(has_bin, ".cache/ should contain a .bin file after flush");
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// 6. crash_recovery_via_txn_files
+// ──────────────────────────────────────────────────────────────────────────
+
+#[test]
+fn crash_recovery_via_txn_files() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join(".braid");
+
+    let expected_len;
+    {
+        let mut live = LiveStore::create(&path).unwrap();
+        let tx = make_tx(":test/crash", ":db/doc", "crash-test", "test:crash");
+        live.write_tx(&tx).unwrap();
+        expected_len = live.store().len();
+        // DO NOT flush — simulate crash before store.bin is updated.
+        // Drop will try to flush best-effort, but let's delete store.bin after.
+    }
+
+    // Delete the cache to simulate a crash before flush completed.
+    let cache_dir = path.join(".cache");
+    if cache_dir.is_dir() {
+        for entry in std::fs::read_dir(&cache_dir).unwrap() {
+            let entry = entry.unwrap();
+            if entry.path().extension().map(|x| x == "bin").unwrap_or(false) {
+                std::fs::remove_file(entry.path()).unwrap();
+            }
+        }
+    }
+
+    // Reopen — should recover from txn files.
+    let live2 = LiveStore::open(&path).unwrap();
+    assert_eq!(
+        live2.store().len(),
+        expected_len,
+        "store recovered from txn files must have same datom count"
+    );
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// 7. consecutive_writes_accumulate
+// ──────────────────────────────────────────────────────────────────────────
+
+#[test]
+fn consecutive_writes_accumulate() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join(".braid");
+    let mut live = LiveStore::create(&path).unwrap();
+
+    let base = live.store().len();
+
+    let tx1 = make_tx(":test/acc-1", ":db/doc", "first", "test:acc");
+    live.write_tx(&tx1).unwrap();
+    let after_1 = live.store().len();
+
+    let tx2 = make_tx(":test/acc-2", ":db/doc", "second", "test:acc");
+    live.write_tx(&tx2).unwrap();
+    let after_2 = live.store().len();
+
+    assert!(after_1 > base, "first write must increase datom count");
+    assert!(
+        after_2 > after_1,
+        "second write must further increase: {after_1} -> {after_2}"
+    );
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// 8. store_bin_matches_full_rebuild
+// ──────────────────────────────────────────────────────────────────────────
+
+#[test]
+fn store_bin_matches_full_rebuild() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join(".braid");
+
+    let live_len;
+    {
+        let mut live = LiveStore::create(&path).unwrap();
+        for i in 0..5 {
+            let tx = make_tx(
+                &format!(":test/rebuild-{i}"),
+                ":db/doc",
+                &format!("rebuild-{i}"),
+                "test:rebuild",
+            );
+            live.write_tx(&tx).unwrap();
+        }
+        live.flush().unwrap();
+        live_len = live.store().len();
+    }
+
+    // Full rebuild from txn files.
+    let layout = braid::layout::DiskLayout::open(&path).unwrap();
+    let rebuilt = layout.load_store().unwrap();
+
+    assert_eq!(
+        rebuilt.len(),
+        live_len,
+        "INV-STORE-020: full rebuild must match LiveStore. rebuilt={}, live={}",
+        rebuilt.len(),
+        live_len,
+    );
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// 9. refresh_if_needed_detects_external_writes (LIVESTORE-6)
+// ──────────────────────────────────────────────────────────────────────────
+
+#[test]
+fn refresh_if_needed_detects_external_writes() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join(".braid");
+    let mut live = LiveStore::create(&path).unwrap();
+    let before = live.store().len();
+
+    // Write a transaction directly via DiskLayout (simulating another process).
+    {
+        let layout = braid::layout::DiskLayout::open(&path).unwrap();
+        let tx = make_tx(":test/external", ":db/doc", "external-write", "test:ext");
+        layout.write_tx(&tx).unwrap();
+    }
+
+    // LiveStore doesn't see it yet.
+    assert_eq!(
+        live.store().len(),
+        before,
+        "before refresh, count unchanged"
+    );
+
+    // After refresh, it should detect the external write.
+    let refreshed = live.refresh_if_needed().unwrap();
+    assert!(refreshed, "refresh_if_needed should detect external write");
+    assert!(
+        live.store().len() > before,
+        "after refresh, count must increase: {} > {}",
+        live.store().len(),
+        before,
+    );
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// 10. create_fails_on_existing_store
+// ──────────────────────────────────────────────────────────────────────────
+
+#[test]
+fn create_fails_on_existing_store() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join(".braid");
+
+    let _live = LiveStore::create(&path).unwrap();
+
+    // Second create should fail.
+    let result = LiveStore::create(&path);
+    assert!(result.is_err(), "create on existing store should fail");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// 11. monotonic_growth (C1)
+// ──────────────────────────────────────────────────────────────────────────
+
+#[test]
+fn monotonic_growth() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join(".braid");
+    let mut live = LiveStore::create(&path).unwrap();
+
+    let mut prev = live.store().len();
+    for i in 0..10 {
+        let tx = make_tx(
+            &format!(":test/mono-{i}"),
+            ":db/doc",
+            &format!("mono-{i}"),
+            "test:mono",
+        );
+        live.write_tx(&tx).unwrap();
+        let curr = live.store().len();
+        assert!(
+            curr >= prev,
+            "C1: datom count must be monotonically non-decreasing: {} >= {}",
+            curr,
+            prev
+        );
+        prev = curr;
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// 12. dirty_flag_semantics (INV-STORE-021)
+// ──────────────────────────────────────────────────────────────────────────
+
+#[test]
+fn dirty_flag_semantics() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join(".braid");
+    let mut live = LiveStore::create(&path).unwrap();
+
+    // Fresh store is not dirty.
+    assert!(!live.is_dirty(), "fresh store should not be dirty");
+
+    // After write, dirty.
+    let tx = make_tx(":test/dirty", ":db/doc", "dirty-test", "test:dirty");
+    live.write_tx(&tx).unwrap();
+    assert!(live.is_dirty(), "after write, should be dirty");
+
+    // After flush, clean.
+    live.flush().unwrap();
+    assert!(!live.is_dirty(), "after flush, should not be dirty");
+
+    // Another write makes it dirty again.
+    let tx2 = make_tx(":test/dirty-2", ":db/doc", "dirty-test-2", "test:dirty");
+    live.write_tx(&tx2).unwrap();
+    assert!(live.is_dirty(), "after second write, dirty again");
+}
