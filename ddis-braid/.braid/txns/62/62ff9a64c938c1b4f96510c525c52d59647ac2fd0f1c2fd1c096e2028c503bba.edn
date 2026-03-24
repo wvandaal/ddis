@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774382865/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Link CE-SEED to spec"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d25651d4ef5a05c42ba5a057effaba152728c22838ed3a5137fc1f360e1811ff" :a :task/traces-to :v :spec/inv-convergence-005 :op :assert}
+ ]}

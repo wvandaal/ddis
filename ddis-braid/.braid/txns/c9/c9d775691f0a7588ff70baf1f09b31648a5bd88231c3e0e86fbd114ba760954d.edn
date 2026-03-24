@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774382853/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Link CE-BOOT to spec"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "77033d11ed0ad3e2fcd58a7bc87b965f2df7716321cd7bee104e83269d638709" :a :task/traces-to :v :spec/inv-convergence-001 :op :assert}
+ ]}

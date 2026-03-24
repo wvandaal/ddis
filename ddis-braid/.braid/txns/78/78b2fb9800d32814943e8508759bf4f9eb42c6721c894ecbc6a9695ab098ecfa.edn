@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774382799/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CONVERGENCE-001 \"Bootstrap Hypothesis Completeness\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "00e390f5401bbe228c2fd853d1c1cc7536d2a75cc230e0ab2ba86213dc0108f1" :a :db/ident :v :task/t-4bb538d0 :op :assert}
+   {:e #blake3 "00e390f5401bbe228c2fd853d1c1cc7536d2a75cc230e0ab2ba86213dc0108f1" :a :task/created-at :v 1774382798 :op :assert}
+   {:e #blake3 "00e390f5401bbe228c2fd853d1c1cc7536d2a75cc230e0ab2ba86213dc0108f1" :a :task/id :v "t-4bb538d0" :op :assert}
+   {:e #blake3 "00e390f5401bbe228c2fd853d1c1cc7536d2a75cc230e0ab2ba86213dc0108f1" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "00e390f5401bbe228c2fd853d1c1cc7536d2a75cc230e0ab2ba86213dc0108f1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "00e390f5401bbe228c2fd853d1c1cc7536d2a75cc230e0ab2ba86213dc0108f1" :a :task/title :v "Implement INV-CONVERGENCE-001: Bootstrap Hypothesis Completeness" :op :assert}
+   {:e #blake3 "00e390f5401bbe228c2fd853d1c1cc7536d2a75cc230e0ab2ba86213dc0108f1" :a :task/traces-to :v #blake3 "c8469f91de55cc665696aa0930c23e5ca1927f861d43d8d5a88db1fde5186f1f" :op :assert}
+   {:e #blake3 "00e390f5401bbe228c2fd853d1c1cc7536d2a75cc230e0ab2ba86213dc0108f1" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "4c1f9c2e7b889593c056ecc27b88f23e795f9a3606a68204a41c39b16737e9e0" :a :db/doc :v "A project with 5+ source files produces fewer than 3 bootstrap hypotheses, or a hypothesis references a non-existent path, or generation takes >500ms" :op :assert}
+   {:e #blake3 "c8469f91de55cc665696aa0930c23e5ca1927f861d43d8d5a88db1fde5186f1f" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "c8469f91de55cc665696aa0930c23e5ca1927f861d43d8d5a88db1fde5186f1f" :a :comonad/falsification :v #blake3 "4c1f9c2e7b889593c056ecc27b88f23e795f9a3606a68204a41c39b16737e9e0" :op :assert}
+   {:e #blake3 "c8469f91de55cc665696aa0930c23e5ca1927f861d43d8d5a88db1fde5186f1f" :a :db/doc :v "Bootstrap Hypothesis Completeness" :op :assert}
+   {:e #blake3 "c8469f91de55cc665696aa0930c23e5ca1927f861d43d8d5a88db1fde5186f1f" :a :db/ident :v :spec/inv-convergence-001 :op :assert}
+   {:e #blake3 "c8469f91de55cc665696aa0930c23e5ca1927f861d43d8d5a88db1fde5186f1f" :a :element/traces-to :v "ADR-CONVERGENCE-001" :op :assert}
+   {:e #blake3 "c8469f91de55cc665696aa0930c23e5ca1927f861d43d8d5a88db1fde5186f1f" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "c8469f91de55cc665696aa0930c23e5ca1927f861d43d8d5a88db1fde5186f1f" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "c8469f91de55cc665696aa0930c23e5ca1927f861d43d8d5a88db1fde5186f1f" :a :spec/falsification :v "A project with 5+ source files produces fewer than 3 bootstrap hypotheses, or a hypothesis references a non-existent path, or generation takes >500ms" :op :assert}
+   {:e #blake3 "c8469f91de55cc665696aa0930c23e5ca1927f861d43d8d5a88db1fde5186f1f" :a :spec/id :v "INV-CONVERGENCE-001" :op :assert}
+   {:e #blake3 "c8469f91de55cc665696aa0930c23e5ca1927f861d43d8d5a88db1fde5186f1f" :a :spec/namespace :v :spec.ns/CONVERGENCE :op :assert}
+   {:e #blake3 "c8469f91de55cc665696aa0930c23e5ca1927f861d43d8d5a88db1fde5186f1f" :a :spec/statement :v "For any project with at least 5 source files, generate_bootstrap_hypotheses must produce at least 3 investigation hypotheses within 500ms. Hypotheses must reference real directory paths that exist in the project." :op :assert}
+ ]}

@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774382856/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Link CE-CONN to spec"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b113582e51ccb4b21cda1e5f91107dc22cc38d6ca26d57d0754f0609fe5c880e" :a :task/traces-to :v :spec/inv-convergence-002 :op :assert}
+ ]}

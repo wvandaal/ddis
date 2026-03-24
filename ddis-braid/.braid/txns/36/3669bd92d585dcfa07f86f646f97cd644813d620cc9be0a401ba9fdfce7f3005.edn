@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774382851/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Link EPIC to spec"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c00028d5049955a22341823549b8f506e244cfb24d477310ef25ea60de43e7fa" :a :task/traces-to :v :spec/adr-convergence-001 :op :assert}
+ ]}

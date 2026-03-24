@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774382828/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CONVERGENCE-005 \"Seed Domain Awareness\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "21b2e1d6f852b799adf6ea9099b5a45ab036aa35dda9462da10959fef4faeaa8" :a :db/doc :v "Seed orientation on an external project with 5+ observations still leads with braid self-description consuming >10% of budget" :op :assert}
+   {:e #blake3 "553236780513c4ff7fd58f61dbc9a9cc79bde637da91e9146f8aac364138ee0c" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "553236780513c4ff7fd58f61dbc9a9cc79bde637da91e9146f8aac364138ee0c" :a :comonad/falsification :v #blake3 "21b2e1d6f852b799adf6ea9099b5a45ab036aa35dda9462da10959fef4faeaa8" :op :assert}
+   {:e #blake3 "553236780513c4ff7fd58f61dbc9a9cc79bde637da91e9146f8aac364138ee0c" :a :db/doc :v "Seed Domain Awareness" :op :assert}
+   {:e #blake3 "553236780513c4ff7fd58f61dbc9a9cc79bde637da91e9146f8aac364138ee0c" :a :db/ident :v :spec/inv-convergence-005 :op :assert}
+   {:e #blake3 "553236780513c4ff7fd58f61dbc9a9cc79bde637da91e9146f8aac364138ee0c" :a :element/traces-to :v "ADR-CONVERGENCE-001,C8" :op :assert}
+   {:e #blake3 "553236780513c4ff7fd58f61dbc9a9cc79bde637da91e9146f8aac364138ee0c" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "553236780513c4ff7fd58f61dbc9a9cc79bde637da91e9146f8aac364138ee0c" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "553236780513c4ff7fd58f61dbc9a9cc79bde637da91e9146f8aac364138ee0c" :a :spec/falsification :v "Seed orientation on an external project with 5+ observations still leads with braid self-description consuming >10% of budget" :op :assert}
+   {:e #blake3 "553236780513c4ff7fd58f61dbc9a9cc79bde637da91e9146f8aac364138ee0c" :a :spec/id :v "INV-CONVERGENCE-005" :op :assert}
+   {:e #blake3 "553236780513c4ff7fd58f61dbc9a9cc79bde637da91e9146f8aac364138ee0c" :a :spec/namespace :v :spec.ns/CONVERGENCE :op :assert}
+   {:e #blake3 "553236780513c4ff7fd58f61dbc9a9cc79bde637da91e9146f8aac364138ee0c" :a :spec/statement :v "On projects with bootstrap hypotheses or session observations, the seed orientation section surfaces project-specific content (hypotheses, hub observations, bridge questions). Braid self-description occupies at most 1 line (footer). Budget allocation: <=10% braid footer, >=40% project knowledge, >=30% state, >=20% directive." :op :assert}
+   {:e #blake3 "61b9bd3513b81f0b6727eeaf7c4f5aea8f66b77bb650b47fa38c83cdb80c1d26" :a :db/ident :v :task/t-c6e5d966 :op :assert}
+   {:e #blake3 "61b9bd3513b81f0b6727eeaf7c4f5aea8f66b77bb650b47fa38c83cdb80c1d26" :a :task/created-at :v 1774382826 :op :assert}
+   {:e #blake3 "61b9bd3513b81f0b6727eeaf7c4f5aea8f66b77bb650b47fa38c83cdb80c1d26" :a :task/id :v "t-c6e5d966" :op :assert}
+   {:e #blake3 "61b9bd3513b81f0b6727eeaf7c4f5aea8f66b77bb650b47fa38c83cdb80c1d26" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "61b9bd3513b81f0b6727eeaf7c4f5aea8f66b77bb650b47fa38c83cdb80c1d26" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "61b9bd3513b81f0b6727eeaf7c4f5aea8f66b77bb650b47fa38c83cdb80c1d26" :a :task/title :v "Implement INV-CONVERGENCE-005: Seed Domain Awareness" :op :assert}
+   {:e #blake3 "61b9bd3513b81f0b6727eeaf7c4f5aea8f66b77bb650b47fa38c83cdb80c1d26" :a :task/traces-to :v #blake3 "553236780513c4ff7fd58f61dbc9a9cc79bde637da91e9146f8aac364138ee0c" :op :assert}
+   {:e #blake3 "61b9bd3513b81f0b6727eeaf7c4f5aea8f66b77bb650b47fa38c83cdb80c1d26" :a :task/type :v :task.type/task :op :assert}
+ ]}

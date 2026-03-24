@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774382831/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: NEG-CONVERGENCE-001 \"No Connection Noise\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2cccc55cf4e1c912283840d4739d73627e21bf8ddc170915057e6894a717319b" :a :db/doc :v "A connection is created between two observations that share only stopwords or single-character tokens" :op :assert}
+   {:e #blake3 "69af5a66fb2bee63c60a9e812aedbe0cbf4fed393eca8fa41349c530049ef07c" :a :db/ident :v :task/t-981b7412 :op :assert}
+   {:e #blake3 "69af5a66fb2bee63c60a9e812aedbe0cbf4fed393eca8fa41349c530049ef07c" :a :task/created-at :v 1774382829 :op :assert}
+   {:e #blake3 "69af5a66fb2bee63c60a9e812aedbe0cbf4fed393eca8fa41349c530049ef07c" :a :task/id :v "t-981b7412" :op :assert}
+   {:e #blake3 "69af5a66fb2bee63c60a9e812aedbe0cbf4fed393eca8fa41349c530049ef07c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "69af5a66fb2bee63c60a9e812aedbe0cbf4fed393eca8fa41349c530049ef07c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "69af5a66fb2bee63c60a9e812aedbe0cbf4fed393eca8fa41349c530049ef07c" :a :task/title :v "Implement NEG-CONVERGENCE-001: No Connection Noise" :op :assert}
+   {:e #blake3 "69af5a66fb2bee63c60a9e812aedbe0cbf4fed393eca8fa41349c530049ef07c" :a :task/traces-to :v #blake3 "c34db988616fab9ed950dde6663ff94e61b5e9e4d75eb2a955181623cf7cfcad" :op :assert}
+   {:e #blake3 "69af5a66fb2bee63c60a9e812aedbe0cbf4fed393eca8fa41349c530049ef07c" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "c34db988616fab9ed950dde6663ff94e61b5e9e4d75eb2a955181623cf7cfcad" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "c34db988616fab9ed950dde6663ff94e61b5e9e4d75eb2a955181623cf7cfcad" :a :comonad/falsification :v #blake3 "2cccc55cf4e1c912283840d4739d73627e21bf8ddc170915057e6894a717319b" :op :assert}
+   {:e #blake3 "c34db988616fab9ed950dde6663ff94e61b5e9e4d75eb2a955181623cf7cfcad" :a :db/doc :v "No Connection Noise" :op :assert}
+   {:e #blake3 "c34db988616fab9ed950dde6663ff94e61b5e9e4d75eb2a955181623cf7cfcad" :a :db/ident :v :spec/neg-convergence-001 :op :assert}
+   {:e #blake3 "c34db988616fab9ed950dde6663ff94e61b5e9e4d75eb2a955181623cf7cfcad" :a :element/traces-to :v "ADR-CONVERGENCE-001" :op :assert}
+   {:e #blake3 "c34db988616fab9ed950dde6663ff94e61b5e9e4d75eb2a955181623cf7cfcad" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "c34db988616fab9ed950dde6663ff94e61b5e9e4d75eb2a955181623cf7cfcad" :a :spec/element-type :v :spec.type/negative-case :op :assert}
+   {:e #blake3 "c34db988616fab9ed950dde6663ff94e61b5e9e4d75eb2a955181623cf7cfcad" :a :spec/falsification :v "A connection is created between two observations that share only stopwords or single-character tokens" :op :assert}
+   {:e #blake3 "c34db988616fab9ed950dde6663ff94e61b5e9e4d75eb2a955181623cf7cfcad" :a :spec/id :v "NEG-CONVERGENCE-001" :op :assert}
+   {:e #blake3 "c34db988616fab9ed950dde6663ff94e61b5e9e4d75eb2a955181623cf7cfcad" :a :spec/namespace :v :spec.ns/CONVERGENCE :op :assert}
+   {:e #blake3 "c34db988616fab9ed950dde6663ff94e61b5e9e4d75eb2a955181623cf7cfcad" :a :spec/statement :v "Connections must not be created between observations with Jaccard similarity below the threshold (base 0.10). Stopwords (the, a, an, is, are, was, were, this, that, it) must be excluded from token sets before Jaccard computation. Single-character tokens must be excluded. This prevents meaningless connections that would degrade FEGH bridge quality." :op :assert}
+ ]}

@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774382825/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CONVERGENCE-004 \"Observation-Aware Routing Dampening\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "799a5a019343bf1a3f246832022847d0a29f446e3ac0ebfe4c4e04534054e4cb" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "799a5a019343bf1a3f246832022847d0a29f446e3ac0ebfe4c4e04534054e4cb" :a :comonad/falsification :v #blake3 "ccb5fe3b59c9a5f847e21a6330f19cd2f2518dfab57f009dfe4e5e55b2ed5072" :op :assert}
+   {:e #blake3 "799a5a019343bf1a3f246832022847d0a29f446e3ac0ebfe4c4e04534054e4cb" :a :db/doc :v "Observation-Aware Routing Dampening" :op :assert}
+   {:e #blake3 "799a5a019343bf1a3f246832022847d0a29f446e3ac0ebfe4c4e04534054e4cb" :a :db/ident :v :spec/inv-convergence-004 :op :assert}
+   {:e #blake3 "799a5a019343bf1a3f246832022847d0a29f446e3ac0ebfe4c4e04534054e4cb" :a :element/traces-to :v "ADR-CONVERGENCE-001,ADR-FOUNDATION-030" :op :assert}
+   {:e #blake3 "799a5a019343bf1a3f246832022847d0a29f446e3ac0ebfe4c4e04534054e4cb" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "799a5a019343bf1a3f246832022847d0a29f446e3ac0ebfe4c4e04534054e4cb" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "799a5a019343bf1a3f246832022847d0a29f446e3ac0ebfe4c4e04534054e4cb" :a :spec/falsification :v "After 5 observations about topic X, a task about X remains in the top-3 routing recommendations, or tasks in un-observed namespaces do not receive the 1.5x boost" :op :assert}
+   {:e #blake3 "799a5a019343bf1a3f246832022847d0a29f446e3ac0ebfe4c4e04534054e4cb" :a :spec/id :v "INV-CONVERGENCE-004" :op :assert}
+   {:e #blake3 "799a5a019343bf1a3f246832022847d0a29f446e3ac0ebfe4c4e04534054e4cb" :a :spec/namespace :v :spec.ns/CONVERGENCE :op :assert}
+   {:e #blake3 "799a5a019343bf1a3f246832022847d0a29f446e3ac0ebfe4c4e04534054e4cb" :a :spec/statement :v "After recording N observations with keyword overlap to task T's title/body (Jaccard > 0.15), task T's routing impact is dampened by factor 0.3*(1-max_overlap). Tasks in namespaces with zero session observations receive 1.5x boost. The net effect: guidance rotates from explored to unexplored territory as the agent works." :op :assert}
+   {:e #blake3 "85827aee3d11c894ba8424ee73fd0fb40700029d9bf64add7cb64f7ccac0dae3" :a :db/ident :v :task/t-b6d50fb7 :op :assert}
+   {:e #blake3 "85827aee3d11c894ba8424ee73fd0fb40700029d9bf64add7cb64f7ccac0dae3" :a :task/created-at :v 1774382824 :op :assert}
+   {:e #blake3 "85827aee3d11c894ba8424ee73fd0fb40700029d9bf64add7cb64f7ccac0dae3" :a :task/id :v "t-b6d50fb7" :op :assert}
+   {:e #blake3 "85827aee3d11c894ba8424ee73fd0fb40700029d9bf64add7cb64f7ccac0dae3" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "85827aee3d11c894ba8424ee73fd0fb40700029d9bf64add7cb64f7ccac0dae3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "85827aee3d11c894ba8424ee73fd0fb40700029d9bf64add7cb64f7ccac0dae3" :a :task/title :v "Implement INV-CONVERGENCE-004: Observation-Aware Routing Dampening" :op :assert}
+   {:e #blake3 "85827aee3d11c894ba8424ee73fd0fb40700029d9bf64add7cb64f7ccac0dae3" :a :task/traces-to :v #blake3 "799a5a019343bf1a3f246832022847d0a29f446e3ac0ebfe4c4e04534054e4cb" :op :assert}
+   {:e #blake3 "85827aee3d11c894ba8424ee73fd0fb40700029d9bf64add7cb64f7ccac0dae3" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "ccb5fe3b59c9a5f847e21a6330f19cd2f2518dfab57f009dfe4e5e55b2ed5072" :a :db/doc :v "After 5 observations about topic X, a task about X remains in the top-3 routing recommendations, or tasks in un-observed namespaces do not receive the 1.5x boost" :op :assert}
+ ]}

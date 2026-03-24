@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774382802/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CONVERGENCE-002 \"Connection Graph Percolation\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4fdea691ca1e274c0ceec59ba88e8b6b1625f87d20bdee165151a98de7b7c37f" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "4fdea691ca1e274c0ceec59ba88e8b6b1625f87d20bdee165151a98de7b7c37f" :a :comonad/falsification :v #blake3 "8edbf08ae80d0939f294a61b5f0893354e3a2fe5bcae1c94c79cbefb41ec610c" :op :assert}
+   {:e #blake3 "4fdea691ca1e274c0ceec59ba88e8b6b1625f87d20bdee165151a98de7b7c37f" :a :db/doc :v "Connection Graph Percolation" :op :assert}
+   {:e #blake3 "4fdea691ca1e274c0ceec59ba88e8b6b1625f87d20bdee165151a98de7b7c37f" :a :db/ident :v :spec/inv-convergence-002 :op :assert}
+   {:e #blake3 "4fdea691ca1e274c0ceec59ba88e8b6b1625f87d20bdee165151a98de7b7c37f" :a :element/traces-to :v "ADR-CONVERGENCE-001" :op :assert}
+   {:e #blake3 "4fdea691ca1e274c0ceec59ba88e8b6b1625f87d20bdee165151a98de7b7c37f" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "4fdea691ca1e274c0ceec59ba88e8b6b1625f87d20bdee165151a98de7b7c37f" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "4fdea691ca1e274c0ceec59ba88e8b6b1625f87d20bdee165151a98de7b7c37f" :a :spec/falsification :v "8 related observations produce fewer than 3 connections, or no hub observation exists after 10 observations, or FEGH enters semantic phase on a fragmented graph" :op :assert}
+   {:e #blake3 "4fdea691ca1e274c0ceec59ba88e8b6b1625f87d20bdee165151a98de7b7c37f" :a :spec/id :v "INV-CONVERGENCE-002" :op :assert}
+   {:e #blake3 "4fdea691ca1e274c0ceec59ba88e8b6b1625f87d20bdee165151a98de7b7c37f" :a :spec/namespace :v :spec.ns/CONVERGENCE :op :assert}
+   {:e #blake3 "4fdea691ca1e274c0ceec59ba88e8b6b1625f87d20bdee165151a98de7b7c37f" :a :spec/statement :v "After N observations with pairwise keyword overlap, the auto-connection mechanism creates at least N/3 connection datoms. Hub observations (connected to 3+ others) must exist when N>=8. The connection graph must percolate (form a giant component) before FEGH transitions from structural to semantic phase." :op :assert}
+   {:e #blake3 "8edbf08ae80d0939f294a61b5f0893354e3a2fe5bcae1c94c79cbefb41ec610c" :a :db/doc :v "8 related observations produce fewer than 3 connections, or no hub observation exists after 10 observations, or FEGH enters semantic phase on a fragmented graph" :op :assert}
+   {:e #blake3 "981c05f217e5426b638e322f4da30c0d733be02fe053ffc70666c7ce43322b35" :a :db/ident :v :task/t-8fc96d15 :op :assert}
+   {:e #blake3 "981c05f217e5426b638e322f4da30c0d733be02fe053ffc70666c7ce43322b35" :a :task/created-at :v 1774382800 :op :assert}
+   {:e #blake3 "981c05f217e5426b638e322f4da30c0d733be02fe053ffc70666c7ce43322b35" :a :task/id :v "t-8fc96d15" :op :assert}
+   {:e #blake3 "981c05f217e5426b638e322f4da30c0d733be02fe053ffc70666c7ce43322b35" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "981c05f217e5426b638e322f4da30c0d733be02fe053ffc70666c7ce43322b35" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "981c05f217e5426b638e322f4da30c0d733be02fe053ffc70666c7ce43322b35" :a :task/title :v "Implement INV-CONVERGENCE-002: Connection Graph Percolation" :op :assert}
+   {:e #blake3 "981c05f217e5426b638e322f4da30c0d733be02fe053ffc70666c7ce43322b35" :a :task/traces-to :v #blake3 "4fdea691ca1e274c0ceec59ba88e8b6b1625f87d20bdee165151a98de7b7c37f" :op :assert}
+   {:e #blake3 "981c05f217e5426b638e322f4da30c0d733be02fe053ffc70666c7ce43322b35" :a :task/type :v :task.type/task :op :assert}
+ ]}
