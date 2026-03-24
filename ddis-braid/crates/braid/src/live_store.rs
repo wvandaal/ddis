@@ -167,57 +167,29 @@ impl LiveStore {
     /// NOT updated. The error is propagated to the caller.
     pub fn write_tx(&mut self, tx: &TxFile) -> Result<braid_kernel::layout::TxFilePath, BraidError> {
         // Step 1: Write EDN to disk (durable before we return).
+        // The txn file is fsynced — crash safety guaranteed by C1.
         let file_path = self.layout.write_tx_no_invalidate(tx)?;
+
         // LIVESTORE-6: Track this hash so refresh_if_needed() knows it's ours.
         self.known_hashes
             .insert(file_path.filename.trim_end_matches(".edn").to_string());
 
-        // Step 2: Apply to in-memory store.
-        // Build a kernel Transaction from the TxFile's datoms.
-        let mut builder = braid_kernel::store::Transaction::new(
-            tx.agent,
-            tx.provenance,
-            &tx.rationale,
-        );
-        for datom in &tx.datoms {
-            if datom.op == braid_kernel::datom::Op::Assert {
-                builder =
-                    builder.assert(datom.entity, datom.attribute.clone(), datom.value.clone());
-            } else {
-                builder =
-                    builder.retract(datom.entity, datom.attribute.clone(), datom.value.clone());
-            }
-        }
+        // Step 2: Apply datoms to in-memory store (ADR-STORE-011).
+        //
+        // Uses Store::apply_datoms() — incremental datom insertion WITHOUT
+        // schema validation. This is correct because:
+        // - The datoms come from a persisted TxFile (already validated at creation)
+        // - Transaction::commit() would fail for datoms with attributes not yet
+        //   in the schema (schema bootstrap ordering problem)
+        // - apply_datoms rebuilds Schema from the expanded datom set, discovering
+        //   any new attributes introduced by this transaction
+        //
+        // This is the incremental analog of Store::from_datoms() — same
+        // correctness, O(k) cost per transaction instead of O(N) rebuild.
+        self.store.apply_datoms(&tx.datoms);
 
-        // Commit validates against current schema and produces CommittedTransaction.
-        match builder.commit(&self.store) {
-            Ok(committed) => {
-                // Transact updates all 6 indexes, MaterializedViews, schema, frontier.
-                if let Err(e) = self.store.transact(committed) {
-                    // Transact failure after commit: log and propagate.
-                    // The txn file is on disk — next open() will retry.
-                    return Err(BraidError::Parse(format!(
-                        "LiveStore transact failed (txn file saved): {e}"
-                    )));
-                }
-                // Step 3: Mark dirty (deferred serialization, INV-STORE-021).
-                self.dirty = true;
-            }
-            Err(_) => {
-                // Commit failure (schema violation, etc.).
-                // The txn file is on disk for crash recovery, but we don't
-                // update in-memory state. The next open() will attempt the
-                // transaction against a fresh store and may succeed or fail.
-                //
-                // This is intentional: we preserve durability (txn file on disk)
-                // without corrupting in-memory consistency (store unchanged).
-                // The caller can decide whether to retry or abort.
-                //
-                // Note: we don't return an error here because the txn IS persisted.
-                // The in-memory state is just not updated. This matches the behavior
-                // of the old write_tx() which had no in-memory state to update.
-            }
-        }
+        // Step 3: Mark dirty for deferred serialization (INV-STORE-021).
+        self.dirty = true;
 
         Ok(file_path)
     }
@@ -262,33 +234,10 @@ impl LiveStore {
             return Ok(false);
         }
 
-        // Apply new transactions incrementally.
+        // Apply new transactions incrementally (ADR-STORE-011).
         for hash in &new_hashes {
             if let Ok(tx) = self.layout.read_tx(hash) {
-                let mut builder = braid_kernel::store::Transaction::new(
-                    tx.agent,
-                    tx.provenance,
-                    &tx.rationale,
-                );
-                for datom in &tx.datoms {
-                    if datom.op == braid_kernel::datom::Op::Assert {
-                        builder = builder.assert(
-                            datom.entity,
-                            datom.attribute.clone(),
-                            datom.value.clone(),
-                        );
-                    } else {
-                        builder = builder.retract(
-                            datom.entity,
-                            datom.attribute.clone(),
-                            datom.value.clone(),
-                        );
-                    }
-                }
-                // Best-effort: if commit/transact fails, skip this txn.
-                if let Ok(committed) = builder.commit(&self.store) {
-                    let _ = self.store.transact(committed);
-                }
+                self.store.apply_datoms(&tx.datoms);
             }
         }
 

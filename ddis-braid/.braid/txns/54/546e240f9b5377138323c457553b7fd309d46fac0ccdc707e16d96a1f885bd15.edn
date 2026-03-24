@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774330323/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-STORE-011 \"Incremental Datom Application Without Schema Validation\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "89536e6d193d7c17d3dd1cb8f29836048701b2d0997e9b7a9da50f64fba3bb4e" :a :db/doc :v "Violated if: (A) apply_datoms produces a store with different datom set than from_datoms on the same input. (B) apply_datoms rejects datoms that from_datoms accepts. (C) Schema is not rebuilt after apply_datoms (new attributes not discoverable). (D) Secondary indexes are inconsistent with the datom set after apply_datoms." :op :assert}
+   {:e #blake3 "b2367e4b510b9bca9d5e1fcfbe842742cf250a955a07aa50e62d6322507f5645" :a :db/ident :v :task/t-2e9bbe23 :op :assert}
+   {:e #blake3 "b2367e4b510b9bca9d5e1fcfbe842742cf250a955a07aa50e62d6322507f5645" :a :task/created-at :v 1774330322 :op :assert}
+   {:e #blake3 "b2367e4b510b9bca9d5e1fcfbe842742cf250a955a07aa50e62d6322507f5645" :a :task/id :v "t-2e9bbe23" :op :assert}
+   {:e #blake3 "b2367e4b510b9bca9d5e1fcfbe842742cf250a955a07aa50e62d6322507f5645" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "b2367e4b510b9bca9d5e1fcfbe842742cf250a955a07aa50e62d6322507f5645" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b2367e4b510b9bca9d5e1fcfbe842742cf250a955a07aa50e62d6322507f5645" :a :task/title :v "Implement ADR-STORE-011: Incremental Datom Application Without Schema Validation" :op :assert}
+   {:e #blake3 "b2367e4b510b9bca9d5e1fcfbe842742cf250a955a07aa50e62d6322507f5645" :a :task/traces-to :v #blake3 "c0eb0d36c5a6f37c851d327baa964a98a11dceafab3d0134a316106b2625fc14" :op :assert}
+   {:e #blake3 "b2367e4b510b9bca9d5e1fcfbe842742cf250a955a07aa50e62d6322507f5645" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "c0eb0d36c5a6f37c851d327baa964a98a11dceafab3d0134a316106b2625fc14" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "c0eb0d36c5a6f37c851d327baa964a98a11dceafab3d0134a316106b2625fc14" :a :comonad/falsification :v #blake3 "89536e6d193d7c17d3dd1cb8f29836048701b2d0997e9b7a9da50f64fba3bb4e" :op :assert}
+   {:e #blake3 "c0eb0d36c5a6f37c851d327baa964a98a11dceafab3d0134a316106b2625fc14" :a :db/doc :v "Incremental Datom Application Without Schema Validation" :op :assert}
+   {:e #blake3 "c0eb0d36c5a6f37c851d327baa964a98a11dceafab3d0134a316106b2625fc14" :a :db/ident :v :spec/adr-store-011 :op :assert}
+   {:e #blake3 "c0eb0d36c5a6f37c851d327baa964a98a11dceafab3d0134a316106b2625fc14" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "c0eb0d36c5a6f37c851d327baa964a98a11dceafab3d0134a316106b2625fc14" :a :spec/falsification :v "Violated if: (A) apply_datoms produces a store with different datom set than from_datoms on the same input. (B) apply_datoms rejects datoms that from_datoms accepts. (C) Schema is not rebuilt after apply_datoms (new attributes not discoverable). (D) Secondary indexes are inconsistent with the datom set after apply_datoms." :op :assert}
+   {:e #blake3 "c0eb0d36c5a6f37c851d327baa964a98a11dceafab3d0134a316106b2625fc14" :a :spec/id :v "ADR-STORE-011" :op :assert}
+   {:e #blake3 "c0eb0d36c5a6f37c851d327baa964a98a11dceafab3d0134a316106b2625fc14" :a :spec/namespace :v :spec.ns/STORE :op :assert}
+   {:e #blake3 "c0eb0d36c5a6f37c851d327baa964a98a11dceafab3d0134a316106b2625fc14" :a :spec/statement :v "Store::apply_datoms(&mut self, datoms: &[Datom]) inserts datoms into the BTreeSet, updates all 6 secondary indexes (entity, attribute, VAET, AVET, LIVE) and MaterializedViews, then rebuilds Schema from the expanded datom set. It does NOT validate datoms against the current schema. RATIONALE: Transaction::commit() validates against the CURRENT schema, which fails during schema bootstrap (new attributes not yet registered) and during incremental replay of persisted txn files (attributes defined in earlier txns). This is a spec gap: INV-SCHEMA-004 requires validation for user-facing transact, but internal replay of persisted data should not re-validate — the data was validated at creation time. apply_datoms is the incremental analog of from_datoms: same correctness guarantees (holistic schema rebuild), O(k) cost instead of O(N). CONTEXT: Store::genesis() already uses this exact pattern (lines 958-986). apply_datoms extracts it as a public method. The existing load_store incremental path (POLICY-6) has a pre-existing bug where Transaction::commit failure causes silent stale-store return — apply_datoms fixes this." :op :assert}
+ ]}

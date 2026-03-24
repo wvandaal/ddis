@@ -660,14 +660,14 @@ pub fn run(
     commit: bool,
     incremental: bool,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut live = crate::live_store::LiveStore::open(path)?;
+    let store = live.store();
 
     // SC-3: Incremental mode — only scan files modified since last trace scan.
     // When no files are stale, short-circuit with an up-to-date message.
     let all_files = find_rust_files(source);
     let files = if incremental {
-        if let Some(threshold) = last_scan_mtime(&store) {
+        if let Some(threshold) = last_scan_mtime(store) {
             let stale = filter_stale_files(all_files, threshold);
             if stale.is_empty() {
                 let json = serde_json::json!({
@@ -697,7 +697,7 @@ pub fn run(
     };
 
     // Build the spec ref → entity lookup
-    let spec_map = build_spec_ref_map(&store);
+    let spec_map = build_spec_ref_map(store);
 
     // Scan Rust source files (all, or only stale if incremental)
     let mut all_refs: Vec<TraceRef> = Vec::new();
@@ -852,7 +852,7 @@ pub fn run(
     let mut committed_datoms = 0usize;
     if commit {
         let agent = AgentId::from_name(agent_name);
-        let tx_id = super::write::next_tx_id(&store, agent);
+        let tx_id = super::write::next_tx_id(store, agent);
 
         let mut datoms = generate_impl_datoms(&resolved_links, tx_id);
         let witness_datoms = generate_witness_datoms(&witnessed_specs, tx_id);
@@ -862,7 +862,7 @@ pub fn run(
         // COTX-4: Auto-generate L1 FBW witness skeletons for new impl links.
         // Every new :impl/implements creates a witness in the same transaction,
         // permanently compounding the witness closure rate.
-        let existing_witnesses = braid_kernel::witness::all_witnesses(&store);
+        let existing_witnesses = braid_kernel::witness::all_witnesses(store);
         let witnessed_invs: std::collections::BTreeSet<braid_kernel::EntityId> =
             existing_witnesses.iter().map(|w| w.inv_ref).collect();
         let mut cotx4_count = 0usize;
@@ -930,7 +930,7 @@ pub fn run(
                 datoms,
             };
 
-            let file_path = layout.write_tx(&tx)?;
+            let file_path = live.write_tx(&tx)?;
             human.push_str(&format!(
                 "\nCommitted: {} datoms ({} impl + {} witness + {} FBW cotx) \u{2192} {}\n",
                 datom_count,

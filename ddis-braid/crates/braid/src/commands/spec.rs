@@ -18,7 +18,7 @@ use braid_kernel::proposal;
 use braid_kernel::Store;
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 /// Arguments for `braid spec create`.
@@ -61,11 +61,10 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         ))
     })?;
 
-    let layout = DiskLayout::open(args.path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(args.path)?;
 
     let agent_id = AgentId::from_name(args.agent);
-    let tx_id = super::write::next_tx_id(&store, agent_id);
+    let tx_id = super::write::next_tx_id(live.store(), agent_id);
 
     // Build entity ident: :spec/inv-store-001 (lowercase)
     let ident = format!(":spec/{}", args.id.to_lowercase());
@@ -290,10 +289,10 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         datoms,
     };
 
-    layout.write_tx(&tx)?;
+    live.write_tx(&tx)?;
 
-    // Reload to get updated counts
-    let store = layout.load_store()?;
+    // LiveStore already has the update — no reload needed
+    let store = live.store();
     let total = store.datom_set().len();
 
     let task_suffix = if let Some(ref tid) = auto_task_id {
@@ -371,10 +370,10 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
 /// and confidence below the auto-accept threshold (0.9). Sorted by confidence
 /// descending (highest first).
 pub fn run_review(path: &Path) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let pending = proposal::pending_proposals(&store);
+    let pending = proposal::pending_proposals(store);
     let threshold = proposal::auto_accept_threshold();
 
     if pending.is_empty() {
@@ -402,10 +401,10 @@ pub fn run_review(path: &Path) -> Result<CommandOutput, BraidError> {
     ));
 
     for (i, (entity, suggested_id, confidence)) in pending.iter().enumerate() {
-        let entity_hex = format_entity_short(&store, *entity);
-        let statement = extract_proposal_field(&store, *entity, ":proposal/statement");
-        let ptype = extract_proposal_field(&store, *entity, ":proposal/type");
-        let traces_to = extract_proposal_field(&store, *entity, ":proposal/traces-to");
+        let entity_hex = format_entity_short(store, *entity);
+        let statement = extract_proposal_field(store, *entity, ":proposal/statement");
+        let ptype = extract_proposal_field(store, *entity, ":proposal/type");
+        let traces_to = extract_proposal_field(store, *entity, ":proposal/traces-to");
         let auto_eligible = *confidence >= threshold;
 
         json_proposals.push(serde_json::json!({
@@ -460,7 +459,7 @@ pub fn run_review(path: &Path) -> Result<CommandOutput, BraidError> {
     // ACP: action = accept/reject the first pending proposal
     let first_entity = pending
         .first()
-        .map(|(e, _, _)| format_entity_short(&store, *e))
+        .map(|(e, _, _)| format_entity_short(store, *e))
         .unwrap_or_default();
     let projection = braid_kernel::ActionProjection {
         action: braid_kernel::budget::ProjectedAction {
@@ -518,15 +517,15 @@ pub fn run_review(path: &Path) -> Result<CommandOutput, BraidError> {
 /// prefix or the `:proposal/suggested-id`. Transitions status to accepted and
 /// generates `:spec/*` datoms via promotion.
 pub fn run_accept(path: &Path, id: &str, agent: &str) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let proposal_entity = resolve_proposal_entity(&store, id)?;
+    let proposal_entity = resolve_proposal_entity(store, id)?;
 
     let agent_id = AgentId::from_name(agent);
-    let tx_id = super::write::next_tx_id(&store, agent_id);
+    let tx_id = super::write::next_tx_id(store, agent_id);
 
-    let accept_datoms = proposal::accept_proposal(&store, proposal_entity, tx_id);
+    let accept_datoms = proposal::accept_proposal(store, proposal_entity, tx_id);
     if accept_datoms.is_empty() {
         return Err(BraidError::Validation(format!(
             "Cannot accept proposal '{}': entity not found, already accepted, or already rejected.",
@@ -534,9 +533,9 @@ pub fn run_accept(path: &Path, id: &str, agent: &str) -> Result<CommandOutput, B
         )));
     }
 
-    let suggested_id = extract_proposal_field(&store, proposal_entity, ":proposal/suggested-id")
+    let suggested_id = extract_proposal_field(store, proposal_entity, ":proposal/suggested-id")
         .unwrap_or_else(|| id.to_string());
-    let entity_hex = format_entity_short(&store, proposal_entity);
+    let entity_hex = format_entity_short(store, proposal_entity);
 
     let datom_count = accept_datoms.len();
     let tx = TxFile {
@@ -548,9 +547,10 @@ pub fn run_accept(path: &Path, id: &str, agent: &str) -> Result<CommandOutput, B
         datoms: accept_datoms,
     };
 
-    layout.write_tx(&tx)?;
+    live.write_tx(&tx)?;
 
-    let store = layout.load_store()?;
+    // LiveStore already has the update — no reload needed
+    let store = live.store();
     let total = store.datom_set().len();
 
     let human = format!(
@@ -619,20 +619,20 @@ pub fn run_reject(
     reason: &str,
     agent: &str,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let proposal_entity = resolve_proposal_entity(&store, id)?;
+    let proposal_entity = resolve_proposal_entity(store, id)?;
 
     let agent_id = AgentId::from_name(agent);
-    let tx_id = super::write::next_tx_id(&store, agent_id);
+    let tx_id = super::write::next_tx_id(store, agent_id);
     let reviewer = EntityId::from_ident(&format!(":agent/{}", agent));
 
     let reject_datoms = proposal::reject_proposal(proposal_entity, reason, reviewer, tx_id);
 
-    let suggested_id = extract_proposal_field(&store, proposal_entity, ":proposal/suggested-id")
+    let suggested_id = extract_proposal_field(store, proposal_entity, ":proposal/suggested-id")
         .unwrap_or_else(|| id.to_string());
-    let entity_hex = format_entity_short(&store, proposal_entity);
+    let entity_hex = format_entity_short(store, proposal_entity);
 
     let datom_count = reject_datoms.len();
     let tx = TxFile {
@@ -644,7 +644,7 @@ pub fn run_reject(
         datoms: reject_datoms,
     };
 
-    layout.write_tx(&tx)?;
+    live.write_tx(&tx)?;
 
     let human = format!(
         "rejected: {} (entity: {})\nreason: {}\n\nnext: braid spec review | braid spec history\n",
@@ -705,8 +705,8 @@ pub fn run_reject(
 /// Queries every entity with a `:proposal/status` attribute and displays its
 /// full lifecycle status. Sorted by transaction time (newest first).
 pub fn run_history(path: &Path) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
     let status_attr = Attribute::from_keyword(":proposal/status");
     let status_datoms = store.attribute_datoms(&status_attr);
@@ -769,7 +769,7 @@ pub fn run_history(path: &Path) -> Result<CommandOutput, BraidError> {
         };
 
         let suggested_id =
-            extract_proposal_field(&store, *entity, ":proposal/suggested-id").unwrap_or_default();
+            extract_proposal_field(store, *entity, ":proposal/suggested-id").unwrap_or_default();
         let confidence = edatoms
             .iter()
             .find_map(|d| {
@@ -781,10 +781,10 @@ pub fn run_history(path: &Path) -> Result<CommandOutput, BraidError> {
                 None
             })
             .unwrap_or(0.0);
-        let ptype = extract_proposal_field(&store, *entity, ":proposal/type").unwrap_or_default();
-        let statement = extract_proposal_field(&store, *entity, ":proposal/statement");
-        let review_note = extract_proposal_field(&store, *entity, ":proposal/review-note");
-        let entity_hex = format_entity_short(&store, *entity);
+        let ptype = extract_proposal_field(store, *entity, ":proposal/type").unwrap_or_default();
+        let statement = extract_proposal_field(store, *entity, ":proposal/statement");
+        let review_note = extract_proposal_field(store, *entity, ":proposal/review-note");
+        let entity_hex = format_entity_short(store, *entity);
 
         records.push(ProposalRecord {
             entity_hex,

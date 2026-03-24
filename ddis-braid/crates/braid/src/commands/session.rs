@@ -16,7 +16,7 @@ use braid_kernel::guidance::{count_txns_since_last_harvest, last_harvest_wall_ti
 use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 use super::{harvest, seed};
@@ -38,16 +38,16 @@ pub fn run_start(
     budget: usize,
     agent_name: &str,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(path)?;
 
     // B4: Ensure Layer 4 schema is installed (for session/task attributes)
-    ensure_layer_4(&layout, &store)?;
+    ensure_layer_4(&mut live)?;
+    let store = live.store();
 
     // Resolve task: explicit > last harvest directive > fallback
     let (resolved_task, task_source) = match task {
         Some(t) => (t.to_string(), "explicit"),
-        None => match find_last_synthesis_directive(&store) {
+        None => match find_last_synthesis_directive(store) {
             Some(directive) => (directive, "last harvest"),
             None => ("session work".to_string(), "default"),
         },
@@ -61,7 +61,7 @@ pub fn run_start(
         .as_secs();
     let session_ident = format!(":session/s-{}", wall_time);
     let session_entity = EntityId::from_ident(&session_ident);
-    let tx_id = super::write::next_tx_id(&store, agent);
+    let tx_id = super::write::next_tx_id(store, agent);
 
     let session_datoms = vec![
         Datom::new(
@@ -98,7 +98,7 @@ pub fn run_start(
     // Each subsystem's implementation status is recorded as :capability/* datoms,
     // making the system's self-knowledge queryable and traceable.
     let mut all_datoms = session_datoms;
-    let census_results = braid_kernel::census::run_census(&store);
+    let census_results = braid_kernel::census::run_census(store);
     for result in &census_results {
         let cap_entity = EntityId::from_ident(&result.ident());
         all_datoms.push(Datom::new(
@@ -132,14 +132,15 @@ pub fn run_start(
         causal_predecessors: vec![],
         datoms: all_datoms,
     };
-    layout.write_tx(&tx)?;
+    live.write_tx(&tx)?;
 
-    // Inject seed into target file (reload store to include session entity)
+    // Inject seed into target file (live store already has the session entity)
     let inject_output = seed::run_inject(path, inject_path, &resolved_task, budget)?;
 
-    // Compute session context
-    let tx_since_harvest = count_txns_since_last_harvest(&store);
-    let last_harvest = last_harvest_wall_time(&store);
+    // Compute session context — re-borrow after write
+    let store = live.store();
+    let tx_since_harvest = count_txns_since_last_harvest(store);
+    let last_harvest = last_harvest_wall_time(store);
     let harvest_age = format_age(last_harvest);
 
     let mut human = String::new();
@@ -210,15 +211,15 @@ pub fn run_start(
 /// tasks created, closed, in-progress, observations, and transactions
 /// since that boundary.
 pub fn run_summary(path: &Path, _agent_name: &str) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
     // Compute session boundary (same as SessionWorkingSet)
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_secs();
-    let harvest_boundary = last_harvest_wall_time(&store);
+    let harvest_boundary = last_harvest_wall_time(store);
     let fallback = now.saturating_sub(3600);
     let session_boundary = harvest_boundary.max(fallback);
 
@@ -287,9 +288,9 @@ pub fn run_summary(path: &Path, _agent_name: &str) -> Result<CommandOutput, Brai
     });
 
     // ZCM-3: Session summary as ACP projection
-    let action = braid_kernel::guidance::compute_action_from_store(&store);
+    let action = braid_kernel::guidance::compute_action_from_store(store);
     let fitness = store.fitness();
-    let tx_since_harvest = count_txns_since_last_harvest(&store);
+    let tx_since_harvest = count_txns_since_last_harvest(store);
 
     let mut context_blocks = vec![
         braid_kernel::budget::ContextBlock::new_scored(
@@ -370,9 +371,9 @@ pub fn run_end(
     agent_name: &str,
 ) -> Result<CommandOutput, BraidError> {
     // Check for observations since last harvest — refuse if nothing to harvest
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
-    let tx_since_harvest = count_txns_since_last_harvest(&store);
+    let mut live = LiveStore::open(path)?;
+    let store = live.store();
+    let tx_since_harvest = count_txns_since_last_harvest(store);
 
     if tx_since_harvest == 0 {
         return Err(BraidError::Validation(
@@ -383,9 +384,9 @@ pub fn run_end(
     }
 
     // B4: Close the active session entity
-    if let Some(session_entity) = find_active_session(&store) {
+    if let Some(session_entity) = find_active_session(store) {
         let agent = AgentId::from_name(agent_name);
-        let tx_id = super::write::next_tx_id(&store, agent);
+        let tx_id = super::write::next_tx_id(store, agent);
         let close_datom = Datom::new(
             session_entity,
             Attribute::from_keyword(":session/status"),
@@ -401,7 +402,7 @@ pub fn run_end(
             causal_predecessors: vec![],
             datoms: vec![close_datom],
         };
-        layout.write_tx(&tx)?;
+        live.write_tx(&tx)?;
     }
 
     let mut human = String::new();
@@ -541,24 +542,21 @@ fn format_age(wall_time: u64) -> String {
 }
 
 /// Ensure Layer 4 schema attributes exist in the store (public for task.rs).
-pub fn ensure_layer_4_public(
-    layout: &DiskLayout,
-    store: &braid_kernel::Store,
-) -> Result<(), BraidError> {
-    ensure_layer_4(layout, store)
+pub fn ensure_layer_4_public(live: &mut LiveStore) -> Result<(), BraidError> {
+    ensure_layer_4(live)
 }
 
 /// Ensure Layer 4 schema attributes exist in the store.
 ///
 /// Writes a schema-evolution transaction if Layer 4 is not yet installed.
 /// This is idempotent — second call is a no-op.
-fn ensure_layer_4(layout: &DiskLayout, store: &braid_kernel::Store) -> Result<(), BraidError> {
-    if braid_kernel::has_layer_4(store.datom_set()) {
+fn ensure_layer_4(live: &mut LiveStore) -> Result<(), BraidError> {
+    if braid_kernel::has_layer_4(live.store().datom_set()) {
         return Ok(());
     }
 
     let agent = AgentId::from_name("braid:schema");
-    let tx_id = super::write::next_tx_id(store, agent);
+    let tx_id = super::write::next_tx_id(live.store(), agent);
     let datoms = braid_kernel::layer_4_datoms(tx_id);
 
     let tx = TxFile {
@@ -569,7 +567,7 @@ fn ensure_layer_4(layout: &DiskLayout, store: &braid_kernel::Store) -> Result<()
         causal_predecessors: vec![],
         datoms,
     };
-    layout.write_tx(&tx)?;
+    live.write_tx(&tx)?;
     Ok(())
 }
 

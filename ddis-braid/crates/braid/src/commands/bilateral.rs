@@ -23,7 +23,7 @@ use braid_kernel::datom::{AgentId, ProvenanceType};
 use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 /// Run the bilateral coherence scan.
@@ -36,14 +36,14 @@ pub fn run(
     _json: bool,
     commit: bool,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(path)?;
+    let store = live.store();
 
     // Load convergence trajectory from prior bilateral cycles
-    let trajectory = load_trajectory(&store);
+    let trajectory = load_trajectory(store);
 
     // Run the bilateral cycle
-    let state = run_cycle(&store, &trajectory, spectral || full);
+    let state = run_cycle(store, &trajectory, spectral || full);
 
     // ── Human output (unchanged from prior behavior) ─────────────────
 
@@ -64,7 +64,7 @@ pub fn run(
     // Commit bilateral results if requested
     if commit {
         let agent = AgentId::from_name(agent_name);
-        let tx_id = super::write::next_tx_id(&store, agent);
+        let tx_id = super::write::next_tx_id(store, agent);
         let datoms = cycle_to_datoms(&state, tx_id);
         let datom_count = datoms.len();
 
@@ -80,7 +80,7 @@ pub fn run(
             datoms,
         };
 
-        let file_path = layout.write_tx(&tx)?;
+        let file_path = live.write_tx(&tx)?;
         human.push_str(&format!(
             "\ncommitted: {} datoms \u{2192} {}\n",
             datom_count,

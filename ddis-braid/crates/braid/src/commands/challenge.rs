@@ -25,7 +25,7 @@ use braid_kernel::datom::{
 use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::CommandOutput;
 
 /// Run `braid challenge <entity> [--survive|--falsify|--register]`.
@@ -44,8 +44,8 @@ pub fn run(
     criteria: &[String],
     agent_name: &str,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(path)?;
+    let store = live.store();
     let agent = AgentId::from_name(agent_name);
 
     // Resolve the target entity
@@ -59,7 +59,7 @@ pub fn run(
         )));
     }
 
-    let current_depth = comonadic_depth(&store, &entity);
+    let current_depth = comonadic_depth(store, &entity);
     let current_weight = depth_weight(current_depth);
 
     let now = std::time::SystemTime::now()
@@ -244,7 +244,7 @@ pub fn run(
             causal_predecessors: vec![],
             datoms,
         };
-        layout.write_tx(&tx_file)?;
+        live.write_tx(&tx_file)?;
     }
 
     // ACP-LEGACY-1: Wrap in ActionProjection for unified output pipeline.

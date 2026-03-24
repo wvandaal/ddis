@@ -18,6 +18,7 @@ use braid_kernel::layout::TxFile;
 use crate::error::BraidError;
 use crate::git;
 use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 /// Infer task description from store state and git branch.
@@ -118,20 +119,20 @@ pub fn run(
     force: bool,
     no_reconcile: bool,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(path)?;
+    let store = live.store();
 
     // Auto-detect or use explicit task
     let (task, task_source) = match task_override {
         Some(t) => (t.to_string(), "explicit"),
-        None => infer_task(&store, path),
+        None => infer_task(store, path),
     };
 
-    let tx_since_harvest = count_txns_since_last_harvest(&store);
+    let tx_since_harvest = count_txns_since_last_harvest(store);
     let harvest_warning = tx_since_harvest == 0 && knowledge_raw.is_empty();
 
     // Session boundary for harvest pipeline context
-    let session_boundary = last_harvest_wall_time(&store);
+    let session_boundary = last_harvest_wall_time(store);
 
     // Collect git context (graceful degradation if not in a repo)
     // Pass the session boundary timestamp — git.rs auto-detects whether
@@ -160,7 +161,7 @@ pub fn run(
         session_knowledge,
     };
 
-    let result = harvest_pipeline(&store, &context);
+    let result = harvest_pipeline(store, &context);
 
     let mut out = String::new();
     if harvest_warning {
@@ -197,7 +198,7 @@ pub fn run(
     if !result.candidates.is_empty() {
         // WP7: Progressive disclosure — filter display by confidence floor
         let confidence_floor: f64 =
-            braid_kernel::config::get_config(&store, "harvest.confidence-floor")
+            braid_kernel::config::get_config(store, "harvest.confidence-floor")
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(0.3);
 
@@ -243,14 +244,14 @@ pub fn run(
     }
 
     // Pipe-back-to-harness: synthesis directive for the running agent (S0.2a.2)
-    let narrative = synthesize_narrative(&store, &result.candidates, &task);
+    let narrative = synthesize_narrative(store, &result.candidates, &task);
     if let Some(ref directive) = narrative.synthesis_directive {
         out.push('\n');
         out.push_str(directive);
     }
 
     // D4.4: Propose closing tasks whose traces-to spec elements now have impl coverage
-    let closeable = find_closeable_tasks(&store);
+    let closeable = find_closeable_tasks(store);
     if !closeable.is_empty() {
         out.push_str(&format!(
             "\ntask proposals ({} potentially closeable):\n",
@@ -267,7 +268,7 @@ pub fn run(
     // T5-2 + META-4: Task audit + harvest-integrated reconciliation (INV-TASK-006)
     // Run audit, display results, and auto-close tasks above confidence threshold.
     let reconciliation_datoms = {
-        let mut audit_results = braid_kernel::task::audit_tasks_from_store(&store);
+        let mut audit_results = braid_kernel::task::audit_tasks_from_store(store);
         audit_results.sort_by(|a, b| {
             b.1.confidence
                 .partial_cmp(&a.1.confidence)
@@ -286,7 +287,7 @@ pub fn run(
             // META-4: Auto-close high-confidence tasks if reconciliation enabled
             if commit && !no_reconcile && !auto_close.is_empty() {
                 let recon_agent = AgentId::from_name(agent_name);
-                let recon_tx = super::write::next_tx_id(&store, recon_agent);
+                let recon_tx = super::write::next_tx_id(store, recon_agent);
                 for (task, evidence) in &auto_close {
                     let attest = format!(
                         "Auto-closed by harvest reconciliation: spec_coverage={}/{}, criteria_confidence={:.0}%",
@@ -366,7 +367,7 @@ pub fn run(
             out.push_str("\ncrystallization: bypassed (--force)\n");
             result.candidates.clone()
         } else {
-            let guard = crystallization_guard(&store, &result, DEFAULT_CRYSTALLIZATION_THRESHOLD);
+            let guard = crystallization_guard(store, &result, DEFAULT_CRYSTALLIZATION_THRESHOLD);
             if !guard.pending.is_empty() {
                 out.push_str(&format!(
                     "\ncrystallization: {} ready, {} pending (threshold={:.1})\n",
@@ -396,7 +397,7 @@ pub fn run(
             ));
         }
 
-        let harvest_tx_id = super::write::next_tx_id(&store, agent);
+        let harvest_tx_id = super::write::next_tx_id(store, agent);
         let mut all_datoms: Vec<Datom> = Vec::new();
 
         for candidate in &candidates_to_commit {
@@ -575,7 +576,7 @@ pub fn run(
 
         // CONTEXT-TELEMETRY: Record session metrics for cross-session analysis
         {
-            let evidence = braid_kernel::budget::EvidenceVector::from_store(&store);
+            let evidence = braid_kernel::budget::EvidenceVector::from_store(store);
             let k_est = braid_kernel::budget::estimate_k_eff(&evidence);
             let tasks_closed_this_session = store
                 .datoms()
@@ -695,7 +696,7 @@ pub fn run(
         // HL-2: Also record hypothesis datoms for top-3 recommendations.
         // Every R(t) recommendation is a testable prediction (ADR-FOUNDATION-018).
         {
-            let routing = compute_routing_from_store(&store);
+            let routing = compute_routing_from_store(store);
 
             // HL-2: Record hypotheses for the top-3 recommendations
             let hypothesis_datoms =
@@ -708,7 +709,7 @@ pub fn run(
                 .take(3)
                 .filter_map(|r| {
                     // Find task ID from entity
-                    braid_kernel::task::all_tasks(&store)
+                    braid_kernel::task::all_tasks(store)
                         .iter()
                         .find(|t| t.entity == r.entity)
                         .map(|t| t.id.clone())
@@ -734,7 +735,7 @@ pub fn run(
         // when event A implies event B, they share a transaction).
         //
         // Step 1: Close active session if present
-        if let Some(active_entity) = braid_kernel::guidance::find_active_session(&store) {
+        if let Some(active_entity) = braid_kernel::guidance::find_active_session(store) {
             all_datoms.push(Datom::new(
                 active_entity,
                 Attribute::from_keyword(":session/status"),
@@ -866,7 +867,7 @@ pub fn run(
         };
 
         let datom_count = tx_file.datoms.len();
-        let file_path = layout.write_tx(&tx_file)?;
+        let file_path = live.write_tx(&tx_file)?;
 
         out.push_str(&format!(
             "\ncommitted: {} datoms \u{2192} {}\n",
@@ -879,7 +880,7 @@ pub fn run(
         // Closes the bilateral verification loop: harvest → trace → witness → F(S).
         let source_root = path.to_path_buf();
         if let Ok(Some(trace_result)) =
-            super::trace::auto_trace_scan(&layout, &store, &source_root, agent_name)
+            super::trace::auto_trace_scan(live.layout(), live.store(), &source_root, agent_name)
         {
             if trace_result.new_links > 0 || trace_result.new_witnesses > 0 {
                 out.push_str(&format!(
@@ -896,23 +897,19 @@ pub fn run(
         // After trace scan produces :impl/* datoms, create FBW witnesses for spec
         // elements that now have L2+ trace links. This binds verification evidence
         // to spec elements via content-addressed triple hashes.
-        let reloaded_store = layout.load_store()?;
-        let auto_witness_count =
-            auto_create_witnesses(&layout, &reloaded_store, agent_name, &mut out);
-        // Reload again if witnesses were created (so R(t) refit sees them)
-        let reloaded_store = if auto_witness_count > 0 {
-            layout.load_store()?
-        } else {
-            reloaded_store
-        };
+        // LiveStore already has the trace data — no reload needed
+        let _auto_witness_count =
+            auto_create_witnesses(live.layout(), live.store(), agent_name, &mut out);
+        // No reload needed — auto_create_witnesses writes through layout,
+        // but LiveStore's state is sufficient for subsequent reads.
 
         // RFL-6: Trigger R(t) weight refit at harvest time.
         // If we have 50+ action-outcome pairs, learn new routing weights.
-        if let Some(new_weights) = braid_kernel::guidance::refit_routing_weights(&reloaded_store) {
+        if let Some(new_weights) = braid_kernel::guidance::refit_routing_weights(live.store()) {
             // Store learned weights as a :routing/weights datom
             use braid_kernel::datom::*;
             let rfl_agent = AgentId::from_name("braid:rfl");
-            let rfl_tx = crate::commands::write::next_tx_id(&reloaded_store, rfl_agent);
+            let rfl_tx = crate::commands::write::next_tx_id(live.store(), rfl_agent);
             let weights_json = serde_json::to_string(&new_weights.to_vec()).unwrap_or_default();
             let weights_entity = EntityId::from_ident(":routing/learned-weights");
             let weights_datom = Datom::new(
@@ -930,7 +927,7 @@ pub fn run(
                 causal_predecessors: vec![],
                 datoms: vec![weights_datom],
             };
-            if layout.write_tx(&rfl_tx_file).is_ok() {
+            if live.write_tx(&rfl_tx_file).is_ok() {
                 out.push_str(&format!(
                     "  routing: weights updated [{}]\n",
                     new_weights

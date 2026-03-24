@@ -12,7 +12,7 @@ use braid_kernel::schema::{AttributeDef, Schema};
 use braid_kernel::Attribute;
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 // ---------------------------------------------------------------------------
@@ -39,12 +39,12 @@ pub fn run(
     json: bool,
     diff_since: Option<u64>,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
     // --diff mode: show only attributes added since a given transaction wall-time.
     if let Some(since_tx) = diff_since {
-        return run_diff(&store, since_tx, pattern, json);
+        return run_diff(store, since_tx, pattern, json);
     }
 
     let schema = store.schema();
@@ -81,7 +81,7 @@ pub fn run(
         let structured = build_structured_json(&attrs);
         serde_json::to_string_pretty(&structured).unwrap() + "\n"
     } else if verbose {
-        format_verbose(&store, &attrs)?
+        format_verbose(store, &attrs)?
     } else {
         format_terse(&attrs)?
     };

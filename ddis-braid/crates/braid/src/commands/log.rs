@@ -8,7 +8,7 @@ use std::path::Path;
 use braid_kernel::datom::{Attribute, Op, TxId};
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 pub fn run(
@@ -19,8 +19,8 @@ pub fn run(
     json: bool,
     verbose: bool,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
     // Single pass: group all datoms by TxId — O(N).
     let mut by_tx: HashMap<TxId, Vec<_>> = HashMap::new();

@@ -1085,6 +1085,81 @@ impl Store {
         }
     }
 
+    /// Incrementally apply raw datoms without schema validation.
+    ///
+    /// ADR-STORE-011: This is the incremental analog of [`from_datoms`].
+    /// It inserts datoms into the BTreeSet, updates all secondary indexes
+    /// and MaterializedViews, then rebuilds the Schema from the expanded
+    /// datom set (discovering any new attributes).
+    ///
+    /// Use for replaying persisted transaction files where the datoms have
+    /// already been validated at creation time. Do NOT use for user-facing
+    /// writes — those should go through [`Transaction::commit`] +
+    /// [`transact`] for schema validation (INV-SCHEMA-004).
+    ///
+    /// The frontier and clock are updated from the datoms' TxIds.
+    pub fn apply_datoms(&mut self, datoms: &[Datom]) {
+        for d in datoms {
+            if self.datoms.insert(d.clone()) {
+                // CE-2: Update materialized views incrementally
+                self.views.observe_datom(d);
+                // Maintain entity index
+                self.entity_index
+                    .entry(d.entity)
+                    .or_default()
+                    .push(d.clone());
+                // Maintain attribute index
+                self.attribute_index
+                    .entry(d.attribute.clone())
+                    .or_default()
+                    .push(d.clone());
+                // VAET: index Ref-valued datoms (ADR-STORE-005, INV-STORE-IDX-003)
+                if let Value::Ref(target) = &d.value {
+                    self.vaet_index
+                        .entry(*target)
+                        .or_default()
+                        .push(d.clone());
+                }
+                // AVET + LIVE: index Assert datoms (ADR-STORE-005, INV-STORE-IDX-004)
+                if d.op == Op::Assert {
+                    self.avet_index
+                        .entry((d.attribute.clone(), d.value.clone()))
+                        .or_default()
+                        .push(d.clone());
+                    // LIVE: LWW — highest tx wins per (entity, attribute)
+                    let key = (d.entity, d.attribute.clone());
+                    self.live_view
+                        .entry(key)
+                        .and_modify(|(v, tx)| {
+                            if d.tx > *tx {
+                                *v = d.value.clone();
+                                *tx = d.tx;
+                            }
+                        })
+                        .or_insert((d.value.clone(), d.tx));
+                }
+                // Update frontier
+                let agent = d.tx.agent();
+                self.frontier
+                    .entry(agent)
+                    .and_modify(|existing| {
+                        if d.tx > *existing {
+                            *existing = d.tx;
+                        }
+                    })
+                    .or_insert(d.tx);
+                if d.tx > self.clock {
+                    self.clock = d.tx;
+                }
+            }
+        }
+
+        // Rebuild schema to discover any new attributes in the applied datoms.
+        self.schema = Schema::from_datoms(&self.datoms);
+        // Update entity count for Phi normalization.
+        self.views.entity_count_for_phi = self.entity_index.len() as u64;
+    }
+
     /// Apply a committed transaction to the store.
     ///
     /// Inserts all datoms into the BTreeSet (dedup by content identity),

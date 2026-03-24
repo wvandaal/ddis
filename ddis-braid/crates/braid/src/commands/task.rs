@@ -27,7 +27,9 @@ use braid_kernel::task::{
 use braid_kernel::EntityId;
 
 use crate::error::BraidError;
+#[cfg(test)]
 use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 use super::session::ensure_layer_4_public;
@@ -59,15 +61,15 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         labels,
         force,
     } = args;
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
-    ensure_layer_4_public(&layout, &store)?;
+    let mut live = LiveStore::open(path)?;
+    ensure_layer_4_public(&mut live)?;
+    let store = live.store();
 
     // CRB-PREVIEW: Search for related tasks before creating (INV-GUIDANCE-024).
     // Not a gate (which blocks with error) — a mirror (which informs with preview).
     if !force {
         let short = task::short_title(title);
-        let related = crb_preview_scan(short, &store);
+        let related = crb_preview_scan(short, store);
         if !related.is_empty() {
             let mut human = format!("Related tasks found ({}):\n", related.len());
             for (score, tid, label) in related.iter().take(5) {
@@ -101,11 +103,11 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
 
     let tt = TaskType::from_keyword(task_type).unwrap_or(TaskType::Task);
     let agent_id = AgentId::from_name(agent);
-    let tx_id = super::write::next_tx_id(&store, agent_id);
+    let tx_id = super::write::next_tx_id(store, agent_id);
 
     // SFE-2.3: Extract spec refs from title and resolve against the store
     let title_refs = parse_spec_refs(title);
-    let (resolved_refs, unresolved_refs) = resolve_spec_refs(&store, &title_refs);
+    let (resolved_refs, unresolved_refs) = resolve_spec_refs(store, &title_refs);
 
     // Combine explicit traces-to with resolved spec refs from title
     let mut trace_entities: Vec<EntityId> =
@@ -149,7 +151,7 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
     };
 
     let datom_count = tx.datoms.len();
-    layout.write_tx(&tx)?;
+    live.write_tx(&tx)?;
 
     let task_id = generate_task_id(title);
     let type_short = task_type.strip_prefix(":task.type/").unwrap_or(task_type);
@@ -220,10 +222,10 @@ pub fn list_filtered(
     limit: Option<usize>,
     priority: Option<i64>,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let tasks = task::all_tasks(&store);
+    let tasks = task::all_tasks(store);
     if tasks.is_empty() {
         return Ok(CommandOutput::from_human(
             "No tasks found. Create one: braid task \"title\"\n".to_string(),
@@ -260,7 +262,7 @@ pub fn list_filtered(
     let display_count = limit.unwrap_or(filtered.len()).min(filtered.len());
     let display_tasks = &filtered[..display_count];
 
-    let (open, in_progress, closed) = task_counts(&store);
+    let (open, in_progress, closed) = task_counts(store);
     let mut human = String::new();
     human.push_str(&format!(
         "Tasks: {} matched ({} total, {} open, {} in-progress, {} closed)\n",
@@ -367,10 +369,10 @@ pub fn search(
     pattern: &str,
     include_closed: bool,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let tasks = task::all_tasks(&store);
+    let tasks = task::all_tasks(store);
     let pattern_lower = pattern.to_ascii_lowercase();
 
     let matches: Vec<_> = tasks
@@ -449,10 +451,10 @@ pub fn search(
 
 /// Show ready tasks (unblocked open tasks sorted by priority).
 pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let ready_set = compute_ready_set(&store);
+    let ready_set = compute_ready_set(store);
     if ready_set.is_empty() {
         return Ok(CommandOutput::from_human(
             "No ready tasks. Create one: braid task \"title\"\n".to_string(),
@@ -505,7 +507,7 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
         .collect();
     // ACP projection for task ready (ACP-6, INV-BUDGET-007)
     // Action = top R(t) task, Context = task list entries with title pyramid levels
-    let action = braid_kernel::guidance::compute_action_from_store(&store);
+    let action = braid_kernel::guidance::compute_action_from_store(store);
 
     let mut context_blocks = Vec::new();
 
@@ -634,10 +636,10 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
 /// For the full list, use `braid task ready`.
 /// When `skip` is provided, filters out the matching task before selecting.
 pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let mut ready_set = compute_ready_set(&store);
+    let mut ready_set = compute_ready_set(store);
 
     // Filter out skipped task
     if let Some(skip_id) = skip {
@@ -657,8 +659,8 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
     // The routing includes session-boosted in-progress tasks, so we match against
     // ALL open/in-progress tasks (not just the ready_set which excludes in-progress).
     // Falls back to top of priority-sorted ready_set if routing returns nothing.
-    let all_tasks = braid_kernel::task::all_tasks(&store);
-    let routing = compute_routing_from_store(&store);
+    let all_tasks = braid_kernel::task::all_tasks(store);
+    let routing = compute_routing_from_store(store);
     let top = {
         // Find the first non-zero-impact routed task, matching against all open/in-progress
         let matched = routing.iter().find_map(|routed| {
@@ -801,13 +803,13 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
 
 /// Show detailed info about a task.
 pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let entity = find_task_by_id(&store, task_id)
+    let entity = find_task_by_id(store, task_id)
         .ok_or_else(|| BraidError::Validation(format!("task not found: {task_id}")))?;
 
-    let t = task_summary(&store, entity)
+    let t = task_summary(store, entity)
         .ok_or_else(|| BraidError::Validation(format!("task entity invalid: {task_id}")))?;
 
     // TAP-3: Extract structured sections from entity datoms.
@@ -1046,26 +1048,25 @@ pub fn close(
     force: bool,
     attest: Option<&str>,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let mut store = layout.load_store()?;
-    ensure_layer_4_public(&layout, &store)?;
+    let mut live = LiveStore::open(path)?;
+    ensure_layer_4_public(&mut live)?;
 
     let agent_id = AgentId::from_name(agent);
-    let tx_id = super::write::next_tx_id(&store, agent_id);
+    let tx_id = super::write::next_tx_id(live.store(), agent_id);
 
     // OBSERVER-4: Capture pre-close F(S) for calibration
-    let pre_close_fitness = store.fitness().total;
+    let pre_close_fitness = live.store().fitness().total;
 
     let mut all_datoms = Vec::new();
     let mut closed_ids = Vec::new();
     let mut blocked_ids: Vec<(String, String)> = Vec::new();
 
     for task_id in task_ids {
-        let entity = find_task_by_id(&store, task_id)
+        let entity = find_task_by_id(live.store(), task_id)
             .ok_or_else(|| BraidError::Validation(format!("task not found: {task_id}")))?;
 
         // CBV: Completion-Bound Verification (INV-TASK-006)
-        let criteria = extract_acceptance_criteria(&store, entity);
+        let criteria = extract_acceptance_criteria(live.store(), entity);
         let completion_method = if force {
             // LOUD WARNING: show exactly what's being skipped
             if !criteria.is_empty() {
@@ -1091,7 +1092,7 @@ pub fn close(
                 if let VerificationPattern::Manual { .. } = pattern {
                     continue; // Skip manual criteria in auto-verify mode
                 }
-                if let Err(reason) = run_verification(&store, &pattern) {
+                if let Err(reason) = run_verification(live.store(), &pattern) {
                     all_passed = false;
                     failures.push(reason);
                 }
@@ -1150,33 +1151,9 @@ pub fn close(
         causal_predecessors: vec![],
         datoms: all_datoms,
     };
-    layout.write_tx(&tx)?;
-
-    // Apply the close datoms to the in-memory store instead of reloading
-    // from disk. This avoids an expensive full load_store() call (T2-2).
-    {
-        let rationale = format!("Close task(s): {}", closed_ids.join(", "));
-        let mut builder =
-            braid_kernel::store::Transaction::new(agent_id, ProvenanceType::Observed, &rationale);
-        for datom in &tx.datoms {
-            match datom.op {
-                Op::Assert => {
-                    builder =
-                        builder.assert(datom.entity, datom.attribute.clone(), datom.value.clone());
-                }
-                Op::Retract => {
-                    builder =
-                        builder.retract(datom.entity, datom.attribute.clone(), datom.value.clone());
-                }
-            }
-        }
-        let committed = builder
-            .commit(&store)
-            .map_err(braid_kernel::KernelError::from)?;
-        store
-            .transact(committed)
-            .map_err(braid_kernel::KernelError::from)?;
-    }
+    live.write_tx(&tx)?;
+    // LiveStore.write_tx() already applies the transaction to the in-memory store,
+    // so the manual store.transact() block is no longer needed (T2-2 resolved by LiveStore).
 
     let mut human = String::new();
     // Show blocked tasks first (if any in a batch)
@@ -1189,6 +1166,7 @@ pub fn close(
 
     // ZCM-4: Completion reward — show F(S) as feedback signal.
     // From reinforcement learning: explicit reward signals strengthen behavioral patterns.
+    let store = live.store();
     let fitness = store.fitness();
     human.push_str(&format!("F(S)={:.2}\n", fitness.total));
 
@@ -1196,8 +1174,9 @@ pub fn close(
     // This is the data collection phase of the convergence thesis (ADR-FOUNDATION-014).
     // Weight adjustment happens at harvest time when calibration error exceeds threshold.
     let actual_delta = fitness.total - pre_close_fitness;
+    let mut calibration_data: Vec<(EntityId, f64, f64)> = Vec::new();
     for id in &closed_ids {
-        if let Some(entity) = find_task_by_id(&store, id) {
+        if let Some(entity) = find_task_by_id(store, id) {
             // Compute projected delta from task's traces-to specs
             let task_datoms = store.entity_datoms(entity);
             let spec_refs: Vec<braid_kernel::EntityId> = task_datoms
@@ -1237,61 +1216,21 @@ pub fn close(
                 let projected = projected_delta.weighted_magnitude();
                 let cal_error = (projected - actual_delta).abs();
 
-                // Write calibration datoms via a new transaction
-                let cal_tx = super::write::next_tx_id(&store, agent_id);
-                let cal_datoms = vec![
-                    Datom::new(
-                        entity,
-                        Attribute::from_keyword(":prediction/projected-delta"),
-                        braid_kernel::datom::Value::Double(ordered_float::OrderedFloat(projected)),
-                        cal_tx,
-                        Op::Assert,
-                    ),
-                    Datom::new(
-                        entity,
-                        Attribute::from_keyword(":prediction/actual-delta"),
-                        braid_kernel::datom::Value::Double(ordered_float::OrderedFloat(
-                            actual_delta,
-                        )),
-                        cal_tx,
-                        Op::Assert,
-                    ),
-                    Datom::new(
-                        entity,
-                        Attribute::from_keyword(":prediction/calibration-error"),
-                        braid_kernel::datom::Value::Double(ordered_float::OrderedFloat(cal_error)),
-                        cal_tx,
-                        Op::Assert,
-                    ),
-                ];
-                let cal_file = braid_kernel::layout::TxFile {
-                    tx_id: cal_tx,
-                    agent: agent_id,
-                    provenance: ProvenanceType::Derived,
-                    rationale: format!("OBSERVER-4: calibration data for {id}"),
-                    causal_predecessors: vec![],
-                    datoms: cal_datoms,
-                };
-                let _ = layout.write_tx(&cal_file);
+                // Collect calibration data for deferred write (avoids borrow conflict)
+                calibration_data.push((entity, projected, cal_error));
             }
         }
     }
 
     // HL-3: Match hypothesis outcomes — close the calibration loop.
-    // For each closed task, find the :hypothesis/action datom referencing it,
-    // then record :hypothesis/actual (ΔF(S)), /error, /completed.
+    // Collect hypothesis outcome data while store is borrowed, write after.
+    let mut hypothesis_outcomes: Vec<(braid_kernel::EntityId, f64)> = Vec::new();
     {
         let hyp_action_attr = Attribute::from_keyword(":hypothesis/action");
         let hyp_actual_attr = Attribute::from_keyword(":hypothesis/actual");
-        let now_wall = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs();
 
         for id in &closed_ids {
-            if let Some(task_entity) = find_task_by_id(&store, id) {
-                // Find hypotheses that predicted this task's outcome
-                // Scan :hypothesis/action datoms for Ref(task_entity)
+            if let Some(task_entity) = find_task_by_id(store, id) {
                 let matching_hypotheses: Vec<braid_kernel::EntityId> = store
                     .attribute_datoms(&hyp_action_attr)
                     .iter()
@@ -1303,7 +1242,6 @@ pub fn close(
                     .collect();
 
                 for hyp_entity in matching_hypotheses {
-                    // Skip if already completed (has :hypothesis/actual)
                     let already_completed = store
                         .entity_datoms(hyp_entity)
                         .iter()
@@ -1312,7 +1250,6 @@ pub fn close(
                         continue;
                     }
 
-                    // Get predicted ΔF(S) from the hypothesis
                     let predicted = store
                         .entity_datoms(hyp_entity)
                         .iter()
@@ -1327,61 +1264,110 @@ pub fn close(
                         .unwrap_or(0.0);
 
                     let error = (predicted - actual_delta).abs();
-
-                    // Transact outcome datoms
-                    let outcome_tx = super::write::next_tx_id(&store, agent_id);
-                    let outcome_datoms = vec![
-                        Datom::new(
-                            hyp_entity,
-                            Attribute::from_keyword(":hypothesis/actual"),
-                            Value::Double(ordered_float::OrderedFloat(actual_delta)),
-                            outcome_tx,
-                            Op::Assert,
-                        ),
-                        Datom::new(
-                            hyp_entity,
-                            Attribute::from_keyword(":hypothesis/error"),
-                            Value::Double(ordered_float::OrderedFloat(error)),
-                            outcome_tx,
-                            Op::Assert,
-                        ),
-                        Datom::new(
-                            hyp_entity,
-                            Attribute::from_keyword(":hypothesis/completed"),
-                            Value::Instant(now_wall),
-                            outcome_tx,
-                            Op::Assert,
-                        ),
-                    ];
-                    let outcome_file = braid_kernel::layout::TxFile {
-                        tx_id: outcome_tx,
-                        agent: agent_id,
-                        provenance: ProvenanceType::Derived,
-                        rationale: format!("HL-3: hypothesis outcome for {id}"),
-                        causal_predecessors: vec![],
-                        datoms: outcome_datoms,
-                    };
-                    let _ = layout.write_tx(&outcome_file);
+                    hypothesis_outcomes.push((hyp_entity, error));
                 }
             }
         }
+    }
+
+    // Capture data from store before dropping the borrow
+    let fitness_total = fitness.total;
+    let action = braid_kernel::guidance::compute_action_from_store(store);
+    // End store borrow so we can call live.write_tx below
+    let _ = store;
+
+    // Write deferred calibration tx files
+    for (entity, projected, cal_error) in &calibration_data {
+        let cal_tx = super::write::next_tx_id(live.store(), agent_id);
+        let cal_datoms = vec![
+            Datom::new(
+                *entity,
+                Attribute::from_keyword(":prediction/projected-delta"),
+                Value::Double(ordered_float::OrderedFloat(*projected)),
+                cal_tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                *entity,
+                Attribute::from_keyword(":prediction/actual-delta"),
+                Value::Double(ordered_float::OrderedFloat(actual_delta)),
+                cal_tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                *entity,
+                Attribute::from_keyword(":prediction/calibration-error"),
+                Value::Double(ordered_float::OrderedFloat(*cal_error)),
+                cal_tx,
+                Op::Assert,
+            ),
+        ];
+        let cal_file = braid_kernel::layout::TxFile {
+            tx_id: cal_tx,
+            agent: agent_id,
+            provenance: ProvenanceType::Derived,
+            rationale: "OBSERVER-4: calibration data".to_string(),
+            causal_predecessors: vec![],
+            datoms: cal_datoms,
+        };
+        let _ = live.write_tx(&cal_file);
+    }
+
+    // Write deferred hypothesis outcome tx files
+    let now_wall = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    for (hyp_entity, error) in &hypothesis_outcomes {
+        let outcome_tx = super::write::next_tx_id(live.store(), agent_id);
+        let outcome_datoms = vec![
+            Datom::new(
+                *hyp_entity,
+                Attribute::from_keyword(":hypothesis/actual"),
+                Value::Double(ordered_float::OrderedFloat(actual_delta)),
+                outcome_tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                *hyp_entity,
+                Attribute::from_keyword(":hypothesis/error"),
+                Value::Double(ordered_float::OrderedFloat(*error)),
+                outcome_tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                *hyp_entity,
+                Attribute::from_keyword(":hypothesis/completed"),
+                Value::Instant(now_wall),
+                outcome_tx,
+                Op::Assert,
+            ),
+        ];
+        let outcome_file = braid_kernel::layout::TxFile {
+            tx_id: outcome_tx,
+            agent: agent_id,
+            provenance: ProvenanceType::Derived,
+            rationale: "HL-3: hypothesis outcome".to_string(),
+            causal_predecessors: vec![],
+            datoms: outcome_datoms,
+        };
+        let _ = live.write_tx(&outcome_file);
     }
 
     let json = serde_json::json!({
         "closed": closed_ids,
         "count": closed_ids.len(),
         "reason": reason,
-        "fitness": fitness.total,
+        "fitness": fitness_total,
     });
 
     // ACP for close: action = next task
-    let action = braid_kernel::guidance::compute_action_from_store(&store);
     let mut context_blocks = vec![braid_kernel::budget::ContextBlock::new_scored(
         braid_kernel::budget::OutputPrecedence::System,
         format!(
             "closed: {} task(s) | F(S)={:.2}",
             closed_ids.len(),
-            fitness.total
+            fitness_total
         ),
         10,
     )];
@@ -1426,35 +1412,42 @@ pub fn update(
     status: &str,
     agent: &str,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
-    ensure_layer_4_public(&layout, &store)?;
+    let mut live = LiveStore::open(path)?;
+    ensure_layer_4_public(&mut live)?;
 
-    let entity = find_task_by_id(&store, task_id)
-        .ok_or_else(|| BraidError::Validation(format!("task not found: {task_id}")))?;
+    // Phase 1: reads
+    let entity;
+    let tx;
+    {
+        let store = live.store();
+        entity = find_task_by_id(store, task_id)
+            .ok_or_else(|| BraidError::Validation(format!("task not found: {task_id}")))?;
 
-    let new_status = TaskStatus::from_keyword(status).ok_or_else(|| {
-        BraidError::Validation(format!(
-            "invalid status: {status} (use open, in-progress, closed)"
-        ))
-    })?;
+        let new_status = TaskStatus::from_keyword(status).ok_or_else(|| {
+            BraidError::Validation(format!(
+                "invalid status: {status} (use open, in-progress, closed)"
+            ))
+        })?;
 
-    let agent_id = AgentId::from_name(agent);
-    let tx_id = super::write::next_tx_id(&store, agent_id);
+        let agent_id = AgentId::from_name(agent);
+        let tx_id = super::write::next_tx_id(store, agent_id);
 
-    let datom = update_status_datom(entity, new_status, tx_id);
-    let tx = TxFile {
-        tx_id,
-        agent: agent_id,
-        provenance: ProvenanceType::Observed,
-        rationale: format!("Update {task_id} → {status}"),
-        causal_predecessors: vec![],
-        datoms: vec![datom],
-    };
-    layout.write_tx(&tx)?;
+        let datom = update_status_datom(entity, new_status, tx_id);
+        tx = TxFile {
+            tx_id,
+            agent: agent_id,
+            provenance: ProvenanceType::Observed,
+            rationale: format!("Update {task_id} → {status}"),
+            causal_predecessors: vec![],
+            datoms: vec![datom],
+        };
+    }
 
-    // Reload store for task summary context
-    let store = layout.load_store()?;
+    // Phase 2: write
+    live.write_tx(&tx)?;
+
+    // LiveStore already has the update — no reload needed
+    let store = live.store();
 
     let human = format!("updated: {task_id} \u{2192} {status}\n");
 
@@ -1469,7 +1462,7 @@ pub fn update(
         format!("updated: {task_id} \u{2192} {status}"),
         5,
     )];
-    if let Some(summary) = task_summary(&store, entity) {
+    if let Some(summary) = task_summary(store, entity) {
         let title_trunc = if summary.title.len() > 80 {
             format!(
                 "{}...",
@@ -1556,36 +1549,43 @@ pub fn set(
     value: &str,
     agent: &str,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
-    ensure_layer_4_public(&layout, &store)?;
+    let mut live = LiveStore::open(path)?;
+    ensure_layer_4_public(&mut live)?;
 
-    let entity = find_task_by_id(&store, task_id)
-        .ok_or_else(|| BraidError::Validation(format!("task not found: {task_id}")))?;
+    // Phase 1: reads
+    let old_display;
+    let tx;
+    {
+        let store = live.store();
+        let entity = find_task_by_id(store, task_id)
+            .ok_or_else(|| BraidError::Validation(format!("task not found: {task_id}")))?;
 
-    // Query current value before writing (for old→new diff)
-    let old_display = attribute_to_keyword(attribute).and_then(|kw| {
-        let attr = Attribute::from_keyword(kw);
-        store
-            .live_value(entity, &attr)
-            .map(format_value_for_display)
-    });
+        // Query current value before writing (for old->new diff)
+        old_display = attribute_to_keyword(attribute).and_then(|kw| {
+            let attr = Attribute::from_keyword(kw);
+            store
+                .live_value(entity, &attr)
+                .map(format_value_for_display)
+        });
 
-    let agent_id = AgentId::from_name(agent);
-    let tx_id = super::write::next_tx_id(&store, agent_id);
+        let agent_id = AgentId::from_name(agent);
+        let tx_id = super::write::next_tx_id(store, agent_id);
 
-    let datom =
-        set_attribute_datom(entity, attribute, value, tx_id).map_err(BraidError::Validation)?;
+        let datom =
+            set_attribute_datom(entity, attribute, value, tx_id).map_err(BraidError::Validation)?;
 
-    let tx = TxFile {
-        tx_id,
-        agent: agent_id,
-        provenance: ProvenanceType::Observed,
-        rationale: format!("Set {task_id} {attribute}={value}"),
-        causal_predecessors: vec![],
-        datoms: vec![datom],
-    };
-    layout.write_tx(&tx)?;
+        tx = TxFile {
+            tx_id,
+            agent: agent_id,
+            provenance: ProvenanceType::Observed,
+            rationale: format!("Set {task_id} {attribute}={value}"),
+            causal_predecessors: vec![],
+            datoms: vec![datom],
+        };
+    }
+
+    // Phase 2: write
+    live.write_tx(&tx)?;
 
     // Build transition display: "old→new" or "new (unchanged)"
     let unchanged = old_display.as_deref() == Some(value);
@@ -1628,32 +1628,38 @@ pub fn dep_add(
     to_id: &str,
     agent: &str,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
-    ensure_layer_4_public(&layout, &store)?;
+    let mut live = LiveStore::open(path)?;
+    ensure_layer_4_public(&mut live)?;
 
-    let from = find_task_by_id(&store, from_id)
-        .ok_or_else(|| BraidError::Validation(format!("task not found: {from_id}")))?;
-    let to = find_task_by_id(&store, to_id)
-        .ok_or_else(|| BraidError::Validation(format!("task not found: {to_id}")))?;
+    // Phase 1: reads
+    let tx;
+    {
+        let store = live.store();
+        let from = find_task_by_id(store, from_id)
+            .ok_or_else(|| BraidError::Validation(format!("task not found: {from_id}")))?;
+        let to = find_task_by_id(store, to_id)
+            .ok_or_else(|| BraidError::Validation(format!("task not found: {to_id}")))?;
 
-    // INV-TASK-002: Check acyclicity
-    check_dependency_acyclicity(&store, from, to)
-        .map_err(|e| BraidError::Validation(format!("dependency would create cycle: {e}")))?;
+        // INV-TASK-002: Check acyclicity
+        check_dependency_acyclicity(store, from, to)
+            .map_err(|e| BraidError::Validation(format!("dependency would create cycle: {e}")))?;
 
-    let agent_id = AgentId::from_name(agent);
-    let tx_id = super::write::next_tx_id(&store, agent_id);
+        let agent_id = AgentId::from_name(agent);
+        let tx_id = super::write::next_tx_id(store, agent_id);
 
-    let datom = dep_add_datom(from, to, tx_id);
-    let tx = TxFile {
-        tx_id,
-        agent: agent_id,
-        provenance: ProvenanceType::Observed,
-        rationale: format!("Add dependency: {from_id} → {to_id}"),
-        causal_predecessors: vec![],
-        datoms: vec![datom],
-    };
-    layout.write_tx(&tx)?;
+        let datom = dep_add_datom(from, to, tx_id);
+        tx = TxFile {
+            tx_id,
+            agent: agent_id,
+            provenance: ProvenanceType::Observed,
+            rationale: format!("Add dependency: {from_id} → {to_id}"),
+            causal_predecessors: vec![],
+            datoms: vec![datom],
+        };
+    }
+
+    // Phase 2: write
+    live.write_tx(&tx)?;
 
     let human = format!("dependency: {from_id} depends on {to_id}\n");
 
@@ -1677,114 +1683,125 @@ pub fn import_beads(
     beads_path: &Path,
     agent: &str,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
-    ensure_layer_4_public(&layout, &store)?;
+    let mut live = LiveStore::open(path)?;
+    ensure_layer_4_public(&mut live)?;
 
     let content = std::fs::read_to_string(beads_path)
         .map_err(|e| BraidError::Validation(format!("cannot read beads file: {e}")))?;
 
-    let agent_id = AgentId::from_name(agent);
-    let tx_id = super::write::next_tx_id(&store, agent_id);
+    // Phase 1: reads — build all datoms from store queries
+    let tx;
+    let imported;
+    let skipped;
+    {
+        let store = live.store();
+        let agent_id = AgentId::from_name(agent);
+        let tx_id = super::write::next_tx_id(store, agent_id);
 
-    let mut all_datoms = Vec::new();
-    let mut imported = 0usize;
-    let mut skipped = 0usize;
+        let mut all_datoms = Vec::new();
+        let mut imported_count = 0usize;
+        let mut skipped_count = 0usize;
 
-    for line in content.lines() {
-        let line = line.trim();
-        if line.is_empty() {
-            continue;
+        for line in content.lines() {
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+
+            // Minimal JSONL parsing — extract id, title, status, priority
+            let bead = match parse_bead_line(line) {
+                Some(b) => b,
+                None => continue,
+            };
+
+            // Skip if already imported (check by task/id)
+            if find_task_by_id(store, &bead.task_id).is_some() {
+                skipped_count += 1;
+                continue;
+            }
+
+            let tt = TaskType::from_keyword(&bead.task_type).unwrap_or(TaskType::Task);
+
+            let (_, datoms) = task::create_task_datoms(CreateTaskParams {
+                title: &bead.title,
+                description: bead.description.as_deref(),
+                priority: bead.priority,
+                task_type: tt,
+                tx: tx_id,
+                traces_to: &[],
+                labels: &bead.labels,
+            });
+
+            // Override the auto-generated task ID with the beads ID
+            let entity = EntityId::from_ident(&format!(":task/{}", bead.task_id));
+            let mut fixed_datoms: Vec<_> = datoms
+                .into_iter()
+                .map(|mut d| {
+                    d.entity = entity;
+                    d
+                })
+                .collect();
+
+            // Fix the :task/id value
+            for d in &mut fixed_datoms {
+                if d.attribute.as_str() == ":task/id" {
+                    d.value = Value::String(bead.task_id.clone());
+                }
+                if d.attribute.as_str() == ":db/ident" {
+                    d.value = Value::Keyword(format!(":task/{}", bead.task_id));
+                }
+                // Preserve beads source
+                if d.attribute.as_str() == ":task/source" {
+                    d.value = Value::String(format!("beads:{}", bead.original_id));
+                }
+            }
+
+            // Set status if not open
+            if bead.status != "open" {
+                if let Some(status) = TaskStatus::from_keyword(&bead.status) {
+                    fixed_datoms.push(update_status_datom(entity, status, tx_id));
+                }
+            }
+
+            all_datoms.extend(fixed_datoms);
+            imported_count += 1;
         }
 
-        // Minimal JSONL parsing — extract id, title, status, priority
-        let bead = match parse_bead_line(line) {
-            Some(b) => b,
-            None => continue,
+        imported = imported_count;
+        skipped = skipped_count;
+
+        if all_datoms.is_empty() {
+            let human = format!("import: 0 new tasks ({skipped} already imported)\n");
+            let json = serde_json::json!({
+                "imported": 0,
+                "datom_count": 0,
+                "skipped": skipped,
+            });
+            let agent_out = AgentOutput {
+                context: format!("import: 0 new tasks ({skipped} skipped)"),
+                content: String::new(),
+                footer: "list: braid task list".to_string(),
+            };
+            return Ok(CommandOutput {
+                json,
+                agent: agent_out,
+                human,
+            });
+        }
+
+        tx = TxFile {
+            tx_id,
+            agent: agent_id,
+            provenance: ProvenanceType::Observed,
+            rationale: format!("Import {imported} tasks from beads"),
+            causal_predecessors: vec![],
+            datoms: all_datoms,
         };
-
-        // Skip if already imported (check by task/id)
-        if find_task_by_id(&store, &bead.task_id).is_some() {
-            skipped += 1;
-            continue;
-        }
-
-        let tt = TaskType::from_keyword(&bead.task_type).unwrap_or(TaskType::Task);
-
-        let (_, datoms) = task::create_task_datoms(CreateTaskParams {
-            title: &bead.title,
-            description: bead.description.as_deref(),
-            priority: bead.priority,
-            task_type: tt,
-            tx: tx_id,
-            traces_to: &[],
-            labels: &bead.labels,
-        });
-
-        // Override the auto-generated task ID with the beads ID
-        let entity = EntityId::from_ident(&format!(":task/{}", bead.task_id));
-        let mut fixed_datoms: Vec<_> = datoms
-            .into_iter()
-            .map(|mut d| {
-                d.entity = entity;
-                d
-            })
-            .collect();
-
-        // Fix the :task/id value
-        for d in &mut fixed_datoms {
-            if d.attribute.as_str() == ":task/id" {
-                d.value = Value::String(bead.task_id.clone());
-            }
-            if d.attribute.as_str() == ":db/ident" {
-                d.value = Value::Keyword(format!(":task/{}", bead.task_id));
-            }
-            // Preserve beads source
-            if d.attribute.as_str() == ":task/source" {
-                d.value = Value::String(format!("beads:{}", bead.original_id));
-            }
-        }
-
-        // Set status if not open
-        if bead.status != "open" {
-            if let Some(status) = TaskStatus::from_keyword(&bead.status) {
-                fixed_datoms.push(update_status_datom(entity, status, tx_id));
-            }
-        }
-
-        all_datoms.extend(fixed_datoms);
-        imported += 1;
     }
 
-    if all_datoms.is_empty() {
-        let human = format!("import: 0 new tasks ({skipped} already imported)\n");
-        let json = serde_json::json!({
-            "imported": 0,
-            "datom_count": 0,
-            "skipped": skipped,
-        });
-        let agent_out = AgentOutput {
-            context: format!("import: 0 new tasks ({skipped} skipped)"),
-            content: String::new(),
-            footer: "list: braid task list".to_string(),
-        };
-        return Ok(CommandOutput {
-            json,
-            agent: agent_out,
-            human,
-        });
-    }
-
-    let tx = TxFile {
-        tx_id,
-        agent: agent_id,
-        provenance: ProvenanceType::Observed,
-        rationale: format!("Import {imported} tasks from beads"),
-        causal_predecessors: vec![],
-        datoms: all_datoms,
-    };
+    // Phase 2: write
     let datom_count = tx.datoms.len();
-    layout.write_tx(&tx)?;
+    live.write_tx(&tx)?;
 
     let human = format!("import: {imported} tasks, {datom_count} datoms ({skipped} skipped)\n");
 
@@ -1886,10 +1903,10 @@ fn extract_json_number(json: &str, key: &str) -> Option<i64> {
 /// Uses the kernel's `audit_tasks_from_store` (pure, no IO) to find open tasks
 /// where spec refs have :impl/implements links at L2+.
 pub fn audit(path: &Path) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let results = braid_kernel::task::audit_tasks_from_store(&store);
+    let results = braid_kernel::task::audit_tasks_from_store(store);
 
     if results.is_empty() {
         return Ok(CommandOutput::from_human(

@@ -9,7 +9,7 @@ use braid_kernel::datom::{AgentId, ProvenanceType};
 use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 /// Run `braid config [key] [value]`.
@@ -51,11 +51,11 @@ pub fn run(
 }
 
 fn run_get(path: &Path, key: &str) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
     let (human, value_str, source) =
-        if let Some(val) = braid_kernel::config::get_config(&store, key) {
+        if let Some(val) = braid_kernel::config::get_config(store, key) {
             (format!("{key} = {val}\n"), val, "store")
         } else {
             let defaults = braid_kernel::config::defaults();
@@ -96,11 +96,10 @@ fn run_set(
     value: &str,
     agent_name: &str,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(path)?;
 
     let agent_id = AgentId::from_name(agent_name);
-    let tx_id = super::write::next_tx_id(&store, agent_id);
+    let tx_id = super::write::next_tx_id(live.store(), agent_id);
 
     let datoms = braid_kernel::config::set_config_datoms(key, value, "project", tx_id);
 
@@ -113,7 +112,7 @@ fn run_set(
         datoms,
     };
 
-    layout.write_tx(&tx)?;
+    live.write_tx(&tx)?;
 
     let human = format!("set: {key} = {value}\n");
 
@@ -133,8 +132,8 @@ fn run_set(
 }
 
 fn run_reset(path: &Path, key: &str, agent_name: &str) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(path)?;
+    let store = live.store();
 
     let key_attr = braid_kernel::Attribute::from_keyword(":config/key");
     let val_attr = braid_kernel::Attribute::from_keyword(":config/value");
@@ -183,7 +182,7 @@ fn run_reset(path: &Path, key: &str, agent_name: &str) -> Result<CommandOutput, 
     };
 
     let agent_id = AgentId::from_name(agent_name);
-    let tx_id = super::write::next_tx_id(&store, agent_id);
+    let tx_id = super::write::next_tx_id(store, agent_id);
 
     let datoms = vec![braid_kernel::Datom::new(
         entity,
@@ -202,7 +201,7 @@ fn run_reset(path: &Path, key: &str, agent_name: &str) -> Result<CommandOutput, 
         datoms,
     };
 
-    layout.write_tx(&tx)?;
+    live.write_tx(&tx)?;
 
     let human = format!("reset: {key} (reverted to default)\n");
 
@@ -222,10 +221,10 @@ fn run_reset(path: &Path, key: &str, agent_name: &str) -> Result<CommandOutput, 
 }
 
 fn run_list(path: &Path) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let store_config = braid_kernel::config::all_config(&store);
+    let store_config = braid_kernel::config::all_config(store);
     let defaults = braid_kernel::config::defaults();
 
     let mut out = String::from("Configuration:\n");

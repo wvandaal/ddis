@@ -11,17 +11,17 @@ use std::path::Path;
 use braid_kernel::witness::{self, WitnessVerdict, FBW};
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 /// Run `braid witness status` -- show witness coverage summary.
 pub fn run_status(path: &Path, json: bool) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let witnesses = witness::all_witnesses(&store);
+    let witnesses = witness::all_witnesses(store);
     let (score, valid_count, stale_count, untested_count) =
-        witness::witness_validation_score(&store);
+        witness::witness_validation_score(store);
 
     // Count total invariants (valid L2+ witnessed, stale, untested covers all)
     let total_invariants = valid_count + stale_count + untested_count;
@@ -199,11 +199,11 @@ pub fn run_status(path: &Path, json: bool) -> Result<CommandOutput, BraidError> 
 
 /// Run `braid witness check` -- staleness detection on all witnesses.
 pub fn run_check(path: &Path, commit: bool, json: bool) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let witnesses = witness::all_witnesses(&store);
-    let current = witness::current_spec_hashes(&store);
+    let witnesses = witness::all_witnesses(store);
+    let current = witness::current_spec_hashes(store);
     let stale_list = witness::detect_stale_witnesses(&witnesses, &current);
 
     // Build a lookup for witness entity -> FBW for display
@@ -263,7 +263,7 @@ pub fn run_check(path: &Path, commit: bool, json: bool) -> Result<CommandOutput,
     if commit && !stale_list.is_empty() {
         use braid_kernel::datom::*;
         let agent = AgentId::from_name("braid:witness");
-        let tx_id = crate::commands::write::next_tx_id(&store, agent);
+        let tx_id = crate::commands::write::next_tx_id(store, agent);
         let mut datoms = Vec::new();
         for (entity, _) in &stale_list {
             datoms.extend(witness::mark_stale_datoms(*entity, tx_id));
@@ -280,7 +280,7 @@ pub fn run_check(path: &Path, commit: bool, json: bool) -> Result<CommandOutput,
             causal_predecessors: vec![],
             datoms,
         };
-        layout.write_tx(&tx)?;
+        live.write_tx(&tx)?;
         out.push_str(&format!(
             "\ntransacted: {datom_count} stale marker datoms\n"
         ));
@@ -367,11 +367,11 @@ pub fn run_check(path: &Path, commit: bool, json: bool) -> Result<CommandOutput,
 
 /// Run `braid witness completeness` -- show unwitnessed invariants.
 pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let witnesses = witness::all_witnesses(&store);
-    let unwitnessed = witness::completeness_guard(&store, &witnesses);
+    let witnesses = witness::all_witnesses(store);
+    let unwitnessed = witness::completeness_guard(store, &witnesses);
 
     // Resolve idents for display
     let ident_attr = braid_kernel::datom::Attribute::from_keyword(":db/ident");
@@ -528,22 +528,22 @@ pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidE
 /// Dry-run mode (default): shows how many would be created.
 /// Commit mode: transacts the witness datoms.
 pub fn run_generate(path: &Path, commit: bool) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(path)?;
+    let store = live.store();
 
     let agent = braid_kernel::datom::AgentId::from_name("braid:witness-batch");
-    let tx_id = crate::commands::write::next_tx_id(&store, agent);
+    let tx_id = crate::commands::write::next_tx_id(store, agent);
 
     // Step 1: L1 witnesses for all unwitnessed invariants
-    let (mut datoms, l1_count) = witness::batch_generate_l1_witnesses(&store, tx_id);
+    let (mut datoms, l1_count) = witness::batch_generate_l1_witnesses(store, tx_id);
 
     // Step 2: L2 promotion for Kani proofs + Stateright models
     let kani_bindings = witness::kani_proof_bindings();
     let sr_bindings = witness::stateright_model_bindings();
     let (kani_datoms, kani_count) =
-        witness::promote_tests_to_l2(&store, &kani_bindings, tx_id);
+        witness::promote_tests_to_l2(store, &kani_bindings, tx_id);
     let (sr_datoms, sr_count) =
-        witness::promote_tests_to_l2(&store, &sr_bindings, tx_id);
+        witness::promote_tests_to_l2(store, &sr_bindings, tx_id);
     datoms.extend(kani_datoms);
     datoms.extend(sr_datoms);
 
@@ -591,7 +591,7 @@ pub fn run_generate(path: &Path, commit: bool) -> Result<CommandOutput, BraidErr
         .map(|(a, b, c)| (a.as_str(), b.as_str(), c.as_str()))
         .collect();
     let (trace_datoms, trace_count) =
-        witness::promote_tests_to_l2(&store, &trace_refs, tx_id);
+        witness::promote_tests_to_l2(store, &trace_refs, tx_id);
     datoms.extend(trace_datoms);
 
     let total_count = l1_count + kani_count + sr_count + trace_count;
@@ -612,7 +612,7 @@ pub fn run_generate(path: &Path, commit: bool) -> Result<CommandOutput, BraidErr
             causal_predecessors: vec![],
             datoms,
         };
-        layout.write_tx(&tx)?;
+        live.write_tx(&tx)?;
         out.push_str(&format!("committed: {datom_count} datoms ({total_count} witnesses)\n"));
     } else if !datoms.is_empty() && !commit {
         out.push_str("dry-run: use --commit to transact\n");

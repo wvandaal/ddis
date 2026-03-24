@@ -439,32 +439,13 @@ impl DiskLayout {
             if all_cached_present && !delta_hashes.is_empty() && delta_hashes.len() < hashes.len() / 2
             {
                 let mut store = cached_store;
+                // ADR-STORE-011: Use apply_datoms for incremental replay.
+                // The previous code used Transaction::commit() which fails
+                // on schema bootstrap (unknown attributes). apply_datoms
+                // inserts datoms + rebuilds schema holistically.
                 for hash in &delta_hashes {
                     if let Ok(tx) = self.read_tx(hash) {
-                        let agent = tx.agent;
-                        let provenance = tx.provenance;
-                        let rationale = tx.rationale.clone();
-                        let mut builder = braid_kernel::store::Transaction::new(
-                            agent,
-                            provenance,
-                            &rationale,
-                        );
-                        for datom in &tx.datoms {
-                            builder = builder.assert(
-                                datom.entity,
-                                datom.attribute.clone(),
-                                datom.value.clone(),
-                            );
-                        }
-                        // Best-effort: if commit/transact fails, fall through to full rebuild
-                        if let Ok(committed) = builder.commit(&store) {
-                            if store.transact(committed).is_err() {
-                                // Schema validation failure on incremental — fall through
-                                break;
-                            }
-                        } else {
-                            break;
-                        }
+                        store.apply_datoms(&tx.datoms);
                     }
                 }
 

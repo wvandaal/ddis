@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774330341/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Update t-ab65c62c → in-progress"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "40733c1ef933e54a6865fe3367e98b02a77157a73efd10cc47edc260c8eaebc3" :a :task/status :v :task.status/in-progress :op :assert}
+ ]}

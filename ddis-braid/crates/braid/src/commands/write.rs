@@ -19,7 +19,7 @@ use braid_kernel::Store;
 use ordered_float::OrderedFloat;
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 
 // ── Shared Helpers ──────────────────────────────────────────────────────────
 
@@ -74,8 +74,7 @@ pub fn run_assert(
     rationale: &str,
     datoms_raw: &[String],
 ) -> Result<String, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(path)?;
 
     let agent = AgentId::from_name(agent_name);
 
@@ -85,7 +84,7 @@ pub fn run_assert(
         ));
     }
 
-    let tx_id = next_tx_id(&store, agent);
+    let tx_id = next_tx_id(live.store(), agent);
 
     let mut datoms = Vec::new();
     for chunk in datoms_raw.chunks(3) {
@@ -110,7 +109,7 @@ pub fn run_assert(
     };
 
     let datom_count = tx.datoms.len();
-    let file_path = layout.write_tx(&tx)?;
+    let file_path = live.write_tx(&tx)?;
 
     Ok(format!(
         "asserted {} datom(s) \u{2192} {}\n",
@@ -159,14 +158,14 @@ pub fn run_retract(
     attribute_keyword: &str,
     value_filter: Option<&str>,
 ) -> Result<String, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(path)?;
+    let store = live.store();
 
     let agent = AgentId::from_name(agent_name);
     let entity = EntityId::from_ident(entity_ident);
     let attribute = Attribute::from_keyword(attribute_keyword);
 
-    let active = find_active_assertions(&store, entity, &attribute);
+    let active = find_active_assertions(store, entity, &attribute);
 
     if active.is_empty() {
         return Err(BraidError::Parse(format!(
@@ -192,7 +191,7 @@ pub fn run_retract(
         active
     };
 
-    let tx_id = next_tx_id(&store, agent);
+    let tx_id = next_tx_id(store, agent);
 
     let datoms: Vec<Datom> = to_retract
         .iter()
@@ -221,7 +220,7 @@ pub fn run_retract(
         datoms,
     };
 
-    let file_path = layout.write_tx(&tx)?;
+    let file_path = live.write_tx(&tx)?;
 
     Ok(format!(
         "retracted {} datom(s) for {} {} \u{2192} {}\n",
@@ -251,8 +250,8 @@ pub struct PromoteArgs<'a> {
 
 /// Promote an exploration entity to a formal spec element.
 pub fn run_promote(args: PromoteArgs<'_>) -> Result<String, BraidError> {
-    let layout = DiskLayout::open(args.path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(args.path)?;
+    let store = live.store();
     let datoms: BTreeSet<_> = store.datoms().cloned().collect();
 
     let entity = EntityId::from_ident(args.entity_ident);
@@ -279,7 +278,7 @@ pub fn run_promote(args: PromoteArgs<'_>) -> Result<String, BraidError> {
     };
 
     let agent = AgentId::from_name(args.agent_name);
-    let tx_id = next_tx_id(&store, agent);
+    let tx_id = next_tx_id(store, agent);
 
     let request = PromotionRequest {
         entity,
@@ -314,7 +313,7 @@ pub fn run_promote(args: PromoteArgs<'_>) -> Result<String, BraidError> {
         datoms: result.datoms,
     };
 
-    let file_path = layout.write_tx(&tx_file)?;
+    let file_path = live.write_tx(&tx_file)?;
 
     // Verify dual identity after promotion
     let mut updated_datoms = datoms;
@@ -387,8 +386,8 @@ pub fn run_export(
     output_dir: &Path,
     namespace_filter: Option<&str>,
 ) -> Result<String, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
     let mut elements: BTreeMap<EntityId, StoreElement> = BTreeMap::new();
 

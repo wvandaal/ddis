@@ -12,7 +12,7 @@ use braid_kernel::datom::{AgentId, ProvenanceType};
 use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 /// Detection results from scanning the project environment.
@@ -36,9 +36,9 @@ pub fn run(
     spec_dir: &Path,
     manifest: Option<&Path>,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::init(path)?;
-    let hashes = layout.list_tx_hashes()?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::create(path)?;
+    let hashes = live.layout().list_tx_hashes()?;
+    let store = live.store();
 
     let mut out = String::new();
 
@@ -82,7 +82,7 @@ pub fn run(
 
     // --- Record detection as config datoms ---
     let agent = AgentId::from_name("braid:init");
-    let tx_id = super::write::next_tx_id(&store, agent);
+    let tx_id = super::write::next_tx_id(store, agent);
 
     let mut config_datoms = Vec::new();
 
@@ -127,7 +127,7 @@ pub fn run(
             causal_predecessors: vec![],
             datoms: config_datoms,
         };
-        layout.write_tx(&tx)?;
+        live.write_tx(&tx)?;
     }
 
     // --- Report detection ---
@@ -161,7 +161,7 @@ pub fn run(
             let bootstrap_agent = AgentId::from_name("braid:bootstrap");
             let tx = crate::bootstrap::elements_to_tx(&elements, bootstrap_agent);
             let datom_count = tx.datoms.len();
-            let file_path = layout.write_tx(&tx)?;
+            let file_path = live.write_tx(&tx)?;
 
             let invs = elements
                 .iter()
@@ -214,7 +214,7 @@ pub fn run(
     // C8: no hardcoded extractors — recommendations stored as datoms, invoked via `braid extract`.
     if let Some(lang) = detection.lang {
         let meta_agent = AgentId::from_name("braid:meta-extractor");
-        let meta_tx_id = super::write::next_tx_id(&store, meta_agent);
+        let meta_tx_id = super::write::next_tx_id(live.store(), meta_agent);
         let mut extractor_datoms = Vec::new();
         let mut recommended = Vec::new();
 
@@ -275,7 +275,7 @@ pub fn run(
                 causal_predecessors: vec![],
                 datoms: extractor_datoms,
             };
-            layout.write_tx(&tx)?;
+            live.write_tx(&tx)?;
             out.push_str(&format!(
                 "  extractors: recommended [{}]\n",
                 recommended.join(", ")
@@ -313,8 +313,8 @@ pub fn run(
             std::fs::write(&tx_path, &manifest_bytes)?;
         }
 
-        // Reload store to pick up the manifest, then validate
-        let updated_store = layout.load_store()?;
+        // Reload store to pick up the manifest (written outside LiveStore API), then validate
+        let updated_store = live.layout().load_store()?;
         if let Some(config) = braid_kernel::policy::PolicyConfig::from_store(&updated_store) {
             let errors = braid_kernel::policy::validate_policy(&config);
             if errors.is_empty() {
@@ -403,9 +403,9 @@ braid seed --inject AGENTS.md             # Refresh this section
 
     // --- Build structured output ---
 
-    // Reload store to get final counts (after config + bootstrap + trace txns)
-    let final_store = layout.load_store()?;
-    let final_hashes = layout.list_tx_hashes()?;
+    // Get final counts from the live store (already has all writes)
+    let final_store = live.store();
+    let final_hashes = live.layout().list_tx_hashes()?;
     let final_datom_count = final_store.len();
     let final_txn_count = final_hashes.len();
 

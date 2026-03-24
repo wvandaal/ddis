@@ -33,7 +33,7 @@ use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceTyp
 use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 /// Arguments for the observe command.
@@ -170,8 +170,8 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         )));
     }
 
-    let layout = DiskLayout::open(args.path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(args.path)?;
+    let store = live.store();
 
     let agent = AgentId::from_name(args.agent);
     let slug = slug_from_text(args.text);
@@ -180,7 +180,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     let category = resolve_category(args.category, args.text);
 
     // Generate TxId: advance past the store's current frontier (Unix epoch seconds)
-    let tx_id = super::write::next_tx_id(&store, agent);
+    let tx_id = super::write::next_tx_id(store, agent);
 
     // Compute BLAKE3 content hash for cross-session dedup (INV-HARVEST-006)
     let content_hash = blake3::hash(args.text.as_bytes());
@@ -261,7 +261,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
 
     // B4: Auto-link to current session (INV-SESSION-001)
     // Look up the most recent active session entity via :session/status
-    let active_session = find_active_session(&store);
+    let active_session = find_active_session(store);
     if let Some(session_entity) = active_session {
         datoms.push(Datom::new(
             entity,
@@ -308,7 +308,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
 
     // --- COTX-2: Auto-crystallization of spec findings (Rule 2) ---
     let auto_crystallized = if !args.no_auto_crystallize && args.confidence >= 0.8 {
-        auto_crystallize_finding(args.text, entity, tx_id, &store, &mut datoms)
+        auto_crystallize_finding(args.text, entity, tx_id, store, &mut datoms)
     } else {
         None
     };
@@ -521,10 +521,11 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     };
 
     let datom_count = tx.datoms.len();
-    let file_path = layout.write_tx(&tx)?;
+    let file_path = live.write_tx(&tx)?;
 
-    // Count new store size (current + new datoms)
-    let new_total = store.datoms().count() + datom_count;
+    // Re-borrow store after write (live store already has the update)
+    let store = live.store();
+    let new_total = store.len();
     let cat_short = resolve_category(args.category, args.text)
         .strip_prefix(":exploration.cat/")
         .unwrap_or("observation")
@@ -553,7 +554,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
 
     // Find nearest spec element for unanchored observations
     let nearest_spec = if delta_cryst < 0.0 {
-        braid_kernel::guidance::spec_relevance_scan(args.text, &store)
+        braid_kernel::guidance::spec_relevance_scan(args.text, store)
             .into_iter()
             .next()
     } else {
@@ -564,7 +565,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     // Run broadened knowledge relevance scan on observation text to surface related
     // spec elements, tasks, AND observations. This prevents the meta-irony failure
     // where agents complain about problems already documented in the store.
-    let related_specs = braid_kernel::guidance::knowledge_relevance_scan(args.text, &store);
+    let related_specs = braid_kernel::guidance::knowledge_relevance_scan(args.text, store);
 
     // --- ACP: Build ActionProjection (INV-BUDGET-007) ---
     let action = braid_kernel::budget::ProjectedAction {
@@ -1050,9 +1051,9 @@ mod tests {
             result.human
         );
 
-        // Verify entity exists in store
-        let layout = DiskLayout::open(&path).unwrap();
-        let store = layout.load_store().unwrap();
+        // Verify entity exists in store (use LiveStore for consistent read)
+        let live = crate::live_store::LiveStore::open(&path).unwrap();
+        let store = live.store();
         let entity = EntityId::from_ident(":observation/merge-is-a-structural-bottleneck");
         let datoms = store.entity_datoms(entity);
         assert!(
@@ -1186,9 +1187,9 @@ mod tests {
         })
         .unwrap();
 
-        // Query it back via Datalog
-        let layout = DiskLayout::open(&path).unwrap();
-        let store = layout.load_store().unwrap();
+        // Query it back via Datalog (use LiveStore for consistent read)
+        let live = crate::live_store::LiveStore::open(&path).unwrap();
+        let store = live.store();
 
         let query = braid_kernel::QueryExpr::new(
             braid_kernel::FindSpec::Rel(vec!["?e".into(), "?body".into()]),
@@ -1201,7 +1202,7 @@ mod tests {
             ))],
         );
 
-        let result = braid_kernel::evaluate(&store, &query);
+        let result = braid_kernel::evaluate(store, &query);
         match result {
             braid_kernel::query::evaluator::QueryResult::Rel(rows) => {
                 assert!(

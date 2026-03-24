@@ -24,7 +24,7 @@ use braid_kernel::trilateral::{compute_phi_default, von_neumann_entropy};
 use braid_kernel::Store;
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 
 // ---------------------------------------------------------------------------
 // Entity graph construction
@@ -492,10 +492,10 @@ fn compute_dashboard(store: &Store, path: &Path) -> String {
 // ---------------------------------------------------------------------------
 
 pub fn run(path: &Path) -> Result<String, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let output = compute_dashboard(&store, path);
+    let output = compute_dashboard(store, path);
 
     Ok(output)
 }
@@ -507,10 +507,10 @@ pub fn run_force(path: &Path) -> Result<String, BraidError> {
 
 /// Run with JSON output — structured analytics for machine consumption.
 pub fn run_json(path: &Path) -> Result<String, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let graph = build_entity_graph(&store);
+    let graph = build_entity_graph(store);
     let n = graph.node_count();
     let e = graph.edge_count();
 
@@ -520,7 +520,7 @@ pub fn run_json(path: &Path) -> Result<String, BraidError> {
     let d = density(&graph);
 
     // Coherence
-    let (phi, div_components) = compute_phi_default(&store);
+    let (phi, div_components) = compute_phi_default(store);
 
     let quadrant = match (phi > 0.0, beta_1 > 0) {
         (false, false) => "Coherent",
@@ -549,7 +549,7 @@ pub fn run_json(path: &Path) -> Result<String, BraidError> {
             });
         }
         if n <= 2000 {
-            let entropy = von_neumann_entropy(&store);
+            let entropy = von_neumann_entropy(store);
             spectral["von_neumann_entropy"] = serde_json::json!({
                 "entropy": entropy.entropy,
                 "max_entropy": entropy.max_entropy,
@@ -653,8 +653,8 @@ pub fn run_json(path: &Path) -> Result<String, BraidError> {
 /// 8. Persistent homology (~60 tokens)
 /// 9. Namespace distribution (~120 tokens)
 pub fn run_budget(path: &Path, budget: usize, force: bool) -> Result<String, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
     let mut out = String::new();
     let mut tokens_used = 0_usize;
@@ -685,7 +685,7 @@ pub fn run_budget(path: &Path, budget: usize, force: bool) -> Result<String, Bra
     emit!(s1);
 
     // Section 2: Trilateral coherence (fast — skips O(n³) entropy)
-    let coherence = braid_kernel::trilateral::check_coherence_fast(&store);
+    let coherence = braid_kernel::trilateral::check_coherence_fast(store);
     let s2 = format!(
         "coherence: phi={:.1} beta1={} quadrant={:?} ISP_bypasses={}\n",
         coherence.phi, coherence.beta_1, coherence.quadrant, coherence.isp_bypasses,
@@ -695,7 +695,7 @@ pub fn run_budget(path: &Path, budget: usize, force: bool) -> Result<String, Bra
     }
 
     // Section 3: Guidance actions
-    let actions = braid_kernel::guidance::derive_actions(&store);
+    let actions = braid_kernel::guidance::derive_actions(store);
     let s3 = braid_kernel::guidance::format_actions(&actions);
     if !emit!(s3) {
         return Ok(out);
@@ -712,7 +712,7 @@ pub fn run_budget(path: &Path, budget: usize, force: bool) -> Result<String, Bra
     }
 
     // Section 4+: Graph analytics (requires graph construction)
-    let graph = build_entity_graph(&store);
+    let graph = build_entity_graph(store);
     let n = graph.node_count();
     let components = scc(&graph);
     let beta_1 = first_betti_number(&graph);
@@ -735,7 +735,7 @@ pub fn run_budget(path: &Path, budget: usize, force: bool) -> Result<String, Bra
     // Section 5: Spectral summary (Lanczos-adaptive: O(k·E) for large graphs)
     if n >= 2 && budget.saturating_sub(tokens_used) >= 60 {
         let sd = spectral_decomposition_adaptive(&graph);
-        let entropy = braid_kernel::trilateral::von_neumann_entropy(&store);
+        let entropy = braid_kernel::trilateral::von_neumann_entropy(store);
         if let Some(ref sd) = sd {
             let fiedler_result = fiedler_from_spectrum(sd);
             let s5 = format!(
@@ -843,8 +843,8 @@ pub fn run_budget(path: &Path, budget: usize, force: bool) -> Result<String, Bra
             if datom.op == Op::Assert {
                 if let Value::Ref(target) = &datom.value {
                     edges.push((
-                        resolve_label(&store, datom.entity),
-                        resolve_label(&store, *target),
+                        resolve_label(store, datom.entity),
+                        resolve_label(store, *target),
                     ));
                 }
             }

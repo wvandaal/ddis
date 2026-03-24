@@ -9,7 +9,7 @@ use std::io::{self, BufRead, Write};
 use std::path::Path;
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 
 /// Run the interactive shell.
 ///
@@ -19,9 +19,8 @@ use crate::layout::DiskLayout;
 ///
 /// Exit: Ctrl-D (EOF) or `quit`/`exit`.
 pub fn run(path: &Path) -> Result<String, BraidError> {
-    let layout = DiskLayout::open(path)?;
     // Verify the store loads before entering the loop.
-    let _ = layout.load_store()?;
+    let _ = LiveStore::open(path)?;
 
     let stdin = io::stdin();
     let mut reader = stdin.lock();
@@ -240,14 +239,11 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
         // S0.4.2: Navigation — most recent entities
         "recent" | "r" => {
             let count: usize = args.parse().unwrap_or(10);
-            let layout = match DiskLayout::open(path) {
+            let live = match LiveStore::open(path) {
                 Ok(l) => l,
                 Err(e) => return DispatchResult::Error(e.to_string()),
             };
-            let store = match layout.load_store() {
-                Ok(s) => s,
-                Err(e) => return DispatchResult::Error(e.to_string()),
-            };
+            let store = live.store();
 
             // Find most recent entities by latest tx wall_time
             let mut entity_times: std::collections::BTreeMap<braid_kernel::EntityId, u64> =
@@ -317,14 +313,11 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
 
         // S0.4.2: Navigation — store counts
         "count" | "ct" => {
-            let layout = match DiskLayout::open(path) {
+            let live = match LiveStore::open(path) {
                 Ok(l) => l,
                 Err(e) => return DispatchResult::Error(e.to_string()),
             };
-            let store = match layout.load_store() {
-                Ok(s) => s,
-                Err(e) => return DispatchResult::Error(e.to_string()),
-            };
+            let store = live.store();
 
             let datom_count = store.len();
             let entity_count = store.entity_count();
@@ -341,16 +334,13 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
 
         // S0.4.3: Session-aware CLI markers
         "session" | "ss" => {
-            let layout = match DiskLayout::open(path) {
+            let live = match LiveStore::open(path) {
                 Ok(l) => l,
                 Err(e) => return DispatchResult::Error(e.to_string()),
             };
-            let store = match layout.load_store() {
-                Ok(s) => s,
-                Err(e) => return DispatchResult::Error(e.to_string()),
-            };
+            let store = live.store();
 
-            let harvest_due = braid_kernel::guidance::count_txns_since_last_harvest(&store);
+            let harvest_due = braid_kernel::guidance::count_txns_since_last_harvest(store);
 
             let mut out = String::new();
             out.push_str(&format!(

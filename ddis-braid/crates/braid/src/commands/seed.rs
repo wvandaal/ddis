@@ -14,7 +14,7 @@ use braid_kernel::seed::{assemble_seed, group_state_entries, ContextSection};
 
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 pub fn run(
@@ -26,11 +26,11 @@ pub fn run(
     json: bool,
     agent_md: bool,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
     let agent = AgentId::from_name(agent_name);
-    let seed = assemble_seed(&store, task, budget, agent);
+    let seed = assemble_seed(store, task, budget, agent);
 
     if json {
         let human = format_json(&seed, budget)?;
@@ -52,7 +52,7 @@ pub fn run(
     }
 
     if for_human {
-        let human = format_human_briefing(&store, &seed, task, &layout)?;
+        let human = format_human_briefing(store, &seed, task, live.layout())?;
         let json_val = serde_json::json!({
             "mode": "human-briefing",
             "task": seed.task,
@@ -180,7 +180,7 @@ pub fn run(
             budget,
             ..AgentMdConfig::default()
         };
-        let generated = generate_agent_md(&store, &config);
+        let generated = generate_agent_md(store, &config);
         let rendered = generated.render();
         let output_path = path.join(&config.output_filename);
         std::fs::write(&output_path, &rendered)?;
@@ -210,7 +210,7 @@ pub fn run(
 
     // --- ACP: Build ActionProjection (INV-BUDGET-007) ---
     // Derive the first next-action from guidance
-    let actions = derive_actions(&store);
+    let actions = derive_actions(store);
     let (action_cmd, action_rationale, action_impact) = if let Some(a) = actions.first() {
         (
             a.command
@@ -338,8 +338,8 @@ pub fn run_inject(
     task: &str,
     budget: usize,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(store_path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(store_path)?;
+    let store = live.store();
 
     // Read the target file
     let file_content = std::fs::read_to_string(inject_path)?;
@@ -349,7 +349,7 @@ pub fn run_inject(
         .map_err(|e| BraidError::Parse(format!("{e}")))?;
 
     // Generate content
-    let content = crate::inject::format_for_injection(&store, Some(task), budget);
+    let content = crate::inject::format_for_injection(store, Some(task), budget);
     let token_estimate = content.split_whitespace().count() * 4 / 3; // ~tokens
 
     // Inject seed content
@@ -357,9 +357,9 @@ pub fn run_inject(
 
     // Inject methodology section (DMP: INV-GUIDANCE-022)
     // k_eff estimated from session telemetry (turn count since last harvest)
-    let ctx = braid_kernel::guidance::GuidanceContext::from_store(&store, None);
+    let ctx = braid_kernel::guidance::GuidanceContext::from_store(store, None);
     let k_eff = ctx.k_eff;
-    let result = crate::inject::inject_methodology(&result, &store, k_eff);
+    let result = crate::inject::inject_methodology(&result, store, k_eff);
 
     // Write back
     std::fs::write(inject_path, &result)?;

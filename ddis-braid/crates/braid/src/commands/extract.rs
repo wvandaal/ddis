@@ -17,7 +17,7 @@ use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceTyp
 use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 /// A discovered extractor entity from the store.
@@ -39,11 +39,10 @@ pub fn run(
     commit: bool,
     agent_name: &str,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut live = LiveStore::open(path)?;
 
     // Discover extractor entities from store
-    let extractors = discover_extractors(&store);
+    let extractors = discover_extractors(live.store());
 
     if extractors.is_empty() {
         let msg = "no extractors registered — use braid transact to add :extractor/* entities";
@@ -120,7 +119,7 @@ pub fn run(
                         .duration_since(UNIX_EPOCH)
                         .unwrap_or_default()
                         .as_millis() as u64;
-                    let tx_id = super::write::next_tx_id(&store, agent);
+                    let tx_id = super::write::next_tx_id(live.store(), agent);
                     let tx = TxFile {
                         tx_id,
                         agent,
@@ -135,7 +134,7 @@ pub fn run(
                             Op::Assert,
                         )],
                     };
-                    let _ = layout.write_tx(&tx);
+                    let _ = live.write_tx(&tx);
                     total_datoms += 1;
                 }
 

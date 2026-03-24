@@ -11,7 +11,7 @@ use braid_kernel::store::Frontier;
 use braid_kernel::{Clause, FindSpec, Pattern, QueryExpr, Store};
 
 use crate::error::BraidError;
-use crate::layout::DiskLayout;
+use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 /// Parse a `--frontier` flag value into a `Frontier`.
@@ -120,10 +120,10 @@ pub fn run(params: QueryParams<'_>) -> Result<CommandOutput, BraidError> {
         count_only,
         json,
     } = params;
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let frontier = parse_frontier(&store, frontier_spec)?;
+    let frontier = parse_frontier(store, frontier_spec)?;
 
     let entity_id = entity_filter.map(EntityId::from_ident);
     let attr = attribute_filter.map(Attribute::from_keyword);
@@ -151,8 +151,8 @@ pub fn run(params: QueryParams<'_>) -> Result<CommandOutput, BraidError> {
             }
         }
 
-        let entity_label = resolve_entity_label(&store, datom.entity);
-        let value_str = format_value(&store, &datom.value);
+        let entity_label = resolve_entity_label(store, datom.entity);
+        let value_str = format_value(store, &datom.value);
         results.push((
             entity_label,
             datom.attribute.as_str().to_string(),
@@ -346,13 +346,13 @@ pub fn run_datalog(
     frontier_spec: Option<&str>,
     json: bool,
 ) -> Result<CommandOutput, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let live = LiveStore::open(path)?;
+    let store = live.store();
 
-    let frontier = parse_frontier(&store, frontier_spec)?;
+    let frontier = parse_frontier(store, frontier_spec)?;
 
     let query = parse_datalog(datalog_src)?;
-    let result = evaluate_with_frontier(&store, &query, frontier.as_ref());
+    let result = evaluate_with_frontier(store, &query, frontier.as_ref());
 
     // --- Human output ---
     let (human, result_count) = if json {
@@ -367,7 +367,7 @@ pub fn run_datalog(
                     .iter()
                     .map(|row| {
                         let formatted: Vec<String> =
-                            row.iter().map(|v| format_value(&store, v)).collect();
+                            row.iter().map(|v| format_value(store, v)).collect();
                         if columns.len() == formatted.len() {
                             let map: serde_json::Map<String, serde_json::Value> = columns
                                 .iter()
@@ -390,7 +390,7 @@ pub fn run_datalog(
             QueryResult::Scalar(val) => match val {
                 Some(v) => serde_json::json!({
                     "type": "scalar",
-                    "value": format_value(&store, v),
+                    "value": format_value(store, v),
                 }),
                 None => serde_json::json!({
                     "type": "scalar",
@@ -421,7 +421,7 @@ pub fn run_datalog(
                 }
                 for row in rows {
                     let formatted: Vec<String> =
-                        row.iter().map(|v| format_value(&store, v)).collect();
+                        row.iter().map(|v| format_value(store, v)).collect();
                     out.push_str(&formatted.join("\t"));
                     out.push('\n');
                 }
@@ -430,7 +430,7 @@ pub fn run_datalog(
             }
             QueryResult::Scalar(val) => match val {
                 Some(v) => {
-                    out.push_str(&format_value(&store, v));
+                    out.push_str(&format_value(store, v));
                     out.push('\n');
                     count = 1;
                 }
@@ -455,7 +455,7 @@ pub fn run_datalog(
                 .iter()
                 .map(|row| {
                     let formatted: Vec<String> =
-                        row.iter().map(|v| format_value(&store, v)).collect();
+                        row.iter().map(|v| format_value(store, v)).collect();
                     if columns.len() == formatted.len() {
                         let map: serde_json::Map<String, serde_json::Value> = columns
                             .iter()
@@ -480,7 +480,7 @@ pub fn run_datalog(
                 "mode": "datalog",
                 "count": 1,
                 "query": datalog_src,
-                "results": [format_value(&store, v)],
+                "results": [format_value(store, v)],
             }),
             None => serde_json::json!({
                 "mode": "datalog",
@@ -494,7 +494,7 @@ pub fn run_datalog(
     // --- Zero-result diagnostics (INV-INTERFACE-012) ---
     let mut human = human;
     if result_count == 0 {
-        let diagnostics = braid_kernel::query::diagnostics::diagnose_empty_results(&store, &query);
+        let diagnostics = braid_kernel::query::diagnostics::diagnose_empty_results(store, &query);
         if !diagnostics.is_empty() {
             human.push('\n');
             for diag in &diagnostics {
