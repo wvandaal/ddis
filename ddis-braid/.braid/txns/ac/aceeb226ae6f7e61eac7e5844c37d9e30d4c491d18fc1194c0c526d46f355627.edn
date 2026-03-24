@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774360130/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-bbd407e0"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fb43c588fdfc05e7a0b1fa187d9137c5c32a93109ae7b13b41d71aa4b0eb582e" :a :task/close-reason :v "6 proptests (256 cases each): checkpoint==fold, commutativity, monotonic growth, crash recovery, flush idempotent, refresh external." :op :assert}
+   {:e #blake3 "fb43c588fdfc05e7a0b1fa187d9137c5c32a93109ae7b13b41d71aa4b0eb582e" :a :task/closed-at :v 1774360129 :op :assert}
+   {:e #blake3 "fb43c588fdfc05e7a0b1fa187d9137c5c32a93109ae7b13b41d71aa4b0eb582e" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "fb43c588fdfc05e7a0b1fa187d9137c5c32a93109ae7b13b41d71aa4b0eb582e" :a :task/status :v :task.status/closed :op :assert}
+ ]}

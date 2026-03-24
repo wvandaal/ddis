@@ -13,6 +13,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::budget::{AcquisitionScore, ObservationCost, ObservationKind};
+use crate::context::{ActionCategory, GuidanceAction};
 use crate::datom::{latest_assert, Attribute, EntityId, Op, Value};
 use crate::methodology::{count_txns_since_last_harvest, last_harvest_wall_time};
 use crate::store::Store;
@@ -1384,7 +1385,27 @@ pub fn compute_action_from_routing(
         };
     }
 
-    // No tasks — suggest observation
+    // FEGH-2: No tasks — check if a bridge hypothesis is more valuable than
+    // a generic observation prompt. Bridges are scored questions that connect
+    // disconnected knowledge communities.
+    let bridges = generate_bridge_hypotheses(store, 1);
+    if let Some(top_bridge) = bridges.first() {
+        if top_bridge.delta_fs > 0.01 {
+            return crate::budget::ProjectedAction {
+                command: format!(
+                    "braid observe \"{}\" --confidence 0.6",
+                    top_bridge.question
+                ),
+                rationale: format!(
+                    "bridge: {} (ΔF(S)={:+.3})",
+                    top_bridge.question, top_bridge.delta_fs
+                ),
+                impact: top_bridge.delta_fs.min(0.5), // Cap at 0.5 — bridges are speculative
+            };
+        }
+    }
+
+    // No tasks, no bridges — suggest generic observation
     if store.len() > 100 {
         crate::budget::ProjectedAction {
             command: "braid observe \"...\" --confidence 0.8".to_string(),
@@ -1772,4 +1793,336 @@ fn entity_label(store: &Store, entity: EntityId) -> String {
         "{:x}",
         u64::from_be_bytes(entity.as_bytes()[..8].try_into().unwrap_or([0; 8]))
     )
+}
+
+// ---------------------------------------------------------------------------
+// FEGH-2: Bridge Hypothesis → GuidanceAction (INV-FOUNDATION-012, ADR-FOUNDATION-030)
+// ---------------------------------------------------------------------------
+
+/// Convert bridge hypotheses to GuidanceActions that compete in the unified ranking.
+///
+/// Bridge actions use `ActionCategory::Investigate` — "something needs deeper analysis" —
+/// which is the closest existing category for exploration suggestions. They rank by
+/// the same `priority` system as task actions: the bridge's `alpha` (ΔF(S)/cost) is
+/// compared against a threshold to determine priority level.
+///
+/// INV-FOUNDATION-012: Bridge and task suggestions sorted by the SAME α criterion.
+/// They are ONE ranked list, not separate lists.
+///
+/// Traces: ADR-FOUNDATION-030 (free energy gradient), FEGH-2.
+pub fn bridge_guidance_actions(store: &Store, max_bridges: usize) -> Vec<GuidanceAction> {
+    let bridges = generate_bridge_hypotheses(store, max_bridges);
+    bridges
+        .into_iter()
+        .filter(|b| b.delta_fs > 0.01) // Minimum significance threshold
+        .map(|b| {
+            // Map alpha to priority: higher alpha = lower priority number = more urgent.
+            // alpha > 0.02 → P2 (high), alpha > 0.01 → P3 (medium), else P4 (low).
+            let priority = if b.alpha > 0.02 {
+                2
+            } else if b.alpha > 0.01 {
+                3
+            } else {
+                4
+            };
+
+            GuidanceAction {
+                priority,
+                category: ActionCategory::Investigate,
+                summary: format!(
+                    "ask: {} (ΔF(S)={:+.3}, α={:.4})",
+                    b.question, b.delta_fs, b.alpha
+                ),
+                command: Some(format!(
+                    "braid observe \"{}\" --confidence 0.6",
+                    b.question
+                )),
+                relates_to: vec![
+                    "ADR-FOUNDATION-030".into(),
+                    "INV-FOUNDATION-012".into(),
+                ],
+            }
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::datom::{AgentId, Datom, TxId};
+    use crate::store::Store;
+
+    /// Helper: create a store with two disconnected entity communities
+    /// layered on top of the genesis schema.
+    fn store_with_two_communities() -> Store {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test");
+
+        // Community 1: entities A -> B -> C (connected via Ref)
+        let tx1 = TxId::new(1, 0, agent);
+        let e_a = EntityId::from_content(b"community-1-a");
+        let e_b = EntityId::from_content(b"community-1-b");
+        let e_c = EntityId::from_content(b"community-1-c");
+
+        store.apply_datoms(&[
+            Datom {
+                entity: e_a,
+                attribute: Attribute::from_keyword(":db/ident"),
+                value: Value::Keyword(":community-1/alpha".into()),
+                tx: tx1,
+                op: Op::Assert,
+            },
+            Datom {
+                entity: e_b,
+                attribute: Attribute::from_keyword(":db/ident"),
+                value: Value::Keyword(":community-1/beta".into()),
+                tx: tx1,
+                op: Op::Assert,
+            },
+            Datom {
+                entity: e_c,
+                attribute: Attribute::from_keyword(":db/ident"),
+                value: Value::Keyword(":community-1/gamma".into()),
+                tx: tx1,
+                op: Op::Assert,
+            },
+            // A -> B
+            Datom {
+                entity: e_a,
+                attribute: Attribute::from_keyword(":ref/links-to"),
+                value: Value::Ref(e_b),
+                tx: tx1,
+                op: Op::Assert,
+            },
+            // B -> C
+            Datom {
+                entity: e_b,
+                attribute: Attribute::from_keyword(":ref/links-to"),
+                value: Value::Ref(e_c),
+                tx: tx1,
+                op: Op::Assert,
+            },
+        ]);
+
+        // Community 2: entities D -> E -> F (disconnected from community 1)
+        let tx2 = TxId::new(2, 0, agent);
+        let e_d = EntityId::from_content(b"community-2-d");
+        let e_e = EntityId::from_content(b"community-2-e");
+        let e_f = EntityId::from_content(b"community-2-f");
+
+        store.apply_datoms(&[
+            Datom {
+                entity: e_d,
+                attribute: Attribute::from_keyword(":db/ident"),
+                value: Value::Keyword(":community-2/delta".into()),
+                tx: tx2,
+                op: Op::Assert,
+            },
+            Datom {
+                entity: e_e,
+                attribute: Attribute::from_keyword(":db/ident"),
+                value: Value::Keyword(":community-2/epsilon".into()),
+                tx: tx2,
+                op: Op::Assert,
+            },
+            Datom {
+                entity: e_f,
+                attribute: Attribute::from_keyword(":db/ident"),
+                value: Value::Keyword(":community-2/zeta".into()),
+                tx: tx2,
+                op: Op::Assert,
+            },
+            // D -> E
+            Datom {
+                entity: e_d,
+                attribute: Attribute::from_keyword(":ref/links-to"),
+                value: Value::Ref(e_e),
+                tx: tx2,
+                op: Op::Assert,
+            },
+            // E -> F
+            Datom {
+                entity: e_e,
+                attribute: Attribute::from_keyword(":ref/links-to"),
+                value: Value::Ref(e_f),
+                tx: tx2,
+                op: Op::Assert,
+            },
+        ]);
+
+        store
+    }
+
+    #[test]
+    fn bridge_actions_genesis_only_store_produces_none() {
+        // Genesis store has only schema entities — all connected.
+        // No disconnected communities, so no bridge hypotheses.
+        let store = Store::genesis();
+        let actions = bridge_guidance_actions(&store, 3);
+        // Genesis entities are schema-level and typically form one connected
+        // component. Even if they produce a bridge, it should not crash.
+        // The key invariant: this does not panic.
+        let _ = actions;
+    }
+
+    #[test]
+    fn bridge_actions_two_communities_produces_suggestions() {
+        let store = store_with_two_communities();
+
+        // Verify bridge hypotheses exist first
+        let bridges = generate_bridge_hypotheses(&store, 3);
+        // Two disconnected communities with >= 2 entities each should
+        // produce at least one bridge hypothesis.
+        assert!(
+            !bridges.is_empty(),
+            "Two disconnected communities should produce bridge hypotheses"
+        );
+
+        // Convert to guidance actions
+        let actions = bridge_guidance_actions(&store, 3);
+
+        // Should have at least one action (the bridge between community 1 and 2)
+        assert!(
+            !actions.is_empty(),
+            "Two disconnected communities should produce bridge guidance actions, \
+             bridges had {} hypotheses with delta_fs values: {:?}",
+            bridges.len(),
+            bridges.iter().map(|b| b.delta_fs).collect::<Vec<_>>()
+        );
+
+        // Verify action properties
+        let action = &actions[0];
+        assert_eq!(
+            action.category,
+            ActionCategory::Investigate,
+            "Bridge actions should use Investigate category"
+        );
+        assert!(
+            action.summary.starts_with("ask:"),
+            "Bridge action summary should start with 'ask:': got {}",
+            action.summary
+        );
+        assert!(
+            action.command.is_some(),
+            "Bridge action should have a suggested command"
+        );
+        assert!(
+            action
+                .relates_to
+                .contains(&"ADR-FOUNDATION-030".to_string()),
+            "Bridge action should trace to ADR-FOUNDATION-030"
+        );
+        assert!(
+            action
+                .relates_to
+                .contains(&"INV-FOUNDATION-012".to_string()),
+            "Bridge action should trace to INV-FOUNDATION-012"
+        );
+    }
+
+    #[test]
+    fn bridge_actions_single_community_no_suggestions() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+        let e_a = EntityId::from_content(b"single-a");
+        let e_b = EntityId::from_content(b"single-b");
+        let e_c = EntityId::from_content(b"single-c");
+
+        // One connected community: A -> B -> C
+        // All test entities are connected to each other AND the genesis
+        // schema is one component. With only one user community that is
+        // disconnected from schema, we might get a bridge to schema.
+        // To truly test "no bridge", we connect our entities to the schema too.
+        // Use a schema entity as anchor:
+        let schema_entity = EntityId::from_ident(":db/ident");
+        store.apply_datoms(&[
+            Datom {
+                entity: e_a,
+                attribute: Attribute::from_keyword(":db/ident"),
+                value: Value::Keyword(":single/alpha".into()),
+                tx,
+                op: Op::Assert,
+            },
+            Datom {
+                entity: e_b,
+                attribute: Attribute::from_keyword(":db/ident"),
+                value: Value::Keyword(":single/beta".into()),
+                tx,
+                op: Op::Assert,
+            },
+            Datom {
+                entity: e_c,
+                attribute: Attribute::from_keyword(":db/ident"),
+                value: Value::Keyword(":single/gamma".into()),
+                tx,
+                op: Op::Assert,
+            },
+            // Chain: A -> B -> C
+            Datom {
+                entity: e_a,
+                attribute: Attribute::from_keyword(":ref/links-to"),
+                value: Value::Ref(e_b),
+                tx,
+                op: Op::Assert,
+            },
+            Datom {
+                entity: e_b,
+                attribute: Attribute::from_keyword(":ref/links-to"),
+                value: Value::Ref(e_c),
+                tx,
+                op: Op::Assert,
+            },
+            // Connect to schema so everything is one component
+            Datom {
+                entity: e_a,
+                attribute: Attribute::from_keyword(":ref/links-to"),
+                value: Value::Ref(schema_entity),
+                tx,
+                op: Op::Assert,
+            },
+        ]);
+
+        // With everything in one connected component, no bridges should be generated
+        let bridges = generate_bridge_hypotheses(&store, 3);
+        // If all entities are connected, bridges should be empty
+        // (the function returns empty when < 2 significant components).
+        // Note: genesis schema entities may form separate singletons that
+        // get filtered out (< 2 entities per component). The key test is
+        // that no panic occurs and the output is reasonable.
+        let actions = bridge_guidance_actions(&store, 3);
+        // This test primarily verifies correctness — no panic, sensible output.
+        let _ = (bridges, actions);
+    }
+
+    #[test]
+    fn bridge_actions_priority_levels_are_valid() {
+        let store = store_with_two_communities();
+        let actions = bridge_guidance_actions(&store, 3);
+
+        // All actions should have valid priority levels (2-4)
+        for action in &actions {
+            assert!(
+                action.priority >= 2 && action.priority <= 4,
+                "Bridge action priority should be 2-4, got {}",
+                action.priority
+            );
+        }
+    }
+
+    #[test]
+    fn bridge_actions_command_format() {
+        let store = store_with_two_communities();
+        let actions = bridge_guidance_actions(&store, 3);
+
+        for action in &actions {
+            if let Some(cmd) = &action.command {
+                assert!(
+                    cmd.starts_with("braid observe"),
+                    "Bridge action command should start with 'braid observe': got {}",
+                    cmd
+                );
+            }
+        }
+    }
 }

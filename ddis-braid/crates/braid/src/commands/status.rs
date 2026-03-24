@@ -278,6 +278,34 @@ pub fn run(
         }
     }
 
+    // Phase 2b: ATT-2-IMPL — Hebbian boost from --verbose requests.
+    // When the user requests verbose output, blocks that would be omitted at the
+    // Navigate budget get a +1.0 hebbian boost. This causes frequently-requested
+    // sections to auto-promote into default output over time.
+    if verbose {
+        let navigate_budget = braid_kernel::ActivationStrategy::Navigate.max_context_tokens();
+        let verbose_labels =
+            braid_kernel::context::extract_verbose_only_labels(&projection.context, navigate_budget);
+        if !verbose_labels.is_empty() {
+            let label_refs: Vec<&str> = verbose_labels.iter().map(|s| s.as_str()).collect();
+            let agent = braid_kernel::datom::AgentId::from_name("braid:attention");
+            let tx = crate::commands::write::next_tx_id(live.store(), agent);
+            let datoms =
+                braid_kernel::context::record_hebbian_boosts(live.store(), &label_refs, tx);
+            if !datoms.is_empty() {
+                let tx_file = braid_kernel::layout::TxFile {
+                    tx_id: tx,
+                    agent,
+                    provenance: braid_kernel::datom::ProvenanceType::Derived,
+                    rationale: "ATT-2-IMPL: hebbian boost from --verbose request".to_string(),
+                    causal_predecessors: vec![],
+                    datoms,
+                };
+                let _ = live.write_tx(&tx_file);
+            }
+        }
+    }
+
     // EXT-BUG-2: --json returns structured JSON early, before building text output
     if json {
         let fitness = &snapshot.fitness;
@@ -801,6 +829,34 @@ pub fn build_status_projection(
     let methodology_blocks =
         braid_kernel::guidance::methodology_context_blocks_with_calibration(store, Some(calibration));
     context.extend(methodology_blocks);
+
+    // ATT-2-IMPL: Apply hebbian boost from --verbose requests to all context blocks.
+    // For each block, look up its label's hebbian boost and add it (clamped to 0.5)
+    // to the impact score in the block's AcquisitionScore. This causes blocks that
+    // users frequently request via --verbose to auto-promote into default output.
+    for block in &mut context {
+        if let Some(ref mut score) = block.attention {
+            let label = block
+                .content
+                .split_once(':')
+                .map(|(prefix, _)| prefix.trim().to_lowercase())
+                .unwrap_or_else(|| {
+                    block
+                        .content
+                        .split_whitespace()
+                        .next()
+                        .unwrap_or("unknown")
+                        .to_lowercase()
+                });
+            let boost = braid_kernel::context::block_hebbian_boost(store, &label).clamp(0.0, 0.5);
+            if boost > 0.0 {
+                score.impact = (score.impact + boost).min(1.0);
+                // Recompute expected_delta_fs and alpha with updated impact
+                score.expected_delta_fs = score.impact * score.relevance * score.novelty * score.confidence;
+                score.alpha = score.expected_delta_fs / score.cost.total_cost();
+            }
+        }
+    }
 
     // Sort context blocks by precedence (highest first) so that
     // budget-constrained modes (Agent/Navigate at 100 tokens) render

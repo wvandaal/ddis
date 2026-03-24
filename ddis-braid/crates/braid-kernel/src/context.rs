@@ -110,6 +110,34 @@ fn block_presentation_count(store: &Store, label: &str) -> u64 {
         .unwrap_or(0)
 }
 
+/// Look up the hebbian boost for a named context block type (ATT-2-IMPL).
+///
+/// Queries `:attention/block-label` -> `:attention/hebbian-boost` from the store.
+/// Returns 0.0 if no attention entity exists or no boost has been recorded.
+///
+/// The hebbian boost accumulates when users request `--verbose`, signaling
+/// that omitted blocks contain information they actually need. Blocks with
+/// higher boost rank higher in future renders, even at terse budgets.
+pub fn block_hebbian_boost(store: &Store, label: &str) -> f64 {
+    let label_attr = Attribute::from_keyword(":attention/block-label");
+    let boost_attr = Attribute::from_keyword(":attention/hebbian-boost");
+
+    store
+        .attribute_datoms(&label_attr)
+        .iter()
+        .filter(|d| d.op == Op::Assert)
+        .find(|d| matches!(&d.value, Value::String(s) if s == label))
+        .and_then(|d| {
+            // Found the entity -- get the LIVE hebbian-boost (latest Assert wins)
+            let ent_datoms = store.entity_datoms(d.entity);
+            latest_assert(&ent_datoms, &boost_attr).and_then(|ed| match &ed.value {
+                Value::Double(f) => Some(f.into_inner()),
+                _ => None,
+            })
+        })
+        .unwrap_or(0.0)
+}
+
 /// Generate datoms to record presentation of context blocks (UAQ-6).
 ///
 /// For each presented block label, either creates a new attention entity with
@@ -254,6 +282,185 @@ pub fn extract_block_labels(blocks: &[crate::budget::ContextBlock], budget: usiz
     labels
 }
 
+/// Extract labels of context blocks that are shown in verbose mode but
+/// omitted at the default Navigate budget (ATT-2-IMPL).
+///
+/// Returns labels for blocks that exceed the Navigate budget but fit within
+/// the verbose budget. These are the blocks the user explicitly requested
+/// by passing `--verbose`, signaling they contain needed information.
+pub fn extract_verbose_only_labels(
+    blocks: &[crate::budget::ContextBlock],
+    navigate_budget: usize,
+) -> Vec<String> {
+    let mut remaining = navigate_budget;
+    let mut verbose_only = Vec::new();
+
+    for block in blocks {
+        if block.tokens <= remaining {
+            // This block fits in Navigate — not verbose-only.
+            remaining = remaining.saturating_sub(block.tokens);
+        } else {
+            // This block is omitted in Navigate but shown in verbose.
+            let label = block
+                .content
+                .split_once(':')
+                .map(|(prefix, _)| prefix.trim().to_lowercase())
+                .unwrap_or_else(|| {
+                    block
+                        .content
+                        .split_whitespace()
+                        .next()
+                        .unwrap_or("unknown")
+                        .to_lowercase()
+                });
+            verbose_only.push(label);
+        }
+    }
+
+    verbose_only
+}
+
+/// Generate datoms to increment hebbian boost for context blocks (ATT-2-IMPL).
+///
+/// When a user requests `--verbose`, blocks that were previously omitted at the
+/// Navigate budget get a +1.0 boost. This boost integrates into the AcquisitionScore
+/// impact factor, causing frequently-requested sections to auto-promote into the
+/// default (non-verbose) output over time.
+///
+/// Follows the same entity pattern as `record_block_presentations`: each block label
+/// maps to an `:attention/{label}` entity with `:attention/hebbian-boost` (Double).
+///
+/// Returns datoms to be transacted. Caller decides when/how to transact.
+pub fn record_hebbian_boosts(
+    store: &Store,
+    boosted_labels: &[&str],
+    tx: crate::datom::TxId,
+) -> Vec<crate::datom::Datom> {
+    use crate::datom::{Datom, EntityId};
+
+    let label_attr = Attribute::from_keyword(":attention/block-label");
+    let boost_attr = Attribute::from_keyword(":attention/hebbian-boost");
+
+    let mut datoms = Vec::new();
+
+    for label in boosted_labels {
+        // Find existing attention entity for this label
+        let existing = store
+            .attribute_datoms(&label_attr)
+            .iter()
+            .filter(|d| d.op == Op::Assert)
+            .find(|d| matches!(&d.value, Value::String(s) if s.as_str() == *label))
+            .map(|d| {
+                // Get LIVE hebbian-boost (latest Assert by tx wins)
+                let ent_datoms = store.entity_datoms(d.entity);
+                let boost = latest_assert(&ent_datoms, &boost_attr)
+                    .and_then(|ed| match &ed.value {
+                        Value::Double(f) => Some(f.into_inner()),
+                        _ => None,
+                    })
+                    .unwrap_or(0.0);
+                (d.entity, boost)
+            });
+
+        let (entity, old_boost) = match existing {
+            Some((e, boost)) => (e, Some(boost)),
+            None => {
+                // Create new attention entity for this label
+                let e = EntityId::from_ident(&format!(":attention/{}", label));
+                datoms.push(Datom::new(
+                    e,
+                    label_attr.clone(),
+                    Value::String(label.to_string()),
+                    tx,
+                    Op::Assert,
+                ));
+                (e, None)
+            }
+        };
+
+        let new_boost = old_boost.map_or(1.0, |b| b + 1.0);
+
+        // Retract old boost before asserting new (C1: retractions are new datoms)
+        if let Some(old) = old_boost {
+            datoms.push(Datom::new(
+                entity,
+                boost_attr.clone(),
+                Value::Double(old.into()),
+                tx,
+                Op::Retract,
+            ));
+        }
+        datoms.push(Datom::new(
+            entity,
+            boost_attr.clone(),
+            Value::Double(new_boost.into()),
+            tx,
+            Op::Assert,
+        ));
+    }
+
+    datoms
+}
+
+/// Create a context block with hebbian-boosted AcquisitionScore (ATT-2-IMPL).
+///
+/// Like `ContextBlock::new_scored`, but additionally reads the hebbian boost
+/// from the store for this block's label and adds it to the impact score.
+/// This is the integration point where verbose-request feedback enters the
+/// context ranking pipeline for status projection blocks.
+///
+/// The label is derived from the content (prefix before ':' or first word),
+/// matching the convention in `extract_block_labels`.
+pub fn context_block_with_hebbian(
+    store: &Store,
+    precedence: crate::budget::OutputPrecedence,
+    content: String,
+    tokens: usize,
+) -> crate::budget::ContextBlock {
+    // Derive label from content (same heuristic as extract_block_labels)
+    let label = content
+        .split_once(':')
+        .map(|(prefix, _)| prefix.trim().to_lowercase())
+        .unwrap_or_else(|| {
+            content
+                .split_whitespace()
+                .next()
+                .unwrap_or("unknown")
+                .to_lowercase()
+        });
+
+    let base_impact = match precedence {
+        crate::budget::OutputPrecedence::System => 1.0,
+        crate::budget::OutputPrecedence::Methodology => 0.8,
+        crate::budget::OutputPrecedence::UserRequested => 0.6,
+        crate::budget::OutputPrecedence::Speculative => 0.4,
+        crate::budget::OutputPrecedence::Ambient => 0.2,
+    };
+
+    // ATT-2-IMPL: Add hebbian boost from --verbose requests, clamped to [0.0, 0.5].
+    let boost = block_hebbian_boost(store, &label).clamp(0.0, 0.5);
+    let boosted_impact = (base_impact + boost).min(1.0);
+
+    let count = block_presentation_count(store, &label);
+    let novelty = crate::budget::novelty_from_count(count);
+
+    let score = crate::budget::AcquisitionScore::from_factors(
+        crate::budget::ObservationKind::ContextBlock,
+        boosted_impact,
+        1.0,
+        novelty,
+        1.0,
+        crate::budget::ObservationCost::from_tokens(tokens),
+    );
+
+    crate::budget::ContextBlock {
+        precedence,
+        content,
+        tokens,
+        attention: Some(score),
+    }
+}
+
 // ---------------------------------------------------------------------------
 // ACP Methodology Context Blocks (ACP-9, INV-BUDGET-009)
 // ---------------------------------------------------------------------------
@@ -342,9 +549,16 @@ fn methodology_context_blocks_inner(
     let score_block = |label: &str, impact: f64, tokens: usize| -> Option<crate::budget::AcquisitionScore> {
         let count = block_presentation_count(store, label);
         let novelty = crate::budget::novelty_from_count(count);
+        // ATT-2-IMPL: Hebbian boost from --verbose requests.
+        // Blocks the user explicitly requested via --verbose get a boost that
+        // increases their impact score, causing them to auto-promote into
+        // default output over time. Clamped to [0.0, 0.5] to prevent any
+        // single block from dominating purely through verbose requests.
+        let boost = block_hebbian_boost(store, label).clamp(0.0, 0.5);
+        let boosted_impact = (impact + boost).min(1.0);
         Some(crate::budget::AcquisitionScore::from_factors(
             crate::budget::ObservationKind::ContextBlock,
-            impact,
+            boosted_impact,
             1.0, // methodology blocks always relevant
             novelty,
             block_confidence,
@@ -2025,4 +2239,186 @@ pub fn generate_methodology_section(store: &Store, k_eff: f64) -> String {
     }
 
     out
+}
+
+// ---------------------------------------------------------------------------
+// Tests (ATT-2-IMPL)
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::datom::{AgentId, TxId};
+    use crate::store::Store;
+
+    /// Helper: create a store with full schema (genesis + Layer 2+ attention attrs).
+    fn store_with_schema() -> Store {
+        let mut store = Store::genesis();
+        let schema_agent = AgentId::from_name("test:schema");
+        let schema_tx = TxId::new(100, 0, schema_agent);
+        let schema_datoms = crate::schema::full_schema_datoms(schema_tx);
+        store.apply_datoms(&schema_datoms);
+        store
+    }
+
+    #[test]
+    fn hebbian_boost_zero_in_empty_store() {
+        let store = store_with_schema();
+        assert_eq!(block_hebbian_boost(&store, "nonexistent"), 0.0);
+        assert_eq!(block_hebbian_boost(&store, "methodology"), 0.0);
+    }
+
+    #[test]
+    fn record_hebbian_boosts_creates_and_increments() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test:att");
+        let label = "test-block";
+
+        // First boost: creates entity with boost=1.0
+        let tx1 = TxId::new(200, 0, agent);
+        let datoms1 = record_hebbian_boosts(&store, &[label], tx1);
+        assert!(!datoms1.is_empty(), "should produce datoms for first boost");
+
+        // Transact via apply_datoms
+        store.apply_datoms(&datoms1);
+        let boost1 = block_hebbian_boost(&store, label);
+        assert!(
+            (boost1 - 1.0).abs() < 0.001,
+            "first boost should be 1.0, got {}",
+            boost1
+        );
+
+        // Second boost: increments to 2.0
+        let tx2 = TxId::new(201, 0, agent);
+        let datoms2 = record_hebbian_boosts(&store, &[label], tx2);
+        assert!(!datoms2.is_empty(), "should produce datoms for second boost");
+        store.apply_datoms(&datoms2);
+        let boost2 = block_hebbian_boost(&store, label);
+        assert!(
+            (boost2 - 2.0).abs() < 0.001,
+            "second boost should be 2.0, got {}",
+            boost2
+        );
+    }
+
+    #[test]
+    fn acquisition_score_increases_with_hebbian_boost() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test:att");
+
+        // Baseline: score without any boost
+        let base_score = {
+            let count = block_presentation_count(&store, "test-block");
+            let novelty = crate::budget::novelty_from_count(count);
+            let boost = block_hebbian_boost(&store, "test-block").clamp(0.0, 0.5);
+            let impact = (0.4 + boost).min(1.0); // Speculative baseline = 0.4
+            crate::budget::AcquisitionScore::from_factors(
+                crate::budget::ObservationKind::ContextBlock,
+                impact,
+                1.0,
+                novelty,
+                1.0,
+                crate::budget::ObservationCost::from_tokens(10),
+            )
+        };
+
+        // Add hebbian boost
+        let tx = TxId::new(300, 0, agent);
+        let datoms = record_hebbian_boosts(&store, &["test-block"], tx);
+        store.apply_datoms(&datoms);
+
+        // Boosted: score should be higher
+        let boosted_score = {
+            let count = block_presentation_count(&store, "test-block");
+            let novelty = crate::budget::novelty_from_count(count);
+            let boost = block_hebbian_boost(&store, "test-block").clamp(0.0, 0.5);
+            let impact = (0.4 + boost).min(1.0);
+            crate::budget::AcquisitionScore::from_factors(
+                crate::budget::ObservationKind::ContextBlock,
+                impact,
+                1.0,
+                novelty,
+                1.0,
+                crate::budget::ObservationCost::from_tokens(10),
+            )
+        };
+
+        assert!(
+            boosted_score.impact > base_score.impact,
+            "boosted impact {} should exceed base impact {}",
+            boosted_score.impact,
+            base_score.impact
+        );
+        assert!(
+            boosted_score.expected_delta_fs > base_score.expected_delta_fs,
+            "boosted expected_delta_fs {} should exceed base {}",
+            boosted_score.expected_delta_fs,
+            base_score.expected_delta_fs
+        );
+    }
+
+    #[test]
+    fn hebbian_boost_clamped_at_half() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test:att");
+        let label = "clamp-test";
+
+        // Add 10 boosts (total raw boost = 10.0)
+        for i in 0u64..10 {
+            let tx = TxId::new(400 + i, 0, agent);
+            let datoms = record_hebbian_boosts(&store, &[label], tx);
+            store.apply_datoms(&datoms);
+        }
+
+        let raw_boost = block_hebbian_boost(&store, label);
+        assert!(
+            (raw_boost - 10.0).abs() < 0.001,
+            "raw boost should be 10.0, got {}",
+            raw_boost
+        );
+
+        // But clamped boost should be 0.5
+        let clamped = raw_boost.clamp(0.0, 0.5);
+        assert!(
+            (clamped - 0.5).abs() < 0.001,
+            "clamped boost should be 0.5, got {}",
+            clamped
+        );
+    }
+
+    #[test]
+    fn extract_verbose_only_labels_separates_budgets() {
+        use crate::budget::{ContextBlock, OutputPrecedence};
+
+        let blocks = vec![
+            ContextBlock::new_scored(OutputPrecedence::System, "store: 100 datoms".into(), 15),
+            ContextBlock::new_scored(OutputPrecedence::Methodology, "coherence: F=0.62".into(), 25),
+            ContextBlock::new_scored(OutputPrecedence::Methodology, "boundaries: spec 0.90".into(), 12),
+            ContextBlock::new_scored(OutputPrecedence::UserRequested, "tasks: 10 open".into(), 18),
+            ContextBlock::new_scored(OutputPrecedence::Methodology, "harvest: 3 tx".into(), 10),
+            ContextBlock::new_scored(OutputPrecedence::Speculative, "gaps: 5 uncrystallized".into(), 15),
+            ContextBlock::new_scored(OutputPrecedence::Methodology, "session: +2 tasks".into(), 12),
+        ];
+
+        // Navigate budget = 100 tokens
+        // Blocks fit: store(15) + coherence(25) + boundaries(12) + tasks(18) + harvest(10) + gaps(15) = 95
+        // Verbose-only: session(12) would push to 107, exceeding 100
+        let navigate_budget = 100;
+        let verbose_only = extract_verbose_only_labels(&blocks, navigate_budget);
+
+        // The first 6 blocks fit (95 tokens), the 7th (session, 12 tokens) exceeds budget
+        assert!(
+            verbose_only.contains(&"session".to_string()),
+            "session block should be verbose-only, got: {:?}",
+            verbose_only
+        );
+        assert!(
+            !verbose_only.contains(&"store".to_string()),
+            "store block should NOT be verbose-only"
+        );
+        assert!(
+            !verbose_only.contains(&"coherence".to_string()),
+            "coherence block should NOT be verbose-only"
+        );
+    }
 }

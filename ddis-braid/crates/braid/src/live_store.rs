@@ -674,4 +674,340 @@ mod tests {
             "fitness must be in [0,1], got {f}"
         );
     }
+
+    /// Backward compat: bincode round-trip stability.
+    /// Create store, write 3 txns, flush, reopen — datom counts must match.
+    #[test]
+    fn old_store_bin_readable() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+
+        let expected_len;
+        {
+            let mut live = LiveStore::create(&braid_path).unwrap();
+            let agent = braid_kernel::datom::AgentId::from_name("test:compat-bin");
+
+            for i in 0..3 {
+                let tx_id = braid_kernel::datom::TxId::new(7000 + i, 0, agent);
+                let entity = braid_kernel::datom::EntityId::from_ident(
+                    &format!(":test/compat-bin-{i}"),
+                );
+                let datom = braid_kernel::datom::Datom::new(
+                    entity,
+                    braid_kernel::datom::Attribute::from_keyword(":db/doc"),
+                    braid_kernel::datom::Value::String(format!("compat bin {i}")),
+                    tx_id,
+                    braid_kernel::datom::Op::Assert,
+                );
+                let tx_file = braid_kernel::layout::TxFile {
+                    tx_id,
+                    agent,
+                    provenance: braid_kernel::datom::ProvenanceType::Derived,
+                    rationale: format!("compat bin test {i}"),
+                    causal_predecessors: vec![],
+                    datoms: vec![datom],
+                };
+                live.write_tx(&tx_file).unwrap();
+            }
+
+            live.flush().unwrap();
+            expected_len = live.store().len();
+
+            // Verify cache file was actually written.
+            let cache_path = braid_path.join(".cache").join("store.bin");
+            assert!(cache_path.exists(), "store.bin must exist after flush");
+
+            // Record cache bytes for sanity — non-empty.
+            let cache_bytes = std::fs::metadata(&cache_path).unwrap().len();
+            assert!(cache_bytes > 0, "store.bin must be non-empty");
+        }
+        // LiveStore dropped — now reopen from the persisted cache.
+        let reopened = LiveStore::open(&braid_path).unwrap();
+        assert_eq!(
+            reopened.store().len(),
+            expected_len,
+            "old_store_bin_readable: reopened store must have same datom count"
+        );
+    }
+
+    /// Backward compat: LiveStore and DiskLayout produce identical stores.
+    /// Write N datoms via LiveStore, flush, then open via DiskLayout::open().load_store()
+    /// (the legacy path). Both must produce identical datom counts.
+    #[test]
+    fn round_trip_compat() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+
+        let live_len;
+        {
+            let mut live = LiveStore::create(&braid_path).unwrap();
+            let agent = braid_kernel::datom::AgentId::from_name("test:compat-rt");
+
+            for i in 0..5 {
+                let tx_id = braid_kernel::datom::TxId::new(8000 + i, 0, agent);
+                let entity = braid_kernel::datom::EntityId::from_ident(
+                    &format!(":test/compat-rt-{i}"),
+                );
+                let datom = braid_kernel::datom::Datom::new(
+                    entity,
+                    braid_kernel::datom::Attribute::from_keyword(":db/doc"),
+                    braid_kernel::datom::Value::String(format!("compat rt {i}")),
+                    tx_id,
+                    braid_kernel::datom::Op::Assert,
+                );
+                let tx_file = braid_kernel::layout::TxFile {
+                    tx_id,
+                    agent,
+                    provenance: braid_kernel::datom::ProvenanceType::Derived,
+                    rationale: format!("compat rt test {i}"),
+                    causal_predecessors: vec![],
+                    datoms: vec![datom],
+                };
+                live.write_tx(&tx_file).unwrap();
+            }
+            live.flush().unwrap();
+            live_len = live.store().len();
+        }
+
+        // Open via the old DiskLayout path — this is the legacy codepath
+        // that predates LiveStore.
+        let layout = DiskLayout::open(&braid_path).unwrap();
+        let disk_store = layout.load_store().unwrap();
+        assert_eq!(
+            disk_store.len(),
+            live_len,
+            "round_trip_compat: DiskLayout.load_store() must match LiveStore datom count"
+        );
+    }
+
+    /// Genesis datom stability: two fresh stores must have identical genesis datom counts.
+    /// The schema bootstrap is deterministic — same code produces same datoms.
+    #[test]
+    fn genesis_datom_stability() {
+        let tmp1 = tempfile::tempdir().unwrap();
+        let tmp2 = tempfile::tempdir().unwrap();
+        let path1 = tmp1.path().join(".braid");
+        let path2 = tmp2.path().join(".braid");
+
+        let live1 = LiveStore::create(&path1).unwrap();
+        let live2 = LiveStore::create(&path2).unwrap();
+
+        assert_eq!(
+            live1.store().len(),
+            live2.store().len(),
+            "genesis_datom_stability: two fresh stores must have identical datom counts"
+        );
+        // Both must be non-empty (genesis schema produces datoms).
+        assert!(
+            !live1.store().is_empty(),
+            "genesis store must not be empty"
+        );
+    }
+
+    // ── Property-based tests (LIVESTORE-TEST-ALGEBRAIC) ─────────────
+
+    use proptest::prelude::*;
+
+    /// Build a deterministic TxFile from a unique wall-time integer.
+    /// Each wall_time produces a unique entity + tx, avoiding content-addressed collisions.
+    fn arb_datom_tx(wall_time: u64) -> braid_kernel::layout::TxFile {
+        let agent = braid_kernel::datom::AgentId::from_name("test:prop");
+        let tx_id = braid_kernel::datom::TxId::new(wall_time, 0, agent);
+        let ident = format!(":test/prop-{wall_time}");
+        let entity = braid_kernel::datom::EntityId::from_ident(&ident);
+        let datom = braid_kernel::datom::Datom::new(
+            entity,
+            braid_kernel::datom::Attribute::from_keyword(":db/doc"),
+            braid_kernel::datom::Value::String(format!("proptest value {wall_time}")),
+            tx_id,
+            braid_kernel::datom::Op::Assert,
+        );
+        braid_kernel::layout::TxFile {
+            tx_id,
+            agent,
+            provenance: braid_kernel::datom::ProvenanceType::Derived,
+            rationale: format!("proptest {wall_time}"),
+            causal_predecessors: vec![],
+            datoms: vec![datom],
+        }
+    }
+
+    proptest! {
+        #![proptest_config(ProptestConfig::with_cases(256))]
+
+        /// INV-STORE-020: After flush, the LiveStore's in-memory datom count
+        /// must equal a full rebuild from transaction files via load_store().
+        #[test]
+        fn checkpoint_equals_fold(count in 1usize..=20) {
+            let tmp = tempfile::tempdir().unwrap();
+            let braid_path = tmp.path().join(".braid");
+            let mut live = LiveStore::create(&braid_path).unwrap();
+
+            for i in 0..count {
+                let tx = arb_datom_tx(10_000 + i as u64);
+                live.write_tx(&tx).unwrap();
+            }
+            live.flush().unwrap();
+
+            let layout = DiskLayout::open(&braid_path).unwrap();
+            let rebuilt = layout.load_store().unwrap();
+            prop_assert_eq!(
+                live.store().len(),
+                rebuilt.len(),
+                "INV-STORE-020: flushed LiveStore must match full rebuild"
+            );
+        }
+
+        /// C4 (approximate): For any two transactions, applying A then B via
+        /// write_tx must produce the same datom count as applying B then A.
+        /// This tests commutativity of apply_datoms for disjoint transactions.
+        #[test]
+        fn commutativity_of_apply(seed_a in 20_000u64..30_000, seed_b in 30_000u64..40_000) {
+            let tx_a = arb_datom_tx(seed_a);
+            let tx_b = arb_datom_tx(seed_b);
+
+            // Order 1: A then B
+            let tmp1 = tempfile::tempdir().unwrap();
+            let path1 = tmp1.path().join(".braid");
+            let mut live1 = LiveStore::create(&path1).unwrap();
+            live1.write_tx(&tx_a).unwrap();
+            live1.write_tx(&tx_b).unwrap();
+
+            // Order 2: B then A
+            let tmp2 = tempfile::tempdir().unwrap();
+            let path2 = tmp2.path().join(".braid");
+            let mut live2 = LiveStore::create(&path2).unwrap();
+            live2.write_tx(&tx_b).unwrap();
+            live2.write_tx(&tx_a).unwrap();
+
+            prop_assert_eq!(
+                live1.store().len(),
+                live2.store().len(),
+                "C4: datom count must be order-independent"
+            );
+        }
+
+        /// C1: For any sequence of assert-only transactions, the datom count
+        /// is monotonically non-decreasing after each write.
+        #[test]
+        fn monotonic_growth_proptest(count in 1usize..=50) {
+            let tmp = tempfile::tempdir().unwrap();
+            let braid_path = tmp.path().join(".braid");
+            let mut live = LiveStore::create(&braid_path).unwrap();
+
+            let mut prev = live.store().len();
+            for i in 0..count {
+                let tx = arb_datom_tx(50_000 + i as u64);
+                live.write_tx(&tx).unwrap();
+                let curr = live.store().len();
+                prop_assert!(
+                    curr >= prev,
+                    "C1: datom count must be non-decreasing: {} -> {} at step {}",
+                    prev, curr, i
+                );
+                prev = curr;
+            }
+        }
+
+        /// Crash safety: For any sequence of transactions, deleting the binary
+        /// cache after writes and reopening must recover the same datom count
+        /// from transaction files alone.
+        #[test]
+        fn crash_recovery_proptest(count in 1usize..=10) {
+            let tmp = tempfile::tempdir().unwrap();
+            let braid_path = tmp.path().join(".braid");
+
+            let expected_len;
+            {
+                let mut live = LiveStore::create(&braid_path).unwrap();
+                for i in 0..count {
+                    let tx = arb_datom_tx(60_000 + i as u64);
+                    live.write_tx(&tx).unwrap();
+                }
+                live.flush().unwrap();
+                expected_len = live.store().len();
+            }
+
+            // Delete cache to simulate crash before flush.
+            let cache_dir = braid_path.join(".cache");
+            if cache_dir.is_dir() {
+                for entry in std::fs::read_dir(&cache_dir).unwrap() {
+                    let entry = entry.unwrap();
+                    if entry.path().extension().map(|x| x == "bin").unwrap_or(false) {
+                        std::fs::remove_file(entry.path()).unwrap();
+                    }
+                }
+            }
+
+            let recovered = LiveStore::open(&braid_path).unwrap();
+            prop_assert_eq!(
+                recovered.store().len(),
+                expected_len,
+                "Crash recovery: rebuilt store must match pre-crash datom count"
+            );
+        }
+
+        /// flush() is idempotent: calling it twice with no intervening writes
+        /// produces the same store state as calling it once.
+        #[test]
+        fn flush_idempotent(count in 1usize..=15) {
+            let tmp = tempfile::tempdir().unwrap();
+            let braid_path = tmp.path().join(".braid");
+            let mut live = LiveStore::create(&braid_path).unwrap();
+
+            for i in 0..count {
+                let tx = arb_datom_tx(70_000 + i as u64);
+                live.write_tx(&tx).unwrap();
+            }
+
+            live.flush().unwrap();
+            let len_after_first = live.store().len();
+            let dirty_after_first = live.is_dirty();
+
+            live.flush().unwrap();
+            let len_after_second = live.store().len();
+            let dirty_after_second = live.is_dirty();
+
+            prop_assert_eq!(
+                len_after_first, len_after_second,
+                "flush idempotent: datom count must not change between flushes"
+            );
+            prop_assert!(!dirty_after_first, "dirty flag must be false after first flush");
+            prop_assert!(!dirty_after_second, "dirty flag must be false after second flush");
+        }
+
+        /// refresh_if_needed() must detect externally written transactions
+        /// (via DiskLayout) and increase the store's datom count.
+        #[test]
+        fn refresh_after_external_write(count in 1usize..=10) {
+            let tmp = tempfile::tempdir().unwrap();
+            let braid_path = tmp.path().join(".braid");
+            let mut live = LiveStore::create(&braid_path).unwrap();
+
+            let before = live.store().len();
+
+            // Write transactions externally via DiskLayout (simulating another process).
+            for i in 0..count {
+                let tx = arb_datom_tx(80_000 + i as u64);
+                live.layout().write_tx_no_invalidate(&tx).unwrap();
+            }
+
+            // LiveStore should not yet see the external writes.
+            prop_assert_eq!(
+                live.store().len(),
+                before,
+                "external writes must not be visible before refresh"
+            );
+
+            // After refresh, the store must have grown.
+            let refreshed = live.refresh_if_needed().unwrap();
+            prop_assert!(refreshed, "refresh must detect external writes");
+            prop_assert!(
+                live.store().len() > before,
+                "store must grow after refresh: {} -> {}",
+                before,
+                live.store().len()
+            );
+        }
+    }
 }

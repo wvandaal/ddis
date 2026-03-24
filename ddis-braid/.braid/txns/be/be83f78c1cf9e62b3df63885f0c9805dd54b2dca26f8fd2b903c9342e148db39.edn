@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774360143/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-065fdbaa"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/close-reason :v "Hebbian boost: verbose detection writes :attention/hebbian-boost, clamped to 0.5, feeds AcquisitionScore. 5 tests. Decay is follow-up." :op :assert}
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/closed-at :v 1774360136 :op :assert}
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/status :v :task.status/closed :op :assert}
+ ]}

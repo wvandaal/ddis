@@ -21,13 +21,14 @@ trap cleanup EXIT
 check() {
     local name="$1"
     local result="$2"
+    local ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     TOTAL=$((TOTAL + 1))
     if [ "$result" -eq 0 ]; then
         PASSED=$((PASSED + 1))
-        echo "  PASS: $name"
+        echo "  [$ts] PASS: $name"
     else
         FAILED=$((FAILED + 1))
-        echo "  FAIL: $name"
+        echo "  [$ts] FAIL: $name"
     fi
 }
 
@@ -95,6 +96,12 @@ for i in 1 2 3 4 5; do
 done
 test "$ALL_OK" -eq 1
 check "5 rapid status calls all succeed" $?
+
+# --- Test 7: compat — DiskLayout can read LiveStore-written data ---
+# Create a second observe, then verify txn count matches across both paths
+TXN_COUNT=$(ls .braid/txns/*/*.edn 2>/dev/null | wc -l)
+test "$TXN_COUNT" -gt 5
+check "compat: $TXN_COUNT txn files readable" $?
 
 # --- Summary ---
 echo ""

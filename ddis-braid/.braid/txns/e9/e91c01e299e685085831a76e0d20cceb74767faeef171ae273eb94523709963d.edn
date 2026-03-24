@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774360136/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-06215eb2"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/close-reason :v "Bridge guidance actions in routing.rs. 5 tests. ask: prefix, unified alpha ranking, ActionCategory::Investigate." :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/closed-at :v 1774360133 :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "5d6040216c86ab8e4c1d6289ca8c6236c90bf4c25d76748bb3f7cf125dbaa9bd" :a :task/status :v :task.status/closed :op :assert}
+ ]}
