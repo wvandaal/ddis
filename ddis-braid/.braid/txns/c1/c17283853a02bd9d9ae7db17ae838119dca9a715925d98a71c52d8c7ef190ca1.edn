@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774385270/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-CONVERGENCE-004 \"Meta-Learning Pattern Transfer\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "05c46be98217db760a658f502f3243eaa2d0176658053a7156efea7e128828e1" :a :db/ident :v :task/t-8bdd3e96 :op :assert}
+   {:e #blake3 "05c46be98217db760a658f502f3243eaa2d0176658053a7156efea7e128828e1" :a :task/created-at :v 1774385269 :op :assert}
+   {:e #blake3 "05c46be98217db760a658f502f3243eaa2d0176658053a7156efea7e128828e1" :a :task/id :v "t-8bdd3e96" :op :assert}
+   {:e #blake3 "05c46be98217db760a658f502f3243eaa2d0176658053a7156efea7e128828e1" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "05c46be98217db760a658f502f3243eaa2d0176658053a7156efea7e128828e1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "05c46be98217db760a658f502f3243eaa2d0176658053a7156efea7e128828e1" :a :task/title :v "Implement ADR-CONVERGENCE-004: Meta-Learning Pattern Transfer" :op :assert}
+   {:e #blake3 "05c46be98217db760a658f502f3243eaa2d0176658053a7156efea7e128828e1" :a :task/traces-to :v #blake3 "52efc65ab7312ccd576e797bcb25c62be507e0ee26e57eaab4bc308be189dec1" :op :assert}
+   {:e #blake3 "05c46be98217db760a658f502f3243eaa2d0176658053a7156efea7e128828e1" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "52efc65ab7312ccd576e797bcb25c62be507e0ee26e57eaab4bc308be189dec1" :a :adr/decision :v "Track hypothesis PhrasingPattern outcomes alongside predictions in the hypothesis ledger. Patterns: FilePathGrounded, FalsificationFramed, ObservationTextReusing, CrossPackageBridging, VoidExploring, BroadExploratory, SpecIdReferencing. Per-pattern accuracy calibrated from outcomes. Patterns transfer across projects via CRDT merge of :meta/phrasing-pattern datoms. Level 3 learning: not WHAT to know but HOW to learn." :op :assert}
+   {:e #blake3 "52efc65ab7312ccd576e797bcb25c62be507e0ee26e57eaab4bc308be189dec1" :a :adr/problem :v "Hypothesis ledger tracks predicted vs actual delta-F(S) but does not model WHY some hypotheses work better than others. No questioning strategy transfer between projects." :op :assert}
+   {:e #blake3 "52efc65ab7312ccd576e797bcb25c62be507e0ee26e57eaab4bc308be189dec1" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "52efc65ab7312ccd576e797bcb25c62be507e0ee26e57eaab4bc308be189dec1" :a :db/doc :v "Meta-Learning Pattern Transfer" :op :assert}
+   {:e #blake3 "52efc65ab7312ccd576e797bcb25c62be507e0ee26e57eaab4bc308be189dec1" :a :db/ident :v :spec/adr-convergence-004 :op :assert}
+   {:e #blake3 "52efc65ab7312ccd576e797bcb25c62be507e0ee26e57eaab4bc308be189dec1" :a :element/traces-to :v "ADR-CONVERGENCE-001,ADR-FOUNDATION-030" :op :assert}
+   {:e #blake3 "52efc65ab7312ccd576e797bcb25c62be507e0ee26e57eaab4bc308be189dec1" :a :spec/confidence :v 0.85 :op :assert}
+   {:e #blake3 "52efc65ab7312ccd576e797bcb25c62be507e0ee26e57eaab4bc308be189dec1" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "52efc65ab7312ccd576e797bcb25c62be507e0ee26e57eaab4bc308be189dec1" :a :spec/id :v "ADR-CONVERGENCE-004" :op :assert}
+   {:e #blake3 "52efc65ab7312ccd576e797bcb25c62be507e0ee26e57eaab4bc308be189dec1" :a :spec/namespace :v :spec.ns/CONVERGENCE :op :assert}
+ ]}

@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774385275/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Link CE-COGNITION to spec"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7fdaab95da98bbacfbd426a3c9ee53e55ffc4c16c8ae6c9101e9fc795581c6b6" :a :task/traces-to :v :spec/adr-convergence-002 :op :assert}
+ ]}

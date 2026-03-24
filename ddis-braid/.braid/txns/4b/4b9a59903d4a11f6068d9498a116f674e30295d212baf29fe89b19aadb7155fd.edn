@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774385206/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "CE-OAR FORMULA FIX: The dampening formula in CE-OAR step (4) is INVERTED. dampening_factor = 0.3 * (1.0 - max_overlap) produces LESS dampening when overlap is HIGH (opposite of intent). CORRECT formula: dampening_factor = max(0.1, 1.0 - 0.7 * max_overlap). At max_overlap=1.0: factor=0.3 (heavy dampening). At max_overlap=0.0: factor=1.0 (no dampening). At max_overlap=0.5: factor=0.65 (moderate). This ensures explored tasks sink while unexplored tasks maintain their base impact."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3c10319f94c59a04de4f63876c211a8b93a7428bb546e1681f0d0be828b90365" :a :db/doc :v "CE-OAR FORMULA FIX: The dampening formula in CE-OAR step (4) is INVERTED. dampening_factor = 0.3 * (1.0 - max_overlap) produces LESS dampening when overlap is HIGH (opposite of intent). CORRECT formula: dampening_factor = max(0.1, 1.0 - 0.7 * max_overlap). At max_overlap=1.0: factor=0.3 (heavy dampening). At max_overlap=0.0: factor=1.0 (no dampening). At max_overlap=0.5: factor=0.65 (moderate). This ensures explored tasks sink while unexplored tasks maintain their base impact." :op :assert}
+   {:e #blake3 "3c10319f94c59a04de4f63876c211a8b93a7428bb546e1681f0d0be828b90365" :a :db/ident :v :observation/ce-oar-formula-fix-the-dampening-formula-in-ce-oar-step-4 :op :assert}
+   {:e #blake3 "3c10319f94c59a04de4f63876c211a8b93a7428bb546e1681f0d0be828b90365" :a :exploration/body :v "CE-OAR FORMULA FIX: The dampening formula in CE-OAR step (4) is INVERTED. dampening_factor = 0.3 * (1.0 - max_overlap) produces LESS dampening when overlap is HIGH (opposite of intent). CORRECT formula: dampening_factor = max(0.1, 1.0 - 0.7 * max_overlap). At max_overlap=1.0: factor=0.3 (heavy dampening). At max_overlap=0.0: factor=1.0 (no dampening). At max_overlap=0.5: factor=0.65 (moderate). This ensures explored tasks sink while unexplored tasks maintain their base impact." :op :assert}
+   {:e #blake3 "3c10319f94c59a04de4f63876c211a8b93a7428bb546e1681f0d0be828b90365" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "3c10319f94c59a04de4f63876c211a8b93a7428bb546e1681f0d0be828b90365" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "3c10319f94c59a04de4f63876c211a8b93a7428bb546e1681f0d0be828b90365" :a :exploration/content-hash :v #bytes "0d90540452e35a1bbcb06c47afc9371bea2bf08274b83c2a83a6210cf31e259a" :op :assert}
+   {:e #blake3 "3c10319f94c59a04de4f63876c211a8b93a7428bb546e1681f0d0be828b90365" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "3c10319f94c59a04de4f63876c211a8b93a7428bb546e1681f0d0be828b90365" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "3c10319f94c59a04de4f63876c211a8b93a7428bb546e1681f0d0be828b90365" :a :exploration/source-session :v #blake3 "d4b029fbb637108130d66360d9f72303db26d9bb231930a50fd6dfebfc9b7cd7" :op :assert}
+ ]}

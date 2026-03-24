@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774385180/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-877bb2c6"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7ea4007493b74fa1a18c3e1fbc10141f6bc4e896a1d44d8feadcc0f844c76d68" :a :task/close-reason :v "Superseded by CE-* task hierarchy (Session 041 Convergence Engine)" :op :assert}
+   {:e #blake3 "7ea4007493b74fa1a18c3e1fbc10141f6bc4e896a1d44d8feadcc0f844c76d68" :a :task/closed-at :v 1774385178 :op :assert}
+   {:e #blake3 "7ea4007493b74fa1a18c3e1fbc10141f6bc4e896a1d44d8feadcc0f844c76d68" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "7ea4007493b74fa1a18c3e1fbc10141f6bc4e896a1d44d8feadcc0f844c76d68" :a :task/status :v :task.status/closed :op :assert}
+ ]}
