@@ -1,0 +1,13 @@
+{:tx/id #hlc "1774386557/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b9a0614fdbbfc262b8af9361c4ff78bceca236edc2c8c23aee79c21d70b63424" :a :db/ident :v :recon/trace-a3cad6b2774f8415 :op :assert}
+   {:e #blake3 "b9a0614fdbbfc262b8af9361c4ff78bceca236edc2c8c23aee79c21d70b63424" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "b9a0614fdbbfc262b8af9361c4ff78bceca236edc2c8c23aee79c21d70b63424" :a :recon/trace-neighborhood :v "CONVERGENCE" :op :assert}
+   {:e #blake3 "b9a0614fdbbfc262b8af9361c4ff78bceca236edc2c8c23aee79c21d70b63424" :a :recon/trace-neighbors :v ":task/t-5db2efb0" :op :assert}
+   {:e #blake3 "b9a0614fdbbfc262b8af9361c4ff78bceca236edc2c8c23aee79c21d70b63424" :a :recon/trace-neighbors :v ":task/t-f78362d7" :op :assert}
+   {:e #blake3 "b9a0614fdbbfc262b8af9361c4ff78bceca236edc2c8c23aee79c21d70b63424" :a :recon/trace-refs :v "INV-CONVERGENCE-007" :op :assert}
+ ]}
