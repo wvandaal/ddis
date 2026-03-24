@@ -1040,12 +1040,16 @@ fn encode_hex(bytes: &[u8]) -> String {
     s
 }
 
-/// Truncate a string to at most `max_len` characters, appending "..." if truncated.
+/// Truncate a string to at most `max_len` bytes, appending "..." if truncated.
+///
+/// Uses [`braid_kernel::budget::safe_truncate_bytes`] to avoid panics on
+/// multi-byte UTF-8 characters (em-dash, smart quotes, emoji, etc.).
 fn truncate(s: &str, max_len: usize) -> String {
     if s.len() <= max_len {
         s.to_string()
     } else {
-        format!("{}...", &s[..max_len.saturating_sub(3)])
+        let truncated = braid_kernel::budget::safe_truncate_bytes(s, max_len.saturating_sub(3));
+        format!("{truncated}...")
     }
 }
 

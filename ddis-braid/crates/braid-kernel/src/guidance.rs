@@ -5861,6 +5861,14 @@ mod tests {
                     tx,
                     Op::Assert,
                 ));
+                // :spec/element-type required for C8-FIX-5 spec-aware project detection
+                datoms.insert(Datom::new(
+                    EntityId::from_ident(&format!(":spec/inv-test-{i:03}")),
+                    Attribute::from_keyword(":spec/element-type"),
+                    Value::Keyword(":invariant".to_string()),
+                    tx,
+                    Op::Assert,
+                ));
             }
         }
 
@@ -5937,6 +5945,14 @@ mod tests {
                     tx,
                     Op::Assert,
                 ));
+                // :spec/element-type required for C8-FIX-5 spec-aware project detection
+                datoms.insert(Datom::new(
+                    EntityId::from_ident(&format!(":spec/inv-new-{i:03}")),
+                    Attribute::from_keyword(":spec/element-type"),
+                    Value::Keyword(":invariant".to_string()),
+                    tx,
+                    Op::Assert,
+                ));
             }
         }
 
@@ -5985,6 +6001,18 @@ mod tests {
             Op::Assert,
         ));
 
+        // :spec/element-type required for C8-FIX-5 spec-aware project detection
+        // Without this, the external-project fallback gives full credit instead of
+        // counting individual spec language turns.
+        let spec_tx = TxId::new(harvest_wall - 1, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":spec/inv-merge-001"),
+            Attribute::from_keyword(":spec/element-type"),
+            Value::Keyword(":invariant".to_string()),
+            spec_tx,
+            Op::Assert,
+        ));
+
         // Add a task with a spec ref in the title (after harvest).
         let tx1 = TxId::new(harvest_wall + 1, 0, agent);
         datoms.insert(Datom::new(
@@ -6011,7 +6039,7 @@ mod tests {
         // total_turns = 2 (two distinct wall_times after harvest)
         assert_eq!(telemetry.total_turns, 2);
         // spec_language_turns should be 1: the task with INV- in its title.
-        // (No :spec/ entities, no observations, no :impl/implements.)
+        // (The :spec/inv-merge-001 entity is pre-harvest so doesn't count as a session turn.)
         assert_eq!(
             telemetry.spec_language_turns, 1,
             "task with INV-MERGE-001 in title should count as a spec language turn"
@@ -6035,6 +6063,18 @@ mod tests {
             Attribute::from_keyword(":harvest/agent"),
             Value::String("test".to_string()),
             harvest_tx,
+            Op::Assert,
+        ));
+
+        // :spec/element-type required for C8-FIX-5 spec-aware project detection
+        // Without this, the external-project fallback gives full credit instead of
+        // counting individual spec language turns.
+        let spec_tx = TxId::new(harvest_wall - 1, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":spec/adr-guidance-003"),
+            Attribute::from_keyword(":spec/element-type"),
+            Value::Keyword(":adr".to_string()),
+            spec_tx,
             Op::Assert,
         ));
 

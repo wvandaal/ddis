@@ -333,8 +333,9 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         let task_title_full = braid_kernel::task::short_title(args.text).to_string();
         // EXT-BUG-3: Truncate to ~80 chars on word boundary for readable task listings.
         // Full observation text goes into :task/body.
+        // CE-FIX BUG-1: Use safe_truncate_bytes to avoid panics on multi-byte UTF-8.
         let task_title = if task_title_full.len() > 80 {
-            let truncated = &task_title_full[..80];
+            let truncated = braid_kernel::budget::safe_truncate_bytes(&task_title_full, 80);
             match truncated.rfind(' ') {
                 Some(pos) if pos > 20 => task_title_full[..pos].to_string(),
                 _ => truncated.to_string(),
@@ -580,13 +581,13 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     let summary = if !cotx_entities.is_empty() {
         let types: Vec<&str> = cotx_entities.iter().map(|(t, _)| t.as_str()).collect();
         format!(
-            "observed + cotx[{}]: (confidence={:.1}, category={cat_short}, +{datom_count} datoms)",
+            "observed + cotx[{}]: (confidence={:.2}, category={cat_short}, +{datom_count} datoms)",
             types.join(","),
             args.confidence,
         )
     } else {
         format!(
-            "observed: {ident} (confidence={:.1}, category={cat_short}, +{datom_count} datoms)",
+            "observed: {ident} (confidence={:.2}, category={cat_short}, +{datom_count} datoms)",
             args.confidence,
         )
     };

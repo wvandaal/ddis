@@ -401,9 +401,12 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
     // session-scoped), the project doesn't use DDIS spec format. In that case:
     // - If observations or tasks exist → spec_language_ratio = 1.0 (process is active)
     // - If store is empty → spec_language_ratio = 0.0 (no methodology at all)
-    let store_has_spec_datoms = store
-        .datoms()
-        .any(|d| d.attribute.as_str() == ":spec/element-type" && d.op == Op::Assert);
+    let store_has_spec_datoms = store.datoms().any(|d| {
+        d.op == Op::Assert
+            && (d.attribute.as_str() == ":spec/element-type"
+                || (d.attribute.as_str() == ":db/ident"
+                    && matches!(&d.value, Value::Keyword(k) if k.starts_with(":spec/"))))
+    });
     let total_spec = if store_has_spec_datoms {
         // Braid-like project: compute normally
         raw_total_spec

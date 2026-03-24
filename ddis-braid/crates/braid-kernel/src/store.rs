@@ -1066,6 +1066,20 @@ impl Store {
                     })
                     .or_insert((d.value.clone(), d.tx));
             }
+            // SOUND-LIVE-v2: Handle retractions in LIVE view.
+            // If the retracted value matches the current live_view entry and the
+            // retract tx >= the entry's tx, remove it. BTreeSet order guarantees
+            // (entity, attribute, value, tx, Assert < Retract), so for same (e,a,v,tx)
+            // the Assert is processed first. A bare retract with higher tx removes
+            // the ghost; a retract-then-assert in the same tx leaves the new value.
+            if d.op == Op::Retract {
+                let key = (d.entity, d.attribute.clone());
+                if let Some((existing_val, existing_tx)) = live_view.get(&key) {
+                    if *existing_val == d.value && d.tx >= *existing_tx {
+                        live_view.remove(&key);
+                    }
+                }
+            }
         }
 
         // CE-1: Set entity count for Phi normalization
@@ -1137,6 +1151,17 @@ impl Store {
                             }
                         })
                         .or_insert((d.value.clone(), d.tx));
+                }
+                // SOUND-LIVE-v2: Handle retractions in LIVE view.
+                // Remove the live_view entry if the retracted value matches and
+                // the retract tx >= the entry's tx (no ghost values).
+                if d.op == Op::Retract {
+                    let key = (d.entity, d.attribute.clone());
+                    if let Some((existing_val, existing_tx)) = self.live_view.get(&key) {
+                        if *existing_val == d.value && d.tx >= *existing_tx {
+                            self.live_view.remove(&key);
+                        }
+                    }
                 }
                 // Update frontier
                 let agent = d.tx.agent();
@@ -1306,6 +1331,15 @@ impl Store {
                             }
                         })
                         .or_insert((datom.value.clone(), datom.tx));
+                }
+                // SOUND-LIVE-v2: Handle retractions in LIVE view.
+                if datom.op == Op::Retract {
+                    let key = (datom.entity, datom.attribute.clone());
+                    if let Some((existing_val, existing_tx)) = self.live_view.get(&key) {
+                        if *existing_val == datom.value && datom.tx >= *existing_tx {
+                            self.live_view.remove(&key);
+                        }
+                    }
                 }
                 // Check if this entity is new (not in pre-existing set)
                 if !pre_existing.contains(&datom.entity) && !new_entities.contains(&datom.entity) {
@@ -1503,6 +1537,15 @@ impl Store {
                         }
                     })
                     .or_insert((d.value.clone(), d.tx));
+            }
+            // SOUND-LIVE-v2: Handle retractions in LIVE view (same logic as from_datoms).
+            if d.op == Op::Retract {
+                let key = (d.entity, d.attribute.clone());
+                if let Some((existing_val, existing_tx)) = self.live_view.get(&key) {
+                    if *existing_val == d.value && d.tx >= *existing_tx {
+                        self.live_view.remove(&key);
+                    }
+                }
             }
         }
         // CE-2: Update entity count for Phi normalization
@@ -5049,6 +5092,266 @@ mod tests {
         assert_eq!(
             ident_value, ident_b,
             "INV-STORE-004: commutativity — :db/ident must match regardless of merge direction"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // SOUND-LIVE-v2: LIVE view retraction correctness
+    // -----------------------------------------------------------------------
+
+    // Verifies: SOUND-LIVE-v2 acceptance (A) — retract-then-assert shows new value
+    #[test]
+    fn live_view_retract_then_assert_updates() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test:live");
+        let entity = EntityId::from_ident(":test/live-entity");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        // Tx1: assert V1
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "assert v1")
+            .assert(entity, attr.clone(), Value::String("V1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        assert_eq!(
+            store.live_value(entity, &attr),
+            Some(&Value::String("V1".into())),
+            "live_view should show V1 after first assert"
+        );
+
+        // Tx2: retract V1 + assert V2
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "retract v1, assert v2")
+            .retract(entity, attr.clone(), Value::String("V1".into()))
+            .assert(entity, attr.clone(), Value::String("V2".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        assert_eq!(
+            store.live_value(entity, &attr),
+            Some(&Value::String("V2".into())),
+            "live_view should show V2 after retract-then-assert"
+        );
+    }
+
+    // Verifies: SOUND-LIVE-v2 acceptance (B) — bare retract removes ghost
+    #[test]
+    fn live_view_bare_retract_removes_entry() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test:live");
+        let entity = EntityId::from_ident(":test/bare-retract");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        // Tx1: assert V1
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "assert v1")
+            .assert(entity, attr.clone(), Value::String("V1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        assert_eq!(
+            store.live_value(entity, &attr),
+            Some(&Value::String("V1".into())),
+        );
+
+        // Tx2: bare retract V1 (no new assert)
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "bare retract v1")
+            .retract(entity, attr.clone(), Value::String("V1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        assert_eq!(
+            store.live_value(entity, &attr),
+            None,
+            "live_view should be empty after bare retract — no ghost value"
+        );
+    }
+
+    // Verifies: SOUND-LIVE-v2 acceptance (C) — retract of wrong value is no-op
+    #[test]
+    fn live_view_retract_wrong_value_noop() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test:live");
+        let entity = EntityId::from_ident(":test/wrong-retract");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        // Tx1: assert V1
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "assert v1")
+            .assert(entity, attr.clone(), Value::String("V1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // Tx2: retract V2 (different value — should be no-op for live_view)
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "retract wrong value")
+            .retract(entity, attr.clone(), Value::String("V2".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        assert_eq!(
+            store.live_value(entity, &attr),
+            Some(&Value::String("V1".into())),
+            "live_view should still show V1 — retract of different value is no-op"
+        );
+    }
+
+    // Verifies: SOUND-LIVE-v2 acceptance (D) — from_datoms matches transact
+    #[test]
+    fn live_view_from_datoms_matches_transact() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test:live");
+        let entity = EntityId::from_ident(":test/from-datoms");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        // Tx1: assert V1
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "v1")
+            .assert(entity, attr.clone(), Value::String("V1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // Tx2: retract V1, assert V2
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "v2")
+            .retract(entity, attr.clone(), Value::String("V1".into()))
+            .assert(entity, attr.clone(), Value::String("V2".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        // Rebuild from datoms
+        let rebuilt = Store::from_datoms(store.datom_set().clone());
+
+        assert_eq!(
+            store.live_value(entity, &attr),
+            rebuilt.live_value(entity, &attr),
+            "live_view from transact must equal live_view from from_datoms"
+        );
+        assert_eq!(
+            rebuilt.live_value(entity, &attr),
+            Some(&Value::String("V2".into())),
+            "both paths should show V2"
+        );
+    }
+
+    // Verifies: SOUND-LIVE-v2 — bare retract also correct via from_datoms
+    #[test]
+    fn live_view_bare_retract_from_datoms() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test:live");
+        let entity = EntityId::from_ident(":test/bare-retract-fd");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        // Tx1: assert V1
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "v1")
+            .assert(entity, attr.clone(), Value::String("V1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // Tx2: bare retract V1
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "retract")
+            .retract(entity, attr.clone(), Value::String("V1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        // Rebuild from datoms
+        let rebuilt = Store::from_datoms(store.datom_set().clone());
+
+        assert_eq!(
+            store.live_value(entity, &attr),
+            None,
+            "transact path: bare retract should remove live_view entry"
+        );
+        assert_eq!(
+            rebuilt.live_value(entity, &attr),
+            None,
+            "from_datoms path: bare retract should remove live_view entry"
+        );
+    }
+
+    // Verifies: SOUND-LIVE-v2 — apply_datoms handles retractions
+    #[test]
+    fn live_view_apply_datoms_handles_retract() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test:live");
+        let entity = EntityId::from_ident(":test/apply-retract");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        // Tx1 via transact: assert V1
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "v1")
+            .assert(entity, attr.clone(), Value::String("V1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        assert_eq!(
+            store.live_value(entity, &attr),
+            Some(&Value::String("V1".into())),
+        );
+
+        // Build retract + assert datoms manually for apply_datoms.
+        // Use a wall_time far in the future to guarantee it's higher than any tx in the store.
+        let tx2_id = TxId::new(9_999_999_999, 1, agent);
+        let retract_datom = Datom::new(
+            entity,
+            attr.clone(),
+            Value::String("V1".into()),
+            tx2_id,
+            Op::Retract,
+        );
+        let assert_datom = Datom::new(
+            entity,
+            attr.clone(),
+            Value::String("V2".into()),
+            tx2_id,
+            Op::Assert,
+        );
+
+        store.apply_datoms(&[retract_datom, assert_datom]);
+
+        assert_eq!(
+            store.live_value(entity, &attr),
+            Some(&Value::String("V2".into())),
+            "apply_datoms should handle retract-then-assert correctly"
+        );
+    }
+
+    // Verifies: SOUND-LIVE-v2 — apply_datoms bare retract
+    #[test]
+    fn live_view_apply_datoms_bare_retract() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test:live");
+        let entity = EntityId::from_ident(":test/apply-bare");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        // Tx1 via transact: assert V1
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "v1")
+            .assert(entity, attr.clone(), Value::String("V1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // Apply bare retract via apply_datoms.
+        // Use a wall_time far in the future to guarantee it's higher than any tx in the store.
+        let tx2_id = TxId::new(9_999_999_998, 1, agent);
+        let retract_datom = Datom::new(
+            entity,
+            attr.clone(),
+            Value::String("V1".into()),
+            tx2_id,
+            Op::Retract,
+        );
+
+        store.apply_datoms(&[retract_datom]);
+
+        assert_eq!(
+            store.live_value(entity, &attr),
+            None,
+            "apply_datoms bare retract should remove live_view entry"
         );
     }
 }

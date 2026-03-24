@@ -1654,6 +1654,50 @@ mod tests {
         assert!(result.len() <= 8); // max 5 content + 3 "..."
     }
 
+    // CE-FIX BUG-1: Verify safe_truncate_bytes handles em-dash, smart quotes, emoji
+    // without panicking. These are the exact characters that caused the DOGFOOD-2 panic.
+    #[test]
+    fn truncate_bytes_emdash_and_special_chars() {
+        // Em-dash is 3 bytes (E2 80 94)
+        let s = "hello \u{2014} world"; // "hello — world"
+        assert_eq!(s.as_bytes()[6], 0xE2); // em-dash starts at byte 6
+        // Truncate at 7: lands inside em-dash → backs up to 6 ("hello ")
+        let t7 = safe_truncate_bytes(s, 7);
+        assert!(t7.is_char_boundary(t7.len()));
+        assert_eq!(t7, "hello ");
+        // Truncate at 8: still inside em-dash → backs up to 6
+        let t8 = safe_truncate_bytes(s, 8);
+        assert!(t8.is_char_boundary(t8.len()));
+        assert_eq!(t8, "hello ");
+        // Truncate at 9: after em-dash
+        let t9 = safe_truncate_bytes(s, 9);
+        assert_eq!(t9, "hello \u{2014}");
+
+        // En-dash (E2 80 93) — 3 bytes
+        let s2 = "pp. 1\u{2013}10"; // "pp. 1–10"
+        let t6 = safe_truncate_bytes(s2, 6);
+        assert!(t6.is_char_boundary(t6.len()));
+        assert_eq!(t6, "pp. 1");
+
+        // Smart quotes: \u{201C} = 3 bytes, \u{201D} = 3 bytes
+        let s3 = "said \u{201C}hello\u{201D}"; // said "hello"
+        let t6 = safe_truncate_bytes(s3, 6);
+        assert!(t6.is_char_boundary(t6.len()));
+        assert_eq!(t6, "said ");
+        let t8 = safe_truncate_bytes(s3, 8);
+        assert!(t8.is_char_boundary(t8.len()));
+        assert_eq!(t8, "said \u{201C}");
+
+        // Emoji: 4 bytes (F0 9F 8E 89)
+        let s4 = "test \u{1F389} done"; // "test 🎉 done"
+        let t6 = safe_truncate_bytes(s4, 6);
+        assert!(t6.is_char_boundary(t6.len()));
+        assert_eq!(t6, "test ");
+        let t9 = safe_truncate_bytes(s4, 9);
+        assert!(t9.is_char_boundary(t9.len()));
+        assert_eq!(t9, "test \u{1F389}");
+    }
+
     // ---- Attention decay ----
     // Verifies: ADR-BUDGET-002 — Piecewise Attention Decay
 

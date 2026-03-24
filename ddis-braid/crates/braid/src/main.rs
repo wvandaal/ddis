@@ -382,15 +382,24 @@ fn main() {
                         budget,
                     );
                     if !divergences.is_empty() {
-                        let types: Vec<String> = divergences
-                            .iter()
-                            .map(|(dt, _)| format!("{:?}", dt))
-                            .collect();
-                        eprintln!(
-                            "braid divergence \u{2014} {} active: {}",
-                            divergences.len(),
-                            types.join(", ")
-                        );
+                        let count = divergences.len();
+                        if count <= 5 {
+                            let types: Vec<String> = divergences
+                                .iter()
+                                .map(|(dt, _)| format!("{:?}", dt))
+                                .collect();
+                            eprintln!(
+                                "braid divergence \u{2014} {} active: {}",
+                                count,
+                                types.join(", ")
+                            );
+                        } else {
+                            // CE-FIX BUG-2: Compress noisy divergence footer when >5 types.
+                            eprintln!(
+                                "braid divergence \u{2014} {} active divergence types (use --verbose for details)",
+                                count,
+                            );
+                        }
                     }
                 }
             }
