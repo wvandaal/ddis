@@ -189,15 +189,16 @@ pub fn run(
         return Ok(CommandOutput { json, agent, human });
     }
 
-    let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
-    let hashes = layout.list_tx_hashes()?;
-    let tx_since_harvest = count_txns_since_last_harvest(&store);
+    // LIVESTORE-4: Use LiveStore for write-through persistence.
+    // Creates the store once, writes update it in-memory, flush on drop.
+    let mut live = crate::live_store::LiveStore::open(path)?;
+    let hashes = live.layout().list_tx_hashes()?;
+    let tx_since_harvest = count_txns_since_last_harvest(live.store());
 
     // Deep mode: bilateral F(S) + optional graph analytics
     if deep {
-        let deep_str = run_deep(path, &store, agent_name, spectral, full, commit)?;
-        let fitness = store.fitness();
+        let deep_str = run_deep(path, live.store(), agent_name, spectral, full, commit)?;
+        let fitness = live.store().fitness();
         let json = serde_json::json!({
             "mode": "deep",
             "fitness": fitness.total,
@@ -237,16 +238,12 @@ pub fn run(
     // PERF-2a: Compute R(t) routing + calibration ONCE for the entire status invocation.
     // Previously called 2-5x (compute_action_from_store, derive_actions R18, build_verbose,
     // build_json), each O(tasks × datoms) ≈ 10s on a 70K datom / 256 task store.
-    let (routings, calibration) = compute_routing_with_calibration(&store);
-
-    // PERF-2: Compute all expensive values once (was computed 2x in build_json + build_status_projection)
-    // PERF-3/4: Use layout cache for fitness/coherence acceleration
-    let snapshot = StatusSnapshot::compute_with_layout(&store, path, Some(&layout));
-
-    // ACP: Build the ActionProjection for status (INV-BUDGET-007)
+    // Phase 1: Compute all read-only values from live.store() (immutable borrow).
+    let (routings, calibration) = compute_routing_with_calibration(live.store());
+    let snapshot = StatusSnapshot::compute_with_layout(live.store(), path, None);
     let projection = build_status_projection(
         path,
-        &store,
+        live.store(),
         &hashes,
         tx_since_harvest,
         &snapshot,
@@ -254,17 +251,19 @@ pub fn run(
         &calibration,
     );
 
-    // UAQ-6 / ACP-TRACK-1: Record presentation counts for blocks that survive budget.
-    // Done here (not in maybe_inject_footer) because the store is already loaded.
-    // Other ACP commands track lazily on next status call.
+    // Phase 2: UAQ-6 write-through (mutable borrow).
+    // LIVESTORE-4: Uses live.write_tx() instead of layout.write_tx().
+    // No cache invalidation — the in-memory store is updated, dirty flag set,
+    // and store.bin written on flush/drop (INV-STORE-021).
     {
         let budget = braid_kernel::ActivationStrategy::Navigate.max_context_tokens();
         let labels = braid_kernel::extract_block_labels(&projection.context, budget);
         if !labels.is_empty() {
             let label_refs: Vec<&str> = labels.iter().map(|s| s.as_str()).collect();
             let agent = braid_kernel::datom::AgentId::from_name("braid:attention");
-            let tx = crate::commands::write::next_tx_id(&store, agent);
-            let datoms = braid_kernel::record_block_presentations(&store, &label_refs, tx);
+            let tx = crate::commands::write::next_tx_id(live.store(), agent);
+            let datoms =
+                braid_kernel::record_block_presentations(live.store(), &label_refs, tx);
             if !datoms.is_empty() {
                 let tx_file = braid_kernel::layout::TxFile {
                     tx_id: tx,
@@ -274,7 +273,7 @@ pub fn run(
                     causal_predecessors: vec![],
                     datoms,
                 };
-                let _ = layout.write_tx(&tx_file); // best-effort
+                let _ = live.write_tx(&tx_file); // write-through, no cache invalidation
             }
         }
     }
@@ -288,7 +287,8 @@ pub fn run(
         let total_all = open + in_progress + closed;
         let p_t = if total_all > 0 { closed as f64 / total_all as f64 } else { 0.0 };
         let registry = braid_kernel::default_boundaries();
-        let evals = registry.evaluate_all(&store);
+        let store = live.store();
+        let evals = registry.evaluate_all(store);
         let boundaries_json: Vec<serde_json::Value> = evals
             .iter()
             .map(|e| {
@@ -300,7 +300,7 @@ pub fn run(
             })
             .collect();
         let actions = derive_actions_with_precomputed(
-            &store, &routings, &snapshot.coherence, None,
+            store, &routings, &snapshot.coherence, None,
         );
         let actions_json: Vec<serde_json::Value> = actions
             .iter()
@@ -314,7 +314,7 @@ pub fn run(
                 })
             })
             .collect();
-        let session_boundary = braid_kernel::guidance::last_harvest_wall_time(&store);
+        let session_boundary = braid_kernel::guidance::last_harvest_wall_time(store);
         let session_tasks_closed = store
             .attribute_datoms(&Attribute::from_keyword(":task/status"))
             .iter()
@@ -327,7 +327,7 @@ pub fn run(
         let datom_delta = store
             .len()
             .saturating_sub(snapshot.session_start_datom_count);
-        let tx_since = count_txns_since_last_harvest(&store);
+        let tx_since = count_txns_since_last_harvest(store);
         let trend_str = match score.trend {
             Trend::Up => "up",
             Trend::Down => "down",
@@ -387,12 +387,12 @@ pub fn run(
         });
     }
 
-    // Build human representation
+    // Phase 3: Build output (immutable borrow again — safe after Phase 2).
     let human = if verbose {
         build_verbose(
             path,
             agent_name,
-            &store,
+            live.store(),
             &hashes,
             tx_since_harvest,
             &routings,
@@ -419,7 +419,7 @@ pub fn run(
     // Build JSON representation (deferred to non-json path to avoid redundant derive_actions)
     let json_value = build_json(StatusJsonParams {
         path,
-        store: &store,
+        store: live.store(),
         hashes: &hashes,
         tx_since_harvest,
         agent_name,
