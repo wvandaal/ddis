@@ -6,6 +6,7 @@ mod error;
 pub mod git;
 pub mod inject;
 pub mod layout;
+pub mod live_store;
 pub mod mcp;
 pub mod output;
 

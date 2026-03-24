@@ -169,6 +169,41 @@ impl DiskLayout {
         Ok(file_path)
     }
 
+    /// Write a transaction file without invalidating the cache.
+    ///
+    /// Used by [`LiveStore`] which manages its own in-memory state and
+    /// cache serialization via the dirty-flag pattern (INV-STORE-021).
+    /// The cache is not invalidated because LiveStore will update it
+    /// on `flush()` or `Drop`.
+    pub fn write_tx_no_invalidate(&self, tx: &TxFile) -> Result<TxFilePath, BraidError> {
+        let bytes = serialize_tx(tx);
+        let hash = ContentHash::of(&bytes);
+        let file_path = TxFilePath::from_hash(&hash);
+
+        let shard_dir = self.root.join("txns").join(&file_path.shard);
+        fs::create_dir_all(&shard_dir)?;
+
+        let full_path = shard_dir.join(&file_path.filename);
+
+        match fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&full_path)
+        {
+            Ok(mut file) => {
+                file.write_all(&bytes)?;
+                file.sync_all()?;
+                // No cache invalidation — LiveStore handles this.
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+                // Idempotent: same content, same hash, same file.
+            }
+            Err(e) => return Err(BraidError::Io(e)),
+        }
+
+        Ok(file_path)
+    }
+
     /// Invalidate the store cache so the next load picks up new transactions.
     ///
     /// Called after every write_tx() to prevent stale reads. The cache files
@@ -178,6 +213,13 @@ impl DiskLayout {
         let cache_dir = self.root.join(".cache");
         let _ = fs::remove_file(cache_dir.join("store.bin"));
         let _ = fs::remove_file(cache_dir.join("meta.json"));
+        // LIVESTORE-HOTFIX: Derived caches must also be invalidated.
+        // These use txn_fingerprint freshness checks but are NOT deleted
+        // by the old code, creating stale-data risk under concurrent writes.
+        // LIVESTORE-3 will eliminate these caches entirely.
+        let _ = fs::remove_file(cache_dir.join("fitness.json"));
+        let _ = fs::remove_file(cache_dir.join("coherence.json"));
+        let _ = fs::remove_file(cache_dir.join("analytics.json"));
     }
 
     /// Read a transaction file by its hash.
