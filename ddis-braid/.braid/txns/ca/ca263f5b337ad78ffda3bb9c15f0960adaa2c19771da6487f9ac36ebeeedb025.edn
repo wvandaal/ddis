@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774361971/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e7ea9a27be49dba7e717e681307eeb087751445f2b88e413e5b30e6f87b6c325" :a :db/ident :v :recon/trace-6a556d309baa212a :op :assert}
+   {:e #blake3 "e7ea9a27be49dba7e717e681307eeb087751445f2b88e413e5b30e6f87b6c325" :a :recon/trace-command :v "spec" :op :assert}
+   {:e #blake3 "e7ea9a27be49dba7e717e681307eeb087751445f2b88e413e5b30e6f87b6c325" :a :recon/trace-neighborhood :v "DAEMON" :op :assert}
+   {:e #blake3 "e7ea9a27be49dba7e717e681307eeb087751445f2b88e413e5b30e6f87b6c325" :a :recon/trace-neighbors :v ":task/t-0c9c8e74" :op :assert}
+   {:e #blake3 "e7ea9a27be49dba7e717e681307eeb087751445f2b88e413e5b30e6f87b6c325" :a :recon/trace-refs :v "ADR-DAEMON-003" :op :assert}
+ ]}

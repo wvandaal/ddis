@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774361979/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PREMORTEM-RISK-1: Stale lock after crash. If daemon is SIGKILL'd, .braid/daemon.lock remains with dead PID. Mitigation: kill(pid, 0) check on startup (INV-DAEMON-005). Test: start daemon, kill -9, verify next start succeeds after stale-lock cleanup."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "42146cfddb882beb6870e48696742eab2417d62493ea5312862ccf0243f23063" :a :db/doc :v "PREMORTEM-RISK-1: Stale lock after crash. If daemon is SIGKILL'd, .braid/daemon.lock remains with dead PID. Mitigation: kill(pid, 0) check on startup (INV-DAEMON-005). Test: start daemon, kill -9, verify next start succeeds after stale-lock cleanup." :op :assert}
+   {:e #blake3 "42146cfddb882beb6870e48696742eab2417d62493ea5312862ccf0243f23063" :a :db/ident :v :observation/premortem-risk-1-stale-lock-after-crash-if-daemon-is-sigki :op :assert}
+   {:e #blake3 "42146cfddb882beb6870e48696742eab2417d62493ea5312862ccf0243f23063" :a :exploration/body :v "PREMORTEM-RISK-1: Stale lock after crash. If daemon is SIGKILL'd, .braid/daemon.lock remains with dead PID. Mitigation: kill(pid, 0) check on startup (INV-DAEMON-005). Test: start daemon, kill -9, verify next start succeeds after stale-lock cleanup." :op :assert}
+   {:e #blake3 "42146cfddb882beb6870e48696742eab2417d62493ea5312862ccf0243f23063" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "42146cfddb882beb6870e48696742eab2417d62493ea5312862ccf0243f23063" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "42146cfddb882beb6870e48696742eab2417d62493ea5312862ccf0243f23063" :a :exploration/content-hash :v #bytes "9e90a60e628577d357d58a69eb42e74d1c52ab54c0dd9dc55f8dcf7d0efff974" :op :assert}
+   {:e #blake3 "42146cfddb882beb6870e48696742eab2417d62493ea5312862ccf0243f23063" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "42146cfddb882beb6870e48696742eab2417d62493ea5312862ccf0243f23063" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "42146cfddb882beb6870e48696742eab2417d62493ea5312862ccf0243f23063" :a :exploration/source-session :v #blake3 "97e0e9752e5bbb70d0561b29f52e6240472b0947741bd1fb8f3c82b668feb193" :op :assert}
+   {:e #blake3 "93488b26eb1614dd91dcce80acdc799331123fce6e42de529d3ef27cad68ffe0" :a :db/ident :v :task/t-6bb54b85 :op :assert}
+   {:e #blake3 "93488b26eb1614dd91dcce80acdc799331123fce6e42de529d3ef27cad68ffe0" :a :task/body :v "PREMORTEM-RISK-1: Stale lock after crash. If daemon is SIGKILL'd, .braid/daemon.lock remains with dead PID. Mitigation: kill(pid, 0) check on startup (INV-DAEMON-005). Test: start daemon, kill -9, verify next start succeeds after stale-lock cleanup." :op :assert}
+   {:e #blake3 "93488b26eb1614dd91dcce80acdc799331123fce6e42de529d3ef27cad68ffe0" :a :task/created-at :v 1774361978 :op :assert}
+   {:e #blake3 "93488b26eb1614dd91dcce80acdc799331123fce6e42de529d3ef27cad68ffe0" :a :task/id :v "t-6bb54b85" :op :assert}
+   {:e #blake3 "93488b26eb1614dd91dcce80acdc799331123fce6e42de529d3ef27cad68ffe0" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "93488b26eb1614dd91dcce80acdc799331123fce6e42de529d3ef27cad68ffe0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "93488b26eb1614dd91dcce80acdc799331123fce6e42de529d3ef27cad68ffe0" :a :task/title :v "PREMORTEM-RISK-1: Stale lock after crash. If daemon is SIGKILL'd," :op :assert}
+   {:e #blake3 "93488b26eb1614dd91dcce80acdc799331123fce6e42de529d3ef27cad68ffe0" :a :task/type :v :task.type/task :op :assert}
+ ]}

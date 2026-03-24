@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774361928/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-DAEMON-006 \"Graceful Shutdown Safety\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3c705a4617da85159f1d4dbaec6cccfd75182132c7b17c0ccd5526f449735664" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "3c705a4617da85159f1d4dbaec6cccfd75182132c7b17c0ccd5526f449735664" :a :comonad/falsification :v #blake3 "5021c34b3287595c83e5f669843abcd5f4b8cf5d007ab42c583680e7af04ef54" :op :assert}
+   {:e #blake3 "3c705a4617da85159f1d4dbaec6cccfd75182132c7b17c0ccd5526f449735664" :a :db/doc :v "Graceful Shutdown Safety" :op :assert}
+   {:e #blake3 "3c705a4617da85159f1d4dbaec6cccfd75182132c7b17c0ccd5526f449735664" :a :db/ident :v :spec/inv-daemon-006 :op :assert}
+   {:e #blake3 "3c705a4617da85159f1d4dbaec6cccfd75182132c7b17c0ccd5526f449735664" :a :element/traces-to :v "INV-DAEMON-001,INV-STORE-020" :op :assert}
+   {:e #blake3 "3c705a4617da85159f1d4dbaec6cccfd75182132c7b17c0ccd5526f449735664" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "3c705a4617da85159f1d4dbaec6cccfd75182132c7b17c0ccd5526f449735664" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "3c705a4617da85159f1d4dbaec6cccfd75182132c7b17c0ccd5526f449735664" :a :spec/falsification :v "Daemon shutdown loses in-flight writes, leaves cache unflushed, or leaves socket/lock files that prevent restart after clean shutdown" :op :assert}
+   {:e #blake3 "3c705a4617da85159f1d4dbaec6cccfd75182132c7b17c0ccd5526f449735664" :a :spec/id :v "INV-DAEMON-006" :op :assert}
+   {:e #blake3 "3c705a4617da85159f1d4dbaec6cccfd75182132c7b17c0ccd5526f449735664" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "3c705a4617da85159f1d4dbaec6cccfd75182132c7b17c0ccd5526f449735664" :a :spec/statement :v "On SIGTERM or SIGINT, the daemon: (1) stops accepting new connections, (2) completes in-flight requests, (3) flushes LiveStore cache, (4) removes daemon.lock and daemon.sock, (5) exits 0. Crash (SIGKILL) leaves lock file with dead PID, recovered on next startup via INV-DAEMON-005." :op :assert}
+   {:e #blake3 "49f9ea553ad2e575d46f9fb97769ed915bc1e4f93971921b420c111b87d07e44" :a :db/ident :v :task/t-a2dd8b78 :op :assert}
+   {:e #blake3 "49f9ea553ad2e575d46f9fb97769ed915bc1e4f93971921b420c111b87d07e44" :a :task/created-at :v 1774361927 :op :assert}
+   {:e #blake3 "49f9ea553ad2e575d46f9fb97769ed915bc1e4f93971921b420c111b87d07e44" :a :task/id :v "t-a2dd8b78" :op :assert}
+   {:e #blake3 "49f9ea553ad2e575d46f9fb97769ed915bc1e4f93971921b420c111b87d07e44" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "49f9ea553ad2e575d46f9fb97769ed915bc1e4f93971921b420c111b87d07e44" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "49f9ea553ad2e575d46f9fb97769ed915bc1e4f93971921b420c111b87d07e44" :a :task/title :v "Implement INV-DAEMON-006: Graceful Shutdown Safety" :op :assert}
+   {:e #blake3 "49f9ea553ad2e575d46f9fb97769ed915bc1e4f93971921b420c111b87d07e44" :a :task/traces-to :v #blake3 "3c705a4617da85159f1d4dbaec6cccfd75182132c7b17c0ccd5526f449735664" :op :assert}
+   {:e #blake3 "49f9ea553ad2e575d46f9fb97769ed915bc1e4f93971921b420c111b87d07e44" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "5021c34b3287595c83e5f669843abcd5f4b8cf5d007ab42c583680e7af04ef54" :a :db/doc :v "Daemon shutdown loses in-flight writes, leaves cache unflushed, or leaves socket/lock files that prevent restart after clean shutdown" :op :assert}
+ ]}

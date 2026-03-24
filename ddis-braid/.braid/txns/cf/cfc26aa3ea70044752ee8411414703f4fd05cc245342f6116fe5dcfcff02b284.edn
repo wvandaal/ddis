@@ -1,0 +1,26 @@
+{:tx/id #hlc "1774361969/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-DAEMON-003 \"Runtime Schema as Store Datoms\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3bc4a7b15105df5b19791488c2cc033925b88900e2eca79c2708cdde9bce41ec" :a :db/ident :v :task/t-0c9c8e74 :op :assert}
+   {:e #blake3 "3bc4a7b15105df5b19791488c2cc033925b88900e2eca79c2708cdde9bce41ec" :a :task/created-at :v 1774361968 :op :assert}
+   {:e #blake3 "3bc4a7b15105df5b19791488c2cc033925b88900e2eca79c2708cdde9bce41ec" :a :task/id :v "t-0c9c8e74" :op :assert}
+   {:e #blake3 "3bc4a7b15105df5b19791488c2cc033925b88900e2eca79c2708cdde9bce41ec" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "3bc4a7b15105df5b19791488c2cc033925b88900e2eca79c2708cdde9bce41ec" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3bc4a7b15105df5b19791488c2cc033925b88900e2eca79c2708cdde9bce41ec" :a :task/title :v "Implement ADR-DAEMON-003: Runtime Schema as Store Datoms" :op :assert}
+   {:e #blake3 "3bc4a7b15105df5b19791488c2cc033925b88900e2eca79c2708cdde9bce41ec" :a :task/traces-to :v #blake3 "81eb5848748f28476d6099105b0e54010640138e320486ebbc2841f0b5780115" :op :assert}
+   {:e #blake3 "3bc4a7b15105df5b19791488c2cc033925b88900e2eca79c2708cdde9bce41ec" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "81eb5848748f28476d6099105b0e54010640138e320486ebbc2841f0b5780115" :a :adr/decision :v "Runtime attributes are schema datoms. They are installed during daemon startup as part of the runtime schema transaction. They follow the same schema evolution rules as all other attributes." :op :assert}
+   {:e #blake3 "81eb5848748f28476d6099105b0e54010640138e320486ebbc2841f0b5780115" :a :adr/problem :v "Runtime telemetry could be stored as ad-hoc key-value pairs, structured logs, or prometheus-style metrics. All of these create a parallel system outside the datom model." :op :assert}
+   {:e #blake3 "81eb5848748f28476d6099105b0e54010640138e320486ebbc2841f0b5780115" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "81eb5848748f28476d6099105b0e54010640138e320486ebbc2841f0b5780115" :a :db/doc :v "Runtime Schema as Store Datoms" :op :assert}
+   {:e #blake3 "81eb5848748f28476d6099105b0e54010640138e320486ebbc2841f0b5780115" :a :db/ident :v :spec/adr-daemon-003 :op :assert}
+   {:e #blake3 "81eb5848748f28476d6099105b0e54010640138e320486ebbc2841f0b5780115" :a :element/traces-to :v "C3,NEG-DAEMON-001,ADR-FOUNDATION-031" :op :assert}
+   {:e #blake3 "81eb5848748f28476d6099105b0e54010640138e320486ebbc2841f0b5780115" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "81eb5848748f28476d6099105b0e54010640138e320486ebbc2841f0b5780115" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "81eb5848748f28476d6099105b0e54010640138e320486ebbc2841f0b5780115" :a :spec/id :v "ADR-DAEMON-003" :op :assert}
+   {:e #blake3 "81eb5848748f28476d6099105b0e54010640138e320486ebbc2841f0b5780115" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "81eb5848748f28476d6099105b0e54010640138e320486ebbc2841f0b5780115" :a :spec/statement :v "Runtime observation attributes (:runtime/command, :runtime/request-id, :runtime/latency-ms, :runtime/outcome, :runtime/datom-count, :runtime/cache-hit) are defined as schema datoms in the store, not as special-cased fields. This ensures C3 (schema-as-data) applies to the reflexive domain." :op :assert}
+ ]}

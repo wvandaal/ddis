@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774362553/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: PERF-4 MVP Daemon — Introspective Observer with Reflexive Runtime Datoms"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :db/ident :v :task/t-8f71bbb2 :op :assert}
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :task/created-at :v 1774362552 :op :assert}
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :task/id :v "t-8f71bbb2" :op :assert}
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :task/title :v "EPIC: PERF-4 MVP Daemon — Introspective Observer with Reflexive Runtime Datoms" :op :assert}
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :task/title-l1 :v "EPIC: PERF-4 MVP Daemon — Introspective Observer with Reflexive Runtime Datoms" :op :assert}
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :task/traces-to :v #blake3 "1cd5a070dba8fb4d667d6f35608853a63316de3ee7292d3d4e64f1eabac6d001" :op :assert}
+   {:e #blake3 "dd1bda01d47d702f2a0cea9d2ba88cb3acded20df166e54664a27107f3844e6d" :a :task/type :v :task.type/epic :op :assert}
+ ]}

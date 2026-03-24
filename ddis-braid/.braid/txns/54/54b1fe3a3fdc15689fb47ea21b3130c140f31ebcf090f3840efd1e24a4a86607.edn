@@ -1,0 +1,14 @@
+{:tx/id #hlc "1774362422/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a96e8045b89fbc6e8e13386baa897f0b90b29f8aa299c496fa99d9487ae7537e" :a :db/ident :v :recon/trace-493fd1eeb4c635e4 :op :assert}
+   {:e #blake3 "a96e8045b89fbc6e8e13386baa897f0b90b29f8aa299c496fa99d9487ae7537e" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "a96e8045b89fbc6e8e13386baa897f0b90b29f8aa299c496fa99d9487ae7537e" :a :recon/trace-neighborhood :v "DAEMON" :op :assert}
+   {:e #blake3 "a96e8045b89fbc6e8e13386baa897f0b90b29f8aa299c496fa99d9487ae7537e" :a :recon/trace-neighbors :v ":task/t-37a56838" :op :assert}
+   {:e #blake3 "a96e8045b89fbc6e8e13386baa897f0b90b29f8aa299c496fa99d9487ae7537e" :a :recon/trace-neighbors :v ":task/t-6e6dde06" :op :assert}
+   {:e #blake3 "a96e8045b89fbc6e8e13386baa897f0b90b29f8aa299c496fa99d9487ae7537e" :a :recon/trace-refs :v "INV-DAEMON-001" :op :assert}
+   {:e #blake3 "a96e8045b89fbc6e8e13386baa897f0b90b29f8aa299c496fa99d9487ae7537e" :a :recon/trace-refs :v "INV-DAEMON-005" :op :assert}
+ ]}

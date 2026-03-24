@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774361991/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PREMORTEM-RISK-5: Fallback split-brain. CLI detects no daemon, falls back to direct mode, writes datoms. Meanwhile daemon starts. Now daemon's cached hashes are stale. Mitigation: daemon startup always does a full refresh_if_needed() before accepting connections. Race window is negligible (startup serialized by lock acquisition)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5681b289a9af2dbf034184a793fc16061e062a652659758106aa3271d9cd5934" :a :db/doc :v "PREMORTEM-RISK-5: Fallback split-brain. CLI detects no daemon, falls back to direct mode, writes datoms. Meanwhile daemon starts. Now daemon's cached hashes are stale. Mitigation: daemon startup always does a full refresh_if_needed() before accepting connections. Race window is negligible (startup serialized by lock acquisition)." :op :assert}
+   {:e #blake3 "5681b289a9af2dbf034184a793fc16061e062a652659758106aa3271d9cd5934" :a :db/ident :v :observation/premortem-risk-5-fallback-split-brain-cli-detects-no-daemo :op :assert}
+   {:e #blake3 "5681b289a9af2dbf034184a793fc16061e062a652659758106aa3271d9cd5934" :a :exploration/body :v "PREMORTEM-RISK-5: Fallback split-brain. CLI detects no daemon, falls back to direct mode, writes datoms. Meanwhile daemon starts. Now daemon's cached hashes are stale. Mitigation: daemon startup always does a full refresh_if_needed() before accepting connections. Race window is negligible (startup serialized by lock acquisition)." :op :assert}
+   {:e #blake3 "5681b289a9af2dbf034184a793fc16061e062a652659758106aa3271d9cd5934" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "5681b289a9af2dbf034184a793fc16061e062a652659758106aa3271d9cd5934" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "5681b289a9af2dbf034184a793fc16061e062a652659758106aa3271d9cd5934" :a :exploration/content-hash :v #bytes "c1f4281dcc4c4fdc494e726d0809c76fe0125402df19ffc8fdf1069eea0a50f1" :op :assert}
+   {:e #blake3 "5681b289a9af2dbf034184a793fc16061e062a652659758106aa3271d9cd5934" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "5681b289a9af2dbf034184a793fc16061e062a652659758106aa3271d9cd5934" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "5681b289a9af2dbf034184a793fc16061e062a652659758106aa3271d9cd5934" :a :exploration/source-session :v #blake3 "97e0e9752e5bbb70d0561b29f52e6240472b0947741bd1fb8f3c82b668feb193" :op :assert}
+ ]}

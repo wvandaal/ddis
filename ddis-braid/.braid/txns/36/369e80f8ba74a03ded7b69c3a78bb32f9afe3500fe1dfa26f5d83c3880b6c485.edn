@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774362461/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :db/ident :v :recon/trace-eb62bdcbb4d22ad8 :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-neighborhood :v "DAEMON" :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-neighbors :v ":impl/braid.src.commands.mod.inv-interface-009" :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-neighbors :v ":impl/braid.src.error.inv-interface-009" :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-neighbors :v ":impl/braid.src.mcp.inv-interface-009" :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-neighbors :v ":task/t-37a56838" :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-neighbors :v ":task/t-3ebad4df" :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-neighbors :v ":task/t-463e815d" :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-neighbors :v ":task/t-6e6dde06" :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-neighbors :v ":task/t-8b308e91" :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-neighbors :v ":task/t-e2fa61f3" :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-neighbors :v ":task/t-fc935f6e" :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-refs :v "INV-DAEMON-001" :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-refs :v "INV-DAEMON-005" :op :assert}
+   {:e #blake3 "02925f82141c73e1fd11c5b0e76bac2fcccfee68e70214b391ac0f0a0a6f74e4" :a :recon/trace-refs :v "INV-INTERFACE-009" :op :assert}
+ ]}

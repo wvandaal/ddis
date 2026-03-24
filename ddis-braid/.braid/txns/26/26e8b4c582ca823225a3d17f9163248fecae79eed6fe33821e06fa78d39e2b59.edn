@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774361913/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-DAEMON-003 \"Reflexive Runtime Datom Emission\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2bb25ffdc2bc5f06f4523193ae69ade59aa097254a8a52c10e53c3bcf5c55fec" :a :db/ident :v :task/t-03561cf0 :op :assert}
+   {:e #blake3 "2bb25ffdc2bc5f06f4523193ae69ade59aa097254a8a52c10e53c3bcf5c55fec" :a :task/created-at :v 1774361912 :op :assert}
+   {:e #blake3 "2bb25ffdc2bc5f06f4523193ae69ade59aa097254a8a52c10e53c3bcf5c55fec" :a :task/id :v "t-03561cf0" :op :assert}
+   {:e #blake3 "2bb25ffdc2bc5f06f4523193ae69ade59aa097254a8a52c10e53c3bcf5c55fec" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "2bb25ffdc2bc5f06f4523193ae69ade59aa097254a8a52c10e53c3bcf5c55fec" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2bb25ffdc2bc5f06f4523193ae69ade59aa097254a8a52c10e53c3bcf5c55fec" :a :task/title :v "Implement INV-DAEMON-003: Reflexive Runtime Datom Emission" :op :assert}
+   {:e #blake3 "2bb25ffdc2bc5f06f4523193ae69ade59aa097254a8a52c10e53c3bcf5c55fec" :a :task/traces-to :v #blake3 "36a170d49fe8f2ca07b93006676e2c85bd807f2861d512e0c06c2735997b0821" :op :assert}
+   {:e #blake3 "2bb25ffdc2bc5f06f4523193ae69ade59aa097254a8a52c10e53c3bcf5c55fec" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "36a170d49fe8f2ca07b93006676e2c85bd807f2861d512e0c06c2735997b0821" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "36a170d49fe8f2ca07b93006676e2c85bd807f2861d512e0c06c2735997b0821" :a :comonad/falsification :v #blake3 "45aa3a0627a82f413b027f3c8fa9c511239538a58419b4b80204570ddedf9949" :op :assert}
+   {:e #blake3 "36a170d49fe8f2ca07b93006676e2c85bd807f2861d512e0c06c2735997b0821" :a :db/doc :v "Reflexive Runtime Datom Emission" :op :assert}
+   {:e #blake3 "36a170d49fe8f2ca07b93006676e2c85bd807f2861d512e0c06c2735997b0821" :a :db/ident :v :spec/inv-daemon-003 :op :assert}
+   {:e #blake3 "36a170d49fe8f2ca07b93006676e2c85bd807f2861d512e0c06c2735997b0821" :a :element/traces-to :v "ADR-FOUNDATION-029,ADR-FOUNDATION-031,C7" :op :assert}
+   {:e #blake3 "36a170d49fe8f2ca07b93006676e2c85bd807f2861d512e0c06c2735997b0821" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "36a170d49fe8f2ca07b93006676e2c85bd807f2861d512e0c06c2735997b0821" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "36a170d49fe8f2ca07b93006676e2c85bd807f2861d512e0c06c2735997b0821" :a :spec/falsification :v "A command completes through the daemon without corresponding runtime datoms being transacted, or runtime datoms lack any of the required fields" :op :assert}
+   {:e #blake3 "36a170d49fe8f2ca07b93006676e2c85bd807f2861d512e0c06c2735997b0821" :a :spec/id :v "INV-DAEMON-003" :op :assert}
+   {:e #blake3 "36a170d49fe8f2ca07b93006676e2c85bd807f2861d512e0c06c2735997b0821" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "36a170d49fe8f2ca07b93006676e2c85bd807f2861d512e0c06c2735997b0821" :a :spec/statement :v "Every command processed by the daemon emits runtime datoms recording at minimum: command name, request ID, latency-ms, outcome (success/failure), and datom count at time of request. These use the same 6 ADR-029 lifecycle attributes as all other knowledge." :op :assert}
+   {:e #blake3 "45aa3a0627a82f413b027f3c8fa9c511239538a58419b4b80204570ddedf9949" :a :db/doc :v "A command completes through the daemon without corresponding runtime datoms being transacted, or runtime datoms lack any of the required fields" :op :assert}
+ ]}

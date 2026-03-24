@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774361965/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: NEG-DAEMON-002 \"No Speculative Daemon Features\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "04f59b4ccb98c23c696ad7926690d6fc06cbecbd013e3dda5cdba9c265c852b2" :a :db/doc :v "The daemon MVP implementation includes features not in the essential MVP list before all MVP invariants pass their tests" :op :assert}
+   {:e #blake3 "39934d8232659c1b8716731a5d8fe5508d7901f5c29804ba63035ee843df9e9e" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "39934d8232659c1b8716731a5d8fe5508d7901f5c29804ba63035ee843df9e9e" :a :comonad/falsification :v #blake3 "04f59b4ccb98c23c696ad7926690d6fc06cbecbd013e3dda5cdba9c265c852b2" :op :assert}
+   {:e #blake3 "39934d8232659c1b8716731a5d8fe5508d7901f5c29804ba63035ee843df9e9e" :a :db/doc :v "No Speculative Daemon Features" :op :assert}
+   {:e #blake3 "39934d8232659c1b8716731a5d8fe5508d7901f5c29804ba63035ee843df9e9e" :a :db/ident :v :spec/neg-daemon-002 :op :assert}
+   {:e #blake3 "39934d8232659c1b8716731a5d8fe5508d7901f5c29804ba63035ee843df9e9e" :a :element/traces-to :v "NEG-001,NEG-003" :op :assert}
+   {:e #blake3 "39934d8232659c1b8716731a5d8fe5508d7901f5c29804ba63035ee843df9e9e" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "39934d8232659c1b8716731a5d8fe5508d7901f5c29804ba63035ee843df9e9e" :a :spec/element-type :v :spec.type/negative-case :op :assert}
+   {:e #blake3 "39934d8232659c1b8716731a5d8fe5508d7901f5c29804ba63035ee843df9e9e" :a :spec/falsification :v "The daemon MVP implementation includes features not in the essential MVP list before all MVP invariants pass their tests" :op :assert}
+   {:e #blake3 "39934d8232659c1b8716731a5d8fe5508d7901f5c29804ba63035ee843df9e9e" :a :spec/id :v "NEG-DAEMON-002" :op :assert}
+   {:e #blake3 "39934d8232659c1b8716731a5d8fe5508d7901f5c29804ba63035ee843df9e9e" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "39934d8232659c1b8716731a5d8fe5508d7901f5c29804ba63035ee843df9e9e" :a :spec/statement :v "The daemon MVP must not include features beyond: lifecycle management, socket transport, CLI auto-routing, runtime datom emission, and health inspection. Features like incremental routing, FEGH on self-model, capability census, and Markov blanket metrics are explicitly deferred. Adding them prematurely violates the smallest-correct implementation boundary." :op :assert}
+   {:e #blake3 "cd669c69bfcd31dd0d4f7adb38767fcf55d4bfccb468931482b24908e679e7b9" :a :db/ident :v :task/t-5d248510 :op :assert}
+   {:e #blake3 "cd669c69bfcd31dd0d4f7adb38767fcf55d4bfccb468931482b24908e679e7b9" :a :task/created-at :v 1774361964 :op :assert}
+   {:e #blake3 "cd669c69bfcd31dd0d4f7adb38767fcf55d4bfccb468931482b24908e679e7b9" :a :task/id :v "t-5d248510" :op :assert}
+   {:e #blake3 "cd669c69bfcd31dd0d4f7adb38767fcf55d4bfccb468931482b24908e679e7b9" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "cd669c69bfcd31dd0d4f7adb38767fcf55d4bfccb468931482b24908e679e7b9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cd669c69bfcd31dd0d4f7adb38767fcf55d4bfccb468931482b24908e679e7b9" :a :task/title :v "Implement NEG-DAEMON-002: No Speculative Daemon Features" :op :assert}
+   {:e #blake3 "cd669c69bfcd31dd0d4f7adb38767fcf55d4bfccb468931482b24908e679e7b9" :a :task/traces-to :v #blake3 "39934d8232659c1b8716731a5d8fe5508d7901f5c29804ba63035ee843df9e9e" :op :assert}
+   {:e #blake3 "cd669c69bfcd31dd0d4f7adb38767fcf55d4bfccb468931482b24908e679e7b9" :a :task/type :v :task.type/task :op :assert}
+ ]}

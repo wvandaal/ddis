@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774361916/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-DAEMON-004 \"Daemon-Direct Semantic Equivalence\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "18eb0a843926b7421e50fbb6464bb6a341b918b2c4b4f022d0d6fa6e333bfa84" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "18eb0a843926b7421e50fbb6464bb6a341b918b2c4b4f022d0d6fa6e333bfa84" :a :comonad/falsification :v #blake3 "53922b6769487043d67deb4335f2242f90f746aa4ebca73240a95a42af48b2ba" :op :assert}
+   {:e #blake3 "18eb0a843926b7421e50fbb6464bb6a341b918b2c4b4f022d0d6fa6e333bfa84" :a :db/doc :v "Daemon-Direct Semantic Equivalence" :op :assert}
+   {:e #blake3 "18eb0a843926b7421e50fbb6464bb6a341b918b2c4b4f022d0d6fa6e333bfa84" :a :db/ident :v :spec/inv-daemon-004 :op :assert}
+   {:e #blake3 "18eb0a843926b7421e50fbb6464bb6a341b918b2c4b4f022d0d6fa6e333bfa84" :a :element/traces-to :v "ADR-DAEMON-001,INV-STORE-001" :op :assert}
+   {:e #blake3 "18eb0a843926b7421e50fbb6464bb6a341b918b2c4b4f022d0d6fa6e333bfa84" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "18eb0a843926b7421e50fbb6464bb6a341b918b2c4b4f022d0d6fa6e333bfa84" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "18eb0a843926b7421e50fbb6464bb6a341b918b2c4b4f022d0d6fa6e333bfa84" :a :spec/falsification :v "Any command produces different results when routed through daemon versus direct disk access with the same store state" :op :assert}
+   {:e #blake3 "18eb0a843926b7421e50fbb6464bb6a341b918b2c4b4f022d0d6fa6e333bfa84" :a :spec/id :v "INV-DAEMON-004" :op :assert}
+   {:e #blake3 "18eb0a843926b7421e50fbb6464bb6a341b918b2c4b4f022d0d6fa6e333bfa84" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "18eb0a843926b7421e50fbb6464bb6a341b918b2c4b4f022d0d6fa6e333bfa84" :a :spec/statement :v "For any command C and store state S, executing C through the daemon produces the same observable result as executing C directly against disk. The daemon is a transparent accelerator, not a semantic modifier." :op :assert}
+   {:e #blake3 "3a06348b5bd497ea8c1ea1a2809cf90f22fd4e062ccc00c71e8b7f0bdccd713f" :a :db/ident :v :task/t-e3d271c3 :op :assert}
+   {:e #blake3 "3a06348b5bd497ea8c1ea1a2809cf90f22fd4e062ccc00c71e8b7f0bdccd713f" :a :task/created-at :v 1774361915 :op :assert}
+   {:e #blake3 "3a06348b5bd497ea8c1ea1a2809cf90f22fd4e062ccc00c71e8b7f0bdccd713f" :a :task/id :v "t-e3d271c3" :op :assert}
+   {:e #blake3 "3a06348b5bd497ea8c1ea1a2809cf90f22fd4e062ccc00c71e8b7f0bdccd713f" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "3a06348b5bd497ea8c1ea1a2809cf90f22fd4e062ccc00c71e8b7f0bdccd713f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3a06348b5bd497ea8c1ea1a2809cf90f22fd4e062ccc00c71e8b7f0bdccd713f" :a :task/title :v "Implement INV-DAEMON-004: Daemon-Direct Semantic Equivalence" :op :assert}
+   {:e #blake3 "3a06348b5bd497ea8c1ea1a2809cf90f22fd4e062ccc00c71e8b7f0bdccd713f" :a :task/traces-to :v #blake3 "18eb0a843926b7421e50fbb6464bb6a341b918b2c4b4f022d0d6fa6e333bfa84" :op :assert}
+   {:e #blake3 "3a06348b5bd497ea8c1ea1a2809cf90f22fd4e062ccc00c71e8b7f0bdccd713f" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "53922b6769487043d67deb4335f2242f90f746aa4ebca73240a95a42af48b2ba" :a :db/doc :v "Any command produces different results when routed through daemon versus direct disk access with the same store state" :op :assert}
+ ]}

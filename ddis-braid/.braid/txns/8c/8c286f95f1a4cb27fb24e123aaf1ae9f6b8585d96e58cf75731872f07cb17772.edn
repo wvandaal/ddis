@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774361900/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-DAEMON-001 \"Single Daemon Per Directory\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c4cadbfcf185e20e884335e8ebd48a929ade9d426080007d7b33821ad6cc9034" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "c4cadbfcf185e20e884335e8ebd48a929ade9d426080007d7b33821ad6cc9034" :a :comonad/falsification :v #blake3 "c5b490fe01a31cafd7351a8abbd6b3357db3f6dec4bf102640461b818942acf8" :op :assert}
+   {:e #blake3 "c4cadbfcf185e20e884335e8ebd48a929ade9d426080007d7b33821ad6cc9034" :a :db/doc :v "Single Daemon Per Directory" :op :assert}
+   {:e #blake3 "c4cadbfcf185e20e884335e8ebd48a929ade9d426080007d7b33821ad6cc9034" :a :db/ident :v :spec/inv-daemon-001 :op :assert}
+   {:e #blake3 "c4cadbfcf185e20e884335e8ebd48a929ade9d426080007d7b33821ad6cc9034" :a :element/traces-to :v "C7,ADR-STORE-006" :op :assert}
+   {:e #blake3 "c4cadbfcf185e20e884335e8ebd48a929ade9d426080007d7b33821ad6cc9034" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "c4cadbfcf185e20e884335e8ebd48a929ade9d426080007d7b33821ad6cc9034" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "c4cadbfcf185e20e884335e8ebd48a929ade9d426080007d7b33821ad6cc9034" :a :spec/falsification :v "Two daemon processes simultaneously serve requests for the same .braid directory, or a daemon starts while another holds a valid lock" :op :assert}
+   {:e #blake3 "c4cadbfcf185e20e884335e8ebd48a929ade9d426080007d7b33821ad6cc9034" :a :spec/id :v "INV-DAEMON-001" :op :assert}
+   {:e #blake3 "c4cadbfcf185e20e884335e8ebd48a929ade9d426080007d7b33821ad6cc9034" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "c4cadbfcf185e20e884335e8ebd48a929ade9d426080007d7b33821ad6cc9034" :a :spec/statement :v "At most one daemon process may hold the .braid/daemon.lock file for a given .braid directory at any time. Enforcement: O_CREAT|O_EXCL lock file creation with PID verification." :op :assert}
+   {:e #blake3 "c5b490fe01a31cafd7351a8abbd6b3357db3f6dec4bf102640461b818942acf8" :a :db/doc :v "Two daemon processes simultaneously serve requests for the same .braid directory, or a daemon starts while another holds a valid lock" :op :assert}
+   {:e #blake3 "ebdee12d51985bf37e4d0d89be5546caf1458fdf7646f340383335b68e537215" :a :db/ident :v :task/t-6e6dde06 :op :assert}
+   {:e #blake3 "ebdee12d51985bf37e4d0d89be5546caf1458fdf7646f340383335b68e537215" :a :task/created-at :v 1774361898 :op :assert}
+   {:e #blake3 "ebdee12d51985bf37e4d0d89be5546caf1458fdf7646f340383335b68e537215" :a :task/id :v "t-6e6dde06" :op :assert}
+   {:e #blake3 "ebdee12d51985bf37e4d0d89be5546caf1458fdf7646f340383335b68e537215" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "ebdee12d51985bf37e4d0d89be5546caf1458fdf7646f340383335b68e537215" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ebdee12d51985bf37e4d0d89be5546caf1458fdf7646f340383335b68e537215" :a :task/title :v "Implement INV-DAEMON-001: Single Daemon Per Directory" :op :assert}
+   {:e #blake3 "ebdee12d51985bf37e4d0d89be5546caf1458fdf7646f340383335b68e537215" :a :task/traces-to :v #blake3 "c4cadbfcf185e20e884335e8ebd48a929ade9d426080007d7b33821ad6cc9034" :op :assert}
+   {:e #blake3 "ebdee12d51985bf37e4d0d89be5546caf1458fdf7646f340383335b68e537215" :a :task/type :v :task.type/task :op :assert}
+ ]}

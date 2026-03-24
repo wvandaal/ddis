@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774361919/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-DAEMON-005 \"Lock File PID Correctness\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ac2111e0accd4cd3628b9e70df2fa8e0a687e13e3b0fbefd85dbbbbe22eb33e2" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "ac2111e0accd4cd3628b9e70df2fa8e0a687e13e3b0fbefd85dbbbbe22eb33e2" :a :comonad/falsification :v #blake3 "c7ddbebc376d4eb59e0df03e40681d9a6f7dfb2bf22d081b3850fa8006c1cbfd" :op :assert}
+   {:e #blake3 "ac2111e0accd4cd3628b9e70df2fa8e0a687e13e3b0fbefd85dbbbbe22eb33e2" :a :db/doc :v "Lock File PID Correctness" :op :assert}
+   {:e #blake3 "ac2111e0accd4cd3628b9e70df2fa8e0a687e13e3b0fbefd85dbbbbe22eb33e2" :a :db/ident :v :spec/inv-daemon-005 :op :assert}
+   {:e #blake3 "ac2111e0accd4cd3628b9e70df2fa8e0a687e13e3b0fbefd85dbbbbe22eb33e2" :a :element/traces-to :v "INV-DAEMON-001" :op :assert}
+   {:e #blake3 "ac2111e0accd4cd3628b9e70df2fa8e0a687e13e3b0fbefd85dbbbbe22eb33e2" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "ac2111e0accd4cd3628b9e70df2fa8e0a687e13e3b0fbefd85dbbbbe22eb33e2" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "ac2111e0accd4cd3628b9e70df2fa8e0a687e13e3b0fbefd85dbbbbe22eb33e2" :a :spec/falsification :v "A daemon starts despite another live daemon holding the lock, or a stale lock from a crashed daemon permanently prevents new daemon startup" :op :assert}
+   {:e #blake3 "ac2111e0accd4cd3628b9e70df2fa8e0a687e13e3b0fbefd85dbbbbe22eb33e2" :a :spec/id :v "INV-DAEMON-005" :op :assert}
+   {:e #blake3 "ac2111e0accd4cd3628b9e70df2fa8e0a687e13e3b0fbefd85dbbbbe22eb33e2" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "ac2111e0accd4cd3628b9e70df2fa8e0a687e13e3b0fbefd85dbbbbe22eb33e2" :a :spec/statement :v "The daemon lock file at .braid/daemon.lock contains the PID of the owning process. On startup, if a lock file exists, the daemon verifies the PID is alive via kill(pid, 0). A stale lock (dead PID) is removed and re-acquired. A live lock causes startup failure with a clear error." :op :assert}
+   {:e #blake3 "ae2380a5fa0378498a56cee43208f523b034c240e7015a3b65eee4676d9b6396" :a :db/ident :v :task/t-37a56838 :op :assert}
+   {:e #blake3 "ae2380a5fa0378498a56cee43208f523b034c240e7015a3b65eee4676d9b6396" :a :task/created-at :v 1774361918 :op :assert}
+   {:e #blake3 "ae2380a5fa0378498a56cee43208f523b034c240e7015a3b65eee4676d9b6396" :a :task/id :v "t-37a56838" :op :assert}
+   {:e #blake3 "ae2380a5fa0378498a56cee43208f523b034c240e7015a3b65eee4676d9b6396" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "ae2380a5fa0378498a56cee43208f523b034c240e7015a3b65eee4676d9b6396" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ae2380a5fa0378498a56cee43208f523b034c240e7015a3b65eee4676d9b6396" :a :task/title :v "Implement INV-DAEMON-005: Lock File PID Correctness" :op :assert}
+   {:e #blake3 "ae2380a5fa0378498a56cee43208f523b034c240e7015a3b65eee4676d9b6396" :a :task/traces-to :v #blake3 "ac2111e0accd4cd3628b9e70df2fa8e0a687e13e3b0fbefd85dbbbbe22eb33e2" :op :assert}
+   {:e #blake3 "ae2380a5fa0378498a56cee43208f523b034c240e7015a3b65eee4676d9b6396" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "c7ddbebc376d4eb59e0df03e40681d9a6f7dfb2bf22d081b3850fa8006c1cbfd" :a :db/doc :v "A daemon starts despite another live daemon holding the lock, or a stale lock from a crashed daemon permanently prevents new daemon startup" :op :assert}
+ ]}

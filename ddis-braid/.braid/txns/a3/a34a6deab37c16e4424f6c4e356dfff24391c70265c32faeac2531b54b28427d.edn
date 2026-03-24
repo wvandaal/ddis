@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774361988/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PREMORTEM-RISK-4: Runtime datoms lost on error paths. If the error handling bypasses datom emission, INV-DAEMON-008 is violated. Mitigation: runtime datom emission wraps the ENTIRE handler as a finally/defer pattern — measure start time before dispatch, emit datom after dispatch regardless of outcome."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dd743847e16f4f6340f687ffdae6571d8217fd4e2829f367c18241b16a1050df" :a :db/doc :v "PREMORTEM-RISK-4: Runtime datoms lost on error paths. If the error handling bypasses datom emission, INV-DAEMON-008 is violated. Mitigation: runtime datom emission wraps the ENTIRE handler as a finally/defer pattern — measure start time before dispatch, emit datom after dispatch regardless of outcome." :op :assert}
+   {:e #blake3 "dd743847e16f4f6340f687ffdae6571d8217fd4e2829f367c18241b16a1050df" :a :db/ident :v :observation/premortem-risk-4-runtime-datoms-lost-on-error-paths-if-the :op :assert}
+   {:e #blake3 "dd743847e16f4f6340f687ffdae6571d8217fd4e2829f367c18241b16a1050df" :a :exploration/body :v "PREMORTEM-RISK-4: Runtime datoms lost on error paths. If the error handling bypasses datom emission, INV-DAEMON-008 is violated. Mitigation: runtime datom emission wraps the ENTIRE handler as a finally/defer pattern — measure start time before dispatch, emit datom after dispatch regardless of outcome." :op :assert}
+   {:e #blake3 "dd743847e16f4f6340f687ffdae6571d8217fd4e2829f367c18241b16a1050df" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "dd743847e16f4f6340f687ffdae6571d8217fd4e2829f367c18241b16a1050df" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "dd743847e16f4f6340f687ffdae6571d8217fd4e2829f367c18241b16a1050df" :a :exploration/content-hash :v #bytes "40b178a1781c5dff5800fff12e56658545c60bb5c1e9d05a1eb58007036deee3" :op :assert}
+   {:e #blake3 "dd743847e16f4f6340f687ffdae6571d8217fd4e2829f367c18241b16a1050df" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "dd743847e16f4f6340f687ffdae6571d8217fd4e2829f367c18241b16a1050df" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "dd743847e16f4f6340f687ffdae6571d8217fd4e2829f367c18241b16a1050df" :a :exploration/source-session :v #blake3 "97e0e9752e5bbb70d0561b29f52e6240472b0947741bd1fb8f3c82b668feb193" :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774361986/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PREMORTEM-RISK-3: Socket exhaustion / leaked connections. If clients connect but never close, file descriptors accumulate. Mitigation: per-connection timeout (30s), max concurrent connections limit (16), connection cleanup on read error or timeout."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "63924cf02a872cb6424215b841fecb67a96c5ea043b9fb69545920c010c27e82" :a :db/doc :v "PREMORTEM-RISK-3: Socket exhaustion / leaked connections. If clients connect but never close, file descriptors accumulate. Mitigation: per-connection timeout (30s), max concurrent connections limit (16), connection cleanup on read error or timeout." :op :assert}
+   {:e #blake3 "63924cf02a872cb6424215b841fecb67a96c5ea043b9fb69545920c010c27e82" :a :db/ident :v :observation/premortem-risk-3-socket-exhaustion-leaked-connections-if :op :assert}
+   {:e #blake3 "63924cf02a872cb6424215b841fecb67a96c5ea043b9fb69545920c010c27e82" :a :exploration/body :v "PREMORTEM-RISK-3: Socket exhaustion / leaked connections. If clients connect but never close, file descriptors accumulate. Mitigation: per-connection timeout (30s), max concurrent connections limit (16), connection cleanup on read error or timeout." :op :assert}
+   {:e #blake3 "63924cf02a872cb6424215b841fecb67a96c5ea043b9fb69545920c010c27e82" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "63924cf02a872cb6424215b841fecb67a96c5ea043b9fb69545920c010c27e82" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "63924cf02a872cb6424215b841fecb67a96c5ea043b9fb69545920c010c27e82" :a :exploration/content-hash :v #bytes "ac535fb5f0fb2eefd71113722a8db33152a2d113143f76d3426c4de8b71f3574" :op :assert}
+   {:e #blake3 "63924cf02a872cb6424215b841fecb67a96c5ea043b9fb69545920c010c27e82" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "63924cf02a872cb6424215b841fecb67a96c5ea043b9fb69545920c010c27e82" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "63924cf02a872cb6424215b841fecb67a96c5ea043b9fb69545920c010c27e82" :a :exploration/source-session :v #blake3 "97e0e9752e5bbb70d0561b29f52e6240472b0947741bd1fb8f3c82b668feb193" :op :assert}
+ ]}

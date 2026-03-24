@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774361793/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 041 started: PERF-4 Introspective Observer Daemon constitutional research/spec memo. Goal: produce complete design memo before implementation, manage all knowledge in braid."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "98c8af5d4ce7235729b37f46ad6923366d6afae03e8c3fcd8afbec930dc551ea" :a :db/doc :v "Session 041 started: PERF-4 Introspective Observer Daemon constitutional research/spec memo. Goal: produce complete design memo before implementation, manage all knowledge in braid." :op :assert}
+   {:e #blake3 "98c8af5d4ce7235729b37f46ad6923366d6afae03e8c3fcd8afbec930dc551ea" :a :db/ident :v :observation/session-041-started-perf-4-introspective-observer-daemon-co :op :assert}
+   {:e #blake3 "98c8af5d4ce7235729b37f46ad6923366d6afae03e8c3fcd8afbec930dc551ea" :a :exploration/body :v "Session 041 started: PERF-4 Introspective Observer Daemon constitutional research/spec memo. Goal: produce complete design memo before implementation, manage all knowledge in braid." :op :assert}
+   {:e #blake3 "98c8af5d4ce7235729b37f46ad6923366d6afae03e8c3fcd8afbec930dc551ea" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "98c8af5d4ce7235729b37f46ad6923366d6afae03e8c3fcd8afbec930dc551ea" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "98c8af5d4ce7235729b37f46ad6923366d6afae03e8c3fcd8afbec930dc551ea" :a :exploration/content-hash :v #bytes "2ceff08f52df4dcdc5422833144e162eef2a6c4fc94c9c64d42147aef86141bd" :op :assert}
+   {:e #blake3 "98c8af5d4ce7235729b37f46ad6923366d6afae03e8c3fcd8afbec930dc551ea" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "98c8af5d4ce7235729b37f46ad6923366d6afae03e8c3fcd8afbec930dc551ea" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "98c8af5d4ce7235729b37f46ad6923366d6afae03e8c3fcd8afbec930dc551ea" :a :exploration/source-session :v #blake3 "97e0e9752e5bbb70d0561b29f52e6240472b0947741bd1fb8f3c82b668feb193" :op :assert}
+ ]}

@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774361946/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-DAEMON-008 \"Runtime Datom Completeness on Error Paths\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "009ba8aaf9d3264dfea6f8e7f4bdb722044110b54bff33e765e26766a141d6a0" :a :db/doc :v "A command fails through the daemon and no runtime datoms are recorded for that request" :op :assert}
+   {:e #blake3 "6755f0c7cb78ca0e3ecf87007d8629a00a943b6714b06e64ac6b76a7d24bd3e6" :a :db/ident :v :task/t-31c403c4 :op :assert}
+   {:e #blake3 "6755f0c7cb78ca0e3ecf87007d8629a00a943b6714b06e64ac6b76a7d24bd3e6" :a :task/created-at :v 1774361945 :op :assert}
+   {:e #blake3 "6755f0c7cb78ca0e3ecf87007d8629a00a943b6714b06e64ac6b76a7d24bd3e6" :a :task/id :v "t-31c403c4" :op :assert}
+   {:e #blake3 "6755f0c7cb78ca0e3ecf87007d8629a00a943b6714b06e64ac6b76a7d24bd3e6" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "6755f0c7cb78ca0e3ecf87007d8629a00a943b6714b06e64ac6b76a7d24bd3e6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6755f0c7cb78ca0e3ecf87007d8629a00a943b6714b06e64ac6b76a7d24bd3e6" :a :task/title :v "Implement INV-DAEMON-008: Runtime Datom Completeness on Error Paths" :op :assert}
+   {:e #blake3 "6755f0c7cb78ca0e3ecf87007d8629a00a943b6714b06e64ac6b76a7d24bd3e6" :a :task/traces-to :v #blake3 "9339a055972cdf2cd20acf0c32555a9c54d444409ae45a5f84d215c547e8c5c5" :op :assert}
+   {:e #blake3 "6755f0c7cb78ca0e3ecf87007d8629a00a943b6714b06e64ac6b76a7d24bd3e6" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "9339a055972cdf2cd20acf0c32555a9c54d444409ae45a5f84d215c547e8c5c5" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "9339a055972cdf2cd20acf0c32555a9c54d444409ae45a5f84d215c547e8c5c5" :a :comonad/falsification :v #blake3 "009ba8aaf9d3264dfea6f8e7f4bdb722044110b54bff33e765e26766a141d6a0" :op :assert}
+   {:e #blake3 "9339a055972cdf2cd20acf0c32555a9c54d444409ae45a5f84d215c547e8c5c5" :a :db/doc :v "Runtime Datom Completeness on Error Paths" :op :assert}
+   {:e #blake3 "9339a055972cdf2cd20acf0c32555a9c54d444409ae45a5f84d215c547e8c5c5" :a :db/ident :v :spec/inv-daemon-008 :op :assert}
+   {:e #blake3 "9339a055972cdf2cd20acf0c32555a9c54d444409ae45a5f84d215c547e8c5c5" :a :element/traces-to :v "INV-DAEMON-003,ADR-FOUNDATION-031" :op :assert}
+   {:e #blake3 "9339a055972cdf2cd20acf0c32555a9c54d444409ae45a5f84d215c547e8c5c5" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "9339a055972cdf2cd20acf0c32555a9c54d444409ae45a5f84d215c547e8c5c5" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "9339a055972cdf2cd20acf0c32555a9c54d444409ae45a5f84d215c547e8c5c5" :a :spec/falsification :v "A command fails through the daemon and no runtime datoms are recorded for that request" :op :assert}
+   {:e #blake3 "9339a055972cdf2cd20acf0c32555a9c54d444409ae45a5f84d215c547e8c5c5" :a :spec/id :v "INV-DAEMON-008" :op :assert}
+   {:e #blake3 "9339a055972cdf2cd20acf0c32555a9c54d444409ae45a5f84d215c547e8c5c5" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "9339a055972cdf2cd20acf0c32555a9c54d444409ae45a5f84d215c547e8c5c5" :a :spec/statement :v "Runtime datoms are emitted even when a command fails. The error path must record the failure outcome, latency, and error category. A command that errors without runtime datom emission is a reflexive observability gap." :op :assert}
+ ]}

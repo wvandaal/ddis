@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774361897/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-DAEMON-001 \"Unix Socket Transport for Daemon\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "28555bca694a421e8c2b84a02e57ee3c0f212fe09adb5a05661ad8b4632d993f" :a :adr/decision :v "The daemon uses a Unix domain socket at .braid/daemon.sock for IPC, reusing the JSON-RPC protocol from mcp.rs over Unix socket instead of stdin/stdout." :op :assert}
+   {:e #blake3 "28555bca694a421e8c2b84a02e57ee3c0f212fe09adb5a05661ad8b4632d993f" :a :adr/problem :v "The MCP server proves the persistent-process pattern but uses stdin/stdout, which limits it to a single client (the spawning IDE). CLI commands need the same persistent-process benefits (warm store, O(1) reads) but communicate via independent process invocations." :op :assert}
+   {:e #blake3 "28555bca694a421e8c2b84a02e57ee3c0f212fe09adb5a05661ad8b4632d993f" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "28555bca694a421e8c2b84a02e57ee3c0f212fe09adb5a05661ad8b4632d993f" :a :db/doc :v "Unix Socket Transport for Daemon" :op :assert}
+   {:e #blake3 "28555bca694a421e8c2b84a02e57ee3c0f212fe09adb5a05661ad8b4632d993f" :a :db/ident :v :spec/adr-daemon-001 :op :assert}
+   {:e #blake3 "28555bca694a421e8c2b84a02e57ee3c0f212fe09adb5a05661ad8b4632d993f" :a :element/traces-to :v "ADR-STORE-006,ADR-INTERFACE-004" :op :assert}
+   {:e #blake3 "28555bca694a421e8c2b84a02e57ee3c0f212fe09adb5a05661ad8b4632d993f" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "28555bca694a421e8c2b84a02e57ee3c0f212fe09adb5a05661ad8b4632d993f" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "28555bca694a421e8c2b84a02e57ee3c0f212fe09adb5a05661ad8b4632d993f" :a :spec/id :v "ADR-DAEMON-001" :op :assert}
+   {:e #blake3 "28555bca694a421e8c2b84a02e57ee3c0f212fe09adb5a05661ad8b4632d993f" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "719e179885b072033ba9dd36e817ba6b15d490b0c0a4d62fce2eec3ef2a18e5d" :a :db/ident :v :task/t-75b74878 :op :assert}
+   {:e #blake3 "719e179885b072033ba9dd36e817ba6b15d490b0c0a4d62fce2eec3ef2a18e5d" :a :task/created-at :v 1774361896 :op :assert}
+   {:e #blake3 "719e179885b072033ba9dd36e817ba6b15d490b0c0a4d62fce2eec3ef2a18e5d" :a :task/id :v "t-75b74878" :op :assert}
+   {:e #blake3 "719e179885b072033ba9dd36e817ba6b15d490b0c0a4d62fce2eec3ef2a18e5d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "719e179885b072033ba9dd36e817ba6b15d490b0c0a4d62fce2eec3ef2a18e5d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "719e179885b072033ba9dd36e817ba6b15d490b0c0a4d62fce2eec3ef2a18e5d" :a :task/title :v "Implement ADR-DAEMON-001: Unix Socket Transport for Daemon" :op :assert}
+   {:e #blake3 "719e179885b072033ba9dd36e817ba6b15d490b0c0a4d62fce2eec3ef2a18e5d" :a :task/traces-to :v #blake3 "28555bca694a421e8c2b84a02e57ee3c0f212fe09adb5a05661ad8b4632d993f" :op :assert}
+   {:e #blake3 "719e179885b072033ba9dd36e817ba6b15d490b0c0a4d62fce2eec3ef2a18e5d" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774362860/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-00a1f205"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1be3679fdbd18452e3651d9ca2d5df60c0ebf2f2e41250b1016240bdedeb87e7" :a :task/close-reason :v "Superseded by D4-* task hierarchy (Session 041)" :op :assert}
+   {:e #blake3 "1be3679fdbd18452e3651d9ca2d5df60c0ebf2f2e41250b1016240bdedeb87e7" :a :task/closed-at :v 1774362853 :op :assert}
+   {:e #blake3 "1be3679fdbd18452e3651d9ca2d5df60c0ebf2f2e41250b1016240bdedeb87e7" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "1be3679fdbd18452e3651d9ca2d5df60c0ebf2f2e41250b1016240bdedeb87e7" :a :task/status :v :task.status/closed :op :assert}
+ ]}

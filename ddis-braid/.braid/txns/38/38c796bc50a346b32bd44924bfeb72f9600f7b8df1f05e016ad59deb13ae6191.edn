@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774361903/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-DAEMON-002 \"Daemon Store Consistency\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5be0c223a4f1c91c6be47c5f81a392b9cb4d5de0da36b31123ec37c5723514a5" :a :db/doc :v "A query to the daemon returns results that differ from a fresh disk load at the same logical time, or the daemon serves stale data after an external CLI write" :op :assert}
+   {:e #blake3 "800df1c064369c7997936c86eec5bdc7c743eb51027e5ee4b69bf47ace382181" :a :db/ident :v :task/t-6f7280a2 :op :assert}
+   {:e #blake3 "800df1c064369c7997936c86eec5bdc7c743eb51027e5ee4b69bf47ace382181" :a :task/created-at :v 1774361901 :op :assert}
+   {:e #blake3 "800df1c064369c7997936c86eec5bdc7c743eb51027e5ee4b69bf47ace382181" :a :task/id :v "t-6f7280a2" :op :assert}
+   {:e #blake3 "800df1c064369c7997936c86eec5bdc7c743eb51027e5ee4b69bf47ace382181" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "800df1c064369c7997936c86eec5bdc7c743eb51027e5ee4b69bf47ace382181" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "800df1c064369c7997936c86eec5bdc7c743eb51027e5ee4b69bf47ace382181" :a :task/title :v "Implement INV-DAEMON-002: Daemon Store Consistency" :op :assert}
+   {:e #blake3 "800df1c064369c7997936c86eec5bdc7c743eb51027e5ee4b69bf47ace382181" :a :task/traces-to :v #blake3 "a3ae4e60d75e9fe2e0aeec096e57231185b18a497957f27223f5b3ff2adf41ad" :op :assert}
+   {:e #blake3 "800df1c064369c7997936c86eec5bdc7c743eb51027e5ee4b69bf47ace382181" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "a3ae4e60d75e9fe2e0aeec096e57231185b18a497957f27223f5b3ff2adf41ad" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "a3ae4e60d75e9fe2e0aeec096e57231185b18a497957f27223f5b3ff2adf41ad" :a :comonad/falsification :v #blake3 "5be0c223a4f1c91c6be47c5f81a392b9cb4d5de0da36b31123ec37c5723514a5" :op :assert}
+   {:e #blake3 "a3ae4e60d75e9fe2e0aeec096e57231185b18a497957f27223f5b3ff2adf41ad" :a :db/doc :v "Daemon Store Consistency" :op :assert}
+   {:e #blake3 "a3ae4e60d75e9fe2e0aeec096e57231185b18a497957f27223f5b3ff2adf41ad" :a :db/ident :v :spec/inv-daemon-002 :op :assert}
+   {:e #blake3 "a3ae4e60d75e9fe2e0aeec096e57231185b18a497957f27223f5b3ff2adf41ad" :a :element/traces-to :v "INV-STORE-020,ADR-FOUNDATION-034" :op :assert}
+   {:e #blake3 "a3ae4e60d75e9fe2e0aeec096e57231185b18a497957f27223f5b3ff2adf41ad" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "a3ae4e60d75e9fe2e0aeec096e57231185b18a497957f27223f5b3ff2adf41ad" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "a3ae4e60d75e9fe2e0aeec096e57231185b18a497957f27223f5b3ff2adf41ad" :a :spec/falsification :v "A query to the daemon returns results that differ from a fresh disk load at the same logical time, or the daemon serves stale data after an external CLI write" :op :assert}
+   {:e #blake3 "a3ae4e60d75e9fe2e0aeec096e57231185b18a497957f27223f5b3ff2adf41ad" :a :spec/id :v "INV-DAEMON-002" :op :assert}
+   {:e #blake3 "a3ae4e60d75e9fe2e0aeec096e57231185b18a497957f27223f5b3ff2adf41ad" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "a3ae4e60d75e9fe2e0aeec096e57231185b18a497957f27223f5b3ff2adf41ad" :a :spec/statement :v "The daemon LiveStore is always consistent with on-disk transaction log. Enforcement: refresh_if_needed() before every request dispatch." :op :assert}
+ ]}

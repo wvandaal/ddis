@@ -1,0 +1,36 @@
+{:tx/id #hlc "1774362554/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :db/ident :v :recon/trace-0cd81b6d774a7fc0 :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-neighborhood :v "DAEMON" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-neighbors :v ":task/t-03561cf0" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-neighbors :v ":task/t-0c9c8e74" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-neighbors :v ":task/t-18bdbe69" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-neighbors :v ":task/t-31c403c4" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-neighbors :v ":task/t-6f7280a2" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-neighbors :v ":task/t-75b74878" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-neighbors :v ":task/t-88e63098" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-neighbors :v ":task/t-a2dd8b78" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-neighbors :v ":task/t-dd3ec886" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-neighbors :v ":task/t-e3d271c3" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "ADR-DAEMON-001" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "ADR-DAEMON-002" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "ADR-DAEMON-003" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "ADR-FOUNDATION-031" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "INV-DAEMON-001" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "INV-DAEMON-002" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "INV-DAEMON-003" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "INV-DAEMON-004" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "INV-DAEMON-005" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "INV-DAEMON-006" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "INV-DAEMON-007" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "INV-DAEMON-008" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "INV-DAEMON-009" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "INV-FOUNDATION-015" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "NEG-DAEMON-001" :op :assert}
+   {:e #blake3 "32cab354ec66ee0d05ab98cb187e490050f0192e676f79aed000e853e08bdd02" :a :recon/trace-refs :v "NEG-DAEMON-002" :op :assert}
+ ]}

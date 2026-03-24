@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774361937/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-DAEMON-002 \"Reuse MCP Protocol for Daemon\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1bd3608f6ad69d962e4c1563ef095c9e171fdcbfcb3e78cb0988f23aab26a785" :a :db/ident :v :task/t-dd3ec886 :op :assert}
+   {:e #blake3 "1bd3608f6ad69d962e4c1563ef095c9e171fdcbfcb3e78cb0988f23aab26a785" :a :task/created-at :v 1774361936 :op :assert}
+   {:e #blake3 "1bd3608f6ad69d962e4c1563ef095c9e171fdcbfcb3e78cb0988f23aab26a785" :a :task/id :v "t-dd3ec886" :op :assert}
+   {:e #blake3 "1bd3608f6ad69d962e4c1563ef095c9e171fdcbfcb3e78cb0988f23aab26a785" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "1bd3608f6ad69d962e4c1563ef095c9e171fdcbfcb3e78cb0988f23aab26a785" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1bd3608f6ad69d962e4c1563ef095c9e171fdcbfcb3e78cb0988f23aab26a785" :a :task/title :v "Implement ADR-DAEMON-002: Reuse MCP Protocol for Daemon" :op :assert}
+   {:e #blake3 "1bd3608f6ad69d962e4c1563ef095c9e171fdcbfcb3e78cb0988f23aab26a785" :a :task/traces-to :v #blake3 "7e398414d801cb8392902ece6e04d5ff63115ced7d8027097d7c5a78069862eb" :op :assert}
+   {:e #blake3 "1bd3608f6ad69d962e4c1563ef095c9e171fdcbfcb3e78cb0988f23aab26a785" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "7e398414d801cb8392902ece6e04d5ff63115ced7d8027097d7c5a78069862eb" :a :adr/decision :v "The daemon reuses the exact JSON-RPC protocol and tool dispatch from mcp.rs. The daemon IS the MCP server with a different transport (Unix socket instead of stdio). This means daemon.rs is a thin wrapper that: (1) manages lifecycle (start/stop/lock), (2) accepts connections on Unix socket, (3) delegates to the same handle_tools_call functions from mcp.rs." :op :assert}
+   {:e #blake3 "7e398414d801cb8392902ece6e04d5ff63115ced7d8027097d7c5a78069862eb" :a :adr/problem :v "Building a separate protocol and dispatch for the daemon would duplicate all tool logic and create semantic divergence risk between daemon and MCP modes." :op :assert}
+   {:e #blake3 "7e398414d801cb8392902ece6e04d5ff63115ced7d8027097d7c5a78069862eb" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "7e398414d801cb8392902ece6e04d5ff63115ced7d8027097d7c5a78069862eb" :a :db/doc :v "Reuse MCP Protocol for Daemon" :op :assert}
+   {:e #blake3 "7e398414d801cb8392902ece6e04d5ff63115ced7d8027097d7c5a78069862eb" :a :db/ident :v :spec/adr-daemon-002 :op :assert}
+   {:e #blake3 "7e398414d801cb8392902ece6e04d5ff63115ced7d8027097d7c5a78069862eb" :a :element/traces-to :v "ADR-INTERFACE-004,INV-INTERFACE-002,ADR-DAEMON-001" :op :assert}
+   {:e #blake3 "7e398414d801cb8392902ece6e04d5ff63115ced7d8027097d7c5a78069862eb" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "7e398414d801cb8392902ece6e04d5ff63115ced7d8027097d7c5a78069862eb" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "7e398414d801cb8392902ece6e04d5ff63115ced7d8027097d7c5a78069862eb" :a :spec/id :v "ADR-DAEMON-002" :op :assert}
+   {:e #blake3 "7e398414d801cb8392902ece6e04d5ff63115ced7d8027097d7c5a78069862eb" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+ ]}

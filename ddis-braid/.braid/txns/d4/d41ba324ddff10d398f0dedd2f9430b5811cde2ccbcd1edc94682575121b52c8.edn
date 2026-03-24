@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774361954/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: NEG-DAEMON-001 \"No Parallel Observability Stack\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6d2d6d75d0344544e70afb6f4d13b302a2a24e70a3e91f6a159de634ce7b217e" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "6d2d6d75d0344544e70afb6f4d13b302a2a24e70a3e91f6a159de634ce7b217e" :a :comonad/falsification :v #blake3 "6d8bc2533ebfb9e54d6690e2b8587c1347f9dadd62aad3b8e935affde124b8e6" :op :assert}
+   {:e #blake3 "6d2d6d75d0344544e70afb6f4d13b302a2a24e70a3e91f6a159de634ce7b217e" :a :db/doc :v "No Parallel Observability Stack" :op :assert}
+   {:e #blake3 "6d2d6d75d0344544e70afb6f4d13b302a2a24e70a3e91f6a159de634ce7b217e" :a :db/ident :v :spec/neg-daemon-001 :op :assert}
+   {:e #blake3 "6d2d6d75d0344544e70afb6f4d13b302a2a24e70a3e91f6a159de634ce7b217e" :a :element/traces-to :v "ADR-FOUNDATION-031,C7,NEG-010" :op :assert}
+   {:e #blake3 "6d2d6d75d0344544e70afb6f4d13b302a2a24e70a3e91f6a159de634ce7b217e" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "6d2d6d75d0344544e70afb6f4d13b302a2a24e70a3e91f6a159de634ce7b217e" :a :spec/element-type :v :spec.type/negative-case :op :assert}
+   {:e #blake3 "6d2d6d75d0344544e70afb6f4d13b302a2a24e70a3e91f6a159de634ce7b217e" :a :spec/falsification :v "Runtime telemetry is stored in a format, location, or system that cannot be queried via braid query" :op :assert}
+   {:e #blake3 "6d2d6d75d0344544e70afb6f4d13b302a2a24e70a3e91f6a159de634ce7b217e" :a :spec/id :v "NEG-DAEMON-001" :op :assert}
+   {:e #blake3 "6d2d6d75d0344544e70afb6f4d13b302a2a24e70a3e91f6a159de634ce7b217e" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "6d2d6d75d0344544e70afb6f4d13b302a2a24e70a3e91f6a159de634ce7b217e" :a :spec/statement :v "Runtime datoms must NOT form a separate telemetry/logging system. They are ordinary datoms in the store with the same lifecycle attributes, queryable via the same Datalog engine, subject to the same boundary evaluations and FEGH analysis. Any runtime metric that cannot be queried with a standard Datalog query is a violation." :op :assert}
+   {:e #blake3 "6d8bc2533ebfb9e54d6690e2b8587c1347f9dadd62aad3b8e935affde124b8e6" :a :db/doc :v "Runtime telemetry is stored in a format, location, or system that cannot be queried via braid query" :op :assert}
+   {:e #blake3 "e87652fa73d4e028092d3a2eaafa7f1212f3bd16117e92ad1064537a14a15c46" :a :db/ident :v :task/t-7e1b2bf1 :op :assert}
+   {:e #blake3 "e87652fa73d4e028092d3a2eaafa7f1212f3bd16117e92ad1064537a14a15c46" :a :task/created-at :v 1774361953 :op :assert}
+   {:e #blake3 "e87652fa73d4e028092d3a2eaafa7f1212f3bd16117e92ad1064537a14a15c46" :a :task/id :v "t-7e1b2bf1" :op :assert}
+   {:e #blake3 "e87652fa73d4e028092d3a2eaafa7f1212f3bd16117e92ad1064537a14a15c46" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e87652fa73d4e028092d3a2eaafa7f1212f3bd16117e92ad1064537a14a15c46" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e87652fa73d4e028092d3a2eaafa7f1212f3bd16117e92ad1064537a14a15c46" :a :task/title :v "Implement NEG-DAEMON-001: No Parallel Observability Stack" :op :assert}
+   {:e #blake3 "e87652fa73d4e028092d3a2eaafa7f1212f3bd16117e92ad1064537a14a15c46" :a :task/traces-to :v #blake3 "6d2d6d75d0344544e70afb6f4d13b302a2a24e70a3e91f6a159de634ce7b217e" :op :assert}
+   {:e #blake3 "e87652fa73d4e028092d3a2eaafa7f1212f3bd16117e92ad1064537a14a15c46" :a :task/type :v :task.type/task :op :assert}
+ ]}

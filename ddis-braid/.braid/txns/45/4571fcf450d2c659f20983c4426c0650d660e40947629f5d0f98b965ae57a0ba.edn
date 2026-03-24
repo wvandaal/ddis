@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774361950/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-DAEMON-009 \"No Unsynchronized Mutation Paths\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1a25cb0cce897339ab528e773f73df83ab3592b8b9c8d6bc3b1b83ed7ba765ac" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "1a25cb0cce897339ab528e773f73df83ab3592b8b9c8d6bc3b1b83ed7ba765ac" :a :comonad/falsification :v #blake3 "4d58536da66ab98df500f952744036b2f3b4bb55c8c28b84941edd0aac85a787" :op :assert}
+   {:e #blake3 "1a25cb0cce897339ab528e773f73df83ab3592b8b9c8d6bc3b1b83ed7ba765ac" :a :db/doc :v "No Unsynchronized Mutation Paths" :op :assert}
+   {:e #blake3 "1a25cb0cce897339ab528e773f73df83ab3592b8b9c8d6bc3b1b83ed7ba765ac" :a :db/ident :v :spec/inv-daemon-009 :op :assert}
+   {:e #blake3 "1a25cb0cce897339ab528e773f73df83ab3592b8b9c8d6bc3b1b83ed7ba765ac" :a :element/traces-to :v "INV-STORE-001,INV-DAEMON-002,C1" :op :assert}
+   {:e #blake3 "1a25cb0cce897339ab528e773f73df83ab3592b8b9c8d6bc3b1b83ed7ba765ac" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "1a25cb0cce897339ab528e773f73df83ab3592b8b9c8d6bc3b1b83ed7ba765ac" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "1a25cb0cce897339ab528e773f73df83ab3592b8b9c8d6bc3b1b83ed7ba765ac" :a :spec/falsification :v "A mutation occurs that the daemon cannot detect via refresh_if_needed(), or a write bypasses the transaction log" :op :assert}
+   {:e #blake3 "1a25cb0cce897339ab528e773f73df83ab3592b8b9c8d6bc3b1b83ed7ba765ac" :a :spec/id :v "INV-DAEMON-009" :op :assert}
+   {:e #blake3 "1a25cb0cce897339ab528e773f73df83ab3592b8b9c8d6bc3b1b83ed7ba765ac" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "1a25cb0cce897339ab528e773f73df83ab3592b8b9c8d6bc3b1b83ed7ba765ac" :a :spec/statement :v "When the daemon is running, all store mutations (from daemon clients AND from direct CLI writes) are visible to the daemon within one refresh cycle. There is no code path that bypasses the append-only transaction log." :op :assert}
+   {:e #blake3 "4d58536da66ab98df500f952744036b2f3b4bb55c8c28b84941edd0aac85a787" :a :db/doc :v "A mutation occurs that the daemon cannot detect via refresh_if_needed(), or a write bypasses the transaction log" :op :assert}
+   {:e #blake3 "4da475fcc0be9aeab1ca3c838e158c3b5dd195d7d6de84684d159eee97355f91" :a :db/ident :v :task/t-18bdbe69 :op :assert}
+   {:e #blake3 "4da475fcc0be9aeab1ca3c838e158c3b5dd195d7d6de84684d159eee97355f91" :a :task/created-at :v 1774361949 :op :assert}
+   {:e #blake3 "4da475fcc0be9aeab1ca3c838e158c3b5dd195d7d6de84684d159eee97355f91" :a :task/id :v "t-18bdbe69" :op :assert}
+   {:e #blake3 "4da475fcc0be9aeab1ca3c838e158c3b5dd195d7d6de84684d159eee97355f91" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "4da475fcc0be9aeab1ca3c838e158c3b5dd195d7d6de84684d159eee97355f91" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4da475fcc0be9aeab1ca3c838e158c3b5dd195d7d6de84684d159eee97355f91" :a :task/title :v "Implement INV-DAEMON-009: No Unsynchronized Mutation Paths" :op :assert}
+   {:e #blake3 "4da475fcc0be9aeab1ca3c838e158c3b5dd195d7d6de84684d159eee97355f91" :a :task/traces-to :v #blake3 "1a25cb0cce897339ab528e773f73df83ab3592b8b9c8d6bc3b1b83ed7ba765ac" :op :assert}
+   {:e #blake3 "4da475fcc0be9aeab1ca3c838e158c3b5dd195d7d6de84684d159eee97355f91" :a :task/type :v :task.type/task :op :assert}
+ ]}

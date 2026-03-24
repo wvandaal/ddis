@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774361983/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PREMORTEM-RISK-2: Concurrent daemon + direct writer. If daemon is running and another process writes txn files directly, daemon must detect and apply them. Already solved by LiveStore.refresh_if_needed() (INV-DAEMON-002). Risk: refresh not called before dispatch. Mitigation: refresh is the FIRST action in the request handler, unconditionally."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0a2fe7518b253ed732bed16bc12cbb0dd0859dfd20daab4b8d6bfccb269399a9" :a :db/doc :v "PREMORTEM-RISK-2: Concurrent daemon + direct writer. If daemon is running and another process writes txn files directly, daemon must detect and apply them. Already solved by LiveStore.refresh_if_needed() (INV-DAEMON-002). Risk: refresh not called before dispatch. Mitigation: refresh is the FIRST action in the request handler, unconditionally." :op :assert}
+   {:e #blake3 "0a2fe7518b253ed732bed16bc12cbb0dd0859dfd20daab4b8d6bfccb269399a9" :a :db/ident :v :observation/premortem-risk-2-concurrent-daemon-direct-writer-if-daem :op :assert}
+   {:e #blake3 "0a2fe7518b253ed732bed16bc12cbb0dd0859dfd20daab4b8d6bfccb269399a9" :a :exploration/body :v "PREMORTEM-RISK-2: Concurrent daemon + direct writer. If daemon is running and another process writes txn files directly, daemon must detect and apply them. Already solved by LiveStore.refresh_if_needed() (INV-DAEMON-002). Risk: refresh not called before dispatch. Mitigation: refresh is the FIRST action in the request handler, unconditionally." :op :assert}
+   {:e #blake3 "0a2fe7518b253ed732bed16bc12cbb0dd0859dfd20daab4b8d6bfccb269399a9" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "0a2fe7518b253ed732bed16bc12cbb0dd0859dfd20daab4b8d6bfccb269399a9" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "0a2fe7518b253ed732bed16bc12cbb0dd0859dfd20daab4b8d6bfccb269399a9" :a :exploration/content-hash :v #bytes "2f2715b6e6f507837f4f4fd9461070075cbdc3448ae54d0ec97ee5f99b3997d5" :op :assert}
+   {:e #blake3 "0a2fe7518b253ed732bed16bc12cbb0dd0859dfd20daab4b8d6bfccb269399a9" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "0a2fe7518b253ed732bed16bc12cbb0dd0859dfd20daab4b8d6bfccb269399a9" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "0a2fe7518b253ed732bed16bc12cbb0dd0859dfd20daab4b8d6bfccb269399a9" :a :exploration/source-session :v #blake3 "97e0e9752e5bbb70d0561b29f52e6240472b0947741bd1fb8f3c82b668feb193" :op :assert}
+ ]}

@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774361932/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-DAEMON-007 \"CLI Auto-Routing\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "42a5a5209a95009ffb00b7b1c619d45fba55dfe77a1fd8c4e497ab07ec81c55c" :a :db/ident :v :task/t-88e63098 :op :assert}
+   {:e #blake3 "42a5a5209a95009ffb00b7b1c619d45fba55dfe77a1fd8c4e497ab07ec81c55c" :a :task/created-at :v 1774361931 :op :assert}
+   {:e #blake3 "42a5a5209a95009ffb00b7b1c619d45fba55dfe77a1fd8c4e497ab07ec81c55c" :a :task/id :v "t-88e63098" :op :assert}
+   {:e #blake3 "42a5a5209a95009ffb00b7b1c619d45fba55dfe77a1fd8c4e497ab07ec81c55c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "42a5a5209a95009ffb00b7b1c619d45fba55dfe77a1fd8c4e497ab07ec81c55c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "42a5a5209a95009ffb00b7b1c619d45fba55dfe77a1fd8c4e497ab07ec81c55c" :a :task/title :v "Implement INV-DAEMON-007: CLI Auto-Routing" :op :assert}
+   {:e #blake3 "42a5a5209a95009ffb00b7b1c619d45fba55dfe77a1fd8c4e497ab07ec81c55c" :a :task/traces-to :v #blake3 "9e698fedd2868effd15a13384e5fea43a820e69e8866a15bdba02dd065f6ff92" :op :assert}
+   {:e #blake3 "42a5a5209a95009ffb00b7b1c619d45fba55dfe77a1fd8c4e497ab07ec81c55c" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "9dd85fee1ece1242c13248d312d1dc9e98c1076fb18dac3218b27e959806e460" :a :db/doc :v "CLI command fails when daemon is absent instead of falling back, or requires explicit configuration to use daemon" :op :assert}
+   {:e #blake3 "9e698fedd2868effd15a13384e5fea43a820e69e8866a15bdba02dd065f6ff92" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "9e698fedd2868effd15a13384e5fea43a820e69e8866a15bdba02dd065f6ff92" :a :comonad/falsification :v #blake3 "9dd85fee1ece1242c13248d312d1dc9e98c1076fb18dac3218b27e959806e460" :op :assert}
+   {:e #blake3 "9e698fedd2868effd15a13384e5fea43a820e69e8866a15bdba02dd065f6ff92" :a :db/doc :v "CLI Auto-Routing" :op :assert}
+   {:e #blake3 "9e698fedd2868effd15a13384e5fea43a820e69e8866a15bdba02dd065f6ff92" :a :db/ident :v :spec/inv-daemon-007 :op :assert}
+   {:e #blake3 "9e698fedd2868effd15a13384e5fea43a820e69e8866a15bdba02dd065f6ff92" :a :element/traces-to :v "ADR-DAEMON-001,INV-DAEMON-004" :op :assert}
+   {:e #blake3 "9e698fedd2868effd15a13384e5fea43a820e69e8866a15bdba02dd065f6ff92" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "9e698fedd2868effd15a13384e5fea43a820e69e8866a15bdba02dd065f6ff92" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "9e698fedd2868effd15a13384e5fea43a820e69e8866a15bdba02dd065f6ff92" :a :spec/falsification :v "CLI command fails when daemon is absent instead of falling back, or requires explicit configuration to use daemon" :op :assert}
+   {:e #blake3 "9e698fedd2868effd15a13384e5fea43a820e69e8866a15bdba02dd065f6ff92" :a :spec/id :v "INV-DAEMON-007" :op :assert}
+   {:e #blake3 "9e698fedd2868effd15a13384e5fea43a820e69e8866a15bdba02dd065f6ff92" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "9e698fedd2868effd15a13384e5fea43a820e69e8866a15bdba02dd065f6ff92" :a :spec/statement :v "CLI commands automatically detect a running daemon by checking for .braid/daemon.sock existence and connectability. If daemon is available, route through socket. If unavailable (no socket, connection refused, timeout), fall back to direct disk access silently. No user configuration required." :op :assert}
+ ]}
