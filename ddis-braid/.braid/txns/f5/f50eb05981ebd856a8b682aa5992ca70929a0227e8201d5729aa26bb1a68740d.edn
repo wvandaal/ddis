@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774323826/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: LiveStore — Write-Through Persistence (ADR-FOUNDATION-031, INV-STORE-001). The bridge between PERF-2a (routing dedup, done) and PERF-4 (daemon, future). LiveStore unifies DiskLayout and Store into a single self-persisting object. Every write updates the in-memory store AND the disk cache atomically. No invalidation, no rebuild, no stale data — by construction. Eliminates 5 caches with 3 invalidation strategies, replaces with 1 cache and 0 invalidation strategies. Enables the daemon as a trivial extension (same LiveStore, longer lifetime). Performance: 97s to 0.5s projected. CHILDREN: LIVESTORE-1 (type definition), LIVESTORE-2 (write-through impl), LIVESTORE-3 (cache elimination), LIVESTORE-4 (status.rs migration), LIVESTORE-5 (full command migration), LIVESTORE-6 (multi-agent detection), LIVESTORE-TEST (comprehensive test suite). TRACES: ADR-FOUNDATION-031 (Introspective Observer), INV-STORE-001 (append-only), C1 (crash safety via append-only guarantee), C7 (self-bootstrap via self-persisting store)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "32538324db1a1b1cb74a88f42f3aa5244c23510fc724e1597d8c6cc6d4d3b9a8" :a :db/ident :v :task/t-83506b53 :op :assert}
+   {:e #blake3 "32538324db1a1b1cb74a88f42f3aa5244c23510fc724e1597d8c6cc6d4d3b9a8" :a :task/created-at :v 1774323825 :op :assert}
+   {:e #blake3 "32538324db1a1b1cb74a88f42f3aa5244c23510fc724e1597d8c6cc6d4d3b9a8" :a :task/id :v "t-83506b53" :op :assert}
+   {:e #blake3 "32538324db1a1b1cb74a88f42f3aa5244c23510fc724e1597d8c6cc6d4d3b9a8" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "32538324db1a1b1cb74a88f42f3aa5244c23510fc724e1597d8c6cc6d4d3b9a8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "32538324db1a1b1cb74a88f42f3aa5244c23510fc724e1597d8c6cc6d4d3b9a8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "32538324db1a1b1cb74a88f42f3aa5244c23510fc724e1597d8c6cc6d4d3b9a8" :a :task/title :v "EPIC: LiveStore — Write-Through Persistence (ADR-FOUNDATION-031, INV-STORE-001). The bridge between PERF-2a (routing dedup, done) and PERF-4 (daemon, future). LiveStore unifies DiskLayout and Store into a single self-persisting object. Every write updates the in-memory store AND the disk cache atomically. No invalidation, no rebuild, no stale data — by construction. Eliminates 5 caches with 3 invalidation strategies, replaces with 1 cache and 0 invalidation strategies. Enables the daemon as a trivial extension (same LiveStore, longer lifetime). Performance: 97s to 0.5s projected. CHILDREN: LIVESTORE-1 (type definition), LIVESTORE-2 (write-through impl), LIVESTORE-3 (cache elimination), LIVESTORE-4 (status.rs migration), LIVESTORE-5 (full command migration), LIVESTORE-6 (multi-agent detection), LIVESTORE-TEST (comprehensive test suite). TRACES: ADR-FOUNDATION-031 (Introspective Observer), INV-STORE-001 (append-only), C1 (crash safety via append-only guarantee), C7 (self-bootstrap via self-persisting store)" :op :assert}
+   {:e #blake3 "32538324db1a1b1cb74a88f42f3aa5244c23510fc724e1597d8c6cc6d4d3b9a8" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "32538324db1a1b1cb74a88f42f3aa5244c23510fc724e1597d8c6cc6d4d3b9a8" :a :task/title-l1 :v "EPIC: LiveStore — Write-Through Persistence (ADR-FOUNDATION-031, INV-STORE-..." :op :assert}
+   {:e #blake3 "32538324db1a1b1cb74a88f42f3aa5244c23510fc724e1597d8c6cc6d4d3b9a8" :a :task/traces-to :v #blake3 "e28e7edc1de3fd309bdb24646b12535d322634aa0f3488861155aaade266b8c3" :op :assert}
+   {:e #blake3 "32538324db1a1b1cb74a88f42f3aa5244c23510fc724e1597d8c6cc6d4d3b9a8" :a :task/type :v :task.type/epic :op :assert}
+ ]}
