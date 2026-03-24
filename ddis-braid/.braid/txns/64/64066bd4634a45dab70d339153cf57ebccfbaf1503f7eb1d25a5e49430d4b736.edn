@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774312116/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FAILURE-ESCALATION-1: Load-bearing failure detection — escalate anomalous hypothesis failures from calibration to ontological inquiry. Three learning types triggered by failure signatures: Type 1 (aleatoric): error is random and decreasing -> recalibrate. Type 2 (epistemic-structural): error systematic across 10+ hypotheses -> focused FEGH bridge search. Type 3 (epistemic-ontological): failure doesn't match any divergence type 1-9 -> ontological surprise detection. SURFACE in guidance: LOAD-BEARING FAILURE: hypothesis X failed anomalously. Investigate. ACCEPTANCE: (A) Type 1: no escalation. (B) Type 2: bridge hypothesis generated. (C) Type 3: ontological inquiry triggered. (D) Surfaced in guidance. (E) PERF-1 misdiagnosis would have been detected. DEPENDS-ON: FEGH-1, ONTOLOGY-DISCOVER-1. TRACES: ADR-FOUNDATION-033, INV-FOUNDATION-014. FILE: crates/braid-kernel/src/routing.rs + guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "793b56a8a907884db26f39c5f0f72dff31216fbbffb3d40228d43c55ac6f9e3a" :a :db/ident :v :task/t-f0a1bf25 :op :assert}
+   {:e #blake3 "793b56a8a907884db26f39c5f0f72dff31216fbbffb3d40228d43c55ac6f9e3a" :a :task/acceptance :v "(A) Type 1: no escalation. (B) Type 2: bridge hypothesis generated. (C) Type 3: ontological inquiry triggered. (D) Surfaced in guidance. (E) PERF-1 misdiagnosis would have been detected. DEPENDS-ON: FEGH-1, ONTOLOGY-DISCOVER-1. TRACES: ADR-FOUNDATION-033, INV-FOUNDATION-014." :op :assert}
+   {:e #blake3 "793b56a8a907884db26f39c5f0f72dff31216fbbffb3d40228d43c55ac6f9e3a" :a :task/body :v "ACCEPTANCE: (A) Type 1: no escalation. (B) Type 2: bridge hypothesis generated. (C) Type 3: ontological inquiry triggered. (D) Surfaced in guidance. (E) PERF-1 misdiagnosis would have been detected. DEPENDS-ON: FEGH-1, ONTOLOGY-DISCOVER-1. TRACES: ADR-FOUNDATION-033, INV-FOUNDATION-014. FILE: crates/braid-kernel/src/routing.rs + guidance.rs" :op :assert}
+   {:e #blake3 "793b56a8a907884db26f39c5f0f72dff31216fbbffb3d40228d43c55ac6f9e3a" :a :task/created-at :v 1774312115 :op :assert}
+   {:e #blake3 "793b56a8a907884db26f39c5f0f72dff31216fbbffb3d40228d43c55ac6f9e3a" :a :task/files :v "crates/braid-kernel/src/routing.rs" :op :assert}
+   {:e #blake3 "793b56a8a907884db26f39c5f0f72dff31216fbbffb3d40228d43c55ac6f9e3a" :a :task/id :v "t-f0a1bf25" :op :assert}
+   {:e #blake3 "793b56a8a907884db26f39c5f0f72dff31216fbbffb3d40228d43c55ac6f9e3a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "793b56a8a907884db26f39c5f0f72dff31216fbbffb3d40228d43c55ac6f9e3a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "793b56a8a907884db26f39c5f0f72dff31216fbbffb3d40228d43c55ac6f9e3a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "793b56a8a907884db26f39c5f0f72dff31216fbbffb3d40228d43c55ac6f9e3a" :a :task/title :v "FAILURE-ESCALATION-1: Load-bearing failure detection — escalate anomalous hypothesis failures from calibration to ontological inquiry. Three learning types triggered by failure signatures: Type 1 (aleatoric): error is random and decreasing -> recalibrate. Type 2 (epistemic-structural): error systematic across 10+ hypotheses -> focused FEGH bridge search. Type 3 (epistemic-ontological): failure doesn't match any divergence type 1-9 -> ontological surprise detection. SURFACE in guidance: LOAD-BEARING FAILURE: hypothesis X failed anomalously. Investigate" :op :assert}
+   {:e #blake3 "793b56a8a907884db26f39c5f0f72dff31216fbbffb3d40228d43c55ac6f9e3a" :a :task/title-l0 :v "FAILURE-ESCALATION-1" :op :assert}
+   {:e #blake3 "793b56a8a907884db26f39c5f0f72dff31216fbbffb3d40228d43c55ac6f9e3a" :a :task/title-l1 :v "FAILURE-ESCALATION-1: Load-bearing failure detection — escalate anomalous h..." :op :assert}
+   {:e #blake3 "793b56a8a907884db26f39c5f0f72dff31216fbbffb3d40228d43c55ac6f9e3a" :a :task/traces-to :v #blake3 "e4fe3d740bf75c17e5ef347b9552c5f0b9ad2c675000ea92a55ffa192e1cbed7" :op :assert}
+   {:e #blake3 "793b56a8a907884db26f39c5f0f72dff31216fbbffb3d40228d43c55ac6f9e3a" :a :task/type :v :task.type/task :op :assert}
+ ]}
