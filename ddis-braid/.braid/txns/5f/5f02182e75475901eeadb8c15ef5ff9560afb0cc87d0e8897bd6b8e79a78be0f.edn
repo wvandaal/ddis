@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774366447/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-30f5d046"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "44c576b69eab9e070099be6f093e2f42e4a780066cd926eedf32f1c029cad322" :a :task/close-reason :v "Daemon MVP complete: D4-1..D4-8 implemented (daemon.rs 600+ LOC, 35 tests, 12/12 E2E). Unix socket, runtime datoms, CLI commands, auto-routing all working." :op :assert}
+   {:e #blake3 "44c576b69eab9e070099be6f093e2f42e4a780066cd926eedf32f1c029cad322" :a :task/closed-at :v 1774366446 :op :assert}
+   {:e #blake3 "44c576b69eab9e070099be6f093e2f42e4a780066cd926eedf32f1c029cad322" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "44c576b69eab9e070099be6f093e2f42e4a780066cd926eedf32f1c029cad322" :a :task/status :v :task.status/closed :op :assert}
+ ]}
