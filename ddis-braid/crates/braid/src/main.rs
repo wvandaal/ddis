@@ -101,32 +101,31 @@ fn main() {
     let budget_exempt = is_budget_exempt(&cmd);
     let exit_warn_path = commands::store_path(&cmd).map(|p| p.to_path_buf());
 
-    // ST-1: Auto-detect session start and write session-start datoms.
-    // Runs before the command executes so that commands see the active session.
-    // Skips `init` (no store yet) and `session start` (handles its own session).
-    // NOTE: FD-012 requires every command to be a store transaction. Auto-detect
-    // fulfills this for commands that don't otherwise write. Do NOT skip for
-    // "read-only" commands — that would violate the provenance invariant.
+    // LIVESTORE-5a: ST-1 session auto-detect using LiveStore write-through.
+    // Previously created DiskLayout + load_store + write_tx (which invalidated cache).
+    // Now uses LiveStore: write goes through write_tx (no invalidation), flush on drop.
     if cmd_name != "init" && cmd_name != "session" {
         if let Some(ref store_path) = exit_warn_path {
-            if let Ok(lo) = layout::DiskLayout::open(store_path) {
-                if let Ok(store) = lo.load_store() {
-                    if braid_kernel::guidance::detect_session_start(&store) {
-                        let agent = braid_kernel::datom::AgentId::from_name("braid:session");
-                        let tx_id = commands::write::next_tx_id(&store, agent);
-                        let datoms =
-                            braid_kernel::guidance::create_session_start_datoms(&store, agent, tx_id);
-                        let tx_file = braid_kernel::layout::TxFile {
-                            tx_id,
-                            agent,
-                            provenance: braid_kernel::datom::ProvenanceType::Derived,
-                            rationale: "ST-1: auto-detected session start".to_string(),
-                            causal_predecessors: vec![],
-                            datoms,
-                        };
-                        let _ = lo.write_tx(&tx_file);
-                    }
+            if let Ok(mut live) = live_store::LiveStore::open(store_path) {
+                if braid_kernel::guidance::detect_session_start(live.store()) {
+                    let agent = braid_kernel::datom::AgentId::from_name("braid:session");
+                    let tx_id = commands::write::next_tx_id(live.store(), agent);
+                    let datoms = braid_kernel::guidance::create_session_start_datoms(
+                        live.store(),
+                        agent,
+                        tx_id,
+                    );
+                    let tx_file = braid_kernel::layout::TxFile {
+                        tx_id,
+                        agent,
+                        provenance: braid_kernel::datom::ProvenanceType::Derived,
+                        rationale: "ST-1: auto-detected session start".to_string(),
+                        causal_predecessors: vec![],
+                        datoms,
+                    };
+                    let _ = live.write_tx(&tx_file);
                 }
+                // LiveStore drops here — flush writes store.bin if dirty.
             }
         }
     }
@@ -160,14 +159,15 @@ fn main() {
                 "observe" | "transact" | "write" | "task" | "spec"
             );
 
-            let post_cmd_store =
+            // LIVESTORE-5a: Post-command store access via LiveStore.
+            // Opens fresh (picks up any txns written by the command).
+            let mut post_cmd_live =
                 if (needs_rfl2 || needs_exit_warning || is_knowledge_producing)
                     && exit_warn_path.is_some()
                 {
                 exit_warn_path
                     .as_ref()
-                    .and_then(|path| layout::DiskLayout::open(path).ok())
-                    .and_then(|lo| lo.load_store().ok().map(|store| (lo, store)))
+                    .and_then(|path| live_store::LiveStore::open(path).ok())
             } else {
                 None
             };
@@ -176,8 +176,8 @@ fn main() {
             // If the command produced ACP output (_acp field), extract the action
             // and auto-transact it as an :action/* entity. This is the PREDICTION
             // half — the outcome is classified on the NEXT command (RFL-3).
-            if let (Some(acp), Some((ref lo, ref store))) =
-                (cmd_output.json.get("_acp"), &post_cmd_store)
+            if let (Some(acp), Some(ref mut live)) =
+                (cmd_output.json.get("_acp"), post_cmd_live.as_mut())
             {
                 if let Some(action) = acp.get("action") {
                     let cmd_str = action.get("command").and_then(|v| v.as_str()).unwrap_or("");
@@ -189,7 +189,7 @@ fn main() {
 
                     use braid_kernel::datom::*;
                     let agent = AgentId::from_name("braid:rfl");
-                    let tx = commands::write::next_tx_id(store, agent);
+                    let tx = commands::write::next_tx_id(live.store(), agent);
                     let ident = format!(
                         ":action/{}",
                         &blake3::hash(format!("{}-{}", cmd_str, wall_ms).as_bytes()).to_hex()[..16]
@@ -233,7 +233,7 @@ fn main() {
                         causal_predecessors: vec![],
                         datoms,
                     };
-                    let _ = lo.write_tx(&tx_file);
+                    let _ = live.write_tx(&tx_file);
                 }
             }
 
@@ -242,7 +242,7 @@ fn main() {
             // detector (AR-4) which detects sustained work in a spec neighborhood.
             // Traces are OPTIONAL: if anything fails, silently skip.
             if is_knowledge_producing {
-                if let Some((ref lo, ref store)) = post_cmd_store {
+                if let Some(ref mut live) = post_cmd_live {
                     // Extract spec refs from the full JSON output
                     let json_str = serde_json::to_string(&cmd_output.json).unwrap_or_default();
                     let spec_refs = braid_kernel::task::parse_spec_refs(&json_str);
@@ -252,7 +252,7 @@ fn main() {
 
                         // Graph traversal: find related entities via spec dependency graph
                         let neighbors =
-                            braid_kernel::guidance::spec_graph_neighbors(store, &spec_refs);
+                            braid_kernel::guidance::spec_graph_neighbors(live.store(), &spec_refs);
                         let namespace = spec_refs
                             .first()
                             .map(|r| {
@@ -261,7 +261,7 @@ fn main() {
                             .unwrap_or_default();
 
                         let agent = AgentId::from_name("braid:recon");
-                        let tx = commands::write::next_tx_id(store, agent);
+                        let tx = commands::write::next_tx_id(live.store(), agent);
                         let wall_secs = tx.wall_time();
                         let trace_ident = format!(
                             ":recon/trace-{}",
@@ -314,7 +314,7 @@ fn main() {
                         for (neighbor_entity, _score) in &neighbors {
                             // Resolve ident from store if available
                             let ident_attr = Attribute::from_keyword(":db/ident");
-                            let neighbor_ident = store
+                            let neighbor_ident = live.store()
                                 .entity_datoms(*neighbor_entity)
                                 .iter()
                                 .find(|d| d.attribute == ident_attr && d.op == Op::Assert)
@@ -341,17 +341,16 @@ fn main() {
                             causal_predecessors: vec![],
                             datoms,
                         };
-                        let _ = lo.write_tx(&tx_file);
+                        let _ = live.write_tx(&tx_file);
                     }
                 }
             }
 
             // NEG-HARVEST-001: warn on exit if unharvested work is at risk.
-            // Skip for harvest commands (they just harvested) and JSON mode
-            // (structured output should not have side-channel stderr noise).
             if needs_exit_warning {
-                if let Some((_, ref store)) = post_cmd_store {
-                    if let Some(warning) = braid_kernel::guidance::should_warn_on_exit(store, None)
+                if let Some(ref live) = post_cmd_live {
+                    if let Some(warning) =
+                        braid_kernel::guidance::should_warn_on_exit(live.store(), None)
                     {
                         eprintln!("{warning}");
                     }
@@ -360,9 +359,13 @@ fn main() {
                     // (INV-SIGNAL-001). Uses lightweight detection — no spectral analysis.
                     let detector = braid_kernel::signal::ConfusionDetector::default();
                     let source = braid_kernel::datom::EntityId::from_ident(":system/exit-check");
-                    let budget = store.len() as u64;
-                    let divergences =
-                        braid_kernel::signal::detect_all_divergence(store, &detector, source, budget);
+                    let budget = live.store().len() as u64;
+                    let divergences = braid_kernel::signal::detect_all_divergence(
+                        live.store(),
+                        &detector,
+                        source,
+                        budget,
+                    );
                     if !divergences.is_empty() {
                         let types: Vec<String> = divergences
                             .iter()
