@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774358501/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3b7925a5"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1b03921c5d0f74f67dbd2d49ea120fa9e6f64c6408d69cae84caf2e9b94e25f4" :a :task/close-reason :v "12 unit tests in live_store.rs + 6 E2E tests in scripts/e2e_livestore.sh. All pass. Coverage: open, create, write, flush, consecutive writes, refresh, crash recovery, full rebuild, monotonic growth, materialized views, dirty flag." :op :assert}
+   {:e #blake3 "1b03921c5d0f74f67dbd2d49ea120fa9e6f64c6408d69cae84caf2e9b94e25f4" :a :task/closed-at :v 1774358500 :op :assert}
+   {:e #blake3 "1b03921c5d0f74f67dbd2d49ea120fa9e6f64c6408d69cae84caf2e9b94e25f4" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "1b03921c5d0f74f67dbd2d49ea120fa9e6f64c6408d69cae84caf2e9b94e25f4" :a :task/status :v :task.status/closed :op :assert}
+ ]}

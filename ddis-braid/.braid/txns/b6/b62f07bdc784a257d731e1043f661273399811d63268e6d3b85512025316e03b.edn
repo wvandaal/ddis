@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774357413/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-9ca466d5"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c9bf4d0d5d35c56ea29d6491067a57fa3dcabf1cb408d19cb43b5050543c4894" :a :task/close-reason :v "Fixed: init's LiveStore stale after trace::run(). Added live.refresh_if_needed() before final count. Reporting bug — all datoms were on disk, just not counted. Also fixed policy manifest path." :op :assert}
+   {:e #blake3 "c9bf4d0d5d35c56ea29d6491067a57fa3dcabf1cb408d19cb43b5050543c4894" :a :task/closed-at :v 1774357412 :op :assert}
+   {:e #blake3 "c9bf4d0d5d35c56ea29d6491067a57fa3dcabf1cb408d19cb43b5050543c4894" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "c9bf4d0d5d35c56ea29d6491067a57fa3dcabf1cb408d19cb43b5050543c4894" :a :task/status :v :task.status/closed :op :assert}
+ ]}

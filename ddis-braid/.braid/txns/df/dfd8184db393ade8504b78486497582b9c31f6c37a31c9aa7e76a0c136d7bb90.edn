@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774358068/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "LIVESTORE-5d complete: MCP server migrated from DiskLayout to LiveStore. One LiveStore opened at startup, shared across all 11 tool invocations. Read tools use live.store() (O(1) pointer dereference). Write tools use live.write_tx() (disk + in-memory). refresh_if_needed() before each dispatch detects CLI-written transactions. 11 load_store() calls eliminated. 4 write_tx() calls migrated. All 10 existing MCP tests pass unchanged."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "103f3ce9df5a3a596b1234e08621bd95ae7213ec339a619b0237d337eaf5bfdf" :a :db/doc :v "LIVESTORE-5d complete: MCP server migrated from DiskLayout to LiveStore. One LiveStore opened at startup, shared across all 11 tool invocations. Read tools use live.store() (O(1) pointer dereference). Write tools use live.write_tx() (disk + in-memory). refresh_if_needed() before each dispatch detects CLI-written transactions. 11 load_store() calls eliminated. 4 write_tx() calls migrated. All 10 existing MCP tests pass unchanged." :op :assert}
+   {:e #blake3 "103f3ce9df5a3a596b1234e08621bd95ae7213ec339a619b0237d337eaf5bfdf" :a :db/ident :v :observation/livestore-5d-complete-mcp-server-migrated-from-disklayout-t :op :assert}
+   {:e #blake3 "103f3ce9df5a3a596b1234e08621bd95ae7213ec339a619b0237d337eaf5bfdf" :a :exploration/body :v "LIVESTORE-5d complete: MCP server migrated from DiskLayout to LiveStore. One LiveStore opened at startup, shared across all 11 tool invocations. Read tools use live.store() (O(1) pointer dereference). Write tools use live.write_tx() (disk + in-memory). refresh_if_needed() before each dispatch detects CLI-written transactions. 11 load_store() calls eliminated. 4 write_tx() calls migrated. All 10 existing MCP tests pass unchanged." :op :assert}
+   {:e #blake3 "103f3ce9df5a3a596b1234e08621bd95ae7213ec339a619b0237d337eaf5bfdf" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "103f3ce9df5a3a596b1234e08621bd95ae7213ec339a619b0237d337eaf5bfdf" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "103f3ce9df5a3a596b1234e08621bd95ae7213ec339a619b0237d337eaf5bfdf" :a :exploration/content-hash :v #bytes "2ce04ab04d86cf23ceee630bbf0b1fc1c6bda322f488c347d1ac6f075ce84ee4" :op :assert}
+   {:e #blake3 "103f3ce9df5a3a596b1234e08621bd95ae7213ec339a619b0237d337eaf5bfdf" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "103f3ce9df5a3a596b1234e08621bd95ae7213ec339a619b0237d337eaf5bfdf" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "103f3ce9df5a3a596b1234e08621bd95ae7213ec339a619b0237d337eaf5bfdf" :a :exploration/source-session :v #blake3 "6f7e40170856dfcfeb21950bb563253d25feb175fec9ed3a53fb329b9be9616f" :op :assert}
+ ]}

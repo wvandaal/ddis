@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774357411/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INIT-REGRESSION-CHECK resolved: reporting bug, not data loss. trace::run() opens its own LiveStore and writes datoms to disk, but init's LiveStore was never refreshed. Fix: live.refresh_if_needed() before final count. Also fixed policy manifest path (same issue). Delta on tiny project: 58 datoms (3 impl links + 3 FBW witnesses). On ddis-braid: ~10K trace datoms explain the 15,208 vs 4,927 gap."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ee607b1b2207c0b4edfde4b21363ee5efe9a7931dd246a7379799a1372c93bfd" :a :db/doc :v "INIT-REGRESSION-CHECK resolved: reporting bug, not data loss. trace::run() opens its own LiveStore and writes datoms to disk, but init's LiveStore was never refreshed. Fix: live.refresh_if_needed() before final count. Also fixed policy manifest path (same issue). Delta on tiny project: 58 datoms (3 impl links + 3 FBW witnesses). On ddis-braid: ~10K trace datoms explain the 15,208 vs 4,927 gap." :op :assert}
+   {:e #blake3 "ee607b1b2207c0b4edfde4b21363ee5efe9a7931dd246a7379799a1372c93bfd" :a :db/ident :v :observation/init-regression-check-resolved-reporting-bug-not-data-loss :op :assert}
+   {:e #blake3 "ee607b1b2207c0b4edfde4b21363ee5efe9a7931dd246a7379799a1372c93bfd" :a :exploration/body :v "INIT-REGRESSION-CHECK resolved: reporting bug, not data loss. trace::run() opens its own LiveStore and writes datoms to disk, but init's LiveStore was never refreshed. Fix: live.refresh_if_needed() before final count. Also fixed policy manifest path (same issue). Delta on tiny project: 58 datoms (3 impl links + 3 FBW witnesses). On ddis-braid: ~10K trace datoms explain the 15,208 vs 4,927 gap." :op :assert}
+   {:e #blake3 "ee607b1b2207c0b4edfde4b21363ee5efe9a7931dd246a7379799a1372c93bfd" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "ee607b1b2207c0b4edfde4b21363ee5efe9a7931dd246a7379799a1372c93bfd" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "ee607b1b2207c0b4edfde4b21363ee5efe9a7931dd246a7379799a1372c93bfd" :a :exploration/content-hash :v #bytes "6af2540c7d619c1543fe16f50e71397ec4f83b3cb796378aa783b118709f57c9" :op :assert}
+   {:e #blake3 "ee607b1b2207c0b4edfde4b21363ee5efe9a7931dd246a7379799a1372c93bfd" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "ee607b1b2207c0b4edfde4b21363ee5efe9a7931dd246a7379799a1372c93bfd" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "ee607b1b2207c0b4edfde4b21363ee5efe9a7931dd246a7379799a1372c93bfd" :a :exploration/source-session :v #blake3 "6f7e40170856dfcfeb21950bb563253d25feb175fec9ed3a53fb329b9be9616f" :op :assert}
+ ]}

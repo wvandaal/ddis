@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774358070/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-d500e691"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "290018c314b78244b19418443d4fc2fb213331c7662c1f2c35131b16cd4fc814" :a :task/close-reason :v "Migrated: DiskLayout→LiveStore. One LiveStore at startup, shared across all 11 tools. refresh_if_needed() before each dispatch. 11 load_store eliminated. 10 tests pass." :op :assert}
+   {:e #blake3 "290018c314b78244b19418443d4fc2fb213331c7662c1f2c35131b16cd4fc814" :a :task/closed-at :v 1774358069 :op :assert}
+   {:e #blake3 "290018c314b78244b19418443d4fc2fb213331c7662c1f2c35131b16cd4fc814" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "290018c314b78244b19418443d4fc2fb213331c7662c1f2c35131b16cd4fc814" :a :task/status :v :task.status/closed :op :assert}
+ ]}
