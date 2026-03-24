@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774365916/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8fa0a027"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b7924baec09632416e5a511813e28b7a896b6f7b373de260d3150b10b04b51ab" :a :task/close-reason :v "E2E script: scripts/e2e_daemon.sh — 12/12 checks pass (status, start, lock, socket, stop, cleanup, fallback). No proptest added for MVP — deferred to follow-up. 299 total tests pass." :op :assert}
+   {:e #blake3 "b7924baec09632416e5a511813e28b7a896b6f7b373de260d3150b10b04b51ab" :a :task/closed-at :v 1774365914 :op :assert}
+   {:e #blake3 "b7924baec09632416e5a511813e28b7a896b6f7b373de260d3150b10b04b51ab" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "b7924baec09632416e5a511813e28b7a896b6f7b373de260d3150b10b04b51ab" :a :task/status :v :task.status/closed :op :assert}
+ ]}

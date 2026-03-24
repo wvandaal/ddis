@@ -588,6 +588,10 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
     );
 
     // 6. Install signal handlers.
+    // Reset any stale shutdown flag from a previous daemon run (or test).
+    if let Ok(mut guard) = SHUTDOWN_FLAG.lock() {
+        *guard = None;
+    }
     let shutdown = Arc::new(AtomicBool::new(false));
     {
         let shutdown_clone = Arc::clone(&shutdown);
@@ -1350,6 +1354,241 @@ mod tests {
         assert!(
             rid.contains("req-abc-123"),
             "request-id must contain the original JSON-RPC id, got: {rid}"
+        );
+    }
+
+    // ── Integration tests (D4-TEST-3) ────────────────────────────────────
+    //
+    // Integration tests use a global SHUTDOWN_FLAG and must not run in parallel.
+    // We use a Mutex to serialize them within the test process.
+
+    static INTEGRATION_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    /// Helper: start daemon in a background thread, return the join handle.
+    /// The daemon runs on the given braid_dir.
+    fn start_daemon_thread(
+        braid_dir: std::path::PathBuf,
+    ) -> std::thread::JoinHandle<Result<(), DaemonError>> {
+        std::thread::spawn(move || serve_daemon(&braid_dir))
+    }
+
+    /// Helper: send a JSON-RPC request to the daemon socket and return response.
+    fn send_socket_request(
+        sock_path: &Path,
+        method: &str,
+        params: serde_json::Value,
+    ) -> Option<serde_json::Value> {
+        use std::io::{BufRead, Write};
+        use std::os::unix::net::UnixStream;
+
+        let stream = UnixStream::connect(sock_path).ok()?;
+        stream
+            .set_read_timeout(Some(std::time::Duration::from_secs(10)))
+            .ok()?;
+
+        let request = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": method,
+            "params": params,
+        });
+
+        let mut writer = std::io::BufWriter::new(&stream);
+        let bytes = serde_json::to_vec(&request).ok()?;
+        writer.write_all(&bytes).ok()?;
+        writer.write_all(b"\n").ok()?;
+        writer.flush().ok()?;
+
+        let reader = std::io::BufReader::new(&stream);
+        let line = reader.lines().next()?.ok()?;
+        serde_json::from_str(&line).ok()
+    }
+
+    #[test]
+    fn daemon_start_stop_lifecycle() {
+        let _lock = INTEGRATION_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let mut live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        install_runtime_schema(&mut live).unwrap();
+        let _ = live.flush();
+        drop(live);
+
+        let sock_path = SocketPath::new(&braid_dir);
+        let lock_path = LockPath::new(&braid_dir);
+
+        // Start daemon in background thread.
+        let braid_dir_clone = braid_dir.clone();
+        let handle = start_daemon_thread(braid_dir_clone);
+        std::thread::sleep(std::time::Duration::from_millis(500));
+
+        // Verify socket exists.
+        assert!(
+            sock_path.path().exists(),
+            "daemon.sock must exist after start"
+        );
+
+        // Verify lock exists with valid PID.
+        assert!(
+            matches!(check_lock(&lock_path), LockStatus::Live(_)),
+            "daemon.lock must contain a live PID"
+        );
+
+        // Send daemon/status and verify response.
+        let resp = send_socket_request(
+            sock_path.path(),
+            "daemon/status",
+            serde_json::json!({}),
+        );
+        assert!(resp.is_some(), "daemon/status must return a response");
+        let resp = resp.unwrap();
+        let pid = resp
+            .get("result")
+            .and_then(|r| r.get("pid"))
+            .and_then(|v| v.as_u64());
+        assert!(pid.is_some(), "daemon/status must return PID");
+
+        // Send shutdown.
+        let _shutdown_resp = send_socket_request(
+            sock_path.path(),
+            "daemon/shutdown",
+            serde_json::json!({}),
+        );
+
+        // Wait for daemon thread to finish.
+        let result = handle.join().expect("daemon thread must not panic");
+        assert!(result.is_ok(), "daemon must exit cleanly: {result:?}");
+
+        // Verify cleanup.
+        assert!(
+            !sock_path.path().exists(),
+            "daemon.sock must be removed after shutdown"
+        );
+        assert!(
+            !lock_path.path().exists(),
+            "daemon.lock must be removed after shutdown"
+        );
+    }
+
+    #[test]
+    fn daemon_status_query_via_socket() {
+        let _lock = INTEGRATION_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let mut live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        install_runtime_schema(&mut live).unwrap();
+        let _ = live.flush();
+        drop(live);
+
+        let sock_path = SocketPath::new(&braid_dir);
+        let braid_dir_clone = braid_dir.clone();
+        let handle = start_daemon_thread(braid_dir_clone);
+        std::thread::sleep(std::time::Duration::from_millis(500));
+
+        // Send braid_status tool call via socket.
+        let resp = send_socket_request(
+            sock_path.path(),
+            "tools/call",
+            serde_json::json!({"name": "braid_status", "arguments": {}}),
+        );
+        assert!(resp.is_some(), "braid_status via socket must return a response");
+
+        // Verify response has content.
+        let resp = resp.unwrap();
+        let text = resp
+            .get("result")
+            .and_then(|r| r.get("content"))
+            .and_then(|c| c.as_array())
+            .and_then(|a| a.first())
+            .and_then(|c| c.get("text"))
+            .and_then(|t| t.as_str());
+        assert!(text.is_some(), "response must have text content");
+        let text = text.unwrap();
+        assert!(
+            text.contains("store:") || text.contains("datom"),
+            "status response must mention store or datoms: {text}"
+        );
+
+        // Shutdown.
+        let _ = send_socket_request(
+            sock_path.path(),
+            "daemon/shutdown",
+            serde_json::json!({}),
+        );
+        let _ = handle.join();
+    }
+
+    #[test]
+    fn daemon_runtime_datoms_after_tool_calls() {
+        let _lock = INTEGRATION_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        use std::io::{BufRead, Write};
+        use std::os::unix::net::UnixStream;
+
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let mut live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        install_runtime_schema(&mut live).unwrap();
+        let _ = live.flush();
+        drop(live);
+
+        let sock_path = SocketPath::new(&braid_dir);
+        let braid_dir_clone = braid_dir.clone();
+        let handle = start_daemon_thread(braid_dir_clone);
+        std::thread::sleep(std::time::Duration::from_millis(500));
+
+        // Send 3 tool calls on a SINGLE connection (line-delimited protocol).
+        let response_count = {
+            let stream = UnixStream::connect(sock_path.path())
+                .expect("must connect to daemon");
+            stream
+                .set_read_timeout(Some(std::time::Duration::from_secs(10)))
+                .ok();
+            {
+                let mut writer = std::io::BufWriter::new(&stream);
+                for i in 1..=3 {
+                    let request = serde_json::json!({
+                        "jsonrpc": "2.0",
+                        "id": i,
+                        "method": "tools/call",
+                        "params": {"name": "braid_status", "arguments": {}},
+                    });
+                    let bytes = serde_json::to_vec(&request).unwrap();
+                    writer.write_all(&bytes).unwrap();
+                    writer.write_all(b"\n").unwrap();
+                    writer.flush().unwrap();
+                }
+            }
+
+            // Read 3 responses.
+            let reader = std::io::BufReader::new(&stream);
+            let mut count = 0;
+            for line in reader.lines() {
+                if line.is_ok() {
+                    count += 1;
+                }
+                if count >= 3 {
+                    break;
+                }
+            }
+            count
+        };
+
+        assert_eq!(response_count, 3, "must get 3 responses from daemon");
+
+        // Shutdown.
+        let _ = send_socket_request(
+            sock_path.path(),
+            "daemon/shutdown",
+            serde_json::json!({}),
+        );
+        let _ = handle.join();
+
+        // Now open the store directly and count runtime entities.
+        let live = crate::live_store::LiveStore::open(&braid_dir).unwrap();
+        let count = count_runtime_entities(live.store());
+        assert!(
+            count >= 3,
+            "3 tool calls must produce at least 3 runtime entities, got {count}"
         );
     }
 
