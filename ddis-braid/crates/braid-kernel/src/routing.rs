@@ -1306,6 +1306,19 @@ pub fn compute_calibration_metrics(store: &Store) -> CalibrationReport {
 /// 3. No tasks but observations exist → "braid observe" or "braid spec create"
 /// 4. Empty store → "braid observe" (seed the knowledge graph)
 pub fn compute_action_from_store(store: &Store) -> crate::budget::ProjectedAction {
+    let routings = compute_routing_from_store(store);
+    compute_action_from_routing(store, &routings)
+}
+
+/// Compute the projected action from pre-computed routing results.
+///
+/// PERF-2a: When the caller has already computed routing (e.g., via
+/// [`compute_routing_with_calibration`]), pass the results here to avoid
+/// redundant O(tasks × datoms) recomputation.
+pub fn compute_action_from_routing(
+    store: &Store,
+    routings: &[TaskRouting],
+) -> crate::budget::ProjectedAction {
     // Check harvest urgency first — use canonical boundary (same as harvest_urgency_multi)
     let tx_since_harvest = count_txns_since_last_harvest(store);
 
@@ -1318,7 +1331,6 @@ pub fn compute_action_from_store(store: &Store) -> crate::budget::ProjectedActio
     }
 
     // Try R(t) routing for task recommendation
-    let routings = compute_routing_from_store(store);
     if let Some(top) = routings.first() {
         // Find the task ID from the label or entity
         let task_id = store

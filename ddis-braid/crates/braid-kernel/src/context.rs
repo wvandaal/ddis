@@ -149,8 +149,7 @@ pub fn record_block_presentations(
                 let count = store
                     .entity_datoms(d.entity)
                     .iter()
-                    .filter(|ed| ed.attribute == count_attr && ed.op == Op::Assert)
-                    .last()
+                    .rfind(|ed| ed.attribute == count_attr && ed.op == Op::Assert)
                     .and_then(|ed| match &ed.value {
                         Value::Long(n) => Some(*n),
                         _ => None,
@@ -166,8 +165,7 @@ pub fn record_block_presentations(
                 let last = store
                     .entity_datoms(e)
                     .iter()
-                    .filter(|ed| ed.attribute == last_attr && ed.op == Op::Assert)
-                    .last()
+                    .rfind(|ed| ed.attribute == last_attr && ed.op == Op::Assert)
                     .and_then(|ed| match &ed.value {
                         Value::Instant(ts) => Some(*ts),
                         _ => None,
@@ -857,7 +855,7 @@ pub struct GuidanceAction {
 /// - R16: High entropy (structural disorder) → Investigate
 /// - R17: Observation staleness > 0.8 → Investigate (ADR-HARVEST-005)
 pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
-    derive_actions_with_budget(store, None)
+    derive_actions_inner(store, None, None, None)
 }
 
 /// Derive concrete actions with optional Q(t) budget signal.
@@ -866,6 +864,40 @@ pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
 /// decay model (ADR-BUDGET-001). When `None`, falls back to the heuristic
 /// tx-count threshold (8/15 transactions).
 pub fn derive_actions_with_budget(store: &Store, q_t: Option<f64>) -> Vec<GuidanceAction> {
+    derive_actions_inner(store, q_t, None, None)
+}
+
+/// Derive actions with pre-computed routing and coherence results.
+///
+/// PERF-2a: When the caller has already computed R(t) routing and/or
+/// coherence, pass the results here to avoid redundant O(n) recomputation.
+pub fn derive_actions_with_routing(
+    store: &Store,
+    routing: &[crate::routing::TaskRouting],
+    q_t: Option<f64>,
+) -> Vec<GuidanceAction> {
+    derive_actions_inner(store, q_t, Some(routing), None)
+}
+
+/// Derive actions with all pre-computed values (routing + coherence).
+///
+/// PERF-2a: Maximum deduplication — uses both pre-computed routing and
+/// coherence to avoid ALL redundant store scans.
+pub fn derive_actions_with_precomputed(
+    store: &Store,
+    routing: &[crate::routing::TaskRouting],
+    coherence: &crate::trilateral::CoherenceReport,
+    q_t: Option<f64>,
+) -> Vec<GuidanceAction> {
+    derive_actions_inner(store, q_t, Some(routing), Some(coherence))
+}
+
+fn derive_actions_inner(
+    store: &Store,
+    q_t: Option<f64>,
+    precomputed_routing: Option<&[crate::routing::TaskRouting]>,
+    precomputed_coherence: Option<&crate::trilateral::CoherenceReport>,
+) -> Vec<GuidanceAction> {
     let mut actions = Vec::new();
     let datom_count = store.len();
     let entity_count = store.entity_count();
@@ -938,7 +970,15 @@ pub fn derive_actions_with_budget(store: &Store, q_t: Option<f64>) -> Vec<Guidan
     }
 
     // Run coherence analysis (fast — skips O(n³) entropy)
-    let coherence = check_coherence_fast(store);
+    // PERF-2a: Reuse pre-computed coherence if available.
+    let owned_coherence;
+    let coherence: &crate::trilateral::CoherenceReport = match precomputed_coherence {
+        Some(c) => c,
+        None => {
+            owned_coherence = check_coherence_fast(store);
+            &owned_coherence
+        }
+    };
 
     // R13: β₁ > 0 (cycles) → Observe
     if coherence.beta_1 > 0 {
@@ -1048,7 +1088,16 @@ pub fn derive_actions_with_budget(store: &Store, q_t: Option<f64>) -> Vec<Guidan
     // (PageRank, betweenness, critical path, blocker ratio, staleness, priority)
     // rather than simple priority ordering. A P2 task that unblocks 5 others
     // can rank above a P1 task that unblocks nothing.
-    let routed = compute_routing_from_store(store);
+    //
+    // PERF-2a: Accept pre-computed routing to avoid redundant O(tasks × datoms).
+    let owned_routing;
+    let routed: &[crate::routing::TaskRouting] = match precomputed_routing {
+        Some(r) => r,
+        None => {
+            owned_routing = compute_routing_from_store(store);
+            &owned_routing
+        }
+    };
     if let Some(top) = routed.first() {
         // Look up the TaskSummary for the routed entity to get short ID
         let task_info = crate::task::task_summary(store, top.entity);

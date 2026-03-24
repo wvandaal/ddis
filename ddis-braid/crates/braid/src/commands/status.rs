@@ -19,11 +19,13 @@ use braid_kernel::bilateral::{
 };
 use braid_kernel::datom::{AgentId, Attribute, Op, ProvenanceType, Value};
 use braid_kernel::guidance::{
-    adjust_gaps, compute_methodology_score, count_txns_since_last_harvest, derive_actions,
-    detect_activity_mode, format_actions, methodology_gaps, telemetry_from_store, Trend,
+    adjust_gaps, compute_action_from_routing, compute_methodology_score,
+    compute_routing_with_calibration, count_txns_since_last_harvest, derive_actions,
+    derive_actions_with_precomputed, detect_activity_mode, format_actions, methodology_gaps,
+    telemetry_from_store, CalibrationReport, TaskRouting, Trend,
 };
 use braid_kernel::layout::TxFile;
-use braid_kernel::trilateral::check_coherence_fast;
+use braid_kernel::trilateral::{check_coherence_fast, CoherenceReport};
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
@@ -232,13 +234,25 @@ pub fn run(
         });
     }
 
+    // PERF-2a: Compute R(t) routing + calibration ONCE for the entire status invocation.
+    // Previously called 2-5x (compute_action_from_store, derive_actions R18, build_verbose,
+    // build_json), each O(tasks × datoms) ≈ 10s on a 70K datom / 256 task store.
+    let (routings, calibration) = compute_routing_with_calibration(&store);
+
     // PERF-2: Compute all expensive values once (was computed 2x in build_json + build_status_projection)
     // PERF-3/4: Use layout cache for fitness/coherence acceleration
     let snapshot = StatusSnapshot::compute_with_layout(&store, path, Some(&layout));
 
     // ACP: Build the ActionProjection for status (INV-BUDGET-007)
-    let projection =
-        build_status_projection(path, &store, &hashes, tx_since_harvest, &snapshot);
+    let projection = build_status_projection(
+        path,
+        &store,
+        &hashes,
+        tx_since_harvest,
+        &snapshot,
+        &routings,
+        &calibration,
+    );
 
     // UAQ-6 / ACP-TRACK-1: Record presentation counts for blocks that survive budget.
     // Done here (not in maybe_inject_footer) because the store is already loaded.
@@ -285,7 +299,9 @@ pub fn run(
                 })
             })
             .collect();
-        let actions = derive_actions(&store);
+        let actions = derive_actions_with_precomputed(
+            &store, &routings, &snapshot.coherence, None,
+        );
         let actions_json: Vec<serde_json::Value> = actions
             .iter()
             .map(|a| {
@@ -373,7 +389,15 @@ pub fn run(
 
     // Build human representation
     let human = if verbose {
-        build_verbose(path, agent_name, &store, &hashes, tx_since_harvest)
+        build_verbose(
+            path,
+            agent_name,
+            &store,
+            &hashes,
+            tx_since_harvest,
+            &routings,
+            &snapshot.coherence,
+        )
     } else {
         // Use ACP projection for human output (full detail, no truncation)
         projection.project(usize::MAX)
@@ -403,6 +427,7 @@ pub fn run(
         spectral,
         verbose,
         snapshot: &snapshot,
+        routings: &routings,
     });
 
     // Always merge ACP field into JSON (enables BAO-2 footer suppression)
@@ -521,11 +546,13 @@ pub fn build_status_projection(
     hashes: &[String],
     tx_since_harvest: usize,
     snapshot: &StatusSnapshot,
+    routings: &[TaskRouting],
+    calibration: &CalibrationReport,
 ) -> braid_kernel::ActionProjection {
     use braid_kernel::budget::{ContextBlock, OutputPrecedence};
 
-    // Action: unified R(t) recommendation
-    let action = braid_kernel::guidance::compute_action_from_store(store);
+    // Action: unified R(t) recommendation (PERF-2a: use pre-computed routing)
+    let action = compute_action_from_routing(store, routings);
 
     // Build context blocks in precedence order (highest first)
     let mut context = Vec::new();
@@ -682,10 +709,9 @@ pub fn build_status_projection(
         10,
     ));
 
-    // 5a. HL-4: Hypothesis calibration metrics (Methodology)
-    let cal = braid_kernel::guidance::compute_calibration_metrics(store);
-    if cal.total_hypotheses > 0 {
-        let trend_str = match cal.trend {
+    // 5a. HL-4: Hypothesis calibration metrics (PERF-2a: use pre-computed calibration)
+    if calibration.total_hypotheses > 0 {
+        let trend_str = match calibration.trend {
             braid_kernel::guidance::CalibrationTrend::Improving => "improving",
             braid_kernel::guidance::CalibrationTrend::Stable => "stable",
             braid_kernel::guidance::CalibrationTrend::Degrading => "degrading",
@@ -695,7 +721,8 @@ pub fn build_status_projection(
             OutputPrecedence::Methodology,
             format!(
                 "hypotheses: {}/{} completed, mean error {:.3}, trend: {}",
-                cal.completed_hypotheses, cal.total_hypotheses, cal.mean_error, trend_str
+                calibration.completed_hypotheses, calibration.total_hypotheses,
+                calibration.mean_error, trend_str
             ),
             12,
         ));
@@ -755,10 +782,9 @@ pub fn build_status_projection(
     }
 
     // Add methodology M(t) context blocks (ACP-9: footer -> context)
-    // ACP-DRY-2: Reuse calibration from routing to avoid redundant O(H*K) scan.
-    let calibration = braid_kernel::compute_calibration_metrics(store);
+    // PERF-2a: Reuse calibration from pre-computed routing (was redundant O(H*K) scan).
     let methodology_blocks =
-        braid_kernel::guidance::methodology_context_blocks_with_calibration(store, Some(&calibration));
+        braid_kernel::guidance::methodology_context_blocks_with_calibration(store, Some(calibration));
     context.extend(methodology_blocks);
 
     // Sort context blocks by precedence (highest first) so that
@@ -1165,17 +1191,17 @@ fn build_verbose(
     store: &braid_kernel::Store,
     hashes: &[String],
     tx_since_harvest: usize,
+    routings: &[TaskRouting],
+    coherence: &CoherenceReport,
 ) -> String {
     use braid_kernel::bilateral::{
         W_CONTRADICTION, W_COVERAGE, W_DRIFT, W_HARVEST, W_INCOMPLETENESS, W_UNCERTAINTY,
         W_VALIDATION,
     };
-    use braid_kernel::guidance::compute_routing_from_store;
 
-    let coherence = check_coherence_fast(store);
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
-    let actions = derive_actions(store);
+    let actions = derive_actions_with_precomputed(store, routings, coherence, None);
     let fitness = store.fitness();
 
     // SD-1: F(S) session delta for verbose
@@ -1422,8 +1448,7 @@ fn build_verbose(
     // All R(t) actions (guidance-derived)
     out.push_str(&format_actions(&actions));
 
-    // R(t) task routing (graph-based, INV-GUIDANCE-010)
-    let routings = compute_routing_from_store(store);
+    // R(t) task routing (graph-based, INV-GUIDANCE-010) — PERF-2a: use pre-computed
     if !routings.is_empty() {
         out.push_str("All R(t) actions:\n");
         for (i, r) in routings.iter().enumerate() {
@@ -1511,6 +1536,7 @@ struct StatusJsonParams<'a> {
     spectral: bool,
     verbose: bool,
     snapshot: &'a StatusSnapshot,
+    routings: &'a [TaskRouting],
 }
 
 /// Build JSON value with all structured data.
@@ -1525,12 +1551,13 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
         spectral,
         verbose,
         snapshot,
+        routings,
     } = params;
     // PERF-2: Use pre-computed snapshot values instead of re-computing
     let coherence = &snapshot.coherence;
     let _telemetry = &snapshot.telemetry;
     let score = &snapshot.methodology_score;
-    let actions = derive_actions(store);
+    let actions = derive_actions_with_precomputed(store, routings, coherence, None);
 
     let frontier: Vec<serde_json::Value> = store
         .frontier()

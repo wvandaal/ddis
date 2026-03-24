@@ -297,20 +297,20 @@ pub enum IspResult {
 ///
 /// Detects when implementation matches intent but contradicts specification.
 pub fn isp_check(store: &Store, entity: EntityId) -> IspResult {
-    let datoms: Vec<&Datom> = store
-        .datoms()
-        .filter(|d| d.entity == entity && d.op == Op::Assert)
-        .collect();
+    // PERF-2a: Use EAVT-indexed entity_datoms instead of full store scan.
+    // Before: O(all_datoms) per entity × 7K entities = 500M iterations (48s).
+    // After: O(entity_datoms) per entity via EAVT index (~7ms total).
+    let datoms = store.entity_datoms(entity);
 
     let has_intent = datoms
         .iter()
-        .any(|d| classify_attribute(&d.attribute) == AttrNamespace::Intent);
+        .any(|d| d.op == Op::Assert && classify_attribute(&d.attribute) == AttrNamespace::Intent);
     let has_spec = datoms
         .iter()
-        .any(|d| classify_attribute(&d.attribute) == AttrNamespace::Spec);
+        .any(|d| d.op == Op::Assert && classify_attribute(&d.attribute) == AttrNamespace::Spec);
     let has_impl = datoms
         .iter()
-        .any(|d| classify_attribute(&d.attribute) == AttrNamespace::Impl);
+        .any(|d| d.op == Op::Assert && classify_attribute(&d.attribute) == AttrNamespace::Impl);
 
     match (has_intent, has_spec, has_impl) {
         (false, false, false) => IspResult::NoData,
