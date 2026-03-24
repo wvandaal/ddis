@@ -7,9 +7,8 @@
 //! invariants of the entity graph. This is the coherence dashboard: a single
 //! command that surfaces structural properties of the knowledge base.
 //!
-//! Analytics are cached in `.braid/.cache/analytics.json` and reused when
-//! the store has not changed (same tx file count and datom count).
-//! Pass `--force` to recompute.
+//! With MaterializedViews and the ISP O(n^2) fix, coherence is O(1) and
+//! fitness is sub-millisecond, so no caching is needed.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -26,52 +25,6 @@ use braid_kernel::Store;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
-
-// ---------------------------------------------------------------------------
-// Analytics Cache
-// ---------------------------------------------------------------------------
-
-/// Cached analytics output, stored in `.braid/.cache/analytics.json`.
-#[derive(serde::Serialize, serde::Deserialize)]
-struct AnalyticsCache {
-    /// Number of transaction files at computation time.
-    tx_count: usize,
-    /// Number of datoms at computation time.
-    datom_count: usize,
-    /// Number of entities at computation time.
-    entity_count: usize,
-    /// The pre-formatted analytics output.
-    output: String,
-}
-
-fn cache_path(layout: &DiskLayout) -> std::path::PathBuf {
-    layout.root.join(".cache").join("analytics.json")
-}
-
-fn try_load_cache(layout: &DiskLayout, store: &Store, tx_count: usize) -> Option<String> {
-    let data = std::fs::read_to_string(cache_path(layout)).ok()?;
-    let cache: AnalyticsCache = serde_json::from_str(&data).ok()?;
-    if cache.tx_count == tx_count
-        && cache.datom_count == store.len()
-        && cache.entity_count == store.entity_count()
-    {
-        Some(cache.output)
-    } else {
-        None
-    }
-}
-
-fn save_cache(layout: &DiskLayout, store: &Store, tx_count: usize, output: &str) {
-    let cache = AnalyticsCache {
-        tx_count,
-        datom_count: store.len(),
-        entity_count: store.entity_count(),
-        output: output.to_string(),
-    };
-    if let Ok(json) = serde_json::to_string_pretty(&cache) {
-        let _ = std::fs::write(cache_path(layout), json);
-    }
-}
 
 // ---------------------------------------------------------------------------
 // Entity graph construction
@@ -540,36 +493,16 @@ fn compute_dashboard(store: &Store, path: &Path) -> String {
 
 pub fn run(path: &Path) -> Result<String, BraidError> {
     let layout = DiskLayout::open(path)?;
-    let tx_count = layout.list_tx_hashes()?.len();
     let store = layout.load_store()?;
 
-    // Check cache first
-    if let Some(cached) = try_load_cache(&layout, &store, tx_count) {
-        let mut result = String::new();
-        result.push_str("(cached — use `braid analyze --force` to recompute)\n\n");
-        result.push_str(&cached);
-        return Ok(result);
-    }
-
-    // Compute fresh analytics
     let output = compute_dashboard(&store, path);
-
-    // Save to cache
-    save_cache(&layout, &store, tx_count, &output);
 
     Ok(output)
 }
 
-/// Run with forced recomputation (ignores cache).
+/// Run with forced recomputation (same as `run` now that caches are removed).
 pub fn run_force(path: &Path) -> Result<String, BraidError> {
-    let layout = DiskLayout::open(path)?;
-    let tx_count = layout.list_tx_hashes()?.len();
-    let store = layout.load_store()?;
-
-    let output = compute_dashboard(&store, path);
-    save_cache(&layout, &store, tx_count, &output);
-
-    Ok(output)
+    run(path)
 }
 
 /// Run with JSON output — structured analytics for machine consumption.

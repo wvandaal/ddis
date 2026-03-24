@@ -50,17 +50,6 @@ struct CacheMeta {
     tx_hashes: Vec<String>,
 }
 
-/// Generic cached value with its own txn_fingerprint for independent invalidation.
-///
-/// Each cached computation stores the fingerprint of the txns/ directory at the
-/// time of computation. This allows fitness.json and coherence.json to be valid
-/// even when meta.json (which tracks store.bin) has a different fingerprint.
-#[derive(Serialize, Deserialize)]
-struct CachedValue<T> {
-    txn_fingerprint: String,
-    value: T,
-}
-
 /// On-disk layout handle.
 ///
 /// All filesystem operations go through this struct.
@@ -213,13 +202,6 @@ impl DiskLayout {
         let cache_dir = self.root.join(".cache");
         let _ = fs::remove_file(cache_dir.join("store.bin"));
         let _ = fs::remove_file(cache_dir.join("meta.json"));
-        // LIVESTORE-HOTFIX: Derived caches must also be invalidated.
-        // These use txn_fingerprint freshness checks but are NOT deleted
-        // by the old code, creating stale-data risk under concurrent writes.
-        // LIVESTORE-3 will eliminate these caches entirely.
-        let _ = fs::remove_file(cache_dir.join("fitness.json"));
-        let _ = fs::remove_file(cache_dir.join("coherence.json"));
-        let _ = fs::remove_file(cache_dir.join("analytics.json"));
     }
 
     /// Read a transaction file by its hash.
@@ -416,128 +398,6 @@ impl DiskLayout {
         }
 
         Some((store, meta.tx_hashes))
-    }
-
-    // -----------------------------------------------------------------------
-    // PERF-3/4: Derived computation cache (fitness, coherence)
-    //
-    // Fitness and coherence are pure functions of store contents: given the
-    // same set of transactions, they always produce the same result. We cache
-    // these alongside store.bin using the same txn_fingerprint for invalidation.
-    // This turns 29s of CPU-bound computation into a ~1ms JSON read.
-    // -----------------------------------------------------------------------
-
-    /// Load cached fitness score if the cache is fresh.
-    ///
-    /// The cache stores its own txn_fingerprint so it's independent of
-    /// meta.json (which tracks the store.bin cache). This prevents the
-    /// invalidation cascade where a command writes a transaction (e.g.
-    /// session auto-detect) and then its own fitness cache misses.
-    pub fn load_fitness_cache(&self) -> Option<braid_kernel::bilateral::FitnessScore> {
-        let cache_dir = self.cache_dir();
-        let bytes = fs::read(cache_dir.join("fitness.json")).ok()?;
-        let cached: CachedValue<braid_kernel::bilateral::FitnessScore> =
-            serde_json::from_slice(&bytes).ok()?;
-
-        let hashes = self.list_tx_hashes().ok()?;
-        let current_fp = self.txn_fingerprint(&hashes);
-        if cached.txn_fingerprint != current_fp {
-            return None;
-        }
-        Some(cached.value)
-    }
-
-    /// Write fitness score to cache with current txn_fingerprint.
-    pub fn write_fitness_cache(
-        &self,
-        fitness: &braid_kernel::bilateral::FitnessScore,
-    ) -> Result<(), BraidError> {
-        let cache_dir = self.cache_dir();
-        fs::create_dir_all(&cache_dir)?;
-        let hashes = self.list_tx_hashes()?;
-        let fp = self.txn_fingerprint(&hashes);
-        let cached = CachedValue {
-            txn_fingerprint: fp,
-            value: fitness.clone(),
-        };
-        let json = serde_json::to_string(&cached)
-            .map_err(|e| BraidError::Parse(e.to_string()))?;
-        let tmp = cache_dir.join("fitness.json.tmp");
-        let dst = cache_dir.join("fitness.json");
-        fs::write(&tmp, json)?;
-        fs::rename(&tmp, &dst)?;
-        Ok(())
-    }
-
-    /// Load cached coherence report if fresh.
-    pub fn load_coherence_cache(
-        &self,
-    ) -> Option<braid_kernel::trilateral::CoherenceReport> {
-        let cache_dir = self.cache_dir();
-        let bytes = fs::read(cache_dir.join("coherence.json")).ok()?;
-        let cached: CachedValue<braid_kernel::trilateral::CoherenceReport> =
-            serde_json::from_slice(&bytes).ok()?;
-
-        let hashes = self.list_tx_hashes().ok()?;
-        let current_fp = self.txn_fingerprint(&hashes);
-        if cached.txn_fingerprint != current_fp {
-            return None;
-        }
-        Some(cached.value)
-    }
-
-    /// Write coherence report to cache with current txn_fingerprint.
-    pub fn write_coherence_cache(
-        &self,
-        coherence: &braid_kernel::trilateral::CoherenceReport,
-    ) -> Result<(), BraidError> {
-        let cache_dir = self.cache_dir();
-        fs::create_dir_all(&cache_dir)?;
-        let hashes = self.list_tx_hashes()?;
-        let fp = self.txn_fingerprint(&hashes);
-        let cached = CachedValue {
-            txn_fingerprint: fp,
-            value: coherence.clone(),
-        };
-        let json = serde_json::to_string(&cached)
-            .map_err(|e| BraidError::Parse(e.to_string()))?;
-        let tmp = cache_dir.join("coherence.json.tmp");
-        let dst = cache_dir.join("coherence.json");
-        fs::write(&tmp, json)?;
-        fs::rename(&tmp, &dst)?;
-        Ok(())
-    }
-
-    /// Compute fitness with cache acceleration.
-    ///
-    /// Tries `.cache/fitness.json` first. On miss, computes from store and
-    /// writes the result to cache. This is the universal entry point —
-    /// all commands should call this instead of `compute_fitness(&store)` directly.
-    pub fn cached_fitness(
-        &self,
-        store: &Store,
-    ) -> braid_kernel::bilateral::FitnessScore {
-        if let Some(f) = self.load_fitness_cache() {
-            return f;
-        }
-        let f = braid_kernel::bilateral::compute_fitness(store);
-        let _ = self.write_fitness_cache(&f);
-        f
-    }
-
-    /// Compute coherence with cache acceleration.
-    ///
-    /// Same pattern as `cached_fitness` — universal entry point for coherence.
-    pub fn cached_coherence(
-        &self,
-        store: &Store,
-    ) -> braid_kernel::trilateral::CoherenceReport {
-        if let Some(c) = self.load_coherence_cache() {
-            return c;
-        }
-        let c = braid_kernel::trilateral::check_coherence_fast(store);
-        let _ = self.write_coherence_cache(&c);
-        c
     }
 
     /// Load the entire store from the layout (ψ function).
