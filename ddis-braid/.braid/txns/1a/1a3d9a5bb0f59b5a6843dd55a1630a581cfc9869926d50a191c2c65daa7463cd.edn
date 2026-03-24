@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774360255/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 040 complete: 7 tasks closed. INIT-REGRESSION (reporting bug fix), LIVESTORE-5d (MCP migration), LIVESTORE-TEST (12 unit + 6 E2E), LIVESTORE-TEST-ALGEBRAIC (6 proptests x256), LIVESTORE-TEST-COMPAT (3 compat + timestamps), FEGH-2 (bridge questions in guidance), ATT-2-IMPL (Hebbian feedback). 1748→1767 tests. All parallel agents succeeded on first try."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "071f9fa91136e1ce79702faaf4d7c90b51f2eaf007d23af9ff5e1cb3296b629f" :a :db/doc :v "Session 040 complete: 7 tasks closed. INIT-REGRESSION (reporting bug fix), LIVESTORE-5d (MCP migration), LIVESTORE-TEST (12 unit + 6 E2E), LIVESTORE-TEST-ALGEBRAIC (6 proptests x256), LIVESTORE-TEST-COMPAT (3 compat + timestamps), FEGH-2 (bridge questions in guidance), ATT-2-IMPL (Hebbian feedback). 1748→1767 tests. All parallel agents succeeded on first try." :op :assert}
+   {:e #blake3 "071f9fa91136e1ce79702faaf4d7c90b51f2eaf007d23af9ff5e1cb3296b629f" :a :db/ident :v :observation/session-040-complete-7-tasks-closed-init-regression-repor :op :assert}
+   {:e #blake3 "071f9fa91136e1ce79702faaf4d7c90b51f2eaf007d23af9ff5e1cb3296b629f" :a :exploration/body :v "Session 040 complete: 7 tasks closed. INIT-REGRESSION (reporting bug fix), LIVESTORE-5d (MCP migration), LIVESTORE-TEST (12 unit + 6 E2E), LIVESTORE-TEST-ALGEBRAIC (6 proptests x256), LIVESTORE-TEST-COMPAT (3 compat + timestamps), FEGH-2 (bridge questions in guidance), ATT-2-IMPL (Hebbian feedback). 1748→1767 tests. All parallel agents succeeded on first try." :op :assert}
+   {:e #blake3 "071f9fa91136e1ce79702faaf4d7c90b51f2eaf007d23af9ff5e1cb3296b629f" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "071f9fa91136e1ce79702faaf4d7c90b51f2eaf007d23af9ff5e1cb3296b629f" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "071f9fa91136e1ce79702faaf4d7c90b51f2eaf007d23af9ff5e1cb3296b629f" :a :exploration/content-hash :v #bytes "59a0761ba89c3e813eef8e7ace5eed67df7f3608a50b297755a1571f844d6b5c" :op :assert}
+   {:e #blake3 "071f9fa91136e1ce79702faaf4d7c90b51f2eaf007d23af9ff5e1cb3296b629f" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "071f9fa91136e1ce79702faaf4d7c90b51f2eaf007d23af9ff5e1cb3296b629f" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "071f9fa91136e1ce79702faaf4d7c90b51f2eaf007d23af9ff5e1cb3296b629f" :a :exploration/source-session :v #blake3 "fb0172c383b9889ee5193cc2bc02cc34957e43e96ad9797da6212a4214dfcb8f" :op :assert}
+ ]}
