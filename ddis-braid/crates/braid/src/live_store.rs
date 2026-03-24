@@ -502,4 +502,176 @@ mod tests {
         let refreshed = live.refresh_if_needed().unwrap();
         assert!(!refreshed, "no external changes, should return false");
     }
+
+    /// INV-STORE-020: store.bin matches full rebuild from txn files.
+    #[test]
+    fn store_bin_matches_full_rebuild() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+
+        let live_len;
+        {
+            let mut live = LiveStore::create(&braid_path).unwrap();
+            let agent = braid_kernel::datom::AgentId::from_name("test:rebuild");
+            for i in 0..5 {
+                let tx_id = braid_kernel::datom::TxId::new(3000 + i, 0, agent);
+                let entity = braid_kernel::datom::EntityId::from_ident(
+                    &format!(":test/rebuild-{i}"),
+                );
+                let datom = braid_kernel::datom::Datom::new(
+                    entity,
+                    braid_kernel::datom::Attribute::from_keyword(":db/doc"),
+                    braid_kernel::datom::Value::String(format!("rebuild {i}")),
+                    tx_id,
+                    braid_kernel::datom::Op::Assert,
+                );
+                let tx_file = braid_kernel::layout::TxFile {
+                    tx_id,
+                    agent,
+                    provenance: braid_kernel::datom::ProvenanceType::Derived,
+                    rationale: format!("rebuild test {i}"),
+                    causal_predecessors: vec![],
+                    datoms: vec![datom],
+                };
+                live.write_tx(&tx_file).unwrap();
+            }
+            live.flush().unwrap();
+            live_len = live.store().len();
+        }
+
+        // Full rebuild from txn files (bypassing cache).
+        let layout = DiskLayout::open(&braid_path).unwrap();
+        let rebuilt = layout.load_store().unwrap();
+        assert_eq!(
+            rebuilt.len(),
+            live_len,
+            "INV-STORE-020: full rebuild must match LiveStore"
+        );
+    }
+
+    /// C1: datom count is monotonically non-decreasing.
+    #[test]
+    fn monotonic_growth() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+        let mut live = LiveStore::create(&braid_path).unwrap();
+        let agent = braid_kernel::datom::AgentId::from_name("test:mono");
+
+        let mut prev = live.store().len();
+        for i in 0..10 {
+            let tx_id = braid_kernel::datom::TxId::new(4000 + i, 0, agent);
+            let entity = braid_kernel::datom::EntityId::from_ident(
+                &format!(":test/mono-{i}"),
+            );
+            let datom = braid_kernel::datom::Datom::new(
+                entity,
+                braid_kernel::datom::Attribute::from_keyword(":db/doc"),
+                braid_kernel::datom::Value::String(format!("mono {i}")),
+                tx_id,
+                braid_kernel::datom::Op::Assert,
+            );
+            let tx_file = braid_kernel::layout::TxFile {
+                tx_id,
+                agent,
+                provenance: braid_kernel::datom::ProvenanceType::Derived,
+                rationale: format!("mono test {i}"),
+                causal_predecessors: vec![],
+                datoms: vec![datom],
+            };
+            live.write_tx(&tx_file).unwrap();
+            let curr = live.store().len();
+            assert!(
+                curr >= prev,
+                "C1: datom count must be non-decreasing: {prev} -> {curr}"
+            );
+            prev = curr;
+        }
+    }
+
+    /// Crash recovery: delete cache, reopen from txn files only.
+    #[test]
+    fn crash_recovery_via_txn_files() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+
+        let expected_len;
+        {
+            let mut live = LiveStore::create(&braid_path).unwrap();
+            let agent = braid_kernel::datom::AgentId::from_name("test:crash");
+            let tx_id = braid_kernel::datom::TxId::new(5000, 0, agent);
+            let entity = braid_kernel::datom::EntityId::from_ident(":test/crash");
+            let datom = braid_kernel::datom::Datom::new(
+                entity,
+                braid_kernel::datom::Attribute::from_keyword(":db/doc"),
+                braid_kernel::datom::Value::String("crash test".into()),
+                tx_id,
+                braid_kernel::datom::Op::Assert,
+            );
+            let tx_file = braid_kernel::layout::TxFile {
+                tx_id,
+                agent,
+                provenance: braid_kernel::datom::ProvenanceType::Derived,
+                rationale: "crash test".into(),
+                causal_predecessors: vec![],
+                datoms: vec![datom],
+            };
+            live.write_tx(&tx_file).unwrap();
+            expected_len = live.store().len();
+            // Drop flushes best-effort — we delete the cache after.
+        }
+
+        // Delete the cache to simulate a crash before flush.
+        let cache_dir = braid_path.join(".cache");
+        if cache_dir.is_dir() {
+            for entry in std::fs::read_dir(&cache_dir).unwrap() {
+                let entry = entry.unwrap();
+                if entry.path().extension().map(|x| x == "bin").unwrap_or(false) {
+                    std::fs::remove_file(entry.path()).unwrap();
+                }
+            }
+        }
+
+        // Reopen — must recover from txn files.
+        let live2 = LiveStore::open(&braid_path).unwrap();
+        assert_eq!(
+            live2.store().len(),
+            expected_len,
+            "crash recovery: store must have same datom count"
+        );
+    }
+
+    /// Materialized views survive write_tx (fitness computes without panic).
+    #[test]
+    fn write_tx_preserves_materialized_views() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+        let mut live = LiveStore::create(&braid_path).unwrap();
+
+        let agent = braid_kernel::datom::AgentId::from_name("test:views");
+        let tx_id = braid_kernel::datom::TxId::new(6000, 0, agent);
+        let entity = braid_kernel::datom::EntityId::from_ident(":test/views");
+        let datom = braid_kernel::datom::Datom::new(
+            entity,
+            braid_kernel::datom::Attribute::from_keyword(":db/doc"),
+            braid_kernel::datom::Value::String("views test".into()),
+            tx_id,
+            braid_kernel::datom::Op::Assert,
+        );
+        let tx_file = braid_kernel::layout::TxFile {
+            tx_id,
+            agent,
+            provenance: braid_kernel::datom::ProvenanceType::Derived,
+            rationale: "views test".into(),
+            causal_predecessors: vec![],
+            datoms: vec![datom],
+        };
+        live.write_tx(&tx_file).unwrap();
+
+        // Fitness must compute without panic and be in [0,1].
+        let f = live.store().fitness().total;
+        assert!(
+            (0.0..=1.0).contains(&f),
+            "fitness must be in [0,1], got {f}"
+        );
+    }
 }
