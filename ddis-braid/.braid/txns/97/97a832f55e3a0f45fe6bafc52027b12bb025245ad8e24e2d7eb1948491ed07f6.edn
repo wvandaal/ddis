@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774388441/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fae2391c9f84d4bf22a1297db4a7a9f5bc6647437b5818496b49b8e5a1b3539d" :a :db/ident :v :recon/trace-ad4eb9ded6e5f87f :op :assert}
+   {:e #blake3 "fae2391c9f84d4bf22a1297db4a7a9f5bc6647437b5818496b49b8e5a1b3539d" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "fae2391c9f84d4bf22a1297db4a7a9f5bc6647437b5818496b49b8e5a1b3539d" :a :recon/trace-neighborhood :v "CONVERGENCE" :op :assert}
+   {:e #blake3 "fae2391c9f84d4bf22a1297db4a7a9f5bc6647437b5818496b49b8e5a1b3539d" :a :recon/trace-neighbors :v ":task/t-dbfd1fea" :op :assert}
+   {:e #blake3 "fae2391c9f84d4bf22a1297db4a7a9f5bc6647437b5818496b49b8e5a1b3539d" :a :recon/trace-refs :v "ADR-CONVERGENCE-006" :op :assert}
+ ]}

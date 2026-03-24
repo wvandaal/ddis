@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774388419/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-CONVERGENCE-006 \"Three-Phase Convergence Engine Roadmap\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3b5cc4fc99a61b3d5ec2988cf6088173ce0498f9ab7a6ae1e489e367f357767a" :a :adr/decision :v "Execute the convergence engine in three phases, each gated by a DOGFOOD measurement session. Phase A (8 tasks): core loop closures targeting 7+/10. Phase B (5 tasks): intelligence layers targeting 8+/10. Phase C (3 tasks): meta-cognition targeting 10/10. Each phase requires empirical validation before the next begins. This prevents over-engineering by ensuring every layer is justified by measured improvement." :op :assert}
+   {:e #blake3 "3b5cc4fc99a61b3d5ec2988cf6088173ce0498f9ab7a6ae1e489e367f357767a" :a :adr/problem :v "The full 16-task plan risks building elaborate architecture without empirical validation. The 4.0/10 score demands immediate, measurable improvement before investing in theoretical extensions." :op :assert}
+   {:e #blake3 "3b5cc4fc99a61b3d5ec2988cf6088173ce0498f9ab7a6ae1e489e367f357767a" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "3b5cc4fc99a61b3d5ec2988cf6088173ce0498f9ab7a6ae1e489e367f357767a" :a :db/doc :v "Three-Phase Convergence Engine Roadmap" :op :assert}
+   {:e #blake3 "3b5cc4fc99a61b3d5ec2988cf6088173ce0498f9ab7a6ae1e489e367f357767a" :a :db/ident :v :spec/adr-convergence-006 :op :assert}
+   {:e #blake3 "3b5cc4fc99a61b3d5ec2988cf6088173ce0498f9ab7a6ae1e489e367f357767a" :a :element/traces-to :v "ADR-CONVERGENCE-001" :op :assert}
+   {:e #blake3 "3b5cc4fc99a61b3d5ec2988cf6088173ce0498f9ab7a6ae1e489e367f357767a" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "3b5cc4fc99a61b3d5ec2988cf6088173ce0498f9ab7a6ae1e489e367f357767a" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "3b5cc4fc99a61b3d5ec2988cf6088173ce0498f9ab7a6ae1e489e367f357767a" :a :spec/id :v "ADR-CONVERGENCE-006" :op :assert}
+   {:e #blake3 "3b5cc4fc99a61b3d5ec2988cf6088173ce0498f9ab7a6ae1e489e367f357767a" :a :spec/namespace :v :spec.ns/CONVERGENCE :op :assert}
+   {:e #blake3 "428c9eb2a4cc46b24f97b1a6ff7d81d8a6e8cc9ac144633259b6947b9a9d8813" :a :db/ident :v :task/t-dbfd1fea :op :assert}
+   {:e #blake3 "428c9eb2a4cc46b24f97b1a6ff7d81d8a6e8cc9ac144633259b6947b9a9d8813" :a :task/created-at :v 1774388418 :op :assert}
+   {:e #blake3 "428c9eb2a4cc46b24f97b1a6ff7d81d8a6e8cc9ac144633259b6947b9a9d8813" :a :task/id :v "t-dbfd1fea" :op :assert}
+   {:e #blake3 "428c9eb2a4cc46b24f97b1a6ff7d81d8a6e8cc9ac144633259b6947b9a9d8813" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "428c9eb2a4cc46b24f97b1a6ff7d81d8a6e8cc9ac144633259b6947b9a9d8813" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "428c9eb2a4cc46b24f97b1a6ff7d81d8a6e8cc9ac144633259b6947b9a9d8813" :a :task/title :v "Implement ADR-CONVERGENCE-006: Three-Phase Convergence Engine Roadmap" :op :assert}
+   {:e #blake3 "428c9eb2a4cc46b24f97b1a6ff7d81d8a6e8cc9ac144633259b6947b9a9d8813" :a :task/traces-to :v #blake3 "3b5cc4fc99a61b3d5ec2988cf6088173ce0498f9ab7a6ae1e489e367f357767a" :op :assert}
+   {:e #blake3 "428c9eb2a4cc46b24f97b1a6ff7d81d8a6e8cc9ac144633259b6947b9a9d8813" :a :task/type :v :task.type/task :op :assert}
+ ]}
