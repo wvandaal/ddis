@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774324734/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-STORE-021 \"Write-Through Batching\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1ad170a5c38e808a1c31bdd4545e4f4de948bdbebdc65716eecd9efc8cafc72f" :a :db/ident :v :task/t-b90503c9 :op :assert}
+   {:e #blake3 "1ad170a5c38e808a1c31bdd4545e4f4de948bdbebdc65716eecd9efc8cafc72f" :a :task/created-at :v 1774324733 :op :assert}
+   {:e #blake3 "1ad170a5c38e808a1c31bdd4545e4f4de948bdbebdc65716eecd9efc8cafc72f" :a :task/id :v "t-b90503c9" :op :assert}
+   {:e #blake3 "1ad170a5c38e808a1c31bdd4545e4f4de948bdbebdc65716eecd9efc8cafc72f" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "1ad170a5c38e808a1c31bdd4545e4f4de948bdbebdc65716eecd9efc8cafc72f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1ad170a5c38e808a1c31bdd4545e4f4de948bdbebdc65716eecd9efc8cafc72f" :a :task/title :v "Implement INV-STORE-021: Write-Through Batching" :op :assert}
+   {:e #blake3 "1ad170a5c38e808a1c31bdd4545e4f4de948bdbebdc65716eecd9efc8cafc72f" :a :task/traces-to :v #blake3 "a16716ef5456159d9cf339dfc23d29be15f41ca79c5704fe39a47d256d8388e6" :op :assert}
+   {:e #blake3 "1ad170a5c38e808a1c31bdd4545e4f4de948bdbebdc65716eecd9efc8cafc72f" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "78c5c7e5806aff2f626de29ea47a24214b54fda19e9a57635ba2c91a25f8759d" :a :db/doc :v "Violated if: (A) write_tx() calls write_index_cache (serialization on every write). (B) A command that does N writes incurs N*100ms serialization overhead instead of 1*100ms. (C) After crash between write_tx and flush, any txn file data is lost (txn file must exist on disk before write_tx returns). (D) After normal exit, store.bin does not reflect all writes from the process." :op :assert}
+   {:e #blake3 "a16716ef5456159d9cf339dfc23d29be15f41ca79c5704fe39a47d256d8388e6" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "a16716ef5456159d9cf339dfc23d29be15f41ca79c5704fe39a47d256d8388e6" :a :comonad/falsification :v #blake3 "78c5c7e5806aff2f626de29ea47a24214b54fda19e9a57635ba2c91a25f8759d" :op :assert}
+   {:e #blake3 "a16716ef5456159d9cf339dfc23d29be15f41ca79c5704fe39a47d256d8388e6" :a :db/doc :v "Write-Through Batching" :op :assert}
+   {:e #blake3 "a16716ef5456159d9cf339dfc23d29be15f41ca79c5704fe39a47d256d8388e6" :a :db/ident :v :spec/inv-store-021 :op :assert}
+   {:e #blake3 "a16716ef5456159d9cf339dfc23d29be15f41ca79c5704fe39a47d256d8388e6" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "a16716ef5456159d9cf339dfc23d29be15f41ca79c5704fe39a47d256d8388e6" :a :spec/falsification :v "Violated if: (A) write_tx() calls write_index_cache (serialization on every write). (B) A command that does N writes incurs N*100ms serialization overhead instead of 1*100ms. (C) After crash between write_tx and flush, any txn file data is lost (txn file must exist on disk before write_tx returns). (D) After normal exit, store.bin does not reflect all writes from the process." :op :assert}
+   {:e #blake3 "a16716ef5456159d9cf339dfc23d29be15f41ca79c5704fe39a47d256d8388e6" :a :spec/id :v "INV-STORE-021" :op :assert}
+   {:e #blake3 "a16716ef5456159d9cf339dfc23d29be15f41ca79c5704fe39a47d256d8388e6" :a :spec/namespace :v :spec.ns/STORE :op :assert}
+   {:e #blake3 "a16716ef5456159d9cf339dfc23d29be15f41ca79c5704fe39a47d256d8388e6" :a :spec/statement :v "LiveStore tracks a dirty flag. write_tx() sets dirty=true and updates the in-memory Store but does NOT serialize store.bin on every call. Serialization happens at exactly two points: (1) explicit LiveStore::flush() call, (2) LiveStore::drop() (process exit). This ensures at most one serialization per process lifetime regardless of the number of writes. Crash safety preserved by C1: txn files are fsynced to disk on every write_tx, so the next LiveStore::open() reconstructs the full state via incremental apply even if store.bin is stale." :op :assert}
+ ]}
