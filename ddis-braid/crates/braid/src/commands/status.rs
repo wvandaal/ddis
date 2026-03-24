@@ -20,7 +20,7 @@ use braid_kernel::bilateral::{
 use braid_kernel::datom::{AgentId, Attribute, Op, ProvenanceType, Value};
 use braid_kernel::guidance::{
     adjust_gaps, compute_action_from_routing, compute_methodology_score,
-    compute_routing_with_calibration, count_txns_since_last_harvest, derive_actions,
+    compute_routing_with_calibration, count_txns_since_last_harvest,
     derive_actions_with_precomputed, detect_activity_mode, format_actions, methodology_gaps,
     telemetry_from_store, CalibrationReport, TaskRouting, Trend,
 };
@@ -824,10 +824,11 @@ fn build_terse(
     hashes: &[String],
     tx_since_harvest: usize,
 ) -> String {
+    let (routings, _) = braid_kernel::guidance::compute_routing_with_calibration(store);
     let coherence = check_coherence_fast(store);
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
-    let actions = derive_actions(store);
+    let actions = derive_actions_with_precomputed(store, &routings, &coherence, None);
     // CE-4: O(1) fitness via materialized views
     let fitness = store.fitness();
 
@@ -1071,10 +1072,11 @@ fn build_agent(
     hashes: &[String],
     tx_since_harvest: usize,
 ) -> AgentOutput {
+    let (routings, _) = braid_kernel::guidance::compute_routing_with_calibration(store);
     let coherence = check_coherence_fast(store);
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
-    let actions = derive_actions(store);
+    let actions = derive_actions_with_precomputed(store, &routings, &coherence, None);
     // CE-4: O(1) fitness via materialized views
     let fitness = store.fitness();
 

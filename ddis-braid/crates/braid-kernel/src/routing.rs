@@ -981,17 +981,19 @@ pub fn record_hypotheses_with_type(
 
     let mut datoms = Vec::new();
 
-    for routing in routings.iter().take(top_n) {
+    for (idx, routing) in routings.iter().take(top_n).enumerate() {
         // Skip zero-impact recommendations (noise)
         if routing.impact <= f64::EPSILON {
             continue;
         }
 
-        // Entity for this hypothesis — content-addressed from action entity + timestamp
+        // Entity for this hypothesis — content-addressed from action entity + timestamp + index.
+        // The index prevents collisions when multiple hypotheses are recorded in the same second
+        // (entity_hash alone is not unique enough — EntityId debug output can share prefixes).
         let entity_hash = &format!("{:?}", routing.entity)[..8]; // first 8 chars of debug repr
         let hypothesis_id = EntityId::from_ident(&format!(
-            ":hypothesis/r-{}-{}",
-            entity_hash, now
+            ":hypothesis/r-{}-{}-{}",
+            entity_hash, now, idx
         ));
 
         // :hypothesis/action — ref to the task entity
@@ -1737,31 +1739,32 @@ fn entity_label(store: &Store, entity: EntityId) -> String {
             };
         }
     }
-    // Try :db/ident but truncate if it's a long observation hash
+    // Try human-readable text attributes (observation body, task title)
+    for attr in &[":exploration/body", ":task/title"] {
+        if let Some(d) = datoms.iter().find(|d| {
+            d.attribute.as_str() == *attr && d.op == crate::datom::Op::Assert
+        }) {
+            if let Value::String(s) = &d.value {
+                let words: Vec<&str> = s.split_whitespace().collect();
+                return if words.len() > 6 {
+                    format!("{} ...", words[..6].join(" "))
+                } else {
+                    s.clone()
+                };
+            }
+        }
+    }
+    // Try :db/ident but truncate long observation slugs
     if let Some(d) = datoms.iter().find(|d| {
         d.attribute.as_str() == ":db/ident" && d.op == crate::datom::Op::Assert
     }) {
         if let Value::Keyword(k) = &d.value {
-            // Truncate long idents (e.g., :observation/very-long-slug...)
             let stripped = k.trim_start_matches(':');
             let parts: Vec<&str> = stripped.splitn(2, '/').collect();
-            if parts.len() == 2 && parts[1].len() > 40 {
-                return format!(":{}:{:.30}...", parts[0], parts[1]);
+            if parts.len() == 2 && parts[1].len() > 30 {
+                return format!(":{}:{:.25}...", parts[0], parts[1]);
             }
             return k.clone();
-        }
-    }
-    // Try :task/title (longer, but useful)
-    if let Some(d) = datoms.iter().find(|d| {
-        d.attribute.as_str() == ":task/title" && d.op == crate::datom::Op::Assert
-    }) {
-        if let Value::String(s) = &d.value {
-            let words: Vec<&str> = s.split_whitespace().collect();
-            return if words.len() > 5 {
-                format!("{} ...", words[..5].join(" "))
-            } else {
-                s.clone()
-            };
         }
     }
     // Fallback: hex entity ID

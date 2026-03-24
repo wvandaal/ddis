@@ -706,15 +706,15 @@ fn tool_observe(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
 /// verbose methodology view — use `braid_status` for quick orientation.
 fn tool_guidance(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
     use braid_kernel::guidance::{
-        compute_methodology_score, compute_routing_from_store, derive_actions, format_actions,
-        telemetry_from_store, Trend,
+        compute_methodology_score, compute_routing_with_calibration,
+        derive_actions_with_routing, format_actions, telemetry_from_store, Trend,
     };
 
     let store = layout.load_store()?;
     let telemetry = telemetry_from_store(&store);
     let score = compute_methodology_score(&telemetry);
-    let actions = derive_actions(&store);
-    let routings = compute_routing_from_store(&store);
+    let (routings, _calibration) = compute_routing_with_calibration(&store);
+    let actions = derive_actions_with_routing(&store, &routings, None);
     let fitness = store.fitness();
 
     let mut out = String::new();
