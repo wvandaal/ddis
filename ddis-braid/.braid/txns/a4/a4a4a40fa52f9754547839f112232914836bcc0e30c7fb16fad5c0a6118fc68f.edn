@@ -1,0 +1,35 @@
+{:tx/id #hlc "1774318356/0/a0808ee3ce7a5842689f7ae3ec520637"
+ :tx/agent "a0808ee3ce7a5842689f7ae3ec520637"
+ :tx/provenance :derived
+ :tx/rationale "UAQ-6: presentation count tracking"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0dad34710c6109a44809f209dcbf28382560c292ef3fb90c0938afa4c78026a2" :a :attention/last-presented :v #inst 1774318264 :op :retract}
+   {:e #blake3 "0dad34710c6109a44809f209dcbf28382560c292ef3fb90c0938afa4c78026a2" :a :attention/last-presented :v #inst 1774318355 :op :assert}
+   {:e #blake3 "0dad34710c6109a44809f209dcbf28382560c292ef3fb90c0938afa4c78026a2" :a :attention/presentation-count :v 25 :op :retract}
+   {:e #blake3 "0dad34710c6109a44809f209dcbf28382560c292ef3fb90c0938afa4c78026a2" :a :attention/presentation-count :v 26 :op :assert}
+   {:e #blake3 "124b98fbfd26ee7dba63e1c69966df243a9c99d2c56461a6f5cf6997b801b2bb" :a :attention/last-presented :v #inst 1774318264 :op :retract}
+   {:e #blake3 "124b98fbfd26ee7dba63e1c69966df243a9c99d2c56461a6f5cf6997b801b2bb" :a :attention/last-presented :v #inst 1774318355 :op :assert}
+   {:e #blake3 "124b98fbfd26ee7dba63e1c69966df243a9c99d2c56461a6f5cf6997b801b2bb" :a :attention/presentation-count :v 25 :op :retract}
+   {:e #blake3 "124b98fbfd26ee7dba63e1c69966df243a9c99d2c56461a6f5cf6997b801b2bb" :a :attention/presentation-count :v 26 :op :assert}
+   {:e #blake3 "5632430119de8ef2f7c62b6c02160ce3f73014b5c91f4486de278bc8a017e8ce" :a :attention/last-presented :v #inst 1774318264 :op :retract}
+   {:e #blake3 "5632430119de8ef2f7c62b6c02160ce3f73014b5c91f4486de278bc8a017e8ce" :a :attention/last-presented :v #inst 1774318355 :op :assert}
+   {:e #blake3 "5632430119de8ef2f7c62b6c02160ce3f73014b5c91f4486de278bc8a017e8ce" :a :attention/presentation-count :v 25 :op :retract}
+   {:e #blake3 "5632430119de8ef2f7c62b6c02160ce3f73014b5c91f4486de278bc8a017e8ce" :a :attention/presentation-count :v 26 :op :assert}
+   {:e #blake3 "bbdd692acb8447d6e4fb7e0bbff48f97b224e5acbef4c8e8bb86741316c78d0c" :a :attention/last-presented :v #inst 1774318264 :op :retract}
+   {:e #blake3 "bbdd692acb8447d6e4fb7e0bbff48f97b224e5acbef4c8e8bb86741316c78d0c" :a :attention/last-presented :v #inst 1774318355 :op :assert}
+   {:e #blake3 "bbdd692acb8447d6e4fb7e0bbff48f97b224e5acbef4c8e8bb86741316c78d0c" :a :attention/presentation-count :v 25 :op :retract}
+   {:e #blake3 "bbdd692acb8447d6e4fb7e0bbff48f97b224e5acbef4c8e8bb86741316c78d0c" :a :attention/presentation-count :v 26 :op :assert}
+   {:e #blake3 "c93518cb31bb86402945917de4e95f4156bf0ec981c9f73ed859c55d21f43298" :a :attention/last-presented :v #inst 1774318264 :op :retract}
+   {:e #blake3 "c93518cb31bb86402945917de4e95f4156bf0ec981c9f73ed859c55d21f43298" :a :attention/last-presented :v #inst 1774318355 :op :assert}
+   {:e #blake3 "c93518cb31bb86402945917de4e95f4156bf0ec981c9f73ed859c55d21f43298" :a :attention/presentation-count :v 25 :op :retract}
+   {:e #blake3 "c93518cb31bb86402945917de4e95f4156bf0ec981c9f73ed859c55d21f43298" :a :attention/presentation-count :v 26 :op :assert}
+   {:e #blake3 "ec0ed58f314b30de87aca44af18090eff0c809e139a294b7409acbe337d6a189" :a :attention/last-presented :v #inst 1774318264 :op :retract}
+   {:e #blake3 "ec0ed58f314b30de87aca44af18090eff0c809e139a294b7409acbe337d6a189" :a :attention/last-presented :v #inst 1774318355 :op :assert}
+   {:e #blake3 "ec0ed58f314b30de87aca44af18090eff0c809e139a294b7409acbe337d6a189" :a :attention/presentation-count :v 25 :op :retract}
+   {:e #blake3 "ec0ed58f314b30de87aca44af18090eff0c809e139a294b7409acbe337d6a189" :a :attention/presentation-count :v 26 :op :assert}
+   {:e #blake3 "f832408ab69e121c9c057dbee88c2f50ecfaefa319e5df90b93832172a1c91df" :a :attention/last-presented :v #inst 1774318264 :op :retract}
+   {:e #blake3 "f832408ab69e121c9c057dbee88c2f50ecfaefa319e5df90b93832172a1c91df" :a :attention/last-presented :v #inst 1774318355 :op :assert}
+   {:e #blake3 "f832408ab69e121c9c057dbee88c2f50ecfaefa319e5df90b93832172a1c91df" :a :attention/presentation-count :v 25 :op :retract}
+   {:e #blake3 "f832408ab69e121c9c057dbee88c2f50ecfaefa319e5df90b93832172a1c91df" :a :attention/presentation-count :v 26 :op :assert}
+ ]}

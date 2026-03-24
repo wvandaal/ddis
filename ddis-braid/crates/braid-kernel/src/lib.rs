@@ -130,8 +130,8 @@ pub use guidance::{
     AdjustedGaps, ConcentrationSignal, ContextualHint, DerivationRule, DerivedTask,
     GuidanceAction, GuidanceContext,
     GuidanceFooter, HarvestWarningLevel, MethodologyComponents, MethodologyGaps, MethodologyScore,
-    ReconciliationResult, RoutingDashboard, RoutingMetrics, SessionTelemetry, TaskNode, TaskRouting,
-    Trend, ROUTING_FEATURE_NAMES,
+    BridgeHypothesis, ReconciliationResult, RoutingDashboard, RoutingMetrics, SessionTelemetry,
+    TaskNode, TaskRouting, Trend, generate_bridge_hypotheses, ROUTING_FEATURE_NAMES,
 };
 pub use harvest::{
     build_harvest_commit, calibrate_harvest, candidate_to_datoms, classify_spec_candidate,

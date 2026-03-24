@@ -781,6 +781,21 @@ pub fn build_status_projection(
         ));
     }
 
+    // FEGH-1: Surface bridge hypotheses as speculative context blocks.
+    // The free energy gradient suggests questions that bridge disconnected
+    // knowledge communities — the highest-value observations to make next.
+    let bridges = braid_kernel::guidance::generate_bridge_hypotheses(store, 3);
+    if let Some(top) = bridges.first() {
+        context.push(ContextBlock::new_scored(
+            OutputPrecedence::Speculative,
+            format!(
+                "bridge: {} (ΔF(S)={:+.3}, α={:.4})",
+                top.question, top.delta_fs, top.alpha
+            ),
+            8,
+        ));
+    }
+
     // Add methodology M(t) context blocks (ACP-9: footer -> context)
     // PERF-2a: Reuse calibration from pre-computed routing (was redundant O(H*K) scan).
     let methodology_blocks =

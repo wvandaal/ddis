@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774318937/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :derived
+ :tx/rationale "HL-3: hypothesis outcome for t-e656e270"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0d361c876b50d3f255232ae1d2d8bc49fc13eb8d1db5abb17b814c4fa6287d70" :a :hypothesis/actual :v 0.000000560058059373425 :op :assert}
+   {:e #blake3 "0d361c876b50d3f255232ae1d2d8bc49fc13eb8d1db5abb17b814c4fa6287d70" :a :hypothesis/completed :v #inst 1774318936 :op :assert}
+   {:e #blake3 "0d361c876b50d3f255232ae1d2d8bc49fc13eb8d1db5abb17b814c4fa6287d70" :a :hypothesis/error :v 0.276229542665801 :op :assert}
+ ]}

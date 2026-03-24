@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774318930/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FEGH-1 COMPLETE: generate_bridge_hypotheses implemented. Finds connected components in entity reference graph via union-find, scores bridges by log(community_size_product)/log(total) + project_delta gradient, surfaces top bridge as speculative context block in braid status. On 73K datom store: 2 communities detected, bridge question surfaced with alpha=0.0199. Labels use entity_label with truncation. Wired into build_status_projection as Speculative precedence block."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4c9ae221c86e4d8ce9ab84a51529e7b6fb7c88701726337cedccd689575ba190" :a :db/doc :v "FEGH-1 COMPLETE: generate_bridge_hypotheses implemented. Finds connected components in entity reference graph via union-find, scores bridges by log(community_size_product)/log(total) + project_delta gradient, surfaces top bridge as speculative context block in braid status. On 73K datom store: 2 communities detected, bridge question surfaced with alpha=0.0199. Labels use entity_label with truncation. Wired into build_status_projection as Speculative precedence block." :op :assert}
+   {:e #blake3 "4c9ae221c86e4d8ce9ab84a51529e7b6fb7c88701726337cedccd689575ba190" :a :db/ident :v :observation/fegh-1-complete-generate-bridge-hypotheses-implemented-fin :op :assert}
+   {:e #blake3 "4c9ae221c86e4d8ce9ab84a51529e7b6fb7c88701726337cedccd689575ba190" :a :exploration/body :v "FEGH-1 COMPLETE: generate_bridge_hypotheses implemented. Finds connected components in entity reference graph via union-find, scores bridges by log(community_size_product)/log(total) + project_delta gradient, surfaces top bridge as speculative context block in braid status. On 73K datom store: 2 communities detected, bridge question surfaced with alpha=0.0199. Labels use entity_label with truncation. Wired into build_status_projection as Speculative precedence block." :op :assert}
+   {:e #blake3 "4c9ae221c86e4d8ce9ab84a51529e7b6fb7c88701726337cedccd689575ba190" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "4c9ae221c86e4d8ce9ab84a51529e7b6fb7c88701726337cedccd689575ba190" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "4c9ae221c86e4d8ce9ab84a51529e7b6fb7c88701726337cedccd689575ba190" :a :exploration/content-hash :v #bytes "876b95fb54ca93559a1c82d79267b27760b9ce30af45a065a3b88b508957a77d" :op :assert}
+   {:e #blake3 "4c9ae221c86e4d8ce9ab84a51529e7b6fb7c88701726337cedccd689575ba190" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "4c9ae221c86e4d8ce9ab84a51529e7b6fb7c88701726337cedccd689575ba190" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "4c9ae221c86e4d8ce9ab84a51529e7b6fb7c88701726337cedccd689575ba190" :a :exploration/source-session :v #blake3 "f7c1297fa1bfdbd4fa779471371c4e409459b4846bcd95ba923df578f0144c13" :op :assert}
+ ]}
