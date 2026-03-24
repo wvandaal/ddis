@@ -14,7 +14,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::budget::{quality_adjusted_budget, GuidanceLevel};
-use crate::datom::{Attribute, EntityId, Op, Value};
+use crate::datom::{latest_assert, Attribute, EntityId, Op, Value};
 use crate::methodology::*;
 use crate::routing::*;
 use crate::store::Store;
@@ -143,13 +143,10 @@ pub fn record_block_presentations(
             .filter(|d| d.op == Op::Assert)
             .find(|d| matches!(&d.value, Value::String(s) if s.as_str() == *label))
             .map(|d| {
-                // Get LIVE count: the last Assert not superseded by a Retract.
+                // Get LIVE count: the latest Assert by tx (max-by-tx semantics).
                 // After ACP-FIX-1 retractions, old Assert datoms remain in the store.
-                // Using .filter().last() gets the most recent Assert (insertion order).
-                let count = store
-                    .entity_datoms(d.entity)
-                    .iter()
-                    .rfind(|ed| ed.attribute == count_attr && ed.op == Op::Assert)
+                let ent_datoms = store.entity_datoms(d.entity);
+                let count = latest_assert(&ent_datoms, &count_attr)
                     .and_then(|ed| match &ed.value {
                         Value::Long(n) => Some(*n),
                         _ => None,
@@ -161,11 +158,9 @@ pub fn record_block_presentations(
         let (entity, old_count, old_last) = match existing {
             Some((e, count)) => {
                 // Read existing last-presented for retraction
-                // Get LIVE last-presented (same pattern: last Assert wins)
-                let last = store
-                    .entity_datoms(e)
-                    .iter()
-                    .rfind(|ed| ed.attribute == last_attr && ed.op == Op::Assert)
+                // Get LIVE last-presented (latest Assert by tx wins)
+                let ent_datoms = store.entity_datoms(e);
+                let last = latest_assert(&ent_datoms, &last_attr)
                     .and_then(|ed| match &ed.value {
                         Value::Instant(ts) => Some(*ts),
                         _ => None,

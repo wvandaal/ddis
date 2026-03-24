@@ -63,7 +63,7 @@
 
 use std::collections::{BTreeMap, HashMap, HashSet};
 
-use crate::datom::{Attribute, Datom, EntityId, Op, TxId, Value};
+use crate::datom::{latest_assert, Attribute, Datom, EntityId, Op, TxId, Value};
 use crate::guidance::{compute_methodology_score, telemetry_from_store};
 use crate::query::graph::{
     cheeger, fiedler, graph_laplacian, ricci_curvature_adaptive, ricci_summary,
@@ -598,12 +598,15 @@ pub fn depth_weight(depth: i64) -> f64 {
 /// as an unverified assertion until challenged.
 pub fn comonadic_depth(store: &Store, entity: &EntityId) -> i64 {
     let attr = crate::datom::Attribute::from_keyword(":comonad/depth");
-    // Use rfind (last by BTreeSet order = latest tx) for LWW semantics
+    // LWW semantics: pick the Assert with the highest tx (most recent write),
+    // not the highest value. BTreeSet orders by (entity, attr, value, tx, op),
+    // so .rev().find() would return the Assert with the largest Value — wrong
+    // when a newer tx writes a smaller value (e.g., falsification: depth 3 → 0).
     store
         .entity_datoms(*entity)
         .iter()
-        .rev()
-        .find(|d| d.attribute == attr && d.op == crate::datom::Op::Assert)
+        .filter(|d| d.attribute == attr && d.op == crate::datom::Op::Assert)
+        .max_by_key(|d| (d.tx.wall_time(), d.tx.logical()))
         .and_then(|d| match &d.value {
             crate::datom::Value::Long(v) => Some(*v),
             _ => None,
@@ -1028,9 +1031,7 @@ fn compute_validation(store: &Store) -> f64 {
         spec_count += 1;
 
         // Check for depth datom (WP9 path)
-        let depth = datoms
-            .iter()
-            .rfind(|d| d.attribute == spec_depth_attr && d.op == Op::Assert)
+        let depth = latest_assert(&datoms, &spec_depth_attr)
             .and_then(|d| match &d.value {
                 Value::Long(v) => Some(*v),
                 _ => None,
@@ -1088,10 +1089,8 @@ fn compute_depth_weighted_coverage(store: &Store) -> f64 {
                 // Get depth for this impl entity.
                 // Default to 1 (syntactic) for impl links without explicit depth —
                 // they passed the trace scanner which is Level 1 verification.
-                let explicit_depth = store
-                    .entity_datoms(impl_entity)
-                    .iter()
-                    .rfind(|d| d.attribute == impl_depth_attr && d.op == Op::Assert)
+                let impl_datoms = store.entity_datoms(impl_entity);
+                let explicit_depth = latest_assert(&impl_datoms, &impl_depth_attr)
                     .and_then(|d| match &d.value {
                         Value::Long(v) => Some(*v),
                         _ => None,
@@ -4195,22 +4194,10 @@ mod tests {
 
         assert_eq!(comonadic_depth(&store, &entity), 3);
 
-        // Falsify: in the current store model, comonadic_depth uses .rev().find()
-        // on entity_datoms which orders by (entity, attr, VALUE, tx, op).
-        // Value::Long(3) > Value::Long(0), so the old depth=3 Assert always wins
-        // in BTreeSet ordering regardless of tx. The actual falsification path
-        // in challenge.rs uses Transaction::retract + Transaction::assert, which
-        // produces retraction datoms that comonadic_depth filters out.
-        //
-        // Test the ACTUAL behavior: verify that only retracting the old value
-        // (without asserting a new one) causes comonadic_depth to fall back to 0.
-        let retract_old = Datom::new(
-            entity,
-            Attribute::from_keyword(":comonad/depth"),
-            Value::Long(3),
-            tx2,
-            Op::Retract,
-        );
+        // Falsify: assert depth=0 at a later tx. comonadic_depth uses
+        // max-by-tx LWW semantics, so the newer Assert(0) wins over the
+        // older Assert(3) regardless of BTreeSet value ordering.
+        let falsify_datom = set_depth_datom(&entity, 0, tx2);
         let survival_rate_datom = Datom::new(
             entity,
             Attribute::from_keyword(":comonad/survival-rate"),
@@ -4220,23 +4207,14 @@ mod tests {
         );
 
         let mut datoms2 = store.datom_set().clone();
-        datoms2.insert(retract_old);
+        datoms2.insert(falsify_datom);
         datoms2.insert(survival_rate_datom);
         let store2 = Store::from_datoms(datoms2);
 
-        // With the depth=3 Assert retracted, comonadic_depth should see no
-        // Assert for :comonad/depth and return the default (0).
-        // NOTE: current BTreeSet ordering means the Retract(3) sorts after Assert(3),
-        // but comonadic_depth filters for Op::Assert only. The Assert(3) is still
-        // present in the set. So the function returns 3, not 0.
-        // This test documents the ACTUAL behavior: retraction alone doesn't hide
-        // the old Assert from a BTreeSet-based store. Full retraction semantics
-        // require query-time retraction filtering (Stage 1+ feature).
-        let depth_after = comonadic_depth(&store2, &entity);
-        assert!(
-            depth_after == 0 || depth_after == 3,
-            "depth should be 0 (retraction honored) or 3 (retraction not yet query-filtered), got {}",
-            depth_after
+        assert_eq!(
+            comonadic_depth(&store2, &entity),
+            0,
+            "falsified entity must reset to depth 0 (newer tx wins via LWW)"
         );
 
         // Verify survival-rate is 0.0

@@ -429,6 +429,30 @@ impl Datom {
     }
 }
 
+/// Find the latest Assert datom for a given attribute in a datom slice.
+///
+/// Uses max-by-tx semantics: the Assert with the highest (wall_time, logical)
+/// wins. This is the correct LWW read — NOT `.rfind()` or `.rev().find()`,
+/// which use BTreeSet ordering (by value, not by tx) and return wrong results
+/// when a newer tx writes a smaller value.
+///
+/// Use this for any LWW attribute read from `entity_datoms()` or similar.
+pub fn latest_assert<'a>(datoms: &[&'a Datom], attr: &Attribute) -> Option<&'a Datom> {
+    datoms
+        .iter()
+        .filter(|d| d.attribute == *attr && d.op == Op::Assert)
+        .max_by_key(|d| (d.tx.wall_time(), d.tx.logical()))
+        .copied()
+}
+
+/// Same as [`latest_assert`] but for owned datom slices (`&[Datom]`).
+pub fn latest_assert_owned<'a>(datoms: &'a [Datom], attr: &Attribute) -> Option<&'a Datom> {
+    datoms
+        .iter()
+        .filter(|d| d.attribute == *attr && d.op == Op::Assert)
+        .max_by_key(|d| (d.tx.wall_time(), d.tx.logical()))
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------

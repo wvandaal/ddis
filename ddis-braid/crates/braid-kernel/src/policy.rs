@@ -16,7 +16,7 @@
 //! - NEG-FOUNDATION-003: No DDIS-specific concept in the policy schema.
 //! - NEG-FOUNDATION-005: Every policy element feeds into a closed loop.
 
-use crate::datom::{Attribute, EntityId, Op, Value};
+use crate::datom::{latest_assert, Attribute, EntityId, Op, Value};
 use crate::store::Store;
 
 // ===========================================================================
@@ -576,35 +576,26 @@ pub fn apply_weight_adjustments(
 
 fn extract_string(datoms: &[&crate::datom::Datom], attr_name: &str) -> Option<String> {
     let attr = Attribute::from_keyword(attr_name);
-    datoms
-        .iter()
-        .rfind(|d| d.attribute == attr && d.op == Op::Assert)
-        .and_then(|d| match &d.value {
-            Value::String(s) => Some(s.clone()),
-            _ => None,
-        })
+    latest_assert(datoms, &attr).and_then(|d| match &d.value {
+        Value::String(s) => Some(s.clone()),
+        _ => None,
+    })
 }
 
 fn extract_double(datoms: &[&crate::datom::Datom], attr_name: &str) -> Option<f64> {
     let attr = Attribute::from_keyword(attr_name);
-    datoms
-        .iter()
-        .rfind(|d| d.attribute == attr && d.op == Op::Assert)
-        .and_then(|d| match &d.value {
-            Value::Double(f) => Some(f.into_inner()),
-            _ => None,
-        })
+    latest_assert(datoms, &attr).and_then(|d| match &d.value {
+        Value::Double(f) => Some(f.into_inner()),
+        _ => None,
+    })
 }
 
 fn extract_long(datoms: &[&crate::datom::Datom], attr_name: &str) -> Option<i64> {
     let attr = Attribute::from_keyword(attr_name);
-    datoms
-        .iter()
-        .rfind(|d| d.attribute == attr && d.op == Op::Assert)
-        .and_then(|d| match &d.value {
-            Value::Long(v) => Some(*v),
-            _ => None,
-        })
+    latest_assert(datoms, &attr).and_then(|d| match &d.value {
+        Value::Long(v) => Some(*v),
+        _ => None,
+    })
 }
 
 // ===========================================================================

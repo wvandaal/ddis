@@ -39,7 +39,7 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use crate::datom::{Attribute, Datom, EntityId, Op, TxId, Value};
+use crate::datom::{latest_assert, Attribute, Datom, EntityId, Op, TxId, Value};
 use crate::store::Store;
 
 // ===========================================================================
@@ -1012,46 +1012,34 @@ pub fn current_spec_hashes(store: &Store) -> CurrentSpecHashes {
 
 /// Extract a String value for an attribute from an entity's datoms.
 fn extract_string(datoms: &[&Datom], attr: &Attribute) -> Option<String> {
-    datoms
-        .iter()
-        .rfind(|d| d.attribute == *attr && d.op == Op::Assert)
-        .and_then(|d| match &d.value {
-            Value::String(s) => Some(s.clone()),
-            _ => None,
-        })
+    latest_assert(datoms, attr).and_then(|d| match &d.value {
+        Value::String(s) => Some(s.clone()),
+        _ => None,
+    })
 }
 
 /// Extract a Keyword value for an attribute from an entity's datoms.
 fn extract_keyword(datoms: &[&Datom], attr: &Attribute) -> Option<String> {
-    datoms
-        .iter()
-        .rfind(|d| d.attribute == *attr && d.op == Op::Assert)
-        .and_then(|d| match &d.value {
-            Value::Keyword(s) => Some(s.clone()),
-            _ => None,
-        })
+    latest_assert(datoms, attr).and_then(|d| match &d.value {
+        Value::Keyword(s) => Some(s.clone()),
+        _ => None,
+    })
 }
 
 /// Extract a Long value for an attribute from an entity's datoms.
 fn extract_long(datoms: &[&Datom], attr: &Attribute) -> Option<i64> {
-    datoms
-        .iter()
-        .rfind(|d| d.attribute == *attr && d.op == Op::Assert)
-        .and_then(|d| match &d.value {
-            Value::Long(v) => Some(*v),
-            _ => None,
-        })
+    latest_assert(datoms, attr).and_then(|d| match &d.value {
+        Value::Long(v) => Some(*v),
+        _ => None,
+    })
 }
 
 /// Extract a Double value for an attribute from an entity's datoms.
 fn extract_double(datoms: &[&Datom], attr: &Attribute) -> Option<f64> {
-    datoms
-        .iter()
-        .rfind(|d| d.attribute == *attr && d.op == Op::Assert)
-        .and_then(|d| match &d.value {
-            Value::Double(v) => Some((*v).into()),
-            _ => None,
-        })
+    latest_assert(datoms, attr).and_then(|d| match &d.value {
+        Value::Double(v) => Some((*v).into()),
+        _ => None,
+    })
 }
 
 // ===========================================================================

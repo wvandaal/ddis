@@ -33,7 +33,7 @@
 //! - INV-BILATERAL-005: Test results as datoms
 //! - ADR-FOUNDATION-005: Structural over procedural coherence
 
-use crate::datom::{Attribute, Datom, EntityId, Op, TxId, Value};
+use crate::datom::{latest_assert, Attribute, Datom, EntityId, Op, TxId, Value};
 use crate::store::Store;
 
 // ===========================================================================
@@ -570,18 +570,14 @@ pub fn detect_patterns(store: &Store) -> Vec<PatternMatch> {
         }
 
         // Extract text fields
-        let statement = datoms
-            .iter()
-            .rfind(|d| d.attribute == statement_attr && d.op == Op::Assert)
+        let statement = latest_assert(&datoms, &statement_attr)
             .and_then(|d| match &d.value {
                 Value::String(s) => Some(s.as_str()),
                 _ => None,
             })
             .unwrap_or("");
 
-        let falsification = datoms
-            .iter()
-            .rfind(|d| d.attribute == falsification_attr && d.op == Op::Assert)
+        let falsification = latest_assert(&datoms, &falsification_attr)
             .and_then(|d| match &d.value {
                 Value::String(s) => Some(s.as_str()),
                 _ => None,
@@ -594,30 +590,22 @@ pub fn detect_patterns(store: &Store) -> Vec<PatternMatch> {
         }
 
         // Resolve spec ID: try :spec/id, then :element/id, then :db/ident
-        let spec_id = datoms
-            .iter()
-            .rfind(|d| d.attribute == spec_id_attr && d.op == Op::Assert)
+        let spec_id = latest_assert(&datoms, &spec_id_attr)
             .and_then(|d| match &d.value {
                 Value::String(s) => Some(s.clone()),
                 _ => None,
             })
             .or_else(|| {
-                datoms
-                    .iter()
-                    .rfind(|d| d.attribute == element_id_attr && d.op == Op::Assert)
-                    .and_then(|d| match &d.value {
-                        Value::String(s) => Some(s.clone()),
-                        _ => None,
-                    })
+                latest_assert(&datoms, &element_id_attr).and_then(|d| match &d.value {
+                    Value::String(s) => Some(s.clone()),
+                    _ => None,
+                })
             })
             .or_else(|| {
-                datoms
-                    .iter()
-                    .rfind(|d| d.attribute == ident_attr && d.op == Op::Assert)
-                    .and_then(|d| match &d.value {
-                        Value::Keyword(s) => Some(s.clone()),
-                        _ => None,
-                    })
+                latest_assert(&datoms, &ident_attr).and_then(|d| match &d.value {
+                    Value::Keyword(s) => Some(s.clone()),
+                    _ => None,
+                })
             })
             .unwrap_or_else(|| format!("entity:{:x?}", &entity.as_bytes()[..4]));
 

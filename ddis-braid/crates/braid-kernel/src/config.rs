@@ -9,7 +9,7 @@
 //! set(key, val) = transact(Store, [[:config/{key}, val]])
 //! ```
 
-use crate::datom::{Attribute, Datom, EntityId, Op, TxId, Value};
+use crate::datom::{latest_assert, Attribute, Datom, EntityId, Op, TxId, Value};
 use crate::store::Store;
 use std::collections::HashMap;
 
@@ -29,14 +29,11 @@ pub fn get_config(store: &Store, key: &str) -> Option<String> {
         .map(|d| d.entity)?;
 
     // Get :config/value for that entity (most recent assertion wins via LWW)
-    store
-        .entity_datoms(entity)
-        .into_iter()
-        .rfind(|d| d.attribute == val_attr && d.op == Op::Assert)
-        .and_then(|d| match &d.value {
-            Value::String(v) => Some(v.clone()),
-            _ => None,
-        })
+    let datoms = store.entity_datoms(entity);
+    latest_assert(&datoms, &val_attr).and_then(|d| match &d.value {
+        Value::String(v) => Some(v.clone()),
+        _ => None,
+    })
 }
 
 /// Get a config value, or return the default if not set.
@@ -62,20 +59,16 @@ pub fn all_config(store: &Store) -> Vec<(String, String, String)> {
         };
         let entity = datom.entity;
 
-        let value = store
-            .entity_datoms(entity)
-            .into_iter()
-            .rfind(|d| d.attribute == val_attr && d.op == Op::Assert)
+        let ent_datoms = store.entity_datoms(entity);
+
+        let value = latest_assert(&ent_datoms, &val_attr)
             .and_then(|d| match &d.value {
                 Value::String(v) => Some(v.clone()),
                 _ => None,
             })
             .unwrap_or_default();
 
-        let scope = store
-            .entity_datoms(entity)
-            .into_iter()
-            .rfind(|d| d.attribute == scope_attr && d.op == Op::Assert)
+        let scope = latest_assert(&ent_datoms, &scope_attr)
             .and_then(|d| match &d.value {
                 Value::Keyword(k) => Some(k.clone()),
                 _ => None,

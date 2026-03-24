@@ -13,7 +13,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::budget::{AcquisitionScore, ObservationCost, ObservationKind};
-use crate::datom::{Attribute, EntityId, Op, Value};
+use crate::datom::{latest_assert, Attribute, EntityId, Op, Value};
 use crate::methodology::{count_txns_since_last_harvest, last_harvest_wall_time};
 use crate::store::Store;
 
@@ -1157,10 +1157,7 @@ pub fn compute_calibration_metrics(store: &Store) -> CalibrationReport {
             continue;
         }
 
-        let error = datoms
-            .iter()
-            .rev()
-            .find(|d| d.attribute == error_attr && d.op == Op::Assert)
+        let error = latest_assert(&datoms, &error_attr)
             .and_then(|d| match &d.value {
                 crate::datom::Value::Double(v) => Some(v.into_inner()),
                 _ => None,
@@ -1176,10 +1173,7 @@ pub fn compute_calibration_metrics(store: &Store) -> CalibrationReport {
             })
             .unwrap_or_else(|| "unknown".into());
 
-        let completed_at = datoms
-            .iter()
-            .rev()
-            .find(|d| d.attribute == completed_attr && d.op == Op::Assert)
+        let completed_at = latest_assert(&datoms, &completed_attr)
             .and_then(|d| match &d.value {
                 crate::datom::Value::Instant(t) => Some(*t),
                 _ => None,
