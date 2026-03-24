@@ -185,6 +185,248 @@ pub enum LockStatus {
 }
 
 // ---------------------------------------------------------------------------
+// Runtime schema — ADR-DAEMON-003, INV-DAEMON-003
+// ---------------------------------------------------------------------------
+
+/// Runtime schema attribute definitions.
+///
+/// Each tuple: (ident, value_type_keyword, cardinality_keyword, doc).
+const RUNTIME_ATTRS: &[(&str, &str, &str, &str)] = &[
+    (
+        ":runtime/command",
+        ":db.type/string",
+        ":db.cardinality/one",
+        "Command name or tool name processed by the daemon",
+    ),
+    (
+        ":runtime/request-id",
+        ":db.type/string",
+        ":db.cardinality/one",
+        "JSON-RPC request ID as string",
+    ),
+    (
+        ":runtime/latency-ms",
+        ":db.type/long",
+        ":db.cardinality/one",
+        "Wall clock milliseconds for request processing",
+    ),
+    (
+        ":runtime/outcome",
+        ":db.type/string",
+        ":db.cardinality/one",
+        "Request outcome: success or error",
+    ),
+    (
+        ":runtime/datom-count",
+        ":db.type/long",
+        ":db.cardinality/one",
+        "Store datom count at time of request",
+    ),
+    (
+        ":runtime/cache-hit",
+        ":db.type/boolean",
+        ":db.cardinality/one",
+        "Whether refresh_if_needed found no new transactions (O(1) fast path)",
+    ),
+];
+
+/// Install runtime schema attributes into the store if not already present.
+///
+/// Idempotent: checks for `:runtime/command` existence before transacting.
+/// Uses `live.write_tx()` for persistence (C3: schema-as-data).
+///
+/// **ADR-DAEMON-003**: Runtime attributes are schema datoms, not config.
+pub fn install_runtime_schema(
+    live: &mut crate::live_store::LiveStore,
+) -> Result<(), DaemonError> {
+    use braid_kernel::datom::*;
+    use braid_kernel::layout::TxFile;
+
+    // Idempotency check: if :runtime/command already has a :db/valueType datom,
+    // the schema is already installed.
+    let check_entity = EntityId::from_ident(":runtime/command");
+    let value_type_attr = Attribute::from_keyword(":db/valueType");
+    let already_installed = live
+        .store()
+        .entity_datoms(check_entity)
+        .iter()
+        .any(|d| d.attribute == value_type_attr && d.op == Op::Assert);
+
+    if already_installed {
+        return Ok(());
+    }
+
+    let agent = AgentId::from_name("braid:daemon");
+    let tx_id = crate::commands::write::next_tx_id(live.store(), agent);
+
+    let mut datoms = Vec::new();
+
+    for &(ident, value_type, cardinality, doc) in RUNTIME_ATTRS {
+        let entity = EntityId::from_ident(ident);
+
+        // :db/ident
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(ident.to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+        // :db/valueType
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/valueType"),
+            Value::Keyword(value_type.to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+        // :db/cardinality
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/cardinality"),
+            Value::Keyword(cardinality.to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+        // :db/doc
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String(doc.to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+        // :db/resolutionMode — LWW for all runtime attributes
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/resolutionMode"),
+            Value::Keyword(":db.resolution/lww".to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+    }
+
+    let tx_file = TxFile {
+        tx_id,
+        agent,
+        provenance: ProvenanceType::Derived,
+        rationale: "D4-4: install runtime schema (ADR-DAEMON-003)".to_string(),
+        causal_predecessors: vec![],
+        datoms,
+    };
+
+    live.write_tx(&tx_file).map_err(DaemonError::from)?;
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Lock file management — INV-DAEMON-001, INV-DAEMON-005
+// ---------------------------------------------------------------------------
+
+/// Acquire the daemon lock file atomically.
+///
+/// Creates `.braid/daemon.lock` with `O_CREAT | O_EXCL` semantics:
+/// - If the file does not exist, creates it and writes the current PID.
+/// - If the file exists and the owning PID is alive → `DaemonError::LockHeld`.
+/// - If the file exists and the owning PID is dead → removes the stale lock
+///   and retries (INV-DAEMON-005).
+///
+/// **INV-DAEMON-001**: At most one daemon per `.braid` directory.
+pub fn acquire_lock(lock_path: &LockPath) -> Result<(), DaemonError> {
+    use std::fs::OpenOptions;
+    use std::io::Write;
+
+    let path = lock_path.path();
+
+    // Attempt exclusive create.
+    match OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+    {
+        Ok(mut f) => {
+            // Write our PID.
+            let pid = std::process::id();
+            writeln!(f, "{pid}").map_err(|e| DaemonError::BindFailed(e))?;
+            Ok(())
+        }
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+            // Lock file exists — check if the owner is alive.
+            match check_lock(lock_path) {
+                LockStatus::Live(pid) => Err(DaemonError::LockHeld { pid }),
+                LockStatus::Stale(pid) => {
+                    // Remove stale lock and retry (INV-DAEMON-005).
+                    eprintln!(
+                        "daemon: removing stale lock (pid {pid} is dead)"
+                    );
+                    let _ = std::fs::remove_file(path);
+                    // Recurse once. If this fails, surface the error.
+                    acquire_lock(lock_path)
+                }
+                LockStatus::Absent => {
+                    // Race: file disappeared between our open and check.
+                    acquire_lock(lock_path)
+                }
+            }
+        }
+        Err(e) => Err(DaemonError::BindFailed(e)),
+    }
+}
+
+/// Release the daemon lock file.
+///
+/// Removes `.braid/daemon.lock`. Silently ignores `NotFound` (idempotent).
+pub fn release_lock(lock_path: &LockPath) {
+    let _ = std::fs::remove_file(lock_path.path());
+}
+
+/// Check the status of the daemon lock file.
+///
+/// Reads the PID from the lock file and probes whether the process is alive
+/// using `kill(pid, 0)` (signal 0 = existence check, no signal delivered).
+///
+/// Returns:
+/// - `LockStatus::Live(pid)` if the lock file exists and the process is alive.
+/// - `LockStatus::Stale(pid)` if the lock file exists but the process is dead.
+/// - `LockStatus::Absent` if the lock file does not exist or is unreadable.
+pub fn check_lock(lock_path: &LockPath) -> LockStatus {
+    let contents = match std::fs::read_to_string(lock_path.path()) {
+        Ok(c) => c,
+        Err(_) => return LockStatus::Absent,
+    };
+
+    let pid: u32 = match contents.trim().parse() {
+        Ok(p) => p,
+        Err(_) => return LockStatus::Absent, // Corrupted lock file
+    };
+
+    if is_process_alive(pid) {
+        LockStatus::Live(pid)
+    } else {
+        LockStatus::Stale(pid)
+    }
+}
+
+/// Check whether a process with the given PID is alive.
+///
+/// Uses `kill(pid, 0)` which sends no signal but checks process existence.
+/// Returns `true` if the process exists (or we lack permission to signal it),
+/// `false` if `ESRCH` (no such process).
+fn is_process_alive(pid: u32) -> bool {
+    // Safety: kill(pid, 0) is a standard POSIX existence check.
+    // SAFETY: sig=0 sends no signal, only checks existence.
+    let ret = unsafe { libc::kill(pid as libc::pid_t, 0) };
+    if ret == 0 {
+        return true; // Process exists and we can signal it.
+    }
+    // ret == -1: check errno.
+    let errno = std::io::Error::last_os_error();
+    // EPERM means process exists but we can't signal it (still alive).
+    // ESRCH means no such process (dead).
+    errno.raw_os_error() != Some(libc::ESRCH)
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -307,5 +549,170 @@ mod tests {
         let braid_err = crate::error::BraidError::Validation("test".into());
         let daemon_err: DaemonError = braid_err.into();
         assert!(matches!(daemon_err, DaemonError::StoreError(_)));
+    }
+
+    // ── Lock management tests (D4-2) ────────────────────────────────────
+
+    #[test]
+    fn acquire_lock_success() {
+        let dir = tempfile::tempdir().unwrap();
+        let lock = LockPath::new(dir.path());
+        acquire_lock(&lock).expect("should acquire lock on clean directory");
+        assert!(lock.path().exists(), "lock file must exist after acquire");
+        // Verify PID content.
+        let contents = std::fs::read_to_string(lock.path()).unwrap();
+        let pid: u32 = contents.trim().parse().unwrap();
+        assert_eq!(pid, std::process::id(), "lock must contain our PID");
+    }
+
+    #[test]
+    fn acquire_lock_already_held() {
+        let dir = tempfile::tempdir().unwrap();
+        let lock = LockPath::new(dir.path());
+        // Write our own PID (we're alive).
+        std::fs::write(lock.path(), format!("{}\n", std::process::id())).unwrap();
+        let result = acquire_lock(&lock);
+        assert!(
+            matches!(result, Err(DaemonError::LockHeld { .. })),
+            "should fail with LockHeld: {result:?}"
+        );
+    }
+
+    #[test]
+    fn acquire_lock_stale_recovery() {
+        let dir = tempfile::tempdir().unwrap();
+        let lock = LockPath::new(dir.path());
+        // Write a PID that is very likely dead (max PID on Linux is 2^22).
+        std::fs::write(lock.path(), "4194300\n").unwrap();
+        // acquire_lock should detect stale, remove, and succeed.
+        acquire_lock(&lock).expect("should recover from stale lock");
+        // Verify we now own the lock.
+        let contents = std::fs::read_to_string(lock.path()).unwrap();
+        let pid: u32 = contents.trim().parse().unwrap();
+        assert_eq!(pid, std::process::id());
+    }
+
+    #[test]
+    fn release_lock_cleanup() {
+        let dir = tempfile::tempdir().unwrap();
+        let lock = LockPath::new(dir.path());
+        acquire_lock(&lock).unwrap();
+        assert!(lock.path().exists());
+        release_lock(&lock);
+        assert!(!lock.path().exists(), "lock file must be removed after release");
+    }
+
+    #[test]
+    fn release_lock_idempotent() {
+        let dir = tempfile::tempdir().unwrap();
+        let lock = LockPath::new(dir.path());
+        // Release without acquire should not panic.
+        release_lock(&lock);
+        release_lock(&lock);
+    }
+
+    #[test]
+    fn check_lock_absent() {
+        let dir = tempfile::tempdir().unwrap();
+        let lock = LockPath::new(dir.path());
+        assert_eq!(check_lock(&lock), LockStatus::Absent);
+    }
+
+    #[test]
+    fn check_lock_stale() {
+        let dir = tempfile::tempdir().unwrap();
+        let lock = LockPath::new(dir.path());
+        std::fs::write(lock.path(), "4194300\n").unwrap();
+        assert_eq!(check_lock(&lock), LockStatus::Stale(4194300));
+    }
+
+    #[test]
+    fn check_lock_live() {
+        let dir = tempfile::tempdir().unwrap();
+        let lock = LockPath::new(dir.path());
+        std::fs::write(lock.path(), format!("{}\n", std::process::id())).unwrap();
+        assert_eq!(check_lock(&lock), LockStatus::Live(std::process::id()));
+    }
+
+    #[test]
+    fn check_lock_corrupted_returns_absent() {
+        let dir = tempfile::tempdir().unwrap();
+        let lock = LockPath::new(dir.path());
+        std::fs::write(lock.path(), "not-a-pid\n").unwrap();
+        assert_eq!(check_lock(&lock), LockStatus::Absent);
+    }
+
+    #[test]
+    fn is_process_alive_returns_true_for_self() {
+        assert!(is_process_alive(std::process::id()));
+    }
+
+    #[test]
+    fn is_process_alive_returns_false_for_dead_pid() {
+        // PID 4194300 is near the Linux max and very likely not in use.
+        assert!(!is_process_alive(4194300));
+    }
+
+    // ── Runtime schema tests (D4-4) ─────────────────────────────────────
+
+    #[test]
+    fn runtime_schema_installed() {
+        use braid_kernel::datom::{Attribute, Op};
+
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let mut live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        install_runtime_schema(&mut live).unwrap();
+
+        // Verify :runtime/command has :db/valueType
+        let store = live.store();
+        let entity = braid_kernel::datom::EntityId::from_ident(":runtime/command");
+        let vt_attr = Attribute::from_keyword(":db/valueType");
+        let has_value_type = store
+            .entity_datoms(entity)
+            .iter()
+            .any(|d| d.attribute == vt_attr && d.op == Op::Assert);
+        assert!(has_value_type, ":runtime/command must have :db/valueType after install");
+    }
+
+    #[test]
+    fn runtime_schema_all_six_attrs() {
+        use braid_kernel::datom::{Attribute, Op};
+
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let mut live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        install_runtime_schema(&mut live).unwrap();
+
+        let store = live.store();
+        let vt_attr = Attribute::from_keyword(":db/valueType");
+
+        for &(ident, _, _, _) in RUNTIME_ATTRS {
+            let entity = braid_kernel::datom::EntityId::from_ident(ident);
+            let has_schema = store
+                .entity_datoms(entity)
+                .iter()
+                .any(|d| d.attribute == vt_attr && d.op == Op::Assert);
+            assert!(has_schema, "{ident} must have :db/valueType after install");
+        }
+    }
+
+    #[test]
+    fn runtime_schema_idempotent() {
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let mut live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+
+        let count_before = live.store().len();
+        install_runtime_schema(&mut live).unwrap();
+        let count_after_first = live.store().len();
+        install_runtime_schema(&mut live).unwrap();
+        let count_after_second = live.store().len();
+
+        assert!(count_after_first > count_before, "first install should add datoms");
+        assert_eq!(
+            count_after_first, count_after_second,
+            "second install should be a no-op (idempotent)"
+        );
     }
 }

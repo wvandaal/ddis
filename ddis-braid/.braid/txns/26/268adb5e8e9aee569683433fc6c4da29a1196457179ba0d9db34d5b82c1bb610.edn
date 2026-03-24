@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774364006/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "D4-4: CBV bootstrap — first runtime observation (will be real once daemon runs)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d18973f1f7c5af6406b2dba5a87f137446f18443729d256366b8ad88449a556e" :a :runtime/command :v "bootstrap-verification" :op :assert}
+ ]}

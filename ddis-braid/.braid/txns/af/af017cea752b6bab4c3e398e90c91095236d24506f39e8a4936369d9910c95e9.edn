@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774363847/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-29b48cc5"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3ffb4a25ba15bd3bd7f0b0e05f3a1351755a70e87019e4e8dfe63fe8bae5127e" :a :task/close-reason :v "acquire_lock (O_CREAT|O_EXCL + stale recovery), release_lock, check_lock, is_process_alive. 11 new tests. All 24 daemon tests pass." :op :assert}
+   {:e #blake3 "3ffb4a25ba15bd3bd7f0b0e05f3a1351755a70e87019e4e8dfe63fe8bae5127e" :a :task/closed-at :v 1774363846 :op :assert}
+   {:e #blake3 "3ffb4a25ba15bd3bd7f0b0e05f3a1351755a70e87019e4e8dfe63fe8bae5127e" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "3ffb4a25ba15bd3bd7f0b0e05f3a1351755a70e87019e4e8dfe63fe8bae5127e" :a :task/status :v :task.status/closed :op :assert}
+ ]}

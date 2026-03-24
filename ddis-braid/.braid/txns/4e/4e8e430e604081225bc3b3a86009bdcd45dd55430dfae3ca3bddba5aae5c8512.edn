@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774363976/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "D4-4: runtime schema"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d9cb481c26c2cc50f08be494475acb015e72b9651e19f09150cb6c2ccd0f2f6f" :a :db/cardinality :v :db.cardinality/one :op :assert}
+ ]}
