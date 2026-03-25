@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774421029/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "CCE-GATE scored 5.3/10 (was 3.3). Hash embedder bottleneck: zero concept assignments because keyword overlap between observations and innate schema descriptions is near zero. Architecture validated by 76 tests but real-world activation requires model2vec semantic embeddings. Connection quality 4/10, discovery 7/10, responsiveness 4/10."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d7f5fbee4f9ece21c1d22f96def3d5558ac50d3d86b2da145e2d06684e14c504" :a :db/doc :v "CCE-GATE scored 5.3/10 (was 3.3). Hash embedder bottleneck: zero concept assignments because keyword overlap between observations and innate schema descriptions is near zero. Architecture validated by 76 tests but real-world activation requires model2vec semantic embeddings. Connection quality 4/10, discovery 7/10, responsiveness 4/10." :op :assert}
+   {:e #blake3 "d7f5fbee4f9ece21c1d22f96def3d5558ac50d3d86b2da145e2d06684e14c504" :a :db/ident :v :observation/cce-gate-scored-5310-was-33-hash-embedder-bottleneck :op :assert}
+   {:e #blake3 "d7f5fbee4f9ece21c1d22f96def3d5558ac50d3d86b2da145e2d06684e14c504" :a :exploration/body :v "CCE-GATE scored 5.3/10 (was 3.3). Hash embedder bottleneck: zero concept assignments because keyword overlap between observations and innate schema descriptions is near zero. Architecture validated by 76 tests but real-world activation requires model2vec semantic embeddings. Connection quality 4/10, discovery 7/10, responsiveness 4/10." :op :assert}
+   {:e #blake3 "d7f5fbee4f9ece21c1d22f96def3d5558ac50d3d86b2da145e2d06684e14c504" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "d7f5fbee4f9ece21c1d22f96def3d5558ac50d3d86b2da145e2d06684e14c504" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "d7f5fbee4f9ece21c1d22f96def3d5558ac50d3d86b2da145e2d06684e14c504" :a :exploration/content-hash :v #bytes "4e51feee5ff6798b219123b0b15497ae680842534614a4311cbdaa1bd150942e" :op :assert}
+   {:e #blake3 "d7f5fbee4f9ece21c1d22f96def3d5558ac50d3d86b2da145e2d06684e14c504" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d7f5fbee4f9ece21c1d22f96def3d5558ac50d3d86b2da145e2d06684e14c504" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d7f5fbee4f9ece21c1d22f96def3d5558ac50d3d86b2da145e2d06684e14c504" :a :exploration/source-session :v #blake3 "1c640a4be00b3a1b43feee3431a8c53ad2312ed5a5b9b246f754eb7e63aac720" :op :assert}
+ ]}
