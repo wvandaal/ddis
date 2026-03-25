@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774447002/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-19d93e09"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/close-reason :v "Implemented: concept_inventory_with_innate() does single O(D) pass collecting all concept attributes + innate flags. format_concept_status uses innate_set.contains() instead of is_innate() per-concept O(D) scans. Backward-compatible concept_inventory() wrapper preserved. EAVT iteration order bug fixed (or_insert_with on all concept attrs). 47 tests pass, 1958 total." :op :assert}
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/closed-at :v 1774447001 :op :assert}
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/status :v :task.status/closed :op :assert}
+ ]}

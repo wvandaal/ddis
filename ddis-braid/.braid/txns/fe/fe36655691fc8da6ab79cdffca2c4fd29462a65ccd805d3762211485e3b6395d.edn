@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774447819/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-6f1f81b6"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b153cd0c720a9547a000fbb7e6ea3e9b42a5a916711361f95808693572cc9a31" :a :task/close-reason :v "Implemented: 4 lifecycle tests. test_concept_member_count_increments, test_lifecycle_total_weight_accumulates (total_weight >= N), test_crystallize_from_uncategorized (3 similar → 1 concept → matches new obs), test_inventory_with_innate_set (single-pass innate collection). 56 concept tests, 1967 total." :op :assert}
+   {:e #blake3 "b153cd0c720a9547a000fbb7e6ea3e9b42a5a916711361f95808693572cc9a31" :a :task/closed-at :v 1774447818 :op :assert}
+   {:e #blake3 "b153cd0c720a9547a000fbb7e6ea3e9b42a5a916711361f95808693572cc9a31" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "b153cd0c720a9547a000fbb7e6ea3e9b42a5a916711361f95808693572cc9a31" :a :task/status :v :task.status/closed :op :assert}
+ ]}

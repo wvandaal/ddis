@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774447816/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-926e3284"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f2194dab10b6f7e7d682a6d67ffc26e87ba9177dfeb00ec54e5c8e4a21ee36d6" :a :task/close-reason :v "Implemented: 5 new tests verifying DEFECT-002..006 fixes. test_find_nearest_no_unwrap_panic (3 concepts, no panic), test_crystallize_centroids_normalized (L2 norm within 1e-4), test_cosine_dimension_mismatch_returns_zero (0.0 on mismatch), test_find_nearest_uses_latest_embedding (BTreeMap overwrites), plus split recommendation test. 56 concept tests, 1967 total." :op :assert}
+   {:e #blake3 "f2194dab10b6f7e7d682a6d67ffc26e87ba9177dfeb00ec54e5c8e4a21ee36d6" :a :task/closed-at :v 1774447815 :op :assert}
+   {:e #blake3 "f2194dab10b6f7e7d682a6d67ffc26e87ba9177dfeb00ec54e5c8e4a21ee36d6" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "f2194dab10b6f7e7d682a6d67ffc26e87ba9177dfeb00ec54e5c8e4a21ee36d6" :a :task/status :v :task.status/closed :op :assert}
+ ]}

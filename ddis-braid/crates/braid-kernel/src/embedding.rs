@@ -279,7 +279,6 @@ impl TextEmbedder for HashEmbedder {
 ///
 /// INV-EMBEDDING-003: Never panics. Returns 0.0 for degenerate inputs.
 pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
-    debug_assert_eq!(a.len(), b.len(), "cosine_similarity: dimension mismatch");
     if a.len() != b.len() {
         return 0.0;
     }
