@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774421563/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: THRESHOLD-TUNE: Calibrate JOIN_THRESHOLD for model2vec cosine distribution"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :db/ident :v :task/t-51654d1a :op :assert}
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/created-at :v 1774421562 :op :assert}
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/description :v "CONTEXT: JOIN_THRESHOLD (0.65) was implicitly calibrated for hash embedder cosine distribution (sparse, binary-like). Model2vec cosine distribution is dense — most texts have some similarity in [0.1, 0.9]. The threshold that separates same-concept from different-concept may need adjustment. RATIONALE: A threshold that is too high produces false negatives (observations that should join concepts don't). Too low produces false positives (everything joins the first concept). Empirical measurement on real data is required. APPROACH: (1) After MODEL-WIRE is complete, embed the 5 innate concept descriptions + the 30 DOGFOOD-3 observations with model2vec. Compute the 5x30 cosine similarity matrix. (2) For each observation, identify the highest-similarity innate concept. Check against human ground truth: is it the correct match? (3) Find the threshold that maximizes correct assignments (precision-recall tradeoff). Expected: 0.45-0.55 for model2vec. (4) If optimal threshold differs from 0.65, update JOIN_THRESHOLD constant AND make it overridable via policy manifest :policy/concept-join-threshold. The constant becomes the default when no policy datom exists. (5) Document the calibration data in a test file for reproducibility. ACCEPTANCE: (A) Threshold produces >= 80% correct concept assignment on DOGFOOD-3 observations with model2vec. (B) Policy-manifest threshold override tested. (C) Hash embedder threshold unchanged (0.65 remains correct for hash). (D) Calibration data committed as a test fixture. DEPENDS-ON: MODEL-WIRE, EMBED-CONSISTENCY. FILE: crates/braid-kernel/src/concept.rs (JOIN_THRESHOLD), crates/braid-kernel/src/policy.rs (policy override), tests/." :op :assert}
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/id :v "t-51654d1a" :op :assert}
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/title :v "THRESHOLD-TUNE: Calibrate JOIN_THRESHOLD for model2vec cosine distribution" :op :assert}
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/title-l0 :v "THRESHOLD-TUNE" :op :assert}
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/title-l1 :v "THRESHOLD-TUNE: Calibrate JOIN_THRESHOLD for model2vec cosine distribution" :op :assert}
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/traces-to :v #blake3 "45b85de4514686af9efb5cc73b8e450ef724e070ec05dc650bdcaab41a3f396b" :op :assert}
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/type :v :task.type/task :op :assert}
+ ]}

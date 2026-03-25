@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774421483/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC-EMBED: Formal spec elements for embedding subsystem"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3e6083bf68ec21e34fecdb2951a8ab8c0f23dbdb511de8e9bd30a727f07f550b" :a :db/ident :v :task/t-3f9dbdb1 :op :assert}
+   {:e #blake3 "3e6083bf68ec21e34fecdb2951a8ab8c0f23dbdb511de8e9bd30a727f07f550b" :a :task/created-at :v 1774421482 :op :assert}
+   {:e #blake3 "3e6083bf68ec21e34fecdb2951a8ab8c0f23dbdb511de8e9bd30a727f07f550b" :a :task/description :v "CONTEXT: The embedding module has 3 informal invariants in doc comments (INV-EMBEDDING-001..003) but no formal spec elements in spec/. The critical vector space consistency invariant discovered during DOGFOOD-3 has no spec element at all. RATIONALE: Every implementation artifact must trace to a spec element (C5). Embedding model management and embedder consistency are load-bearing architectural decisions that need formal specification before implementation. APPROACH: Add to spec/01-store.md or a new spec/embedding.md: (1) INV-EMBEDDING-004: Vector Space Consistency — all embedding datoms in a store MUST be produced by the same embedder type. Falsification: any store containing embedding datoms from both HashEmbedder and Embedder without a re-embedding migration. (2) ADR-EMBEDDING-001: Model Management — model files at ~/.braid/models/, explicit download, no auto-download, CLI-layer IO only (C8). Alternatives rejected: auto-download (network dependency at runtime), bundled model (binary bloat), cloud inference (latency + cost). (3) ADR-EMBEDDING-002: Embedder Selection — prefer model2vec when available, hash fallback, re-embed on type change. Alternatives rejected: always hash (insufficient semantic quality), always require model (breaks zero-dependency init). ACCEPTANCE: (A) Three new spec elements with IDs, types, traceability, falsification conditions. (B) Elements referenced by all downstream tasks. (C) No contradiction with existing spec. FILE: spec/01-store.md or spec/embedding.md. DEPENDS-ON: nothing (prerequisite for all others)." :op :assert}
+   {:e #blake3 "3e6083bf68ec21e34fecdb2951a8ab8c0f23dbdb511de8e9bd30a727f07f550b" :a :task/id :v "t-3f9dbdb1" :op :assert}
+   {:e #blake3 "3e6083bf68ec21e34fecdb2951a8ab8c0f23dbdb511de8e9bd30a727f07f550b" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "3e6083bf68ec21e34fecdb2951a8ab8c0f23dbdb511de8e9bd30a727f07f550b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3e6083bf68ec21e34fecdb2951a8ab8c0f23dbdb511de8e9bd30a727f07f550b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3e6083bf68ec21e34fecdb2951a8ab8c0f23dbdb511de8e9bd30a727f07f550b" :a :task/title :v "SPEC-EMBED: Formal spec elements for embedding subsystem" :op :assert}
+   {:e #blake3 "3e6083bf68ec21e34fecdb2951a8ab8c0f23dbdb511de8e9bd30a727f07f550b" :a :task/title-l0 :v "SPEC-EMBED" :op :assert}
+   {:e #blake3 "3e6083bf68ec21e34fecdb2951a8ab8c0f23dbdb511de8e9bd30a727f07f550b" :a :task/title-l1 :v "SPEC-EMBED: Formal spec elements for embedding subsystem" :op :assert}
+   {:e #blake3 "3e6083bf68ec21e34fecdb2951a8ab8c0f23dbdb511de8e9bd30a727f07f550b" :a :task/traces-to :v #blake3 "32f8bc2c2dd810119edd7aeb240621f4c1afb3bde2eafbb1f7fe814122bb4b35" :op :assert}
+   {:e #blake3 "3e6083bf68ec21e34fecdb2951a8ab8c0f23dbdb511de8e9bd30a727f07f550b" :a :task/type :v :task.type/task :op :assert}
+ ]}

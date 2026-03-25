@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774421633/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: MODEL-WIRE-TEST: Tests for embedder threading and concept assignment with model2vec"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :db/ident :v :task/t-62fcc504 :op :assert}
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/created-at :v 1774421632 :op :assert}
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/description :v "UNIT TESTS (crates/braid/src/embedder.rs): (1) test_resolve_embedder_no_model — returns HashEmbedder when model files absent. (2) test_resolve_embedder_with_model — returns Embedder when model files present (requires model fixture). (3) test_embedder_deterministic — same text produces same vector (INV-EMBEDDING-001). (4) test_embedder_normalized — non-empty output has L2 norm ~ 1.0 (INV-EMBEDDING-002). INTEGRATION TESTS (requires model download as test fixture): (5) test_observe_uses_model_embedder — observation embedding has different values from HashEmbedder output. (6) test_concept_assignment_fires_with_model — observation about 'ignored error returns' matches innate anomalies concept with model embedder (cosine > threshold). This is THE critical test — if it fails, model2vec doesn't solve the problem. (7) test_concept_assignment_correct — 5 observations each matching a different innate concept. Verify >= 4/5 correct matches. (8) test_surprise_value_realistic — surprise for a confirming observation (second about same topic) is < 0.2; surprise for a boundary observation (related but different topic) is > 0.2. PROPTEST: (9) For any text with > 3 words, model embedder and hash embedder produce vectors with the same dimension (DEFAULT_DIM=256). E2E (scripts/e2e_semantic_embeddings.sh): (10) Fresh init with model → observe 5 anomaly-type findings → braid status shows concept assignment. (11) Observe response contains 'concept:anomalies' or similar. (12) Surprise values appear in responses. (13) Steering questions reference concept names. FAILURE DIAGNOSTICS: Each test logs both hash and model embeddings (first 5 dims), cosine similarities, concept assignment decisions, and threshold comparisons. DEPENDS-ON: MODEL-WIRE, MODEL-LOAD-TEST." :op :assert}
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/id :v "t-62fcc504" :op :assert}
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/title :v "MODEL-WIRE-TEST: Tests for embedder threading and concept assignment with model2vec" :op :assert}
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/title-l0 :v "MODEL-WIRE-TEST" :op :assert}
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/title-l1 :v "MODEL-WIRE-TEST: Tests for embedder threading and concept assignment with mod..." :op :assert}
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/traces-to :v #blake3 "32f8bc2c2dd810119edd7aeb240621f4c1afb3bde2eafbb1f7fe814122bb4b35" :op :assert}
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/type :v :task.type/task :op :assert}
+ ]}

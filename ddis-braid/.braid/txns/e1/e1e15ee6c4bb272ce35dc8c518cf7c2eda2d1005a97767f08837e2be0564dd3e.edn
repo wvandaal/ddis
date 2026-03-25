@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774421600/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: GATE-RERUN-4: DOGFOOD-4 with semantic embeddings — empirical CCE validation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :db/ident :v :task/t-db1d0622 :op :assert}
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/created-at :v 1774421599 :op :assert}
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/description :v "CONTEXT: CCE-GATE (DOGFOOD-3) scored 5.3/10 with hash embedder. The hash embedder bottleneck produced 0 concept assignments, 0 concept-mediated connections, 0 surprise-scaled responses. The entire CCE feature surface was untested in real-world conditions. RATIONALE: The CCE hypothesis — that semantic embeddings enable concept-mediated organizational learning — remains untested. This is the empirical validation. Same protocol as DOGFOOD-3 provides a controlled comparison isolating the embedder variable. APPROACH: (1) Same protocol: fresh braid init on Go CLI (62,490 LOC), 3 parallel agents (Architecture Explorer, Code Review Analyst, Spec Auditor), same prompts (scripts/dogfood_agent_{a,b,c}_prompt.md), 10 observations each. (2) Same scoring rubric: Overall, Connection Quality, Discovery, Orientation, Responsiveness, Persistence — each 1-10. (3) ADDITIONAL MEASUREMENTS: (G) Count concept assignments (target: >= 20/30). (H) Count concept-mediated connections (target: >= 5). (I) Count surprise-scaled responses (target: >= 10 with surprise > 0.1). (J) Concept names formed — are they domain-relevant? (K) Steering questions — specific or templated? (4) GO/NO-GO: Overall >= 7/10 → CCE validated, proceed to Phase B. 5-6/10 → partial, identify which layers failed. < 5/10 → hypothesis falsified. PREDICTED SCORES: Overall 7-8, Connection 7, Discovery 7, Orientation 7, Responsiveness 7, Persistence 7. DEPENDS-ON: MODEL-LOAD, MODEL-WIRE, EMBED-CONSISTENCY, THRESHOLD-TUNE, INNATE-QUALITY. FILE: scripts/ (dogfood execution), docs/ (scoring report)." :op :assert}
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/id :v "t-db1d0622" :op :assert}
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/title :v "GATE-RERUN-4: DOGFOOD-4 with semantic embeddings — empirical CCE validation" :op :assert}
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/title-l0 :v "GATE-RERUN-4" :op :assert}
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/title-l1 :v "GATE-RERUN-4: DOGFOOD-4 with semantic embeddings — empirical CCE validation" :op :assert}
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/traces-to :v #blake3 "44b01037f650e23ce40cea6697d5ab1639fb17d9b54b418bf8ddf9fe26ee2057" :op :assert}
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/type :v :task.type/task :op :assert}
+ ]}

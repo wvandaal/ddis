@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774421546/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EMBED-CONSISTENCY: Re-embed innate concepts on embedder type change"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :db/ident :v :task/t-40843017 :op :assert}
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/created-at :v 1774421545 :op :assert}
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/description :v "CONTEXT: innate_concept_datoms() always uses HashEmbedder (concept.rs line 478). If CLI observe uses model2vec Embedder, innate concept embeddings (hash vector space) and observation embeddings (model vector space) produce meaningless cosine similarity. This is WORSE than all-hash because it generates false negatives (zero matches) from cross-space comparison. RATIONALE: INV-EMBEDDING-004 (Vector Space Consistency) requires all embedding datoms use the same embedder type. A transparent migration on first mismatch-detect resolves this without user action. APPROACH: (1) Add :concept/embedder-type (Keyword, One) to schema. Values: :embedder/hash, :embedder/model2vec. Set during innate_concept_datoms() and during observe embedding writes. (2) On observe: before concept assignment, check if any concept embedding has a different :concept/embedder-type than the current embedder. If mismatch detected, re-embed ALL concept centroids with the current embedder. Write updated :concept/embedding datoms + update :concept/embedder-type. (3) Re-embedding is idempotent: if types already match, no-op. (4) Log the migration: 're-embedded 5 innate concepts: hash -> model2vec'. (5) The re-embedding changes centroid values but not concept identity, membership, or names. ACCEPTANCE: (A) After re-embedding, cosine(innate_concept, real_observation) produces meaningful values. (B) Re-embedding is idempotent (running twice produces identical store). (C) Hash-only stores (no model) work without degradation. (D) Mixed stores (some hash, some model) are migrated transparently. DEPENDS-ON: MODEL-WIRE. FILE: crates/braid-kernel/src/concept.rs (re-embed logic), crates/braid-kernel/src/schema.rs (:concept/embedder-type), crates/braid/src/commands/observe.rs (migration trigger)." :op :assert}
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/id :v "t-40843017" :op :assert}
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/title :v "EMBED-CONSISTENCY: Re-embed innate concepts on embedder type change" :op :assert}
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/title-l0 :v "EMBED-CONSISTENCY" :op :assert}
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/title-l1 :v "EMBED-CONSISTENCY: Re-embed innate concepts on embedder type change" :op :assert}
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/traces-to :v #blake3 "32f8bc2c2dd810119edd7aeb240621f4c1afb3bde2eafbb1f7fe814122bb4b35" :op :assert}
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774421615/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: MODEL-LOAD-TEST: Tests for model download and discovery"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :db/ident :v :task/t-09716b50 :op :assert}
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/created-at :v 1774421614 :op :assert}
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/description :v "UNIT TESTS (crates/braid/src/commands/model.rs): (1) test_model_discovery_project_local — .braid/models/potion-base-8M/ found before ~/.braid/models/. (2) test_model_discovery_global_fallback — ~/.braid/models/ found when project-local absent. (3) test_model_discovery_none — returns None when no model files exist. (4) test_model_status_no_model — reports HashEmbedder active, model not found. (5) test_model_status_with_model — reports Embedder active, model path and size. E2E (scripts/e2e_model_management.sh): (6) Fresh init → 'braid model status' shows hash embedder. (7) After model download → 'braid model status' shows model2vec. (8) Model files exist at expected paths. (9) 'braid observe' after model download uses semantic embeddings (cosine between related observations > 0.3). (10) Remove model files → 'braid observe' falls back to hash embedder without error. FAILURE DIAGNOSTICS: Each test logs embedder type, model path checked, file sizes, and cosine values for comparison. DEPENDS-ON: MODEL-LOAD." :op :assert}
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/id :v "t-09716b50" :op :assert}
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/title :v "MODEL-LOAD-TEST: Tests for model download and discovery" :op :assert}
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/title-l0 :v "MODEL-LOAD-TEST" :op :assert}
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/title-l1 :v "MODEL-LOAD-TEST: Tests for model download and discovery" :op :assert}
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/traces-to :v #blake3 "e9e052cfbf85e1beb34a7bc3f1810b0631e66d42739db7dac011c53de1d20768" :op :assert}
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/type :v :task.type/task :op :assert}
+ ]}

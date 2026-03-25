@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774421648/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EMBED-CONSISTENCY-TEST: Tests for cross-space migration and embedder type tracking"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :db/ident :v :task/t-93150b12 :op :assert}
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/created-at :v 1774421647 :op :assert}
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/description :v "UNIT TESTS (crates/braid-kernel/src/concept.rs): (1) test_embedder_type_recorded — after innate_concept_datoms(), each concept has :concept/embedder-type = :embedder/hash. (2) test_embedder_type_mismatch_detected — store with hash concepts + model embedder triggers re-embedding. (3) test_re_embed_idempotent — running re-embed twice produces identical store. (4) test_re_embed_preserves_identity — concept entity IDs, names, member counts unchanged after re-embedding. Only :concept/embedding and :concept/embedder-type change. (5) test_no_reembed_when_types_match — store with model concepts + model embedder does no re-embedding (no new datoms). (6) test_hash_only_store_unaffected — store without model, using hash embedder, never triggers re-embedding. INTEGRATION TESTS (requires model fixture): (7) test_end_to_end_migration — init with hash embedder → create innate concepts → switch to model embedder → first observe triggers re-embedding → subsequent observe does not re-embed → concept assignments use model cosine. (8) test_cosine_after_migration — after migration, cosine(innate_anomalies, 'ignored error returns') is meaningful (> 0.2). Before migration, it was near zero. FAILURE DIAGNOSTICS: Log embedder types, concept embeddings (first 5 dims) before and after re-embedding, cosine values pre/post migration. DEPENDS-ON: EMBED-CONSISTENCY." :op :assert}
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/id :v "t-93150b12" :op :assert}
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/title :v "EMBED-CONSISTENCY-TEST: Tests for cross-space migration and embedder type tracking" :op :assert}
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/title-l0 :v "EMBED-CONSISTENCY-TEST" :op :assert}
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/title-l1 :v "EMBED-CONSISTENCY-TEST: Tests for cross-space migration and embedder type tra..." :op :assert}
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/traces-to :v #blake3 "32f8bc2c2dd810119edd7aeb240621f4c1afb3bde2eafbb1f7fe814122bb4b35" :op :assert}
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/type :v :task.type/task :op :assert}
+ ]}

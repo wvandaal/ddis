@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774421500/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: MODEL-LOAD: Model download command and file management"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :db/ident :v :task/t-1ea761a8 :op :assert}
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/created-at :v 1774421499 :op :assert}
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/description :v "CONTEXT: The potion-base-8M model (30.2MB safetensors + 684KB tokenizer.json) must be downloadable and discoverable by the CLI. No model files exist in any default location. RATIONALE: C8 requires the kernel to be IO-free. Model loading is CLI-layer responsibility. An explicit download command (not auto-download) respects user agency and avoids surprise network access. APPROACH: (1) Add 'braid model download [--model potion-base-8M]' CLI command. Downloads from HuggingFace (minishlab/potion-base-8M) to ~/.braid/models/potion-base-8M/model.safetensors and tokenizer.json. (2) Model discovery order: .braid/models/ (project-local) then ~/.braid/models/ (global). First found wins. (3) 'braid model status' shows which model is available, its size, and which embedder will be used. (4) Model files are .gitignored (30MB binary). (5) Use reqwest or ureq for HTTP download with progress indication. (6) Verify download integrity: check file sizes are reasonable (safetensors > 1MB, tokenizer > 1KB). ACCEPTANCE: (A) 'braid model download' creates files at expected path. (B) 'braid model status' reports model availability correctly. (C) Download is resumable or at least idempotent (re-download overwrites). (D) No network access at any other CLI command. (E) Works behind corporate proxy (respects HTTPS_PROXY). DEPENDS-ON: SPEC-EMBED. FILE: crates/braid/src/commands/model.rs (new), crates/braid/src/main.rs (add subcommand)." :op :assert}
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/id :v "t-1ea761a8" :op :assert}
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/title :v "MODEL-LOAD: Model download command and file management" :op :assert}
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/title-l0 :v "MODEL-LOAD" :op :assert}
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/title-l1 :v "MODEL-LOAD: Model download command and file management" :op :assert}
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/traces-to :v #blake3 "45b85de4514686af9efb5cc73b8e450ef724e070ec05dc650bdcaab41a3f396b" :op :assert}
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/type :v :task.type/task :op :assert}
+ ]}

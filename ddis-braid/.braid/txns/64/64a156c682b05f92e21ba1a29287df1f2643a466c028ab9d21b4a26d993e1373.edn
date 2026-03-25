@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774421526/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: MODEL-WIRE: Thread embedder through CLI command pipeline"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :db/ident :v :task/t-b15000d6 :op :assert}
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/created-at :v 1774421525 :op :assert}
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/description :v "CONTEXT: observe.rs line 536 hard-codes HashEmbedder. The Embedder (model2vec) exists behind feature gate 'embeddings' but is never constructed by the CLI. All CCE commands (observe, status, harvest) need a shared embedder instance. RATIONALE: This is the critical path fix. Without this, concept assignment never fires on real-world text. The TextEmbedder trait already provides the abstraction — callers use Box<dyn TextEmbedder>. APPROACH: (1) Create EmbedderFactory in crates/braid/src/embedder.rs: fn resolve_embedder(store_path: &Path) -> Box<dyn TextEmbedder>. Checks model discovery paths. If model found and feature 'embeddings' enabled, loads Embedder::from_bytes(). Otherwise returns HashEmbedder. (2) Construct embedder ONCE in CLI entrypoint (main.rs), pass through command dispatch. (3) Update ObserveArgs to accept &dyn TextEmbedder instead of creating HashEmbedder internally. (4) Update status.rs format_concept_status and harvest to use the resolved embedder. (5) Enable 'embeddings' feature by default in crates/braid/Cargo.toml (safetensors + tokenizers are build deps, model files are runtime-optional). (6) Feature gate: when 'embeddings' feature is disabled, EmbedderFactory always returns HashEmbedder (no safetensors/tokenizers deps). ACCEPTANCE: (A) With model present: cosine(innate_anomalies, 'ignored error returns in cascade module') > 0.3. (B) Without model: behavior identical to current (hash embedder, all existing tests pass). (C) Embedder constructed once, not per-command. (D) 'braid model status' shows which embedder is active. DEPENDS-ON: MODEL-LOAD. FILE: crates/braid/src/embedder.rs (new), crates/braid/src/commands/observe.rs, crates/braid/src/main.rs." :op :assert}
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/id :v "t-b15000d6" :op :assert}
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/title :v "MODEL-WIRE: Thread embedder through CLI command pipeline" :op :assert}
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/title-l0 :v "MODEL-WIRE" :op :assert}
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/title-l1 :v "MODEL-WIRE: Thread embedder through CLI command pipeline" :op :assert}
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/traces-to :v #blake3 "32f8bc2c2dd810119edd7aeb240621f4c1afb3bde2eafbb1f7fe814122bb4b35" :op :assert}
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/type :v :task.type/task :op :assert}
+ ]}

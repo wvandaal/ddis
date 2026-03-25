@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774421467/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SEMANTIC-EMBED EPIC: Wire model2vec semantic embeddings into production CCE pipeline"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :db/ident :v :task/t-d23ba87d :op :assert}
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/created-at :v 1774421466 :op :assert}
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/description :v "CONTEXT: CCE-GATE (DOGFOOD-3) scored 5.3/10 with hash embedder. The concept crystallization pipeline (CCE-1 through CCE-5) is architecturally validated (76 tests, 5/5 E2E) but the hash embedder fallback produces zero concept assignments on real-world observations because keyword overlap between natural text and innate concept descriptions is near zero. RATIONALE: The hash embedder was always the graceful degradation fallback (CCE-1 task spec). The primary strategy — model2vec/potion-base-8M (256-dim static embeddings) — preserves semantic similarity as geometric proximity even with zero keyword overlap. This is the single intervention that unblocks concept-mediated steering, surprise-scaled responses, and coverage-driven exploration. ROOT CAUSE: observe.rs line 536 hard-codes HashEmbedder. Embedder::from_bytes() exists behind feature 'embeddings' but CLI never loads model files. DEPENDENCY CHAIN: SPEC-EMBED -> MODEL-LOAD -> MODEL-WIRE -> EMBED-CONSISTENCY -> THRESHOLD-TUNE -> INNATE-QUALITY -> GATE-RERUN-4. TRACES-TO: ADR-FOUNDATION-015 (Observer Formalism), CCE-1 (embedding infrastructure), CCE-GATE (t-1b8420a3)." :op :assert}
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/id :v "t-d23ba87d" :op :assert}
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/title :v "SEMANTIC-EMBED EPIC: Wire model2vec semantic embeddings into production CCE pipeline" :op :assert}
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/title-l0 :v "SEMANTIC-EMBED EPIC" :op :assert}
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/title-l1 :v "SEMANTIC-EMBED EPIC: Wire model2vec semantic embeddings into production CCE p..." :op :assert}
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/traces-to :v #blake3 "45b85de4514686af9efb5cc73b8e450ef724e070ec05dc650bdcaab41a3f396b" :op :assert}
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/type :v :task.type/epic :op :assert}
+ ]}

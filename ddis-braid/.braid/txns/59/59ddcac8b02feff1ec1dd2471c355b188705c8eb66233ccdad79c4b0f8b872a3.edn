@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774421580/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: INNATE-QUALITY: Optimize innate concept descriptions for embedding quality"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :db/ident :v :task/t-3dac54cc :op :assert}
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/created-at :v 1774421579 :op :assert}
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/description :v "CONTEXT: Innate concept descriptions were written for human readability with emdash-separated synonym lists. Model2vec may produce better or worse embeddings from this format compared to natural-language descriptions. RATIONALE: The innate concepts are the initial scaffolding for concept crystallization. If their embeddings don't match realistic observations, the entire CCE pipeline fails at the first step. Description quality is a tunable parameter. APPROACH: (1) After MODEL-WIRE + EMBED-CONSISTENCY, measure cosine similarity between each innate concept embedding and the 30 DOGFOOD-3 observations. Produce a 5x30 heatmap. (2) For each innate concept, check: does it match the observations a human would assign to it? (3) If match quality is poor (< 3 correct matches per concept), revise descriptions. Try natural-language form: 'Unexpected behavior, bugs, errors, and deviations from expected system behavior' instead of 'Deviations from expectations — bugs, inconsistencies, violations, surprises, gaps'. (4) Consider embedding '{name}: {description}' instead of just description for richer signal. (5) Test revised descriptions against the same 30 observations. ACCEPTANCE: (A) Each innate concept matches >= 3 of 30 DOGFOOD observations above threshold. (B) No innate concept matches < 1 observation (dead schema). (C) No observation matches > 2 innate concepts above threshold (ambiguity). (D) Total correct assignments >= 24/30 (80%). DEPENDS-ON: THRESHOLD-TUNE. FILE: crates/braid-kernel/src/concept.rs (INNATE_CONCEPTS descriptions)." :op :assert}
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/id :v "t-3dac54cc" :op :assert}
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/title :v "INNATE-QUALITY: Optimize innate concept descriptions for embedding quality" :op :assert}
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/title-l0 :v "INNATE-QUALITY" :op :assert}
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/title-l1 :v "INNATE-QUALITY: Optimize innate concept descriptions for embedding quality" :op :assert}
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/traces-to :v #blake3 "ae7031515bf946ce4de40322d02bb271972e4a77f8e92e3f03c3cf56de803488" :op :assert}
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/type :v :task.type/task :op :assert}
+ ]}

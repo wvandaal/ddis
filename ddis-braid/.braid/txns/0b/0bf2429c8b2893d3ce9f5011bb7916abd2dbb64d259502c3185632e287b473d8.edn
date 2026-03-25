@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774421833/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1b8420a3"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "68b718f275880eab402389fd304f98f9bd49fbcb77b3016ff37da56097a10d31" :a :task/close-reason :v "Completed: DOGFOOD-3 scored 5.3/10. Hash embedder bottleneck identified. Superseded by GATE-RERUN-4 (t-db1d0622) for DOGFOOD-4 with semantic embeddings." :op :assert}
+   {:e #blake3 "68b718f275880eab402389fd304f98f9bd49fbcb77b3016ff37da56097a10d31" :a :task/closed-at :v 1774421832 :op :assert}
+   {:e #blake3 "68b718f275880eab402389fd304f98f9bd49fbcb77b3016ff37da56097a10d31" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "68b718f275880eab402389fd304f98f9bd49fbcb77b3016ff37da56097a10d31" :a :task/status :v :task.status/closed :op :assert}
+ ]}
