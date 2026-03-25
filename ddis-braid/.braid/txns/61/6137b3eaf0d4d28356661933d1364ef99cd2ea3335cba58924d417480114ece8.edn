@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774461723/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "reflecting on the experience of using braid after the steering loop fixes"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a633cc55ff8394967d73689c3d59642ff765a3061051f53de7117fb177ff0a38" :a :db/doc :v "reflecting on the experience of using braid after the steering loop fixes" :op :assert}
+   {:e #blake3 "a633cc55ff8394967d73689c3d59642ff765a3061051f53de7117fb177ff0a38" :a :db/ident :v :observation/reflecting-on-the-experience-of-using-braid-after-the-steeri :op :assert}
+   {:e #blake3 "a633cc55ff8394967d73689c3d59642ff765a3061051f53de7117fb177ff0a38" :a :exploration/body :v "reflecting on the experience of using braid after the steering loop fixes" :op :assert}
+   {:e #blake3 "a633cc55ff8394967d73689c3d59642ff765a3061051f53de7117fb177ff0a38" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "a633cc55ff8394967d73689c3d59642ff765a3061051f53de7117fb177ff0a38" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "a633cc55ff8394967d73689c3d59642ff765a3061051f53de7117fb177ff0a38" :a :exploration/content-hash :v #bytes "e72fb0bb15228e4474ab54177bc12fc2577e30caba3268814279be64b3fbf2f4" :op :assert}
+   {:e #blake3 "a633cc55ff8394967d73689c3d59642ff765a3061051f53de7117fb177ff0a38" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "a633cc55ff8394967d73689c3d59642ff765a3061051f53de7117fb177ff0a38" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "a633cc55ff8394967d73689c3d59642ff765a3061051f53de7117fb177ff0a38" :a :exploration/source-session :v #blake3 "804813a618344d178d07bebe2c3eef4e155881938e23028dc2844e9823e5ce5d" :op :assert}
+ ]}
