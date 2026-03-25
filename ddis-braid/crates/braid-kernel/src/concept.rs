@@ -963,48 +963,63 @@ fn compute_steering_question(
 /// Generate a human-readable concept name from member texts using TF-IDF.
 ///
 /// Returns the top 3 most distinctive keywords across the member texts.
+/// Stopwords excluded from concept names (STEER-1b).
+/// Function words that carry zero semantic information.
+const CONCEPT_NAME_STOPWORDS: &[&str] = &[
+    "from", "with", "this", "that", "must", "have", "been", "into", "also",
+    "when", "what", "were", "does", "more", "some", "than", "then", "them",
+    "they", "will", "each", "only", "such", "very", "just", "most", "both",
+    "about", "which", "their", "would", "could", "should", "these", "those",
+    "there", "being", "where", "after", "other", "using", "every", "still",
+    "between", "through", "before", "during", "without", "another", "because",
+    "across", "concept", "observed", "observation",
+];
+
 fn generate_concept_name(texts: &[&str]) -> String {
     if texts.is_empty() {
         return "unnamed".to_string();
     }
 
-    // Term frequency across all member texts.
-    let mut tf: HashMap<String, usize> = HashMap::new();
-    // Document frequency: how many texts contain each term.
+    // Document frequency: how many member texts contain each word.
+    // Majority-keyword: rank by DF (characterization > distinction).
     let mut df: HashMap<String, usize> = HashMap::new();
     let n_docs = texts.len();
 
     for text in texts {
         let words = crate::connections::tokenize(text);
-        for word in &words {
-            *tf.entry(word.clone()).or_insert(0) += 1;
-        }
-        // DF: count each word once per document.
-        let unique: HashSet<&String> = words.iter().collect();
+        let unique: HashSet<String> = words.into_iter().collect();
         for word in unique {
-            *df.entry(word.clone()).or_insert(0) += 1;
+            // Filter: skip stopwords and short words.
+            if word.len() < 4 || CONCEPT_NAME_STOPWORDS.contains(&word.as_str()) {
+                continue;
+            }
+            *df.entry(word).or_insert(0) += 1;
         }
     }
 
-    // Compute TF-IDF scores.
-    let mut scores: Vec<(String, f64)> = tf
+    // Rank by document frequency descending (words in the most member texts).
+    let mut ranked: Vec<(String, usize)> = df.into_iter().collect();
+    ranked.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+
+    // Take top 2 words appearing in >50% of members.
+    let majority_threshold = (n_docs + 1) / 2; // ceil(n/2)
+    let majority: Vec<&str> = ranked
         .iter()
-        .map(|(word, &count)| {
-            let doc_freq = df.get(word).copied().unwrap_or(1) as f64;
-            let idf = ((n_docs as f64 + 1.0) / (doc_freq + 1.0)).ln() + 1.0;
-            (word.clone(), count as f64 * idf)
-        })
+        .filter(|(_, count)| *count >= majority_threshold)
+        .take(2)
+        .map(|(w, _)| w.as_str())
         .collect();
 
-    scores.sort_by(|a, b| b.1.total_cmp(&a.1));
-
-    // Take top 3 keywords, join with hyphens.
-    let top: Vec<&str> = scores.iter().take(3).map(|(w, _)| w.as_str()).collect();
-    if top.is_empty() {
-        "unnamed".to_string()
-    } else {
-        top.join("-")
+    if !majority.is_empty() {
+        return majority.join("-");
     }
+
+    // Fallback: take the single highest-DF word regardless of threshold.
+    if let Some((word, _)) = ranked.first() {
+        return word.clone();
+    }
+
+    "unnamed".to_string()
 }
 
 // ===================================================================

@@ -611,10 +611,10 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     let store = live.store();
 
     let obs_embedding = embedder.embed(args.text);
-    // THRESHOLD-TUNE: Read threshold from policy manifest, default to JOIN_THRESHOLD.
+    // STEER-2: Embedder-aware threshold. Policy config overrides embedder default.
     let join_threshold: f32 = braid_kernel::config::get_config(store, "concept.join-threshold")
         .and_then(|v| v.parse().ok())
-        .unwrap_or(braid_kernel::concept::JOIN_THRESHOLD);
+        .unwrap_or_else(|| embedder.join_threshold());
     let concept_assignment = braid_kernel::concept::assign_to_concept(
         store,
         &obs_embedding,
@@ -784,6 +784,16 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     // CCE-5: Concept-aware steering (replaces generic micro-hypothesis).
     if let Some(ref line) = steering.concept_line {
         responsive_parts.push(line.clone());
+    } else {
+        // STEER-3b: Near-miss feedback when concept assignment doesn't fire.
+        if let Some((_, best_sim)) = braid_kernel::concept::find_nearest_concept(store, &obs_embedding) {
+            if best_sim > 0.05 {
+                // Show the near miss — helps agents understand the system.
+                responsive_parts.push(format!(
+                    "near: best concept match cosine={best_sim:.2} (threshold={join_threshold:.2})"
+                ));
+            }
+        }
     }
     if let Some(ref line) = steering.gap_line {
         responsive_parts.push(line.clone());
@@ -941,21 +951,10 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         }
     }
 
-    // META-3: Crystallization feedback context block (INV-GUIDANCE-014)
-    if delta_cryst < -f64::EPSILON {
-        let mut cryst_line = format!("\u{0394}-cryst: {delta_cryst:.1} (unanchored \u{2014} no spec connection)");
-        if let Some(ref nearest) = nearest_spec {
-            cryst_line.push_str(&format!(
-                "\n  nearest: {} (score {:.2}) \u{2014} crystallize? braid spec create {}",
-                nearest.human_id, nearest.score, nearest.human_id
-            ));
-        }
-        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
-            braid_kernel::budget::OutputPrecedence::Methodology,
-            cryst_line,
-            15,
-        ));
-    } else if delta_cryst > f64::EPSILON {
+    // META-3: Crystallization feedback — only show when POSITIVE (anchored to spec).
+    // STEER-3b: Suppress Δ-cryst for non-spec observations (the common case).
+    // Negative cryst scores appear on every non-spec observation and are never actionable.
+    if delta_cryst > f64::EPSILON {
         // Find which spec element(s) the observation is anchored to
         let refs = braid_kernel::task::parse_spec_refs(args.text);
         let ref_str = if refs.is_empty() {
@@ -973,7 +972,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     let projection = braid_kernel::ActionProjection {
         action,
         context: context_blocks,
-        evidence_pointer: format!("details: braid query --entity {ident}"),
+        evidence_pointer: String::new(), // STEER-3b: removed noise line
     };
 
     // Human output uses ACP full projection
@@ -1652,10 +1651,11 @@ mod tests {
         };
 
         let result = run(args).unwrap();
-        // Human output should show Δ-cryst for unanchored observations
+        // STEER-3b: Unanchored observations no longer show Δ-cryst (noise reduction).
+        // Verify the output does NOT contain Δ-cryst for non-spec observations.
         assert!(
-            result.human.contains("\u{0394}-cryst") || result.human.contains("Δ-cryst"),
-            "human output should show delta-cryst line, got: {}",
+            !result.human.contains("\u{0394}-cryst"),
+            "unanchored observation should NOT show delta-cryst (STEER-3b), got: {}",
             result.human
         );
     }

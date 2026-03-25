@@ -57,6 +57,16 @@ pub trait TextEmbedder: Send + Sync {
 
     /// The dimensionality of output vectors.
     fn dim(&self) -> usize;
+
+    /// Recommended cosine similarity threshold for concept assignment (STEER-2).
+    ///
+    /// The threshold is a property of the metric space (embedder), not the domain.
+    /// Model2vec produces dense cosine distributions [0.15-0.40]; hash embedder
+    /// produces sparse distributions [0.0, 0.6-1.0]. Default is 0.65 (hash-calibrated).
+    /// Policy config `concept.join-threshold` can override this at runtime.
+    fn join_threshold(&self) -> f32 {
+        0.65
+    }
 }
 
 // ===================================================================
@@ -210,6 +220,12 @@ impl TextEmbedder for Embedder {
 
     fn dim(&self) -> usize {
         self.dim
+    }
+
+    /// Model2vec cosine distribution is dense [0.15-0.40].
+    /// Empirically calibrated from potion-base-8M on DOGFOOD-3 observations.
+    fn join_threshold(&self) -> f32 {
+        0.20
     }
 }
 

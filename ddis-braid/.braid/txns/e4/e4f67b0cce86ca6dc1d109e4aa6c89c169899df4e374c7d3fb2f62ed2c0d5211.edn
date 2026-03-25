@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774460677/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-13af7f39"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "57cf44a73111bf5391d8732a803cd3aafc1423298428d5a36c018294f08549a0" :a :task/close-reason :v "Implemented: TextEmbedder::join_threshold() default method returns 0.65 (hash). Embedder overrides to 0.20 (model2vec). observe.rs reads from embedder.join_threshold() with policy config override. System auto-adapts threshold to embedder type. 302 CLI tests pass." :op :assert}
+   {:e #blake3 "57cf44a73111bf5391d8732a803cd3aafc1423298428d5a36c018294f08549a0" :a :task/closed-at :v 1774460675 :op :assert}
+   {:e #blake3 "57cf44a73111bf5391d8732a803cd3aafc1423298428d5a36c018294f08549a0" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "57cf44a73111bf5391d8732a803cd3aafc1423298428d5a36c018294f08549a0" :a :task/status :v :task.status/closed :op :assert}
+ ]}

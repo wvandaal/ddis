@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774460674/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ee9ed3da"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/close-reason :v "Implemented: generate_concept_name replaced with majority-keyword + stopword filter. CONCEPT_NAME_STOPWORDS const with 40+ function words. Ranks by document frequency (characterization > distinction). Takes top 2 words with DF > 50%. Innate concepts now display as 'dependencies', 'patterns', etc. 60 concept tests pass." :op :assert}
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/closed-at :v 1774460673 :op :assert}
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/status :v :task.status/closed :op :assert}
+ ]}

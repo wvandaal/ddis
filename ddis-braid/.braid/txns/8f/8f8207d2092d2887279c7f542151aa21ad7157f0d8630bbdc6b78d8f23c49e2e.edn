@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774460680/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a9ba17df"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/close-reason :v "Implemented: (1) Δ-cryst line suppressed for non-spec observations (was noise on every observe). (2) details: line removed from default output. (3) Near-miss feedback: 'near: best concept match cosine=0.20 (threshold=0.20)' shown when assignment doesn't fire. Test updated: crystallization_human_output_shows_delta now verifies absence of Δ-cryst for unanchored. 302 CLI tests pass." :op :assert}
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/closed-at :v 1774460678 :op :assert}
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/status :v :task.status/closed :op :assert}
+ ]}
