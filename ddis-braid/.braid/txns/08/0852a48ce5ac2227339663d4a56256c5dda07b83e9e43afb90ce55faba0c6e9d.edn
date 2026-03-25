@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774458497/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SEED-CONCEPTS: Include concept inventory in braid seed output for cross-session concept continuity"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2d453d3fbe489cf54449dfb37fe7f16e33c2970d2935c93013f4ca1a9559b363" :a :db/ident :v :task/t-1a6acae8 :op :assert}
+   {:e #blake3 "2d453d3fbe489cf54449dfb37fe7f16e33c2970d2935c93013f4ca1a9559b363" :a :task/created-at :v 1774458496 :op :assert}
+   {:e #blake3 "2d453d3fbe489cf54449dfb37fe7f16e33c2970d2935c93013f4ca1a9559b363" :a :task/description :v "CONTEXT: The <braid-seed> section injected into AGENTS.md contains R(t) routing, methodology gaps, and ceremony protocol. It does NOT contain the concept graph. A new session starts without knowing what concepts exist, their member counts, or the exploration frontier. The CCE's accumulated knowledge doesn't survive session boundaries. APPROACH: In seed.rs, after the existing sections (methodology, next actions, active intentions), add a 'Concept Inventory' section: 'concepts: error-handling (8 obs), event-sourcing (5 obs), architecture (4 obs). frontier: cascade, projector, drift (adjacent to explored packages). coverage: 12/38 packages explored.' This reuses format_concept_status from concept.rs. Budget: ~100 tokens for the concept section (well within the 2000-token seed budget). ACCEPTANCE: (A) braid seed output includes concept names and member counts. (B) braid seed --inject AGENTS.md produces <braid-seed> section with concept inventory. (C) A new session reading the seed can identify existing concepts without running braid status. DEPENDS-ON: STEER-1b (concepts must have good names before transmitting them in seeds). FILE: crates/braid/src/commands/seed.rs" :op :assert}
+   {:e #blake3 "2d453d3fbe489cf54449dfb37fe7f16e33c2970d2935c93013f4ca1a9559b363" :a :task/id :v "t-1a6acae8" :op :assert}
+   {:e #blake3 "2d453d3fbe489cf54449dfb37fe7f16e33c2970d2935c93013f4ca1a9559b363" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2d453d3fbe489cf54449dfb37fe7f16e33c2970d2935c93013f4ca1a9559b363" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2d453d3fbe489cf54449dfb37fe7f16e33c2970d2935c93013f4ca1a9559b363" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2d453d3fbe489cf54449dfb37fe7f16e33c2970d2935c93013f4ca1a9559b363" :a :task/title :v "SEED-CONCEPTS: Include concept inventory in braid seed output for cross-session concept continuity" :op :assert}
+   {:e #blake3 "2d453d3fbe489cf54449dfb37fe7f16e33c2970d2935c93013f4ca1a9559b363" :a :task/title-l0 :v "SEED-CONCEPTS" :op :assert}
+   {:e #blake3 "2d453d3fbe489cf54449dfb37fe7f16e33c2970d2935c93013f4ca1a9559b363" :a :task/title-l1 :v "SEED-CONCEPTS: Include concept inventory in braid seed output for cross-sessi..." :op :assert}
+   {:e #blake3 "2d453d3fbe489cf54449dfb37fe7f16e33c2970d2935c93013f4ca1a9559b363" :a :task/traces-to :v #blake3 "734c583c5188eada41b3a44119dd9a524a63f6960ad6f78ae34fe0a1b741aa1a" :op :assert}
+   {:e #blake3 "2d453d3fbe489cf54449dfb37fe7f16e33c2970d2935c93013f4ca1a9559b363" :a :task/type :v :task.type/task :op :assert}
+ ]}
