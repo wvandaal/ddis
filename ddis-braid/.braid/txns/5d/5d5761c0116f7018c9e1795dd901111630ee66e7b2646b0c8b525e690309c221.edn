@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774464286/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-fc386e70"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bfa6eb6ea911897187d03e641416018d557c8d182ded8938228a8e9bc6753173" :a :task/close-reason :v "SUPERSEDED by CONCEPT-MULTI: Hierarchical splitting is a special case of multi-membership. The richer solution is multi-assignment where observations belong to ALL concepts above threshold, with emergent topology from co-occurrence. Hierarchy falls out as a special case (subset member sets)." :op :assert}
+   {:e #blake3 "bfa6eb6ea911897187d03e641416018d557c8d182ded8938228a8e9bc6753173" :a :task/closed-at :v 1774464285 :op :assert}
+   {:e #blake3 "bfa6eb6ea911897187d03e641416018d557c8d182ded8938228a8e9bc6753173" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "bfa6eb6ea911897187d03e641416018d557c8d182ded8938228a8e9bc6753173" :a :task/status :v :task.status/closed :op :assert}
+ ]}
