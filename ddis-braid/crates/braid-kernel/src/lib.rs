@@ -102,12 +102,12 @@ pub use compiler::{
     TestProperty,
 };
 pub use concept::{
-    assign_to_concept, concept_inventory, concept_to_datoms, crystallize_concepts,
-    entity_auto_link, find_nearest_concept, innate_concept_datoms, is_innate, membership_datoms,
-    mention_datoms, should_merge, should_split, surprise_weight, update_centroid,
-    update_centroid_weighted, ConceptAssignment, ConceptSummary, EntityMatch, NewConcept,
-    DEFAULT_ALPHA, INNATE_CONCEPTS, JOIN_THRESHOLD, MERGE_THRESHOLD, MIN_CLUSTER_SIZE,
-    SPLIT_THRESHOLD,
+    assign_to_concept, compute_observe_steering, concept_inventory, concept_to_datoms,
+    crystallize_concepts, entity_auto_link, find_nearest_concept, format_concept_status,
+    innate_concept_datoms, is_innate, membership_datoms, mention_datoms, should_merge,
+    should_split, surprise_weight, update_centroid, update_centroid_weighted, ConceptAssignment,
+    ConceptSummary, EntityMatch, NewConcept, ObserveSteering, DEFAULT_ALPHA, INNATE_CONCEPTS,
+    JOIN_THRESHOLD, MERGE_THRESHOLD, MIN_CLUSTER_SIZE, SPLIT_THRESHOLD,
 };
 pub use config::{
     all_config, defaults as config_defaults, get_config, get_config_or, set_config_datoms,

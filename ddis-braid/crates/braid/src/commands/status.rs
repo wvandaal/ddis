@@ -700,6 +700,16 @@ pub fn build_status_projection(
         ));
     }
 
+    // 3b. CCE-5: Concept inventory
+    let concept_lines = braid_kernel::concept::format_concept_status(store);
+    if !concept_lines.is_empty() {
+        context.push(ContextBlock::new_scored(
+            OutputPrecedence::Methodology,
+            concept_lines.join("\n"),
+            11,
+        ));
+    }
+
     // 4. Task summary (UserRequested) — use snapshot
     let (open, in_progress, closed) = snapshot.task_counts;
     let total_open = open + in_progress;

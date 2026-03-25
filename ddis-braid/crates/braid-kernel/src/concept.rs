@@ -638,6 +638,239 @@ fn word_boundary_match(haystack: &str, needle: &str) -> bool {
 }
 
 // ===================================================================
+// Steering Responses (CCE-5)
+// ===================================================================
+
+/// Steering information produced after an observation.
+#[derive(Debug, Clone)]
+pub struct ObserveSteering {
+    /// Concept membership line (e.g., "concept:event-processing (3 members, surprise=0.15)").
+    pub concept_line: Option<String>,
+    /// Structural gap line (e.g., "spans events/, materialize/ — unexplored: cascade/").
+    pub gap_line: Option<String>,
+    /// Steering question (e.g., "what connects event-processing to error-handling?").
+    pub question: Option<String>,
+}
+
+/// Compute steering information after concept assignment and entity linking.
+///
+/// This produces the three lines of the observe response:
+/// 1. Concept membership (which concept, how many members, surprise level).
+/// 2. Structural gap (which entities the concept spans, what's unexplored).
+/// 3. Steering question (what to investigate next).
+pub fn compute_observe_steering(
+    store: &Store,
+    assignment: &ConceptAssignment,
+    entity_matches: &[EntityMatch],
+) -> ObserveSteering {
+    // Line 1: Concept membership.
+    let concept_line = match assignment {
+        ConceptAssignment::Joined {
+            concept,
+            similarity: _,
+            surprise,
+        } => {
+            let name = concept_name_from_entity(store, *concept);
+            let count = concept_member_count(store, *concept);
+            if *surprise < 0.1 {
+                Some(format!("concept:{name} ({count} members, confirms)"))
+            } else if *surprise < 0.3 {
+                Some(format!(
+                    "concept:{name} ({count} members, surprise={surprise:.2})"
+                ))
+            } else {
+                Some(format!(
+                    "concept:{name} ({count} members, surprise={surprise:.2} — at boundary)"
+                ))
+            }
+        }
+        ConceptAssignment::Uncategorized => None,
+    };
+
+    // Line 2: Structural gap from entity matches.
+    let gap_line = if entity_matches.len() >= 2 {
+        let mentioned: Vec<&str> = entity_matches
+            .iter()
+            .map(|m| m.match_name.as_str())
+            .collect();
+        Some(format!("linked: {}", mentioned.join(", ")))
+    } else if entity_matches.len() == 1 {
+        Some(format!("linked: {}", entity_matches[0].match_name))
+    } else {
+        None
+    };
+
+    // Line 3: Steering question.
+    let question = compute_steering_question(store, assignment, entity_matches);
+
+    ObserveSteering {
+        concept_line,
+        gap_line,
+        question,
+    }
+}
+
+/// Format concept inventory for status display.
+///
+/// Returns lines like:
+/// - "concepts: event-processing (5 obs), error-handling (3 obs, cross-cutting)"
+/// - "coverage: 12/38 packages explored"
+/// - "frontier: cascade, projector (imported by explored packages)"
+pub fn format_concept_status(store: &Store) -> Vec<String> {
+    let inventory = concept_inventory(store);
+    if inventory.is_empty() {
+        return Vec::new();
+    }
+
+    let mut lines = Vec::new();
+
+    // Count total observations.
+    let obs_count = count_observations(store);
+
+    // Check for innate schema fade: after 10+ observations with 3+ emergent concepts,
+    // hide innate schemas from the display.
+    let emergent_count = inventory
+        .iter()
+        .filter(|c| !is_innate(store, c.entity))
+        .count();
+    let should_fade_innate = obs_count >= 10 && emergent_count >= 3;
+
+    let display_concepts: Vec<&ConceptSummary> = if should_fade_innate {
+        inventory
+            .iter()
+            .filter(|c| !is_innate(store, c.entity))
+            .collect()
+    } else {
+        inventory.iter().collect()
+    };
+
+    if !display_concepts.is_empty() {
+        let concept_strs: Vec<String> = display_concepts
+            .iter()
+            .take(5)
+            .map(|c| format!("{} ({} obs)", c.name, c.member_count))
+            .collect();
+        lines.push(format!("concepts: {}", concept_strs.join(", ")));
+    }
+
+    // Coverage: count packages with observations.
+    let mentioned_entities = count_mentioned_entities(store);
+    let total_packages = count_packages(store);
+    if total_packages > 0 {
+        lines.push(format!(
+            "coverage: {}/{} packages explored",
+            mentioned_entities, total_packages
+        ));
+    }
+
+    lines
+}
+
+/// Count observations in the store (entities with :exploration/body).
+fn count_observations(store: &Store) -> usize {
+    let attr = Attribute::from_keyword(":exploration/body");
+    store
+        .datoms()
+        .filter(|d| d.op == Op::Assert && d.attribute == attr)
+        .count()
+}
+
+/// Count distinct entities mentioned by observations.
+fn count_mentioned_entities(store: &Store) -> usize {
+    let attr = Attribute::from_keyword(":exploration/mentions-entity");
+    let mut entities = HashSet::new();
+    for d in store.datoms() {
+        if d.op == Op::Assert && d.attribute == attr {
+            if let Value::Ref(e) = d.value {
+                entities.insert(e);
+            }
+        }
+    }
+    entities.len()
+}
+
+/// Count package entities in the store.
+fn count_packages(store: &Store) -> usize {
+    let ident_attr = Attribute::from_keyword(":db/ident");
+    store
+        .datoms()
+        .filter(|d| {
+            d.op == Op::Assert
+                && d.attribute == ident_attr
+                && matches!(&d.value, Value::Keyword(s) if s.starts_with(":pkg/"))
+        })
+        .count()
+}
+
+/// Get concept name from entity.
+fn concept_name_from_entity(store: &Store, entity: EntityId) -> String {
+    let attr = Attribute::from_keyword(":concept/name");
+    for d in store.datoms() {
+        if d.entity == entity && d.attribute == attr && d.op == Op::Assert {
+            if let Value::String(ref s) = d.value {
+                return s.clone();
+            }
+        }
+    }
+    "unnamed".to_string()
+}
+
+/// Get concept member count from entity.
+fn concept_member_count(store: &Store, entity: EntityId) -> usize {
+    let attr = Attribute::from_keyword(":concept/member-count");
+    for d in store.datoms() {
+        if d.entity == entity && d.attribute == attr && d.op == Op::Assert {
+            if let Value::Long(n) = d.value {
+                return n as usize;
+            }
+        }
+    }
+    0
+}
+
+/// Compute steering question based on concept assignment and entity matches.
+fn compute_steering_question(
+    store: &Store,
+    assignment: &ConceptAssignment,
+    entity_matches: &[EntityMatch],
+) -> Option<String> {
+    match assignment {
+        ConceptAssignment::Joined { concept, .. } => {
+            // Find the nearest OTHER concept (different from current).
+            let inventory = concept_inventory(store);
+            let current_name = concept_name_from_entity(store, *concept);
+            let other = inventory
+                .iter()
+                .find(|c| c.entity != *concept && c.member_count > 0);
+
+            if let Some(other_concept) = other {
+                Some(format!(
+                    "what connects {} to {}?",
+                    current_name, other_concept.name
+                ))
+            } else if !entity_matches.is_empty() {
+                Some(format!(
+                    "what other aspects of {} are worth investigating?",
+                    entity_matches[0].match_name
+                ))
+            } else {
+                None
+            }
+        }
+        ConceptAssignment::Uncategorized => {
+            if !entity_matches.is_empty() {
+                Some(format!(
+                    "what other aspects of {} are worth investigating?",
+                    entity_matches[0].match_name
+                ))
+            } else {
+                None
+            }
+        }
+    }
+}
+
+// ===================================================================
 // Internal helpers
 // ===================================================================
 
@@ -1263,6 +1496,158 @@ mod tests {
         assert!(
             !materialize_match,
             "should not match 'materialize' inside 'dematerialized'"
+        );
+    }
+
+    // -- CCE-5 steering tests --
+
+    #[test]
+    fn steering_with_concept_assignment() {
+        let assignment = ConceptAssignment::Joined {
+            concept: EntityId::from_content(b"concept-test"),
+            similarity: 0.8,
+            surprise: 0.2,
+        };
+        let matches = vec![EntityMatch {
+            entity: EntityId::from_content(b"pkg"),
+            match_name: "materialize".into(),
+        }];
+
+        let store = Store::genesis();
+        let steering = compute_observe_steering(&store, &assignment, &matches);
+        assert!(steering.concept_line.is_some());
+        assert!(steering.gap_line.is_some());
+    }
+
+    #[test]
+    fn steering_uncategorized() {
+        let assignment = ConceptAssignment::Uncategorized;
+        let store = Store::genesis();
+        let steering = compute_observe_steering(&store, &assignment, &[]);
+        assert!(steering.concept_line.is_none());
+        assert!(steering.gap_line.is_none());
+    }
+
+    #[test]
+    fn steering_question_with_entity() {
+        let assignment = ConceptAssignment::Uncategorized;
+        let matches = vec![EntityMatch {
+            entity: EntityId::from_content(b"test"),
+            match_name: "cascade".into(),
+        }];
+        let store = Store::genesis();
+        let steering = compute_observe_steering(&store, &assignment, &matches);
+        assert!(
+            steering.question.is_some(),
+            "should generate question from entity match"
+        );
+        assert!(steering.question.unwrap().contains("cascade"));
+    }
+
+    #[test]
+    fn concept_status_empty_store() {
+        let store = Store::genesis();
+        let lines = format_concept_status(&store);
+        assert!(
+            lines.is_empty(),
+            "empty store should have no concept status"
+        );
+    }
+
+    #[test]
+    fn concept_status_with_concepts() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+
+        // Add a concept.
+        let c1 = EntityId::from_content(b"concept-events");
+        let tx =
+            crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "test")
+                .assert(
+                    c1,
+                    Attribute::from_keyword(":concept/name"),
+                    Value::String("event-processing".into()),
+                )
+                .assert(
+                    c1,
+                    Attribute::from_keyword(":concept/member-count"),
+                    Value::Long(5),
+                );
+        let committed = tx.commit(&store).expect("commit");
+        store.transact(committed).expect("transact");
+
+        let lines = format_concept_status(&store);
+        assert!(!lines.is_empty(), "should have concept status lines");
+        assert!(
+            lines[0].contains("event-processing"),
+            "should mention concept name"
+        );
+    }
+
+    #[test]
+    fn innate_schemas_fade_after_threshold() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+
+        // Add innate concepts.
+        let innate_datoms = innate_concept_datoms(1000);
+        let mut tx =
+            crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "innate");
+        for (e, a, v) in innate_datoms {
+            tx = tx.assert(e, a, v);
+        }
+        let committed = tx.commit(&store).expect("commit");
+        store.transact(committed).expect("transact");
+
+        // Add 3 emergent concepts.
+        for i in 0..3 {
+            let ce = EntityId::from_content(format!("emergent-{i}").as_bytes());
+            let tx = crate::store::Transaction::new(
+                agent,
+                crate::datom::ProvenanceType::Observed,
+                "test",
+            )
+            .assert(
+                ce,
+                Attribute::from_keyword(":concept/name"),
+                Value::String(format!("emergent-concept-{i}")),
+            )
+            .assert(
+                ce,
+                Attribute::from_keyword(":concept/member-count"),
+                Value::Long(2),
+            );
+            let committed = tx.commit(&store).expect("commit");
+            store.transact(committed).expect("transact");
+        }
+
+        // Add 10+ observations to trigger fade.
+        for i in 0..11 {
+            let oe = EntityId::from_content(format!("obs-{i}").as_bytes());
+            let tx = crate::store::Transaction::new(
+                agent,
+                crate::datom::ProvenanceType::Observed,
+                "test",
+            )
+            .assert(
+                oe,
+                Attribute::from_keyword(":exploration/body"),
+                Value::String(format!("observation number {i}")),
+            );
+            let committed = tx.commit(&store).expect("commit");
+            store.transact(committed).expect("transact");
+        }
+
+        let lines = format_concept_status(&store);
+        // Should show emergent concepts, not innate ones.
+        let all_text = lines.join(" ");
+        assert!(
+            !all_text.contains("components"),
+            "innate schemas should fade after 10+ obs with 3+ emergent concepts"
+        );
+        assert!(
+            all_text.contains("emergent-concept"),
+            "emergent concepts should be shown"
         );
     }
 }

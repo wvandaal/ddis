@@ -532,6 +532,78 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         .unwrap_or("observation")
         .to_string();
 
+    // --- CCE-5: Concept-aware observation (embedding, concept assignment, entity linking) ---
+    let hash_embedder = braid_kernel::embedding::HashEmbedder::new(braid_kernel::embedding::DEFAULT_DIM);
+    let obs_embedding = braid_kernel::embedding::TextEmbedder::embed(&hash_embedder, args.text);
+    let concept_assignment = braid_kernel::concept::assign_to_concept(
+        store,
+        &obs_embedding,
+        braid_kernel::concept::JOIN_THRESHOLD,
+    );
+    let entity_matches = braid_kernel::concept::entity_auto_link(store, args.text);
+    let steering = braid_kernel::concept::compute_observe_steering(
+        store,
+        &concept_assignment,
+        &entity_matches,
+    );
+
+    // Write CCE datoms as a follow-up transaction if there's concept/entity info to record.
+    let mut cce_datoms = Vec::new();
+    // Embedding datom.
+    cce_datoms.push(Datom::new(
+        entity,
+        Attribute::from_keyword(":exploration/embedding"),
+        Value::Bytes(braid_kernel::embedding::embedding_to_bytes(&obs_embedding)),
+        tx_id,
+        Op::Assert,
+    ));
+    // Concept assignment datoms.
+    if let braid_kernel::concept::ConceptAssignment::Joined {
+        concept,
+        surprise,
+        ..
+    } = &concept_assignment
+    {
+        cce_datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":exploration/concept"),
+            Value::Ref(*concept),
+            tx_id,
+            Op::Assert,
+        ));
+        cce_datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":exploration/surprise"),
+            Value::Double(ordered_float::OrderedFloat(*surprise as f64)),
+            tx_id,
+            Op::Assert,
+        ));
+    }
+    // Entity auto-link datoms.
+    for m in &entity_matches {
+        cce_datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":exploration/mentions-entity"),
+            Value::Ref(m.entity),
+            tx_id,
+            Op::Assert,
+        ));
+    }
+    if !cce_datoms.is_empty() {
+        let cce_tx = TxFile {
+            tx_id: super::write::next_tx_id(store, agent),
+            agent,
+            provenance: ProvenanceType::Derived,
+            rationale: "CCE-5: concept assignment + entity linking".to_string(),
+            causal_predecessors: vec![],
+            datoms: cce_datoms,
+        };
+        let _ = live.write_tx(&cce_tx);
+        // Refresh store after CCE write.
+        let _ = live.store();
+    }
+    let store = live.store();
+
     // --- CE-OBSERVE: Responsive observation — contextual micro-hypotheses ---
     let connections =
         braid_kernel::connections::propose_connections(store, entity, args.text);
@@ -574,25 +646,16 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         responsive_parts.push(event.clone());
     }
 
-    // Micro-hypothesis: a follow-up question based on connections
-    if !connections.is_empty() {
-        let keywords: Vec<&str> = connections[0]
-            .shared_keywords
-            .iter()
-            .map(|s| s.as_str())
-            .collect();
-        if keywords.len() >= 2 {
-            responsive_parts.push(format!(
-                "\u{2192} Does {} interact with {} in unexpected ways?",
-                keywords[0], keywords[1]
-            ));
-        } else if !keywords.is_empty() {
-            responsive_parts.push(format!(
-                "\u{2192} What else depends on {}?",
-                keywords[0]
-            ));
-        }
-    } else {
+    // CCE-5: Concept-aware steering (replaces generic micro-hypothesis).
+    if let Some(ref line) = steering.concept_line {
+        responsive_parts.push(line.clone());
+    }
+    if let Some(ref line) = steering.gap_line {
+        responsive_parts.push(line.clone());
+    }
+    if let Some(ref q) = steering.question {
+        responsive_parts.push(format!("\u{2192} {q}"));
+    } else if connections.is_empty() {
         responsive_parts.push(
             "\u{2192} No connections yet. What else relates to this?".to_string(),
         );

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774417806/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-455bbfa1"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9f1a824da7b690efa6002d5454052329423611eed146353cb192635651b3f170" :a :task/close-reason :v "Implemented: ObserveSteering + compute_observe_steering + format_concept_status in kernel. CLI: observe.rs adds embedding + concept assignment + entity linking + steering response. status.rs adds concept inventory. 6 new kernel tests (36 total concept tests). All 302 CLI tests pass." :op :assert}
+   {:e #blake3 "9f1a824da7b690efa6002d5454052329423611eed146353cb192635651b3f170" :a :task/closed-at :v 1774417805 :op :assert}
+   {:e #blake3 "9f1a824da7b690efa6002d5454052329423611eed146353cb192635651b3f170" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "9f1a824da7b690efa6002d5454052329423611eed146353cb192635651b3f170" :a :task/status :v :task.status/closed :op :assert}
+ ]}
