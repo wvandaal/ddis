@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774478325/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f88df1e5"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9465095f9d35630c70ca61823a5d7b4ad2a4b58bab58dcf5ef0dd6d4d559d86d" :a :task/close-reason :v "7 new tests all passing: frontier_scores_bounded, deepen_monotonicity, commensurable, co_occurrence_single_scan, no_uncategorized_in_vec, single_type_normalization, latest_wins." :op :assert}
+   {:e #blake3 "9465095f9d35630c70ca61823a5d7b4ad2a4b58bab58dcf5ef0dd6d4d559d86d" :a :task/closed-at :v 1774478324 :op :assert}
+   {:e #blake3 "9465095f9d35630c70ca61823a5d7b4ad2a4b58bab58dcf5ef0dd6d4d559d86d" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "9465095f9d35630c70ca61823a5d7b4ad2a4b58bab58dcf5ef0dd6d4d559d86d" :a :task/status :v :task.status/closed :op :assert}
+ ]}

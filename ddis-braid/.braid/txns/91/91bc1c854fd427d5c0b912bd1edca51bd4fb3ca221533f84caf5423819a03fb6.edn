@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774478340/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-22dfd1f5"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/close-reason :v "All 5 quality tasks closed: Q1-REV (scoring), Q2 (latest-wins test), Q4 (scan merge), Q5 (dead arm), TEST-Q-REV (7 tests). 2024 tests passing." :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/closed-at :v 1774478339 :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/status :v :task.status/closed :op :assert}
+ ]}

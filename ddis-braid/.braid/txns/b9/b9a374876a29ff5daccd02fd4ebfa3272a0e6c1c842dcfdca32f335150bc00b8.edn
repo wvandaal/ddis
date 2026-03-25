@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774477595/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-43e3a55b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5e4372a291df170b43a85dab3cd1639d1efe0b2a114c98846512cadeac4d2cc0" :a :task/close-reason :v "Implemented and verified: 2010 tests pass, 0 new clippy errors." :op :assert}
+   {:e #blake3 "5e4372a291df170b43a85dab3cd1639d1efe0b2a114c98846512cadeac4d2cc0" :a :task/closed-at :v 1774477594 :op :assert}
+   {:e #blake3 "5e4372a291df170b43a85dab3cd1639d1efe0b2a114c98846512cadeac4d2cc0" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "5e4372a291df170b43a85dab3cd1639d1efe0b2a114c98846512cadeac4d2cc0" :a :task/status :v :task.status/closed :op :assert}
+ ]}
