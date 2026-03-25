@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774463723/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DOGFOOD-4 RESULT: 6.7/10 overall (was 5.3). Concept assignment went from 0 to 29 — the CCE works. But invariants concept absorbed 25/29 observations because the innate description is too broad for a codebase that is fundamentally about specification invariants. Connection quality improved but concept distribution is heavily skewed. The fix is INNATE-QUALITY tuning — make descriptions more discriminating so different types of findings route to different concepts. Alternatively, let emergent concepts form that are more specific than the innate schemas."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "479c4cb3af9ac28ae75f1d2b0053330e38978cf66013a2ed6bd66a8cc7e278ae" :a :db/ident :v :task/t-2316ac21 :op :assert}
+   {:e #blake3 "479c4cb3af9ac28ae75f1d2b0053330e38978cf66013a2ed6bd66a8cc7e278ae" :a :task/body :v "DOGFOOD-4 RESULT: 6.7/10 overall (was 5.3). Concept assignment went from 0 to 29 — the CCE works. But invariants concept absorbed 25/29 observations because the innate description is too broad for a codebase that is fundamentally about specification invariants. Connection quality improved but concept distribution is heavily skewed. The fix is INNATE-QUALITY tuning — make descriptions more discriminating so different types of findings route to different concepts. Alternatively, let emergent concepts form that are more specific than the innate schemas." :op :assert}
+   {:e #blake3 "479c4cb3af9ac28ae75f1d2b0053330e38978cf66013a2ed6bd66a8cc7e278ae" :a :task/created-at :v 1774463722 :op :assert}
+   {:e #blake3 "479c4cb3af9ac28ae75f1d2b0053330e38978cf66013a2ed6bd66a8cc7e278ae" :a :task/id :v "t-2316ac21" :op :assert}
+   {:e #blake3 "479c4cb3af9ac28ae75f1d2b0053330e38978cf66013a2ed6bd66a8cc7e278ae" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "479c4cb3af9ac28ae75f1d2b0053330e38978cf66013a2ed6bd66a8cc7e278ae" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "479c4cb3af9ac28ae75f1d2b0053330e38978cf66013a2ed6bd66a8cc7e278ae" :a :task/title :v "DOGFOOD-4 RESULT: 6.7/10 overall (was 5.3). Concept assignment went from 0 to" :op :assert}
+   {:e #blake3 "479c4cb3af9ac28ae75f1d2b0053330e38978cf66013a2ed6bd66a8cc7e278ae" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "fe89f725e6a57a2abd2895e94268fb5ce02e869ce09d635c08d0e586ec39fcf9" :a :db/doc :v "DOGFOOD-4 RESULT: 6.7/10 overall (was 5.3). Concept assignment went from 0 to 29 — the CCE works. But invariants concept absorbed 25/29 observations because the innate description is too broad for a codebase that is fundamentally about specification invariants. Connection quality improved but concept distribution is heavily skewed. The fix is INNATE-QUALITY tuning — make descriptions more discriminating so different types of findings route to different concepts. Alternatively, let emergent concepts form that are more specific than the innate schemas." :op :assert}
+   {:e #blake3 "fe89f725e6a57a2abd2895e94268fb5ce02e869ce09d635c08d0e586ec39fcf9" :a :db/ident :v :observation/dogfood-4-result-6710-overall-was-53-concept-assignme :op :assert}
+   {:e #blake3 "fe89f725e6a57a2abd2895e94268fb5ce02e869ce09d635c08d0e586ec39fcf9" :a :exploration/body :v "DOGFOOD-4 RESULT: 6.7/10 overall (was 5.3). Concept assignment went from 0 to 29 — the CCE works. But invariants concept absorbed 25/29 observations because the innate description is too broad for a codebase that is fundamentally about specification invariants. Connection quality improved but concept distribution is heavily skewed. The fix is INNATE-QUALITY tuning — make descriptions more discriminating so different types of findings route to different concepts. Alternatively, let emergent concepts form that are more specific than the innate schemas." :op :assert}
+   {:e #blake3 "fe89f725e6a57a2abd2895e94268fb5ce02e869ce09d635c08d0e586ec39fcf9" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "fe89f725e6a57a2abd2895e94268fb5ce02e869ce09d635c08d0e586ec39fcf9" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "fe89f725e6a57a2abd2895e94268fb5ce02e869ce09d635c08d0e586ec39fcf9" :a :exploration/content-hash :v #bytes "23ae12457b7b57e5b2c643033deea7ae3f9831052d1606dd0f2379b179917e0c" :op :assert}
+   {:e #blake3 "fe89f725e6a57a2abd2895e94268fb5ce02e869ce09d635c08d0e586ec39fcf9" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "fe89f725e6a57a2abd2895e94268fb5ce02e869ce09d635c08d0e586ec39fcf9" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "fe89f725e6a57a2abd2895e94268fb5ce02e869ce09d635c08d0e586ec39fcf9" :a :exploration/source-session :v #blake3 "baf4858d2b147e7f5f0407681f9ca0b25a0a07a440748aa0c6d3aa2bd4a458d3" :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774463739/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-db1d0622"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/close-reason :v "DOGFOOD-4 scored 6.7/10 (was 5.3 in DOGFOOD-3). Concept assignment: 0→29. The CCE works — model2vec, lifecycle, naming, near-miss all functioning. But invariants concept absorbed 25/29 observations (too broad for DDIS-centric codebase). Next: INNATE-QUALITY tuning for better concept discrimination, then DOGFOOD-5." :op :assert}
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/closed-at :v 1774463738 :op :assert}
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "e528b4bf4e8639592207cacf89d0fbb6fae00a5998ce65a41fa902a6be3efde6" :a :task/status :v :task.status/closed :op :assert}
+ ]}
