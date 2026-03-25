@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774479221/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-94095ca1"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/close-reason :v "Measurement completed: H=0.0 (single concept), steering=N/A (no concepts during observe), prediction error=N/A (no hypothesis schema). All results recorded as observations." :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/closed-at :v 1774479220 :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/status :v :task.status/closed :op :assert}
+ ]}

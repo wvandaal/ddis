@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774479089/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Error handling across the Go CLI is inconsistent. The parser wraps errors with fmt.Errorf, storage uses custom error types with codes, and the events pipeline uses bare error returns. The consistency engine silently swallows some errors during validation, logging them at debug level but returning success. This means a consistency violation can go unreported if the validation itself encounters a transient I/O error — a false-negative path that undermines the bilateral cycle's integrity."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aea0c0797c1dfdcb9635eff16c3d9ab3f7964ad6465e5d0ae4552f4ff8924012" :a :db/doc :v "Error handling across the Go CLI is inconsistent. The parser wraps errors with fmt.Errorf, storage uses custom error types with codes, and the events pipeline uses bare error returns. The consistency engine silently swallows some errors during validation, logging them at debug level but returning success. This means a consistency violation can go unreported if the validation itself encounters a transient I/O error — a false-negative path that undermines the bilateral cycle's integrity." :op :assert}
+   {:e #blake3 "aea0c0797c1dfdcb9635eff16c3d9ab3f7964ad6465e5d0ae4552f4ff8924012" :a :db/ident :v :observation/error-handling-across-the-go-cli-is-inconsistent-the-parser :op :assert}
+   {:e #blake3 "aea0c0797c1dfdcb9635eff16c3d9ab3f7964ad6465e5d0ae4552f4ff8924012" :a :exploration/body :v "Error handling across the Go CLI is inconsistent. The parser wraps errors with fmt.Errorf, storage uses custom error types with codes, and the events pipeline uses bare error returns. The consistency engine silently swallows some errors during validation, logging them at debug level but returning success. This means a consistency violation can go unreported if the validation itself encounters a transient I/O error — a false-negative path that undermines the bilateral cycle's integrity." :op :assert}
+   {:e #blake3 "aea0c0797c1dfdcb9635eff16c3d9ab3f7964ad6465e5d0ae4552f4ff8924012" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "aea0c0797c1dfdcb9635eff16c3d9ab3f7964ad6465e5d0ae4552f4ff8924012" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "aea0c0797c1dfdcb9635eff16c3d9ab3f7964ad6465e5d0ae4552f4ff8924012" :a :exploration/content-hash :v #bytes "17381ba84ab011d8ad1d95976378c59b21a0564b5b7b63f649f7c552e7663c5f" :op :assert}
+   {:e #blake3 "aea0c0797c1dfdcb9635eff16c3d9ab3f7964ad6465e5d0ae4552f4ff8924012" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "aea0c0797c1dfdcb9635eff16c3d9ab3f7964ad6465e5d0ae4552f4ff8924012" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "aea0c0797c1dfdcb9635eff16c3d9ab3f7964ad6465e5d0ae4552f4ff8924012" :a :exploration/source-session :v #blake3 "1f18c1501b1ea9f7b6c627effc07288d79453a7311de2e1056b649da0b55f43c" :op :assert}
+ ]}

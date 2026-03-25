@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774479102/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The Go CLI has a dependency diamond: both bilateral and triage import storage directly AND indirectly through events. The bilateral cycle (discover->refine->drift->absorb) crosses 6 package boundaries per iteration. The coupling between storage and consistency is particularly tight — consistency.go imports 4 storage-internal types that aren't in the public API, creating a hidden coupling that makes the consistency engine untestable without the full storage stack."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1b635bc70fed0708e57947d19ed7b4f6464a51582744423c5993f6b983ed800b" :a :db/doc :v "The Go CLI has a dependency diamond: both bilateral and triage import storage directly AND indirectly through events. The bilateral cycle (discover->refine->drift->absorb) crosses 6 package boundaries per iteration. The coupling between storage and consistency is particularly tight — consistency.go imports 4 storage-internal types that aren't in the public API, creating a hidden coupling that makes the consistency engine untestable without the full storage stack." :op :assert}
+   {:e #blake3 "1b635bc70fed0708e57947d19ed7b4f6464a51582744423c5993f6b983ed800b" :a :db/ident :v :observation/the-go-cli-has-a-dependency-diamond-both-bilateral-and-tria :op :assert}
+   {:e #blake3 "1b635bc70fed0708e57947d19ed7b4f6464a51582744423c5993f6b983ed800b" :a :exploration/body :v "The Go CLI has a dependency diamond: both bilateral and triage import storage directly AND indirectly through events. The bilateral cycle (discover->refine->drift->absorb) crosses 6 package boundaries per iteration. The coupling between storage and consistency is particularly tight — consistency.go imports 4 storage-internal types that aren't in the public API, creating a hidden coupling that makes the consistency engine untestable without the full storage stack." :op :assert}
+   {:e #blake3 "1b635bc70fed0708e57947d19ed7b4f6464a51582744423c5993f6b983ed800b" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "1b635bc70fed0708e57947d19ed7b4f6464a51582744423c5993f6b983ed800b" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "1b635bc70fed0708e57947d19ed7b4f6464a51582744423c5993f6b983ed800b" :a :exploration/content-hash :v #bytes "7bec09278b32ea2b3620f3b7c4b372bd892d354ef900f50b5826d12661bf2bff" :op :assert}
+   {:e #blake3 "1b635bc70fed0708e57947d19ed7b4f6464a51582744423c5993f6b983ed800b" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "1b635bc70fed0708e57947d19ed7b4f6464a51582744423c5993f6b983ed800b" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "1b635bc70fed0708e57947d19ed7b4f6464a51582744423c5993f6b983ed800b" :a :exploration/source-session :v #blake3 "1f18c1501b1ea9f7b6c627effc07288d79453a7311de2e1056b649da0b55f43c" :op :assert}
+ ]}

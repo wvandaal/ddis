@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774479068/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The events package (internal/events) implements the crystallize-materialize-project pipeline. Events flow from parser through storage into materialized views. The event_type enum has 14 variants covering all spec element lifecycle transitions. Materialization is idempotent but the projection layer lacks rollback support for failed sequences."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "735fad71394bdf983a1a68cbee2be53537d3dfaa2ea0c99a36c0350a27b15bb4" :a :db/doc :v "The events package (internal/events) implements the crystallize-materialize-project pipeline. Events flow from parser through storage into materialized views. The event_type enum has 14 variants covering all spec element lifecycle transitions. Materialization is idempotent but the projection layer lacks rollback support for failed sequences." :op :assert}
+   {:e #blake3 "735fad71394bdf983a1a68cbee2be53537d3dfaa2ea0c99a36c0350a27b15bb4" :a :db/ident :v :observation/the-events-package-internalevents-implements-the-crystall :op :assert}
+   {:e #blake3 "735fad71394bdf983a1a68cbee2be53537d3dfaa2ea0c99a36c0350a27b15bb4" :a :exploration/body :v "The events package (internal/events) implements the crystallize-materialize-project pipeline. Events flow from parser through storage into materialized views. The event_type enum has 14 variants covering all spec element lifecycle transitions. Materialization is idempotent but the projection layer lacks rollback support for failed sequences." :op :assert}
+   {:e #blake3 "735fad71394bdf983a1a68cbee2be53537d3dfaa2ea0c99a36c0350a27b15bb4" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "735fad71394bdf983a1a68cbee2be53537d3dfaa2ea0c99a36c0350a27b15bb4" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "735fad71394bdf983a1a68cbee2be53537d3dfaa2ea0c99a36c0350a27b15bb4" :a :exploration/content-hash :v #bytes "9b4cec2f65f0baf7ee123200e6aae970470d2732ecbc0ba9331c5aec3ea76a2e" :op :assert}
+   {:e #blake3 "735fad71394bdf983a1a68cbee2be53537d3dfaa2ea0c99a36c0350a27b15bb4" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "735fad71394bdf983a1a68cbee2be53537d3dfaa2ea0c99a36c0350a27b15bb4" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "735fad71394bdf983a1a68cbee2be53537d3dfaa2ea0c99a36c0350a27b15bb4" :a :exploration/source-session :v #blake3 "1f18c1501b1ea9f7b6c627effc07288d79453a7311de2e1056b649da0b55f43c" :op :assert}
+ ]}

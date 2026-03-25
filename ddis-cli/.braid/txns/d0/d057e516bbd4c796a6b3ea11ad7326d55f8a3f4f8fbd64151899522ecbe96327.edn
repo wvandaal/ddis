@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774479091/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Test coverage in the Go CLI is concentrated in parser and storage (85%+) but sparse in witness, challenge, and absorb (30-40%). The test strategy uses table-driven tests extensively but lacks property-based testing. Integration tests exist for the bilateral cycle but they use mock storage rather than SQLite, which means the 5-tier contradiction engine is never tested against real referential integrity constraints. This is a structural gap: the most safety-critical component has the weakest verification."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0e7cada231bd5d119910c3af998e7d7657662cdf9fa221edd35e327248d07915" :a :db/doc :v "Test coverage in the Go CLI is concentrated in parser and storage (85%+) but sparse in witness, challenge, and absorb (30-40%). The test strategy uses table-driven tests extensively but lacks property-based testing. Integration tests exist for the bilateral cycle but they use mock storage rather than SQLite, which means the 5-tier contradiction engine is never tested against real referential integrity constraints. This is a structural gap: the most safety-critical component has the weakest verification." :op :assert}
+   {:e #blake3 "0e7cada231bd5d119910c3af998e7d7657662cdf9fa221edd35e327248d07915" :a :db/ident :v :observation/test-coverage-in-the-go-cli-is-concentrated-in-parser-and-st :op :assert}
+   {:e #blake3 "0e7cada231bd5d119910c3af998e7d7657662cdf9fa221edd35e327248d07915" :a :exploration/body :v "Test coverage in the Go CLI is concentrated in parser and storage (85%+) but sparse in witness, challenge, and absorb (30-40%). The test strategy uses table-driven tests extensively but lacks property-based testing. Integration tests exist for the bilateral cycle but they use mock storage rather than SQLite, which means the 5-tier contradiction engine is never tested against real referential integrity constraints. This is a structural gap: the most safety-critical component has the weakest verification." :op :assert}
+   {:e #blake3 "0e7cada231bd5d119910c3af998e7d7657662cdf9fa221edd35e327248d07915" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "0e7cada231bd5d119910c3af998e7d7657662cdf9fa221edd35e327248d07915" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "0e7cada231bd5d119910c3af998e7d7657662cdf9fa221edd35e327248d07915" :a :exploration/content-hash :v #bytes "3a5d3bc77b31c0a56eefc3bca02984874be248bce4ce6cc0c1f81061b1779655" :op :assert}
+   {:e #blake3 "0e7cada231bd5d119910c3af998e7d7657662cdf9fa221edd35e327248d07915" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "0e7cada231bd5d119910c3af998e7d7657662cdf9fa221edd35e327248d07915" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "0e7cada231bd5d119910c3af998e7d7657662cdf9fa221edd35e327248d07915" :a :exploration/source-session :v #blake3 "1f18c1501b1ea9f7b6c627effc07288d79453a7311de2e1056b649da0b55f43c" :op :assert}
+ ]}

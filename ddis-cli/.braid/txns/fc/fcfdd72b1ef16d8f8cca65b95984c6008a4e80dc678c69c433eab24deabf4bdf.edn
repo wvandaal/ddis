@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774479029/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Testing concept bootstrapping on Go CLI — this is a probe observation to verify CCE works on a store initialized before concept schema existed"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6d05745368469c4d25729be2893b3783f9b6465a9cc423c8c64f98ffa908d33d" :a :db/doc :v "Testing concept bootstrapping on Go CLI — this is a probe observation to verify CCE works on a store initialized before concept schema existed" :op :assert}
+   {:e #blake3 "6d05745368469c4d25729be2893b3783f9b6465a9cc423c8c64f98ffa908d33d" :a :db/ident :v :observation/testing-concept-bootstrapping-on-go-cli-this-is-a-probe-ob :op :assert}
+   {:e #blake3 "6d05745368469c4d25729be2893b3783f9b6465a9cc423c8c64f98ffa908d33d" :a :exploration/body :v "Testing concept bootstrapping on Go CLI — this is a probe observation to verify CCE works on a store initialized before concept schema existed" :op :assert}
+   {:e #blake3 "6d05745368469c4d25729be2893b3783f9b6465a9cc423c8c64f98ffa908d33d" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "6d05745368469c4d25729be2893b3783f9b6465a9cc423c8c64f98ffa908d33d" :a :exploration/confidence :v 0.5 :op :assert}
+   {:e #blake3 "6d05745368469c4d25729be2893b3783f9b6465a9cc423c8c64f98ffa908d33d" :a :exploration/content-hash :v #bytes "cf1f37c932f548b44b211ac2752efbcffe490a5c8bcec940dbb5f34513e669d7" :op :assert}
+   {:e #blake3 "6d05745368469c4d25729be2893b3783f9b6465a9cc423c8c64f98ffa908d33d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "6d05745368469c4d25729be2893b3783f9b6465a9cc423c8c64f98ffa908d33d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "6d05745368469c4d25729be2893b3783f9b6465a9cc423c8c64f98ffa908d33d" :a :exploration/source-session :v #blake3 "1f18c1501b1ea9f7b6c627effc07288d79453a7311de2e1056b649da0b55f43c" :op :assert}
+   {:e #blake3 "eeb6549cba6bbd88c1b776c7bbb1724d4959b06fa17356167ae6e968d8a6a99a" :a :db/ident :v :task/t-42667f49 :op :assert}
+   {:e #blake3 "eeb6549cba6bbd88c1b776c7bbb1724d4959b06fa17356167ae6e968d8a6a99a" :a :task/body :v "Testing concept bootstrapping on Go CLI — this is a probe observation to verify CCE works on a store initialized before concept schema existed" :op :assert}
+   {:e #blake3 "eeb6549cba6bbd88c1b776c7bbb1724d4959b06fa17356167ae6e968d8a6a99a" :a :task/created-at :v 1774479028 :op :assert}
+   {:e #blake3 "eeb6549cba6bbd88c1b776c7bbb1724d4959b06fa17356167ae6e968d8a6a99a" :a :task/id :v "t-42667f49" :op :assert}
+   {:e #blake3 "eeb6549cba6bbd88c1b776c7bbb1724d4959b06fa17356167ae6e968d8a6a99a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "eeb6549cba6bbd88c1b776c7bbb1724d4959b06fa17356167ae6e968d8a6a99a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "eeb6549cba6bbd88c1b776c7bbb1724d4959b06fa17356167ae6e968d8a6a99a" :a :task/title :v "Testing concept bootstrapping on Go CLI — this is a probe observation to" :op :assert}
+   {:e #blake3 "eeb6549cba6bbd88c1b776c7bbb1724d4959b06fa17356167ae6e968d8a6a99a" :a :task/type :v :task.type/task :op :assert}
+ ]}

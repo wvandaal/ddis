@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774479218/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1824003a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/close-reason :v "Triage result: Score <6/10 — path 3 (architectural prerequisite). Root cause: legacy store missing innate concepts. Fix: braid upgrade command (t-a49bce38). After upgrade, re-run DOGFOOD-2 Session 3." :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/closed-at :v 1774479217 :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/status :v :task.status/closed :op :assert}
+ ]}

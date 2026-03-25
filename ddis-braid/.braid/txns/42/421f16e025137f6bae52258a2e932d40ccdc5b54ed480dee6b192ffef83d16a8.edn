@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774479199/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S045-UPGRADE: Add 'braid upgrade' command for legacy store schema migration"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :db/ident :v :task/t-a49bce38 :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/created-at :v 1774479198 :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/description :v "CONTEXT: DOGFOOD-2 Session 3 scored 3.5/10 because the Go CLI store was initialized before CCE existed. Missing innate concepts, L3 schema attributes, and hypothesis ledger schema. This blocks meaningful CCE measurement on any store created by older braid versions.\n\nAPPROACH: Add 'braid upgrade' subcommand that:\n1. Checks if L3 schema attributes exist (concept/*, exploration/embedding, hypothesis/*).\n2. If missing, transacts them (same datoms as layer_3_datoms() in schema.rs).\n3. Checks if innate concepts exist (5 concepts with :concept/innate = true).\n4. If missing, transacts innate_concept_datoms() using current embedder.\n5. Non-destructive: never removes or overwrites existing data (C1 compliant).\n6. Idempotent: running upgrade on an already-current store is a no-op.\n\nACCEPTANCE: (A) braid upgrade on the Go CLI store adds innate concepts. (B) braid observe on the upgraded store produces concept assignments. (C) braid upgrade on a fresh store is a no-op (init already did everything). (D) braid upgrade preserves all existing datoms." :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/id :v "t-a49bce38" :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/labels :v :label/S045-DOGFOOD :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/title :v "S045-UPGRADE: Add 'braid upgrade' command for legacy store schema migration" :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/title-l0 :v "S045-UPGRADE" :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/title-l1 :v "S045-UPGRADE: Add 'braid upgrade' command for legacy store schema migration" :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/traces-to :v #blake3 "192793a3a1efa8195c4a1f3cdff307e17d88478917e1e520ef6eb8651526cb67" :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/type :v :task.type/bug :op :assert}
+ ]}
