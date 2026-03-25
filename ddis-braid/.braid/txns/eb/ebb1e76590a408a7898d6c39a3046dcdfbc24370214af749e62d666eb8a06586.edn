@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774436447/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CCE-LIFECYCLE EPIC: Wire concept evolution into CLI pipeline — the missing learning loop"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c2f7aa2bbe5d103d994f041400675088b9d4df3b613dd11255d2f671b8f6bbad" :a :db/ident :v :task/t-3c66d0c1 :op :assert}
+   {:e #blake3 "c2f7aa2bbe5d103d994f041400675088b9d4df3b613dd11255d2f671b8f6bbad" :a :task/created-at :v 1774436446 :op :assert}
+   {:e #blake3 "c2f7aa2bbe5d103d994f041400675088b9d4df3b613dd11255d2f671b8f6bbad" :a :task/description :v "CONTEXT: Cleanroom review discovered that 8 of 16 CCE kernel functions are dead code in the CLI. The concept crystallization engine has a complete kernel implementation (76 tests) but the CLI only wires concept LOOKUP (assign_to_concept, entity_auto_link, compute_observe_steering). The concept LIFECYCLE is unwired: centroids never update, member counts stay at 0, new concepts never form from uncategorized observations, concepts never split or merge. CONSEQUENCE: The CCE is a static concept LOOKUP against 5 innate schemas, not a LEARNING system. The entire developmental trajectory (sensorimotor → concrete operational → formal operational) cannot happen. Even with model2vec embeddings, concepts would be classified but never evolve. RATIONALE: This is the SECOND bottleneck (after hash embedder, which is FIRST). The SEMANTIC-EMBED EPIC fixes concept assignment quality. This EPIC fixes concept lifecycle — together they produce the complete learning loop: observe → classify → update concept → crystallize new concepts → evolve. Without this EPIC, DOGFOOD-4 will show correct concept ASSIGNMENT but static concept MEMBERSHIP (always 0 obs). THREE INTEGRATION POINTS: (1) OBSERVE: update centroid + member count + total weight + variance on concept join. (2) HARVEST: crystallize uncategorized observations into new emergent concepts. (3) STATUS: surface split/merge recommendations. DEPENDENCY: Should execute AFTER CCE-SOUND fixes (correct algorithms) and IN PARALLEL with SEMANTIC-EMBED (independent code paths). GATE-RERUN-4 should wait for BOTH epics." :op :assert}
+   {:e #blake3 "c2f7aa2bbe5d103d994f041400675088b9d4df3b613dd11255d2f671b8f6bbad" :a :task/id :v "t-3c66d0c1" :op :assert}
+   {:e #blake3 "c2f7aa2bbe5d103d994f041400675088b9d4df3b613dd11255d2f671b8f6bbad" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "c2f7aa2bbe5d103d994f041400675088b9d4df3b613dd11255d2f671b8f6bbad" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c2f7aa2bbe5d103d994f041400675088b9d4df3b613dd11255d2f671b8f6bbad" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c2f7aa2bbe5d103d994f041400675088b9d4df3b613dd11255d2f671b8f6bbad" :a :task/title :v "CCE-LIFECYCLE EPIC: Wire concept evolution into CLI pipeline — the missing learning loop" :op :assert}
+   {:e #blake3 "c2f7aa2bbe5d103d994f041400675088b9d4df3b613dd11255d2f671b8f6bbad" :a :task/title-l0 :v "CCE-LIFECYCLE EPIC" :op :assert}
+   {:e #blake3 "c2f7aa2bbe5d103d994f041400675088b9d4df3b613dd11255d2f671b8f6bbad" :a :task/title-l1 :v "CCE-LIFECYCLE EPIC: Wire concept evolution into CLI pipeline — the missing..." :op :assert}
+   {:e #blake3 "c2f7aa2bbe5d103d994f041400675088b9d4df3b613dd11255d2f671b8f6bbad" :a :task/traces-to :v #blake3 "44b01037f650e23ce40cea6697d5ab1639fb17d9b54b418bf8ddf9fe26ee2057" :op :assert}
+   {:e #blake3 "c2f7aa2bbe5d103d994f041400675088b9d4df3b613dd11255d2f671b8f6bbad" :a :task/type :v :task.type/epic :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774436535/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: LIFECYCLE-STATUS: Surface split/merge recommendations in concept status"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :db/ident :v :task/t-6e606e1e :op :assert}
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/created-at :v 1774436534 :op :assert}
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/description :v "CONTEXT: should_split() and should_merge() exist in the kernel but are NEVER called. Concepts that grow too broad (high variance) or converge (high mutual cosine) are never flagged. Without this, the agent has no signal that concept boundaries need adjustment. APPROACH: In format_concept_status (concept.rs) or in the CLI status command: (1) After concept_inventory, check each concept: if variance > SPLIT_THRESHOLD, add a status line: 'concept:X may be too broad (variance=0.63, consider splitting)'. (2) For each pair of concepts: if should_merge(centroid_a, centroid_b), add: 'concepts X and Y are converging (cosine=0.91, consider merging)'. (3) These are RECOMMENDATIONS in the status output, not automatic actions. The agent decides whether to act. (4) The O(C^2) pair check is acceptable for C < 50 concepts. ACCEPTANCE: (A) Concept with variance > 0.5 shows split recommendation in status. (B) Two concepts with centroid cosine > 0.85 show merge recommendation. (C) Low-variance concepts show no recommendation. (D) Recommendations include the metric values (variance, cosine) for agent decision-making. CONSIDERATIONS: Split/merge are not yet implemented as operations — these are advisory only. Implementing actual split (create 2 subconcepts, reassign members) and merge (create 1 combined concept, reassign both member sets) is a future task. The recommendation drives manual agent correction: the agent observes 'this finding is about X-sub-1, not X' to create finer categories. DEPENDS-ON: LIFECYCLE-OBSERVE (need updated variance values). FILE: crates/braid-kernel/src/concept.rs (format_concept_status), crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/id :v "t-6e606e1e" :op :assert}
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/title :v "LIFECYCLE-STATUS: Surface split/merge recommendations in concept status" :op :assert}
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/title-l0 :v "LIFECYCLE-STATUS" :op :assert}
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/title-l1 :v "LIFECYCLE-STATUS: Surface split/merge recommendations in concept status" :op :assert}
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/traces-to :v #blake3 "44b01037f650e23ce40cea6697d5ab1639fb17d9b54b418bf8ddf9fe26ee2057" :op :assert}
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/type :v :task.type/task :op :assert}
+ ]}
