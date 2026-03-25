@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774451566/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-40843017"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/close-reason :v "Implemented: :concept/embedder-type schema attribute added. innate_concept_datoms_typed writes embedder type tag. init.rs passes resolved embedder type. observe.rs detects embedder type mismatch and re-embeds all concepts before assignment. Re-embedding writes new :concept/embedding + :concept/embedder-type datoms. Idempotent (no-op when types match). 56+302 tests pass." :op :assert}
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/closed-at :v 1774451565 :op :assert}
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "92a48970a1142461e5a15472b1733a3ee69f9af0681328f59d2917be2590c359" :a :task/status :v :task.status/closed :op :assert}
+ ]}

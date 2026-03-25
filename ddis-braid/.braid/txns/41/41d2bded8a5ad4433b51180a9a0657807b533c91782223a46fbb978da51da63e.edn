@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774451898/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-93150b12"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/close-reason :v "Implemented: 1 test in concept.rs. test_reembed_preserves_concept_identity — creates concept with v1 embedding, re-embeds with v2, verifies find_nearest_concept uses v2 and concept_inventory still shows the concept. Validates the full re-embedding pipeline. 60 concept tests pass." :op :assert}
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/closed-at :v 1774451897 :op :assert}
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "45deb6d2f016c8bbd54a8dd301866f800815ac7088d6b7fce072388852cacc28" :a :task/status :v :task.status/closed :op :assert}
+ ]}

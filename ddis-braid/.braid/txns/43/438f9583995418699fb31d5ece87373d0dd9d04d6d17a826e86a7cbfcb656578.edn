@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774451892/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-51654d1a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/close-reason :v "Implemented: observe.rs reads concept.join-threshold from config store with JOIN_THRESHOLD fallback. Policy manifest can override via :config/concept.join-threshold. Infrastructure ready for empirical calibration when model is available. 302 CLI tests pass." :op :assert}
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/closed-at :v 1774451891 :op :assert}
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "cafbbebf4f2c29e41ac743da44db8c864d65f11c62bdbea05e60f068612daa48" :a :task/status :v :task.status/closed :op :assert}
+ ]}

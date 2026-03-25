@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774450797/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b15000d6"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/close-reason :v "Implemented: observe.rs now uses model::resolve_embedder() instead of hard-coded HashEmbedder. init.rs uses the same resolved embedder for innate concepts (INV-EMBEDDING-004). When model files are present, model2vec activates automatically. When absent, hash fallback. Embedder constructed per-command (stateless, cheap). 302+1590 tests pass, 5/5 E2E." :op :assert}
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/closed-at :v 1774450796 :op :assert}
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "d863767ee73393ed4b94b498730ade459a97e38fbd4be952851dc10e65802a78" :a :task/status :v :task.status/closed :op :assert}
+ ]}

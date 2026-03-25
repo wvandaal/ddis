@@ -289,15 +289,16 @@ pub fn run(
     {
         let innate_agent = AgentId::from_name("braid:init");
         let innate_tx_id = super::write::next_tx_id(live.store(), innate_agent);
-        let hash_embedder = braid_kernel::embedding::HashEmbedder::new(
-            braid_kernel::embedding::DEFAULT_DIM,
-        );
-        let innate_tuples = braid_kernel::concept::innate_concept_datoms(
+        // MODEL-WIRE + EMBED-CONSISTENCY: Use resolved embedder and tag type (INV-EMBEDDING-004).
+        let (init_embedder, embedder_type) = super::model::resolve_embedder(path);
+        let embedder_kw = format!(":embedder/{embedder_type}");
+        let innate_tuples = braid_kernel::concept::innate_concept_datoms_typed(
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .map(|d| d.as_secs() as i64)
                 .unwrap_or(0),
-            &hash_embedder,
+            init_embedder.as_ref(),
+            &embedder_kw,
         );
         if !innate_tuples.is_empty() {
             let innate_datoms: Vec<braid_kernel::datom::Datom> = innate_tuples

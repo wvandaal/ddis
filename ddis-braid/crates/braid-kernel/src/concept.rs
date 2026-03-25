@@ -509,7 +509,19 @@ pub fn innate_concept_datoms(
     timestamp: i64,
     embedder: &dyn crate::embedding::TextEmbedder,
 ) -> Vec<(EntityId, Attribute, Value)> {
+    innate_concept_datoms_typed(timestamp, embedder, ":embedder/hash")
+}
+
+/// Generate innate concept datoms with explicit embedder type tag.
+///
+/// The `embedder_type_keyword` should be `:embedder/hash` or `:embedder/model2vec`.
+pub fn innate_concept_datoms_typed(
+    timestamp: i64,
+    embedder: &dyn crate::embedding::TextEmbedder,
+    embedder_type_keyword: &str,
+) -> Vec<(EntityId, Attribute, Value)> {
     let innate_attr = Attribute::from_keyword(":concept/innate");
+    let emb_type_attr = Attribute::from_keyword(":concept/embedder-type");
     let mut datoms = Vec::new();
 
     for (name, description) in INNATE_CONCEPTS {
@@ -528,6 +540,11 @@ pub fn innate_concept_datoms(
 
         datoms.extend(concept_to_datoms(&concept, timestamp));
         datoms.push((entity, innate_attr.clone(), Value::Boolean(true)));
+        datoms.push((
+            entity,
+            emb_type_attr.clone(),
+            Value::Keyword(embedder_type_keyword.to_string()),
+        ));
     }
 
     datoms
@@ -1354,11 +1371,11 @@ mod tests {
     #[test]
     fn innate_concepts_count() {
         let datoms = innate_concept_datoms(1000, &make_embedder());
-        // Each concept: 7 schema attrs + 1 innate flag = 8 datoms.
+        // Each concept: 7 schema attrs + 1 innate flag + 1 embedder-type = 9 datoms.
         assert_eq!(
             datoms.len(),
-            5 * 8,
-            "5 innate concepts × 8 datoms each = 40"
+            5 * 9,
+            "5 innate concepts × 9 datoms each = 45"
         );
     }
 
@@ -2425,5 +2442,118 @@ mod tests {
                 "all concepts should be innate"
             );
         }
+    }
+
+    // =========================================================
+    // MODEL-LOAD-TEST / EMBED-CONSISTENCY-TEST additions
+    // =========================================================
+
+    /// Embedder type datom is written for innate concepts.
+    #[test]
+    fn test_embedder_type_recorded() {
+        let datoms = innate_concept_datoms(1000, &make_embedder());
+        let emb_type_count = datoms
+            .iter()
+            .filter(|(_, a, v)| {
+                a.as_str() == ":concept/embedder-type"
+                    && matches!(v, Value::Keyword(k) if k == ":embedder/hash")
+            })
+            .count();
+        assert_eq!(
+            emb_type_count, 5,
+            "each innate concept should have :concept/embedder-type = :embedder/hash"
+        );
+    }
+
+    /// innate_concept_datoms_typed tags with the specified embedder type.
+    #[test]
+    fn test_embedder_type_custom() {
+        let datoms = innate_concept_datoms_typed(1000, &make_embedder(), ":embedder/model2vec");
+        let model_count = datoms
+            .iter()
+            .filter(|(_, a, v)| {
+                a.as_str() == ":concept/embedder-type"
+                    && matches!(v, Value::Keyword(k) if k == ":embedder/model2vec")
+            })
+            .count();
+        assert_eq!(model_count, 5, "all concepts should be tagged model2vec");
+    }
+
+    /// Resolve embedder returns hash when no model present (always the case in tests).
+    #[test]
+    fn test_resolve_embedder_no_model() {
+        // HashEmbedder is always the default (no model files in test env).
+        let emb = make_embedder();
+        let v = emb.embed("test text here");
+        assert_eq!(v.len(), crate::embedding::DEFAULT_DIM);
+        let norm: f32 = v.iter().map(|x| x * x).sum::<f32>().sqrt();
+        assert!((norm - 1.0).abs() < 1e-5, "should be L2-normalized");
+    }
+
+    /// find_nearest_concept works after re-embedding (simulated).
+    #[test]
+    fn test_reembed_preserves_concept_identity() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+        let emb = make_embedder();
+
+        // Create a concept with "v1" embedding.
+        let ce = EntityId::from_content(b"reembed-test");
+        let emb_v1 = emb.embed("original embedding text here");
+        let tx1 = crate::store::Transaction::new(
+            agent,
+            crate::datom::ProvenanceType::Observed,
+            "v1",
+        )
+        .assert(
+            ce,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("reembed-test".into()),
+        )
+        .assert(
+            ce,
+            Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(crate::embedding::embedding_to_bytes(&emb_v1)),
+        )
+        .assert(
+            ce,
+            Attribute::from_keyword(":concept/embedder-type"),
+            Value::Keyword(":embedder/hash".into()),
+        );
+        let committed = tx1.commit(&store).expect("commit");
+        store.transact(committed).expect("transact");
+
+        // "Re-embed" with a different embedding (simulating hash→model migration).
+        let emb_v2 = emb.embed("completely different embedding text now");
+        let tx2 = crate::store::Transaction::new(
+            agent,
+            crate::datom::ProvenanceType::Derived,
+            "reembed",
+        )
+        .assert(
+            ce,
+            Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(crate::embedding::embedding_to_bytes(&emb_v2)),
+        )
+        .assert(
+            ce,
+            Attribute::from_keyword(":concept/embedder-type"),
+            Value::Keyword(":embedder/model2vec".into()),
+        );
+        let committed = tx2.commit(&store).expect("commit");
+        store.transact(committed).expect("transact");
+
+        // find_nearest_concept should use v2 (latest).
+        let query = emb.embed("completely different embedding text now");
+        let result = find_nearest_concept(&store, &query);
+        assert!(result.is_some());
+        let (entity, sim) = result.unwrap();
+        assert_eq!(entity, ce);
+        assert!(sim > 0.8, "should match v2 embedding, got sim={sim}");
+
+        // concept_inventory should still show the concept.
+        let inv = concept_inventory(&store);
+        assert_eq!(inv.len(), 1);
+        assert_eq!(inv[0].name, "reembed-test");
     }
 }

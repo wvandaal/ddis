@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774451895/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-09716b50"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/close-reason :v "Implemented: 3 tests in concept.rs. test_resolve_embedder_no_model (hash embedder default, correct dim, normalized). test_embedder_type_recorded (all 5 innate concepts tagged :embedder/hash). test_embedder_type_custom (typed variant tags correctly). 60 concept tests pass." :op :assert}
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/closed-at :v 1774451894 :op :assert}
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "a62d2487f2f8d03821f2d2e3241a5ae9579bcf1fb060d6bb9b243453de33cf45" :a :task/status :v :task.status/closed :op :assert}
+ ]}

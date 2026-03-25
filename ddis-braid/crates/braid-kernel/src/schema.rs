@@ -1983,6 +1983,12 @@ pub fn layer_3_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "True for innate (Piagetian) concepts seeded at init. Used to filter display after emergent concepts form (CCE-3).",
         ),
+        attr(
+            ":concept/embedder-type",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Embedder type used for this concept's embedding: :embedder/hash or :embedder/model2vec (INV-EMBEDDING-004).",
+        ),
         // =================================================================
         // Proposal Lifecycle Attributes (10) — spec proposal review workflow
         // =================================================================

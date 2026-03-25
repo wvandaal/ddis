@@ -533,12 +533,92 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         .to_string();
 
     // --- CCE-5: Concept-aware observation (embedding, concept assignment, entity linking) ---
-    let hash_embedder = braid_kernel::embedding::HashEmbedder::new(braid_kernel::embedding::DEFAULT_DIM);
-    let obs_embedding = braid_kernel::embedding::TextEmbedder::embed(&hash_embedder, args.text);
+    // MODEL-WIRE: Use resolved embedder (model2vec if available, hash fallback).
+    let (embedder, embedder_type) = super::model::resolve_embedder(args.path);
+    let current_emb_kw = format!(":embedder/{embedder_type}");
+
+    // EMBED-CONSISTENCY: Detect embedder type mismatch and re-embed concepts if needed.
+    // Check if any concept has a different :concept/embedder-type than current.
+    {
+        let emb_type_attr = Attribute::from_keyword(":concept/embedder-type");
+        let concept_emb_attr = Attribute::from_keyword(":concept/embedding");
+        let needs_reembed = store.datoms().any(|d| {
+            d.op == braid_kernel::datom::Op::Assert
+                && d.attribute == emb_type_attr
+                && matches!(&d.value, Value::Keyword(k) if k != &current_emb_kw)
+        });
+
+        if needs_reembed {
+            // Re-embed all concepts with the current embedder.
+            let concept_name_attr = Attribute::from_keyword(":concept/name");
+            let desc_attr = Attribute::from_keyword(":concept/description");
+            let mut reembed_datoms = Vec::new();
+            let reembed_tx = super::write::next_tx_id(store, agent);
+
+            // Collect concept entities that need re-embedding.
+            let mut concepts_to_reembed: std::collections::BTreeMap<
+                braid_kernel::datom::EntityId,
+                String,
+            > = std::collections::BTreeMap::new();
+            for d in store.datoms() {
+                if d.op == braid_kernel::datom::Op::Assert && d.attribute == desc_attr {
+                    if let Value::String(ref s) = d.value {
+                        // Only re-embed if this entity has a concept/name (is a concept).
+                        if store.live_value(d.entity, &concept_name_attr).is_some() {
+                            concepts_to_reembed.insert(d.entity, s.clone());
+                        }
+                    }
+                }
+            }
+
+            for (entity, description) in &concepts_to_reembed {
+                let new_emb = embedder.embed(description);
+                reembed_datoms.push(Datom::new(
+                    *entity,
+                    concept_emb_attr.clone(),
+                    Value::Bytes(braid_kernel::embedding::embedding_to_bytes(&new_emb)),
+                    reembed_tx,
+                    Op::Assert,
+                ));
+                reembed_datoms.push(Datom::new(
+                    *entity,
+                    emb_type_attr.clone(),
+                    Value::Keyword(current_emb_kw.clone()),
+                    reembed_tx,
+                    Op::Assert,
+                ));
+            }
+
+            if !reembed_datoms.is_empty() {
+                let reembed_tx_file = TxFile {
+                    tx_id: reembed_tx,
+                    agent,
+                    provenance: ProvenanceType::Derived,
+                    rationale: format!(
+                        "EMBED-CONSISTENCY: re-embedded {} concepts ({} -> {})",
+                        concepts_to_reembed.len(),
+                        "prior",
+                        current_emb_kw
+                    ),
+                    causal_predecessors: vec![],
+                    datoms: reembed_datoms,
+                };
+                let _ = live.write_tx(&reembed_tx_file);
+                let _ = live.store(); // Refresh after re-embed.
+            }
+        }
+    }
+    let store = live.store();
+
+    let obs_embedding = embedder.embed(args.text);
+    // THRESHOLD-TUNE: Read threshold from policy manifest, default to JOIN_THRESHOLD.
+    let join_threshold: f32 = braid_kernel::config::get_config(store, "concept.join-threshold")
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(braid_kernel::concept::JOIN_THRESHOLD);
     let concept_assignment = braid_kernel::concept::assign_to_concept(
         store,
         &obs_embedding,
-        braid_kernel::concept::JOIN_THRESHOLD,
+        join_threshold,
     );
     let entity_matches = braid_kernel::concept::entity_auto_link(store, args.text);
     let steering = braid_kernel::concept::compute_observe_steering(
