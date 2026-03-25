@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774471690/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-5ab4e78b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4e01e83071926889600c1c6fa900b7d4218896e37ebbfc3f9025a48ea28d3a51" :a :task/close-reason :v "CONCEPT-MULTI: assign_to_concepts + co_occurrence_matrix + compute_observe_steering_multi + 78 concept tests passing" :op :assert}
+   {:e #blake3 "4e01e83071926889600c1c6fa900b7d4218896e37ebbfc3f9025a48ea28d3a51" :a :task/closed-at :v 1774471689 :op :assert}
+   {:e #blake3 "4e01e83071926889600c1c6fa900b7d4218896e37ebbfc3f9025a48ea28d3a51" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "4e01e83071926889600c1c6fa900b7d4218896e37ebbfc3f9025a48ea28d3a51" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -615,14 +615,21 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     let join_threshold: f32 = braid_kernel::config::get_config(store, "concept.join-threshold")
         .and_then(|v| v.parse().ok())
         .unwrap_or_else(|| embedder.join_threshold());
-    let concept_assignment = braid_kernel::concept::assign_to_concept(
+    // CONCEPT-MULTI: Multi-membership assignment — all concepts above threshold.
+    let multi_assignments = braid_kernel::concept::assign_to_concepts(
         store,
         &obs_embedding,
         join_threshold,
     );
+    // Backward-compatible single assignment: first match or Uncategorized.
+    let concept_assignment = multi_assignments
+        .first()
+        .cloned()
+        .unwrap_or(braid_kernel::concept::ConceptAssignment::Uncategorized);
     let entity_matches = braid_kernel::concept::entity_auto_link(store, args.text);
-    let steering = braid_kernel::concept::compute_observe_steering(
+    let steering = braid_kernel::concept::compute_observe_steering_multi(
         store,
+        &multi_assignments,
         &concept_assignment,
         &entity_matches,
     );
@@ -637,81 +644,85 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         tx_id,
         Op::Assert,
     ));
-    // Concept assignment datoms + concept lifecycle update (LIFECYCLE-OBSERVE).
-    if let braid_kernel::concept::ConceptAssignment::Joined {
-        concept,
-        surprise,
-        ..
-    } = &concept_assignment
-    {
-        cce_datoms.push(Datom::new(
-            entity,
-            Attribute::from_keyword(":exploration/concept"),
-            Value::Ref(*concept),
-            tx_id,
-            Op::Assert,
-        ));
-        cce_datoms.push(Datom::new(
-            entity,
-            Attribute::from_keyword(":exploration/surprise"),
-            Value::Double(ordered_float::OrderedFloat(*surprise as f64)),
-            tx_id,
-            Op::Assert,
-        ));
+    // CONCEPT-MULTI: Write one :exploration/concept Ref per matched concept.
+    // Update each matched concept's centroid via surprise-weighted update.
+    // Surprise is recorded once (from primary match — highest similarity).
+    let emb_attr = Attribute::from_keyword(":concept/embedding");
+    let count_attr_kw = Attribute::from_keyword(":concept/member-count");
+    let weight_attr_kw = Attribute::from_keyword(":concept/total-weight");
 
-        // --- LIFECYCLE-OBSERVE: Update the concept entity itself ---
-        // Read current concept state from store.
-        let emb_attr = Attribute::from_keyword(":concept/embedding");
-        let count_attr = Attribute::from_keyword(":concept/member-count");
-        let weight_attr = Attribute::from_keyword(":concept/total-weight");
-
-        let old_count = store
-            .live_value(*concept, &count_attr)
-            .and_then(|v| if let Value::Long(n) = v { Some(*n as usize) } else { None })
-            .unwrap_or(0);
-
-        let old_total_weight = store
-            .live_value(*concept, &weight_attr)
-            .and_then(|v| if let Value::Double(w) = v { Some(w.into_inner()) } else { None })
-            .unwrap_or(0.0);
-
-        let old_centroid = store
-            .live_value(*concept, &emb_attr)
-            .and_then(|v| if let Value::Bytes(b) = v { Some(braid_kernel::embedding::bytes_to_embedding(b)) } else { None });
-
-        // Compute surprise weight and updated centroid.
-        let sw = braid_kernel::concept::surprise_weight(*surprise, braid_kernel::concept::DEFAULT_ALPHA);
-
-        if let Some(old_cent) = old_centroid {
-            let (mut new_centroid, new_total_weight) =
-                braid_kernel::concept::update_centroid_weighted(&old_cent, old_total_weight, &obs_embedding, sw);
-            // Normalize the updated centroid (INV-EMBEDDING-002).
-            braid_kernel::embedding::l2_normalize(&mut new_centroid);
-
-            let new_count = old_count + 1;
-
-            // Write updated concept datoms (new assertions — C1 append-only).
+    for (idx, assignment) in multi_assignments.iter().enumerate() {
+        if let braid_kernel::concept::ConceptAssignment::Joined {
+            concept,
+            surprise,
+            ..
+        } = assignment
+        {
+            // Write :exploration/concept Ref for each membership.
             cce_datoms.push(Datom::new(
-                *concept,
-                Attribute::from_keyword(":concept/member-count"),
-                Value::Long(new_count as i64),
+                entity,
+                Attribute::from_keyword(":exploration/concept"),
+                Value::Ref(*concept),
                 tx_id,
                 Op::Assert,
             ));
-            cce_datoms.push(Datom::new(
-                *concept,
-                Attribute::from_keyword(":concept/total-weight"),
-                Value::Double(ordered_float::OrderedFloat(new_total_weight)),
-                tx_id,
-                Op::Assert,
-            ));
-            cce_datoms.push(Datom::new(
-                *concept,
-                Attribute::from_keyword(":concept/embedding"),
-                Value::Bytes(braid_kernel::embedding::embedding_to_bytes(&new_centroid)),
-                tx_id,
-                Op::Assert,
-            ));
+            // Surprise only from primary (index 0).
+            if idx == 0 {
+                cce_datoms.push(Datom::new(
+                    entity,
+                    Attribute::from_keyword(":exploration/surprise"),
+                    Value::Double(ordered_float::OrderedFloat(*surprise as f64)),
+                    tx_id,
+                    Op::Assert,
+                ));
+            }
+
+            // --- LIFECYCLE-OBSERVE: Update each concept entity ---
+            let old_count = store
+                .live_value(*concept, &count_attr_kw)
+                .and_then(|v| if let Value::Long(n) = v { Some(*n as usize) } else { None })
+                .unwrap_or(0);
+
+            let old_total_weight = store
+                .live_value(*concept, &weight_attr_kw)
+                .and_then(|v| if let Value::Double(w) = v { Some(w.into_inner()) } else { None })
+                .unwrap_or(0.0);
+
+            let old_centroid = store
+                .live_value(*concept, &emb_attr)
+                .and_then(|v| if let Value::Bytes(b) = v { Some(braid_kernel::embedding::bytes_to_embedding(b)) } else { None });
+
+            let sw = braid_kernel::concept::surprise_weight(*surprise, braid_kernel::concept::DEFAULT_ALPHA);
+
+            if let Some(old_cent) = old_centroid {
+                let (mut new_centroid, new_total_weight) =
+                    braid_kernel::concept::update_centroid_weighted(&old_cent, old_total_weight, &obs_embedding, sw);
+                braid_kernel::embedding::l2_normalize(&mut new_centroid);
+
+                let new_count = old_count + 1;
+
+                cce_datoms.push(Datom::new(
+                    *concept,
+                    Attribute::from_keyword(":concept/member-count"),
+                    Value::Long(new_count as i64),
+                    tx_id,
+                    Op::Assert,
+                ));
+                cce_datoms.push(Datom::new(
+                    *concept,
+                    Attribute::from_keyword(":concept/total-weight"),
+                    Value::Double(ordered_float::OrderedFloat(new_total_weight)),
+                    tx_id,
+                    Op::Assert,
+                ));
+                cce_datoms.push(Datom::new(
+                    *concept,
+                    Attribute::from_keyword(":concept/embedding"),
+                    Value::Bytes(braid_kernel::embedding::embedding_to_bytes(&new_centroid)),
+                    tx_id,
+                    Op::Assert,
+                ));
+            }
         }
     }
     // Entity auto-link datoms.
@@ -798,7 +809,14 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     if let Some(ref line) = steering.gap_line {
         responsive_parts.push(line.clone());
     }
-    if let Some(ref q) = steering.question {
+    // FRONTIER-STEER: Replace formulaic steering question with computed frontier rec.
+    if let Some(rec) = braid_kernel::concept::frontier_recommendation(store, &obs_embedding) {
+        responsive_parts.push(format!(
+            "\u{2192} {}: {} \u{2014} {}",
+            rec.kind, rec.target, rec.rationale
+        ));
+    } else if let Some(ref q) = steering.question {
+        // Fallback to steering question when no frontier recommendation available.
         responsive_parts.push(format!("\u{2192} {q}"));
     } else if connections.is_empty() {
         responsive_parts.push(

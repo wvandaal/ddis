@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774471674/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 044: CONCEPT-MULTI complete — multi-membership concept assignment via assign_to_concepts(), co_occurrence_matrix(), compute_observe_steering_multi(). Observations now belong to multiple concepts simultaneously (simplicial complex topology). FRONTIER-STEER complete — frontier_recommendation() with Explore/Deepen/Bridge kinds replaces formulaic steering questions. FRONTIER-TEST complete — 13 unit tests + 2 proptests + 7 E2E checks, all passing. Total: 2009 tests, 0 failures."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a108675fbe217c43f616847915d63e4c62da55896df3f0e5d833a6a4d3d667d4" :a :db/doc :v "Session 044: CONCEPT-MULTI complete — multi-membership concept assignment via assign_to_concepts(), co_occurrence_matrix(), compute_observe_steering_multi(). Observations now belong to multiple concepts simultaneously (simplicial complex topology). FRONTIER-STEER complete — frontier_recommendation() with Explore/Deepen/Bridge kinds replaces formulaic steering questions. FRONTIER-TEST complete — 13 unit tests + 2 proptests + 7 E2E checks, all passing. Total: 2009 tests, 0 failures." :op :assert}
+   {:e #blake3 "a108675fbe217c43f616847915d63e4c62da55896df3f0e5d833a6a4d3d667d4" :a :db/ident :v :observation/session-044-concept-multi-complete-multi-membership-conce :op :assert}
+   {:e #blake3 "a108675fbe217c43f616847915d63e4c62da55896df3f0e5d833a6a4d3d667d4" :a :exploration/body :v "Session 044: CONCEPT-MULTI complete — multi-membership concept assignment via assign_to_concepts(), co_occurrence_matrix(), compute_observe_steering_multi(). Observations now belong to multiple concepts simultaneously (simplicial complex topology). FRONTIER-STEER complete — frontier_recommendation() with Explore/Deepen/Bridge kinds replaces formulaic steering questions. FRONTIER-TEST complete — 13 unit tests + 2 proptests + 7 E2E checks, all passing. Total: 2009 tests, 0 failures." :op :assert}
+   {:e #blake3 "a108675fbe217c43f616847915d63e4c62da55896df3f0e5d833a6a4d3d667d4" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "a108675fbe217c43f616847915d63e4c62da55896df3f0e5d833a6a4d3d667d4" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "a108675fbe217c43f616847915d63e4c62da55896df3f0e5d833a6a4d3d667d4" :a :exploration/content-hash :v #bytes "37158b69e776f35efab855815660a372117e881c4aaabf46f806b630c932f624" :op :assert}
+   {:e #blake3 "a108675fbe217c43f616847915d63e4c62da55896df3f0e5d833a6a4d3d667d4" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "a108675fbe217c43f616847915d63e4c62da55896df3f0e5d833a6a4d3d667d4" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "a108675fbe217c43f616847915d63e4c62da55896df3f0e5d833a6a4d3d667d4" :a :exploration/source-session :v #blake3 "9f94e8ad2e75934858948e103e5271d686c158a362190b203030c9c139e8e79e" :op :assert}
+ ]}

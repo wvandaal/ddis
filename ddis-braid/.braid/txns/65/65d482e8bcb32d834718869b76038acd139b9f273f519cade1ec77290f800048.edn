@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774471696/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a0764818"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d324a50547015c8ddcb7845649b6ef0102169f9802b699eb1b93f55e895e803f" :a :task/close-reason :v "FRONTIER-TEST: 13 unit + 2 proptest + 7 E2E, all passing. 2009 total tests, 0 failures." :op :assert}
+   {:e #blake3 "d324a50547015c8ddcb7845649b6ef0102169f9802b699eb1b93f55e895e803f" :a :task/closed-at :v 1774471695 :op :assert}
+   {:e #blake3 "d324a50547015c8ddcb7845649b6ef0102169f9802b699eb1b93f55e895e803f" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "d324a50547015c8ddcb7845649b6ef0102169f9802b699eb1b93f55e895e803f" :a :task/status :v :task.status/closed :op :assert}
+ ]}

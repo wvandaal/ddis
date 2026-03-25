@@ -136,6 +136,8 @@ pub fn find_nearest_concept(store: &Store, embedding: &[f32]) -> Option<(EntityI
 ///
 /// If the nearest concept has cosine similarity >= `threshold`, the observation
 /// joins that concept. Otherwise returns `Uncategorized`.
+///
+/// For multi-membership assignment, use [`assign_to_concepts`] instead.
 pub fn assign_to_concept(
     store: &Store,
     observation_embedding: &[f32],
@@ -149,6 +151,65 @@ pub fn assign_to_concept(
         },
         _ => ConceptAssignment::Uncategorized,
     }
+}
+
+/// Assign an observation to ALL concepts above the similarity threshold.
+///
+/// Returns matches sorted by similarity descending (primary match first).
+/// An observation about "ignored error returns in cascade" can belong
+/// simultaneously to anomalies, dependencies, and components — the topology
+/// is a simplicial complex, not a tree.
+///
+/// Returns an empty vec if no concept exceeds the threshold (equivalent to
+/// `ConceptAssignment::Uncategorized` in the singular API).
+///
+/// INV-EMBEDDING-004: All comparisons use the same embedding space.
+pub fn assign_to_concepts(
+    store: &Store,
+    observation_embedding: &[f32],
+    threshold: f32,
+) -> Vec<ConceptAssignment> {
+    let concept_attr = Attribute::from_keyword(":concept/embedding");
+
+    // Phase 1: Collect latest embedding per concept entity.
+    let mut latest: BTreeMap<EntityId, Vec<f32>> = BTreeMap::new();
+    for d in store.datoms() {
+        if d.op == Op::Assert && d.attribute == concept_attr {
+            if let Value::Bytes(ref bytes) = d.value {
+                latest.insert(d.entity, bytes_to_embedding(bytes));
+            }
+        }
+    }
+
+    // Phase 2: Collect all matches above threshold.
+    let mut matches: Vec<ConceptAssignment> = Vec::new();
+    for (entity, concept_emb) in &latest {
+        if concept_emb.len() == observation_embedding.len() {
+            let sim = cosine_similarity(concept_emb, observation_embedding);
+            if sim >= threshold {
+                matches.push(ConceptAssignment::Joined {
+                    concept: *entity,
+                    similarity: sim,
+                    surprise: 1.0 - sim,
+                });
+            }
+        }
+    }
+
+    // Sort by similarity descending (primary match first).
+    matches.sort_by(|a, b| {
+        let sim_a = match a {
+            ConceptAssignment::Joined { similarity, .. } => *similarity,
+            ConceptAssignment::Uncategorized => 0.0,
+        };
+        let sim_b = match b {
+            ConceptAssignment::Joined { similarity, .. } => *similarity,
+            ConceptAssignment::Uncategorized => 0.0,
+        };
+        sim_b.partial_cmp(&sim_a).unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    matches
 }
 
 /// Crystallize new concepts from uncategorized observations.
@@ -357,6 +418,328 @@ pub fn should_split(variance: f64) -> bool {
 /// Check if two concepts should be merged (highly similar centroids).
 pub fn should_merge(centroid_a: &[f32], centroid_b: &[f32]) -> bool {
     cosine_similarity(centroid_a, centroid_b) > MERGE_THRESHOLD
+}
+
+/// A pair of concepts with their Jaccard co-occurrence similarity.
+#[derive(Debug, Clone)]
+pub struct ConceptCoOccurrence {
+    /// First concept entity.
+    pub concept_a: EntityId,
+    /// First concept name.
+    pub name_a: String,
+    /// Second concept entity.
+    pub concept_b: EntityId,
+    /// Second concept name.
+    pub name_b: String,
+    /// Jaccard similarity of their observation member sets: |A ∩ B| / |A ∪ B|.
+    pub jaccard: f64,
+}
+
+/// Compute the co-occurrence matrix of concept memberships.
+///
+/// For each pair of concepts, computes Jaccard similarity of their observation
+/// member sets. Multi-membership means a single observation can appear in
+/// multiple concept member sets.
+///
+/// Returns pairs sorted by Jaccard descending. Pairs with Jaccard = 0.0
+/// are included (bridge gaps) up to a reasonable limit.
+pub fn co_occurrence_matrix(store: &Store) -> Vec<ConceptCoOccurrence> {
+    let concept_ref_attr = Attribute::from_keyword(":exploration/concept");
+    let name_attr = Attribute::from_keyword(":concept/name");
+
+    // Phase 1: Build concept → member set mapping from :exploration/concept Refs.
+    let mut members: BTreeMap<EntityId, HashSet<EntityId>> = BTreeMap::new();
+    for d in store.datoms() {
+        if d.op == Op::Assert && d.attribute == concept_ref_attr {
+            if let Value::Ref(concept_entity) = d.value {
+                members.entry(concept_entity).or_default().insert(d.entity);
+            }
+        }
+    }
+
+    // Phase 2: Build concept name lookup.
+    let mut names: BTreeMap<EntityId, String> = BTreeMap::new();
+    for d in store.datoms() {
+        if d.op == Op::Assert && d.attribute == name_attr {
+            if let Value::String(ref s) = d.value {
+                names.insert(d.entity, s.clone());
+            }
+        }
+    }
+
+    // Phase 3: Compute pairwise Jaccard.
+    let concept_ids: Vec<EntityId> = members.keys().copied().collect();
+    let mut pairs = Vec::new();
+
+    for i in 0..concept_ids.len() {
+        for j in (i + 1)..concept_ids.len() {
+            let a = concept_ids[i];
+            let b = concept_ids[j];
+            let set_a = &members[&a];
+            let set_b = &members[&b];
+
+            let intersection = set_a.intersection(set_b).count();
+            let union = set_a.union(set_b).count();
+            let jaccard = if union > 0 {
+                intersection as f64 / union as f64
+            } else {
+                0.0
+            };
+
+            pairs.push(ConceptCoOccurrence {
+                concept_a: a,
+                name_a: names.get(&a).cloned().unwrap_or_else(|| "unnamed".into()),
+                concept_b: b,
+                name_b: names.get(&b).cloned().unwrap_or_else(|| "unnamed".into()),
+                jaccard,
+            });
+        }
+    }
+
+    pairs.sort_by(|a, b| b.jaccard.partial_cmp(&a.jaccard).unwrap_or(std::cmp::Ordering::Equal));
+    pairs
+}
+
+// ===================================================================
+// Frontier Recommendation (FRONTIER-STEER)
+// ===================================================================
+
+/// The kind of frontier recommendation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FrontierKind {
+    /// An unexplored entity with high connectivity to observed entities.
+    Explore,
+    /// A concept with high variance (uncertain knowledge area).
+    Deepen,
+    /// A concept pair with zero co-occurrence but structural connection.
+    Bridge,
+}
+
+impl std::fmt::Display for FrontierKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FrontierKind::Explore => write!(f, "explore"),
+            FrontierKind::Deepen => write!(f, "deepen"),
+            FrontierKind::Bridge => write!(f, "bridge"),
+        }
+    }
+}
+
+/// A computed frontier recommendation — the highest-information-gain investigation target.
+#[derive(Debug, Clone)]
+pub struct FrontierRec {
+    /// What kind of recommendation this is.
+    pub kind: FrontierKind,
+    /// The target entity or concept name.
+    pub target: String,
+    /// Acquisition function score (higher = more information gain).
+    pub score: f64,
+    /// Human-readable rationale.
+    pub rationale: String,
+}
+
+/// Compute the highest-information-gain frontier recommendation.
+///
+/// Considers three candidate types:
+/// - **Explore**: `:pkg/*` entities referenced by `:composition/from` or `:composition/to`
+///   edges connected to observed entities, but not themselves observed. Score = connection count.
+/// - **Deepen**: Concepts with >= 3 members and highest variance. Score = variance.
+/// - **Bridge**: Concept pairs with zero co-occurrence where both have >= 2 members.
+///   Score = sum of member counts (larger concepts have more potential for discovery).
+///
+/// The `current_embedding` is used as a tiebreaker: among equal-score candidates,
+/// prefer the one most semantically distant (maximizes information gain).
+///
+/// Returns `None` if the store has no packages, no concepts, or nothing to recommend.
+pub fn frontier_recommendation(
+    store: &Store,
+    current_embedding: &[f32],
+) -> Option<FrontierRec> {
+    let mut candidates: Vec<FrontierRec> = Vec::new();
+
+    // --- Candidate 1: Explore (unexplored packages with high connectivity) ---
+    candidates.extend(explore_candidates(store));
+
+    // --- Candidate 2: Deepen (high-variance concepts) ---
+    candidates.extend(deepen_candidates(store, current_embedding));
+
+    // --- Candidate 3: Bridge (zero co-occurrence concept pairs) ---
+    candidates.extend(bridge_candidates(store));
+
+    // Select the highest-scoring candidate.
+    candidates.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+    candidates.into_iter().next()
+}
+
+/// Find unexplored package entities with high connectivity to observed entities.
+fn explore_candidates(store: &Store) -> Vec<FrontierRec> {
+    let ident_attr = Attribute::from_keyword(":db/ident");
+    let mentions_attr = Attribute::from_keyword(":exploration/mentions-entity");
+    let comp_from_attr = Attribute::from_keyword(":composition/from");
+    let comp_to_attr = Attribute::from_keyword(":composition/to");
+
+    // Collect all :pkg/* entities.
+    let mut pkg_entities: BTreeMap<EntityId, String> = BTreeMap::new();
+    for d in store.datoms() {
+        if d.op == Op::Assert && d.attribute == ident_attr {
+            if let Value::Keyword(ref s) = d.value {
+                if s.starts_with(":pkg/") {
+                    pkg_entities.insert(d.entity, s.clone());
+                }
+            }
+        }
+    }
+
+    if pkg_entities.is_empty() {
+        return Vec::new();
+    }
+
+    // Collect observed (mentioned) entities.
+    let mut observed: HashSet<EntityId> = HashSet::new();
+    for d in store.datoms() {
+        if d.op == Op::Assert && d.attribute == mentions_attr {
+            if let Value::Ref(target) = d.value {
+                observed.insert(target);
+            }
+        }
+    }
+
+    // Collect composition edges: build package->package neighbor map.
+    // Composition edges are entities with :composition/from -> pkg_a, :composition/to -> pkg_b.
+    // First pass: collect from/to per edge entity.
+    let mut edge_from: BTreeMap<EntityId, EntityId> = BTreeMap::new();
+    let mut edge_to: BTreeMap<EntityId, EntityId> = BTreeMap::new();
+    for d in store.datoms() {
+        if d.op != Op::Assert {
+            continue;
+        }
+        if let Value::Ref(target) = d.value {
+            if d.attribute == comp_from_attr {
+                edge_from.insert(d.entity, target);
+            } else if d.attribute == comp_to_attr {
+                edge_to.insert(d.entity, target);
+            }
+        }
+    }
+    // Second pass: for each complete edge (has both from and to), add neighbor links.
+    let mut neighbors: BTreeMap<EntityId, HashSet<EntityId>> = BTreeMap::new();
+    for (edge, from_pkg) in &edge_from {
+        if let Some(to_pkg) = edge_to.get(edge) {
+            neighbors.entry(*from_pkg).or_default().insert(*to_pkg);
+            neighbors.entry(*to_pkg).or_default().insert(*from_pkg);
+        }
+    }
+
+    // Score unexplored packages by connection count to observed packages.
+    let mut candidates = Vec::new();
+    for (entity, ident) in &pkg_entities {
+        if observed.contains(entity) {
+            continue; // Already explored.
+        }
+
+        let connections = neighbors
+            .get(entity)
+            .map(|ns| ns.iter().filter(|n| observed.contains(n)).count())
+            .unwrap_or(0);
+
+        if connections > 0 {
+            let name = ident.strip_prefix(":pkg/").unwrap_or(ident);
+            let obs_names: Vec<&str> = neighbors
+                .get(entity)
+                .map(|ns| {
+                    ns.iter()
+                        .filter(|n| observed.contains(n))
+                        .filter_map(|n| pkg_entities.get(n))
+                        .map(|s| s.strip_prefix(":pkg/").unwrap_or(s.as_str()))
+                        .collect()
+                })
+                .unwrap_or_default();
+            let deps_str = if obs_names.len() <= 3 {
+                obs_names.join(", ")
+            } else {
+                format!("{} + {} more", obs_names[..2].join(", "), obs_names.len() - 2)
+            };
+            candidates.push(FrontierRec {
+                kind: FrontierKind::Explore,
+                target: name.to_string(),
+                score: connections as f64,
+                rationale: format!(
+                    "imported by {} ({connections} deps, 0 observations)",
+                    deps_str
+                ),
+            });
+        }
+    }
+
+    candidates
+}
+
+/// Find concepts with high variance (knowledge uncertainty).
+fn deepen_candidates(store: &Store, current_embedding: &[f32]) -> Vec<FrontierRec> {
+    let inventory = concept_inventory(store);
+    let mut candidates = Vec::new();
+
+    for c in &inventory {
+        if c.member_count >= 3 && c.variance > 0.1 {
+            // Tiebreaker: prefer concepts distant from current observation.
+            let distance_bonus = c.embedding.as_ref().map_or(0.0, |emb| {
+                1.0 - cosine_similarity(emb, current_embedding) as f64
+            });
+            let score = c.variance + distance_bonus * 0.1;
+
+            candidates.push(FrontierRec {
+                kind: FrontierKind::Deepen,
+                target: c.name.clone(),
+                score,
+                rationale: format!(
+                    "high variance={:.2} across {} observations",
+                    c.variance, c.member_count
+                ),
+            });
+        }
+    }
+
+    candidates
+}
+
+/// Find concept pairs with zero co-occurrence (bridge gaps).
+fn bridge_candidates(store: &Store) -> Vec<FrontierRec> {
+    let co_occ = co_occurrence_matrix(store);
+    let inventory = concept_inventory(store);
+    let mut candidates = Vec::new();
+
+    for pair in &co_occ {
+        if pair.jaccard > 0.0 {
+            continue; // Only interested in zero co-occurrence.
+        }
+
+        // Both concepts need >= 2 members to be meaningful bridge targets.
+        let a_count = inventory
+            .iter()
+            .find(|c| c.entity == pair.concept_a)
+            .map(|c| c.member_count)
+            .unwrap_or(0);
+        let b_count = inventory
+            .iter()
+            .find(|c| c.entity == pair.concept_b)
+            .map(|c| c.member_count)
+            .unwrap_or(0);
+
+        if a_count >= 2 && b_count >= 2 {
+            let score = (a_count + b_count) as f64 * 0.5;
+            candidates.push(FrontierRec {
+                kind: FrontierKind::Bridge,
+                target: format!("{} <-> {}", pair.name_a, pair.name_b),
+                score,
+                rationale: format!(
+                    "zero co-occurrence between {} ({} obs) and {} ({} obs)",
+                    pair.name_a, a_count, pair.name_b, b_count
+                ),
+            });
+        }
+    }
+
+    candidates
 }
 
 /// Generate datoms for a new concept entity.
@@ -713,8 +1096,23 @@ pub fn compute_observe_steering(
     assignment: &ConceptAssignment,
     entity_matches: &[EntityMatch],
 ) -> ObserveSteering {
-    // Line 1: Concept membership.
-    let concept_line = match assignment {
+    compute_observe_steering_multi(store, &[], assignment, entity_matches)
+}
+
+/// Compute steering information with multi-membership concept assignments.
+///
+/// `assignments` is the full multi-membership result from [`assign_to_concepts`].
+/// `primary_assignment` is the backward-compatible single assignment (first match or Uncategorized).
+///
+/// The concept_line shows the primary match, plus secondary matches as "+ name (cosine=X)".
+pub fn compute_observe_steering_multi(
+    store: &Store,
+    assignments: &[ConceptAssignment],
+    primary_assignment: &ConceptAssignment,
+    entity_matches: &[EntityMatch],
+) -> ObserveSteering {
+    // Line 1: Primary concept membership.
+    let mut concept_line = match primary_assignment {
         ConceptAssignment::Joined {
             concept,
             similarity: _,
@@ -723,19 +1121,40 @@ pub fn compute_observe_steering(
             let name = concept_name_from_entity(store, *concept);
             let count = concept_member_count(store, *concept);
             if *surprise < 0.1 {
-                Some(format!("concept:{name} ({count} members, confirms)"))
+                Some(format!("concept:{name} ({count} obs, confirms)"))
             } else if *surprise < 0.3 {
                 Some(format!(
-                    "concept:{name} ({count} members, surprise={surprise:.2})"
+                    "concept:{name} ({count} obs, surprise={surprise:.2})"
                 ))
             } else {
                 Some(format!(
-                    "concept:{name} ({count} members, surprise={surprise:.2} — at boundary)"
+                    "concept:{name} ({count} obs, surprise={surprise:.2} — at boundary)"
                 ))
             }
         }
         ConceptAssignment::Uncategorized => None,
     };
+
+    // Append secondary matches from multi-membership (skip index 0 = primary).
+    if assignments.len() > 1 {
+        let secondaries: Vec<String> = assignments[1..]
+            .iter()
+            .filter_map(|a| match a {
+                ConceptAssignment::Joined {
+                    concept, similarity, ..
+                } => {
+                    let name = concept_name_from_entity(store, *concept);
+                    Some(format!("+ {name} (cosine={similarity:.2})"))
+                }
+                _ => None,
+            })
+            .collect();
+
+        if !secondaries.is_empty() {
+            let primary = concept_line.unwrap_or_default();
+            concept_line = Some(format!("{primary} {}", secondaries.join(" ")));
+        }
+    }
 
     // Line 2: Structural gap from entity matches.
     let gap_line = if entity_matches.len() >= 2 {
@@ -751,7 +1170,7 @@ pub fn compute_observe_steering(
     };
 
     // Line 3: Steering question.
-    let question = compute_steering_question(store, assignment, entity_matches);
+    let question = compute_steering_question(store, primary_assignment, entity_matches);
 
     ObserveSteering {
         concept_line,
@@ -847,6 +1266,27 @@ pub fn format_concept_status(store: &Store) -> Vec<String> {
                 }
             }
         }
+    }
+
+    // Co-occurrence: show coupled concept pairs (Jaccard > 0.3) and bridge gaps (Jaccard = 0).
+    let co_occ = co_occurrence_matrix(store);
+    let coupled: Vec<&ConceptCoOccurrence> = co_occ.iter().filter(|p| p.jaccard > 0.3).collect();
+    let bridges: Vec<&ConceptCoOccurrence> = co_occ.iter().filter(|p| p.jaccard == 0.0).collect();
+
+    for pair in &coupled {
+        lines.push(format!(
+            "coupled: {} + {} (jaccard={:.2})",
+            pair.name_a, pair.name_b, pair.jaccard
+        ));
+    }
+    if !bridges.is_empty() && bridges.len() <= 5 {
+        let bridge_strs: Vec<String> = bridges
+            .iter()
+            .map(|p| format!("{}/{}", p.name_a, p.name_b))
+            .collect();
+        lines.push(format!("bridge-gaps: {}", bridge_strs.join(", ")));
+    } else if bridges.len() > 5 {
+        lines.push(format!("bridge-gaps: {} concept pairs with zero co-occurrence", bridges.len()));
     }
 
     lines
@@ -2652,5 +3092,684 @@ mod tests {
             "HashEmbedder threshold should be 0.65, got {}",
             h.join_threshold()
         );
+    }
+
+    // ===================================================================
+    // FRONTIER-TEST: Multi-membership + Frontier Steering tests
+    // ===================================================================
+
+    /// Helper: build a store with innate concepts (5 concepts with embeddings).
+    fn store_with_innate_concepts() -> Store {
+        let mut store = store_with_schema();
+        let emb = make_embedder();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(10, 0, agent);
+
+        let datoms: Vec<Datom> = innate_concept_datoms(1000, &emb)
+            .into_iter()
+            .map(|(e, a, v)| Datom::new(e, a, v, tx, Op::Assert))
+            .collect();
+
+        store.apply_datoms(&datoms);
+        store
+    }
+
+    /// (1) assign_to_concepts returns multiple matches sorted by similarity desc.
+    #[test]
+    fn test_assign_to_concepts_multi() {
+        let store = store_with_innate_concepts();
+        let emb = make_embedder();
+        // Text that should match multiple innate concepts: components + dependencies + anomalies.
+        let text = "package boundaries modules imports coupling violations inconsistencies";
+        let v = emb.embed(text);
+        // Use a very low threshold to ensure multiple matches.
+        let assignments = assign_to_concepts(&store, &v, 0.01);
+        assert!(
+            assignments.len() >= 2,
+            "text spanning multiple domains should match multiple concepts, got {}",
+            assignments.len()
+        );
+        // Verify sorted by similarity descending.
+        for w in assignments.windows(2) {
+            let sim_a = match &w[0] {
+                ConceptAssignment::Joined { similarity, .. } => *similarity,
+                _ => 0.0,
+            };
+            let sim_b = match &w[1] {
+                ConceptAssignment::Joined { similarity, .. } => *similarity,
+                _ => 0.0,
+            };
+            assert!(
+                sim_a >= sim_b,
+                "assignments should be sorted by similarity desc: {sim_a} < {sim_b}"
+            );
+        }
+    }
+
+    /// (2) assign_to_concepts returns single entry for text matching one concept.
+    #[test]
+    fn test_assign_to_concepts_single() {
+        let store = store_with_innate_concepts();
+        let emb = make_embedder();
+        // Unique text — should strongly match exactly one innate concept.
+        // Use hash embedder threshold (0.65) to be selective.
+        let text = "parts system boundaries packages modules crates files services";
+        let v = emb.embed(text);
+        let assignments = assign_to_concepts(&store, &v, 0.65);
+        // With hash embedder and high threshold, should get at most 1 match.
+        assert!(
+            assignments.len() <= 2,
+            "highly specific text should match 1-2 concepts, got {}",
+            assignments.len()
+        );
+        if !assignments.is_empty() {
+            assert!(matches!(assignments[0], ConceptAssignment::Joined { .. }));
+        }
+    }
+
+    /// (3) assign_to_concepts returns empty vec when nothing matches.
+    #[test]
+    fn test_assign_to_concepts_none() {
+        let store = store_with_innate_concepts();
+        let emb = make_embedder();
+        // Completely unrelated text.
+        let text = "quantum chromodynamics baryon asymmetry";
+        let v = emb.embed(text);
+        let assignments = assign_to_concepts(&store, &v, 0.65);
+        assert!(
+            assignments.is_empty(),
+            "unrelated text should match 0 concepts, got {}",
+            assignments.len()
+        );
+    }
+
+    /// (4) Multi-membership: verify that centroid update works for each matched concept.
+    #[test]
+    fn test_multi_membership_updates_all_centroids() {
+        let store = store_with_innate_concepts();
+        let emb = make_embedder();
+        let text = "boundaries modules imports coupling";
+        let obs_emb = emb.embed(text);
+        let assignments = assign_to_concepts(&store, &obs_emb, 0.01);
+
+        // For each match, verify centroid update produces a valid result.
+        for assignment in &assignments {
+            if let ConceptAssignment::Joined {
+                concept, surprise, ..
+            } = assignment
+            {
+                let emb_attr = Attribute::from_keyword(":concept/embedding");
+                let old_centroid = store
+                    .live_value(*concept, &emb_attr)
+                    .and_then(|v| {
+                        if let Value::Bytes(b) = v {
+                            Some(crate::embedding::bytes_to_embedding(b))
+                        } else {
+                            None
+                        }
+                    });
+
+                if let Some(old_cent) = old_centroid {
+                    let sw = surprise_weight(*surprise, DEFAULT_ALPHA);
+                    let (new_cent, new_weight) =
+                        update_centroid_weighted(&old_cent, 1.0, &obs_emb, sw);
+                    assert!(new_weight > 1.0, "total weight should increase");
+                    assert_eq!(
+                        new_cent.len(),
+                        old_cent.len(),
+                        "centroid dimension should be preserved"
+                    );
+                }
+            }
+        }
+    }
+
+    /// (5) co_occurrence_matrix: 3 shared members produce correct Jaccard.
+    #[test]
+    fn test_co_occurrence_matrix_coupled() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+        let emb = make_embedder();
+
+        // Create two concepts.
+        let concept_a = EntityId::from_content(b"concept:alpha");
+        let concept_b = EntityId::from_content(b"concept:beta");
+        let tx = TxId::new(10, 0, agent);
+
+        // Concept names.
+        store.apply_datoms(&[Datom::new(
+            concept_a,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("alpha".into()),
+            tx,
+            Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept_a,
+            Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(crate::embedding::embedding_to_bytes(&emb.embed("alpha"))),
+            tx,
+            Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept_b,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("beta".into()),
+            tx,
+            Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept_b,
+            Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(crate::embedding::embedding_to_bytes(&emb.embed("beta"))),
+            tx,
+            Op::Assert,
+        )]);
+
+        let concept_attr = Attribute::from_keyword(":exploration/concept");
+
+        // 5 obs in A, 5 obs in B, 3 shared.
+        for i in 0..5 {
+            let obs = EntityId::from_content(format!("obs-a-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs,
+                concept_attr.clone(),
+                Value::Ref(concept_a),
+                tx,
+                Op::Assert,
+            )]);
+        }
+        for i in 0..5 {
+            let obs = EntityId::from_content(format!("obs-b-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs,
+                concept_attr.clone(),
+                Value::Ref(concept_b),
+                tx,
+                Op::Assert,
+            )]);
+        }
+        // 3 shared: also assign obs-a-0, obs-a-1, obs-a-2 to concept_b.
+        for i in 0..3 {
+            let obs = EntityId::from_content(format!("obs-a-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs,
+                concept_attr.clone(),
+                Value::Ref(concept_b),
+                tx,
+                Op::Assert,
+            )]);
+        }
+
+        let matrix = co_occurrence_matrix(&store);
+        assert!(!matrix.is_empty(), "co-occurrence matrix should have entries");
+
+        // Find the alpha-beta pair.
+        let pair = matrix
+            .iter()
+            .find(|p| {
+                (p.concept_a == concept_a && p.concept_b == concept_b)
+                    || (p.concept_a == concept_b && p.concept_b == concept_a)
+            });
+        assert!(pair.is_some(), "should find alpha-beta pair");
+        let pair = pair.unwrap();
+        // |A ∩ B| = 3, |A| = 5, |B| = 5+3=8 unique obs... wait.
+        // A has: obs-a-0..4 (5 members).
+        // B has: obs-b-0..4, obs-a-0, obs-a-1, obs-a-2 (8 members).
+        // Intersection: obs-a-0, obs-a-1, obs-a-2 (3).
+        // Union: 5 + 8 - 3 = 10.
+        // Jaccard = 3/10 = 0.3.
+        assert!(
+            (pair.jaccard - 0.3).abs() < 0.01,
+            "Jaccard should be 0.3 (3 shared / 10 union), got {:.3}",
+            pair.jaccard
+        );
+    }
+
+    /// (6) co_occurrence_matrix: disjoint sets produce Jaccard = 0.
+    #[test]
+    fn test_co_occurrence_matrix_disjoint() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+
+        let concept_a = EntityId::from_content(b"concept:x");
+        let concept_b = EntityId::from_content(b"concept:y");
+        let tx = TxId::new(10, 0, agent);
+
+        store.apply_datoms(&[Datom::new(
+            concept_a,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("x".into()),
+            tx,
+            Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept_b,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("y".into()),
+            tx,
+            Op::Assert,
+        )]);
+
+        let concept_attr = Attribute::from_keyword(":exploration/concept");
+
+        // 5 obs in each, no overlap.
+        for i in 0..5 {
+            let obs_a = EntityId::from_content(format!("obs-x-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs_a,
+                concept_attr.clone(),
+                Value::Ref(concept_a),
+                tx,
+                Op::Assert,
+            )]);
+            let obs_b = EntityId::from_content(format!("obs-y-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs_b,
+                concept_attr.clone(),
+                Value::Ref(concept_b),
+                tx,
+                Op::Assert,
+            )]);
+        }
+
+        let matrix = co_occurrence_matrix(&store);
+        let pair = matrix.iter().find(|p| {
+            (p.concept_a == concept_a && p.concept_b == concept_b)
+                || (p.concept_a == concept_b && p.concept_b == concept_a)
+        });
+        assert!(pair.is_some());
+        assert_eq!(pair.unwrap().jaccard, 0.0, "disjoint sets should have Jaccard = 0");
+    }
+
+    /// (7) co_occurrence_matrix: subset relationship.
+    #[test]
+    fn test_co_occurrence_matrix_subset() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+
+        let concept_a = EntityId::from_content(b"concept:small");
+        let concept_b = EntityId::from_content(b"concept:big");
+        let tx = TxId::new(10, 0, agent);
+
+        store.apply_datoms(&[Datom::new(
+            concept_a,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("small".into()),
+            tx,
+            Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept_b,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("big".into()),
+            tx,
+            Op::Assert,
+        )]);
+
+        let concept_attr = Attribute::from_keyword(":exploration/concept");
+
+        // A has 3 obs, all also in B. B has 5 total.
+        for i in 0..3 {
+            let obs = EntityId::from_content(format!("obs-shared-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs,
+                concept_attr.clone(),
+                Value::Ref(concept_a),
+                tx,
+                Op::Assert,
+            )]);
+            store.apply_datoms(&[Datom::new(
+                obs,
+                concept_attr.clone(),
+                Value::Ref(concept_b),
+                tx,
+                Op::Assert,
+            )]);
+        }
+        for i in 3..5 {
+            let obs = EntityId::from_content(format!("obs-big-only-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs,
+                concept_attr.clone(),
+                Value::Ref(concept_b),
+                tx,
+                Op::Assert,
+            )]);
+        }
+
+        let matrix = co_occurrence_matrix(&store);
+        let pair = matrix.iter().find(|p| {
+            (p.concept_a == concept_a && p.concept_b == concept_b)
+                || (p.concept_a == concept_b && p.concept_b == concept_a)
+        });
+        assert!(pair.is_some());
+        // |A ∩ B| = 3, |A ∪ B| = 5, Jaccard = 3/5 = 0.6.
+        assert!(
+            (pair.unwrap().jaccard - 0.6).abs() < 0.01,
+            "subset: Jaccard should be 0.6, got {:.3}",
+            pair.unwrap().jaccard
+        );
+    }
+
+    /// (8) frontier_recommendation returns Explore for unexplored connected packages.
+    #[test]
+    fn test_frontier_explore() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(10, 0, agent);
+        let emb = make_embedder();
+
+        // Create 5 :pkg/* entities.
+        let pkgs: Vec<(EntityId, String)> = (0..5)
+            .map(|i| {
+                let name = format!(":pkg/module-{i}");
+                let e = EntityId::from_ident(&name);
+                store.apply_datoms(&[Datom::new(
+                    e,
+                    Attribute::from_keyword(":db/ident"),
+                    Value::Keyword(name.clone()),
+                    tx,
+                    Op::Assert,
+                )]);
+                (e, name)
+            })
+            .collect();
+
+        // Add composition edges: module-0 imports module-2, module-3, module-4.
+        let comp_from = Attribute::from_keyword(":composition/from");
+        let comp_to = Attribute::from_keyword(":composition/to");
+        for &target_idx in &[2, 3, 4] {
+            let edge_entity = EntityId::from_content(
+                format!("edge-0-{target_idx}").as_bytes(),
+            );
+            store.apply_datoms(&[Datom::new(
+                edge_entity,
+                comp_from.clone(),
+                Value::Ref(pkgs[0].0),
+                tx,
+                Op::Assert,
+            )]);
+            store.apply_datoms(&[Datom::new(
+                edge_entity,
+                comp_to.clone(),
+                Value::Ref(pkgs[target_idx].0),
+                tx,
+                Op::Assert,
+            )]);
+        }
+
+        // Mark module-0 and module-1 as explored (mentioned by observations).
+        let mentions_attr = Attribute::from_keyword(":exploration/mentions-entity");
+        let obs1 = EntityId::from_content(b"obs-explore-1");
+        store.apply_datoms(&[Datom::new(
+            obs1,
+            mentions_attr.clone(),
+            Value::Ref(pkgs[0].0),
+            tx,
+            Op::Assert,
+        )]);
+        let obs2 = EntityId::from_content(b"obs-explore-2");
+        store.apply_datoms(&[Datom::new(
+            obs2,
+            mentions_attr.clone(),
+            Value::Ref(pkgs[1].0),
+            tx,
+            Op::Assert,
+        )]);
+
+        let current_emb = emb.embed("test observation");
+        let rec = frontier_recommendation(&store, &current_emb);
+        assert!(rec.is_some(), "should recommend exploring unexplored packages");
+        let rec = rec.unwrap();
+        assert_eq!(rec.kind, FrontierKind::Explore, "should be Explore kind");
+        assert!(
+            rec.target.contains("module-"),
+            "target should be an unexplored module, got: {}",
+            rec.target
+        );
+    }
+
+    /// (9) frontier_recommendation returns Deepen for high-variance concept.
+    #[test]
+    fn test_frontier_deepen() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(10, 0, agent);
+        let emb = make_embedder();
+
+        // Create a concept with high variance and >= 3 members.
+        let concept = EntityId::from_content(b"concept:uncertain");
+        store.apply_datoms(&[Datom::new(
+            concept,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("uncertain-concept".into()),
+            tx,
+            Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept,
+            Attribute::from_keyword(":concept/member-count"),
+            Value::Long(5),
+            tx,
+            Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept,
+            Attribute::from_keyword(":concept/variance"),
+            Value::Double(ordered_float::OrderedFloat(0.8)),
+            tx,
+            Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept,
+            Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(crate::embedding::embedding_to_bytes(&emb.embed("uncertain topic"))),
+            tx,
+            Op::Assert,
+        )]);
+
+        let current_emb = emb.embed("different topic entirely");
+        let rec = frontier_recommendation(&store, &current_emb);
+        assert!(rec.is_some(), "should recommend deepening high-variance concept");
+        let rec = rec.unwrap();
+        assert_eq!(rec.kind, FrontierKind::Deepen, "should be Deepen kind");
+        assert_eq!(rec.target, "uncertain-concept");
+    }
+
+    /// (10) frontier_recommendation returns Bridge for zero co-occurrence concept pairs.
+    #[test]
+    fn test_frontier_bridge() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(10, 0, agent);
+        let emb = make_embedder();
+
+        // Create two concepts with members but zero co-occurrence.
+        let concept_a = EntityId::from_content(b"concept:alpha-bridge");
+        let concept_b = EntityId::from_content(b"concept:beta-bridge");
+
+        for (concept, name) in &[(concept_a, "alpha-bridge"), (concept_b, "beta-bridge")] {
+            store.apply_datoms(&[Datom::new(
+                *concept,
+                Attribute::from_keyword(":concept/name"),
+                Value::String(name.to_string()),
+                tx,
+                Op::Assert,
+            )]);
+            store.apply_datoms(&[Datom::new(
+                *concept,
+                Attribute::from_keyword(":concept/member-count"),
+                Value::Long(3),
+                tx,
+                Op::Assert,
+            )]);
+            store.apply_datoms(&[Datom::new(
+                *concept,
+                Attribute::from_keyword(":concept/embedding"),
+                Value::Bytes(crate::embedding::embedding_to_bytes(&emb.embed(name))),
+                tx,
+                Op::Assert,
+            )]);
+        }
+
+        // Add disjoint observations.
+        let concept_attr = Attribute::from_keyword(":exploration/concept");
+        for i in 0..3 {
+            let obs_a = EntityId::from_content(format!("obs-bridge-a-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs_a,
+                concept_attr.clone(),
+                Value::Ref(concept_a),
+                tx,
+                Op::Assert,
+            )]);
+            let obs_b = EntityId::from_content(format!("obs-bridge-b-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs_b,
+                concept_attr.clone(),
+                Value::Ref(concept_b),
+                tx,
+                Op::Assert,
+            )]);
+        }
+
+        let current_emb = emb.embed("something unrelated");
+        let rec = frontier_recommendation(&store, &current_emb);
+        assert!(rec.is_some(), "should recommend bridging disconnected concepts");
+        let rec = rec.unwrap();
+        assert_eq!(rec.kind, FrontierKind::Bridge, "should be Bridge kind");
+        assert!(
+            rec.target.contains("alpha-bridge") && rec.target.contains("beta-bridge"),
+            "target should mention both concepts, got: {}",
+            rec.target
+        );
+    }
+
+    /// (11) frontier_recommendation returns None on empty store.
+    #[test]
+    fn test_frontier_empty_store() {
+        let store = Store::genesis();
+        let emb = make_embedder();
+        let v = emb.embed("test");
+        assert!(
+            frontier_recommendation(&store, &v).is_none(),
+            "empty store should produce no frontier recommendation"
+        );
+    }
+
+    /// (12) Proptest: multi-membership member_counts sum >= N.
+    #[test]
+    fn proptest_multi_membership_member_counts() {
+        use std::collections::HashMap as StdHashMap;
+        let emb = make_embedder();
+        let store = store_with_innate_concepts();
+
+        // Generate N random observations and multi-assign each.
+        let texts = [
+            "package boundaries modules imports violations",
+            "coupling interfaces data flow dependencies",
+            "bugs inconsistencies surprises gaps anomalies",
+            "rules constraints assertions contracts",
+            "idioms conventions architectures protocols",
+            "error handling cascade module returns",
+            "event sourcing pipeline architecture",
+            "test coverage metric verification",
+            "database schema migration deploy",
+            "authentication authorization security tokens",
+        ];
+
+        let mut concept_members: StdHashMap<EntityId, usize> = StdHashMap::new();
+        let mut total_memberships = 0usize;
+
+        for text in &texts {
+            let v = emb.embed(text);
+            let assignments = assign_to_concepts(&store, &v, 0.01);
+            for a in &assignments {
+                if let ConceptAssignment::Joined { concept, .. } = a {
+                    *concept_members.entry(*concept).or_insert(0) += 1;
+                    total_memberships += 1;
+                }
+            }
+        }
+
+        // With multi-membership, total memberships >= N (each obs in >= 1 concept).
+        // Some obs may match 0 concepts (if threshold not met), but with 0.01 threshold
+        // and innate concepts, most should match at least 1.
+        let total_assigned: usize = concept_members.values().sum();
+        assert_eq!(total_assigned, total_memberships);
+        // With low threshold and 5 innate concepts, most observations should match multiple.
+        assert!(
+            total_memberships >= texts.len(),
+            "total memberships ({total_memberships}) should be >= observation count ({})",
+            texts.len()
+        );
+    }
+
+    /// (13) Proptest: co_occurrence Jaccard values in [0.0, 1.0].
+    #[test]
+    fn proptest_co_occurrence_jaccard_bounds() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(10, 0, agent);
+
+        // Create 3 concepts.
+        let concepts: Vec<EntityId> = (0..3)
+            .map(|i| {
+                let e = EntityId::from_content(format!("concept:prop-{i}").as_bytes());
+                store.apply_datoms(&[Datom::new(
+                    e,
+                    Attribute::from_keyword(":concept/name"),
+                    Value::String(format!("prop-{i}")),
+                    tx,
+                    Op::Assert,
+                )]);
+                e
+            })
+            .collect();
+
+        let concept_attr = Attribute::from_keyword(":exploration/concept");
+
+        // Assign observations to random concepts.
+        for i in 0..20 {
+            let obs = EntityId::from_content(format!("obs-prop-{i}").as_bytes());
+            // Assign to concept i%3 always, and concept (i+1)%3 sometimes.
+            store.apply_datoms(&[Datom::new(
+                obs,
+                concept_attr.clone(),
+                Value::Ref(concepts[i % 3]),
+                tx,
+                Op::Assert,
+            )]);
+            if i % 2 == 0 {
+                store.apply_datoms(&[Datom::new(
+                    obs,
+                    concept_attr.clone(),
+                    Value::Ref(concepts[(i + 1) % 3]),
+                    tx,
+                    Op::Assert,
+                )]);
+            }
+        }
+
+        let matrix = co_occurrence_matrix(&store);
+        for pair in &matrix {
+            assert!(
+                (0.0..=1.0).contains(&pair.jaccard),
+                "Jaccard must be in [0, 1], got {} for {}/{}",
+                pair.jaccard,
+                pair.name_a,
+                pair.name_b
+            );
+        }
+
+        // Verify symmetry: if we find A-B, there shouldn't also be B-A (matrix is upper-triangular).
+        for i in 0..matrix.len() {
+            for j in (i + 1)..matrix.len() {
+                let duplicate = matrix[i].concept_a == matrix[j].concept_b
+                    && matrix[i].concept_b == matrix[j].concept_a;
+                assert!(!duplicate, "co-occurrence matrix should not have duplicate pairs");
+            }
+        }
     }
 }
