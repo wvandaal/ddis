@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774420323/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 043: CCE-TEST-SURPRISE (9 tests), CCE-TEST (47+29 tests, E2E script), CCE-PROMPT (3 agent prompts), init innate concepts wired. 1958 tests, 5/5 E2E."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ceea6a7dcb4549ee2d9d15777ac9e03da1dd4467b44e45657dd664ffe96079cd" :a :db/doc :v "Session 043: CCE-TEST-SURPRISE (9 tests), CCE-TEST (47+29 tests, E2E script), CCE-PROMPT (3 agent prompts), init innate concepts wired. 1958 tests, 5/5 E2E." :op :assert}
+   {:e #blake3 "ceea6a7dcb4549ee2d9d15777ac9e03da1dd4467b44e45657dd664ffe96079cd" :a :db/ident :v :observation/session-043-cce-test-surprise-9-tests-cce-test-4729-te :op :assert}
+   {:e #blake3 "ceea6a7dcb4549ee2d9d15777ac9e03da1dd4467b44e45657dd664ffe96079cd" :a :exploration/body :v "Session 043: CCE-TEST-SURPRISE (9 tests), CCE-TEST (47+29 tests, E2E script), CCE-PROMPT (3 agent prompts), init innate concepts wired. 1958 tests, 5/5 E2E." :op :assert}
+   {:e #blake3 "ceea6a7dcb4549ee2d9d15777ac9e03da1dd4467b44e45657dd664ffe96079cd" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "ceea6a7dcb4549ee2d9d15777ac9e03da1dd4467b44e45657dd664ffe96079cd" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "ceea6a7dcb4549ee2d9d15777ac9e03da1dd4467b44e45657dd664ffe96079cd" :a :exploration/content-hash :v #bytes "fb72a75762f375b17b52c5f6e27156b4b9706035e4dfbbc05d0b932c8709ecba" :op :assert}
+   {:e #blake3 "ceea6a7dcb4549ee2d9d15777ac9e03da1dd4467b44e45657dd664ffe96079cd" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "ceea6a7dcb4549ee2d9d15777ac9e03da1dd4467b44e45657dd664ffe96079cd" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "ceea6a7dcb4549ee2d9d15777ac9e03da1dd4467b44e45657dd664ffe96079cd" :a :exploration/source-session :v #blake3 "aa1527fbc3aa8b5683012b32ce1bd71406441cb4ebd9de4bbdb3bd9840b94cef" :op :assert}
+ ]}

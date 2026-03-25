@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774420307/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-60982fa8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "303202e102f33e9dc9fb7e316f223643c2edfc814b6e06e06b9226f56a6e4c9b" :a :task/close-reason :v "Implemented: 6 unit tests + 2 proptests + 1 E2E addition in concept.rs and e2e_concept_crystallization.sh. All 9 specified tests pass." :op :assert}
+   {:e #blake3 "303202e102f33e9dc9fb7e316f223643c2edfc814b6e06e06b9226f56a6e4c9b" :a :task/closed-at :v 1774420306 :op :assert}
+   {:e #blake3 "303202e102f33e9dc9fb7e316f223643c2edfc814b6e06e06b9226f56a6e4c9b" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "303202e102f33e9dc9fb7e316f223643c2edfc814b6e06e06b9226f56a6e4c9b" :a :task/status :v :task.status/closed :op :assert}
+ ]}

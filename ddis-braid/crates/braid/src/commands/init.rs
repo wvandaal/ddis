@@ -283,6 +283,44 @@ pub fn run(
         }
     }
 
+    // --- CCE-3: Innate concept schemas (Piagetian sensorimotor reflexes) ---
+    // Seed 5 universal concepts (components, dependencies, invariants, patterns, anomalies)
+    // so observations can match concepts from the very first `braid observe`.
+    {
+        let innate_agent = AgentId::from_name("braid:init");
+        let innate_tx_id = super::write::next_tx_id(live.store(), innate_agent);
+        let innate_tuples = braid_kernel::concept::innate_concept_datoms(
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_secs() as i64)
+                .unwrap_or(0),
+        );
+        if !innate_tuples.is_empty() {
+            let innate_datoms: Vec<braid_kernel::datom::Datom> = innate_tuples
+                .into_iter()
+                .map(|(e, a, v)| {
+                    braid_kernel::datom::Datom::new(
+                        e,
+                        a,
+                        v,
+                        innate_tx_id,
+                        braid_kernel::datom::Op::Assert,
+                    )
+                })
+                .collect();
+            let tx = TxFile {
+                tx_id: innate_tx_id,
+                agent: innate_agent,
+                provenance: ProvenanceType::Inferred,
+                rationale: "CCE-3: innate concept schemas".to_string(),
+                causal_predecessors: vec![],
+                datoms: innate_datoms,
+            };
+            live.write_tx(&tx)?;
+            out.push_str("  schemas: components | dependencies | invariants | patterns | anomalies\n");
+        }
+    }
+
     // --- Policy manifest loading (C8, ADR-FOUNDATION-013) ---
     // Without --manifest: empty substrate (no policy datoms, F(S)=1.0).
     // With --manifest <file>: parse EDN, validate, transact policy datoms.

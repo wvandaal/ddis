@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774419825/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "13000cf43b3b497a96414763c08ef58b88b20cc9e10d70a2bde550145771c6e6" :a :db/ident :v :recon/trace-eb4de8a81ac7e224 :op :assert}
+   {:e #blake3 "13000cf43b3b497a96414763c08ef58b88b20cc9e10d70a2bde550145771c6e6" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "13000cf43b3b497a96414763c08ef58b88b20cc9e10d70a2bde550145771c6e6" :a :recon/trace-neighborhood :v "FOUNDATION" :op :assert}
+   {:e #blake3 "13000cf43b3b497a96414763c08ef58b88b20cc9e10d70a2bde550145771c6e6" :a :recon/trace-refs :v "ADR-FOUNDATION-016" :op :assert}
+ ]}

@@ -613,4 +613,61 @@ mod tests {
         let words = tokenize_simple("a is the big");
         assert_eq!(words, ["the", "big"]);
     }
+
+    // -- CCE-TEST additional embedding tests --
+
+    /// (14) Similar texts should have higher cosine than dissimilar texts.
+    #[test]
+    fn cosine_similar_higher_than_dissimilar() {
+        let h = HashEmbedder::new(DEFAULT_DIM);
+        let event_sourcing = h.embed("event sourcing engine pipeline");
+        let event_replay = h.embed("event replay engine pipeline");
+        let sql_injection = h.embed("SQL injection vulnerability attack");
+
+        let sim_similar = cosine_similarity(&event_sourcing, &event_replay);
+        let sim_dissimilar = cosine_similarity(&event_sourcing, &sql_injection);
+
+        assert!(
+            sim_similar > sim_dissimilar,
+            "similar texts cosine ({sim_similar}) should exceed dissimilar ({sim_dissimilar})"
+        );
+    }
+
+    /// (18) Centroid of a single vector is itself.
+    #[test]
+    fn centroid_of_one_is_itself() {
+        let v = [0.3f32, 0.5, 0.7, 0.1];
+        // update_centroid with old_count=0 means: (old * 0 + new) / 1 = new.
+        let centroid = super::embedding_to_bytes(&v);
+        let recovered = super::bytes_to_embedding(&centroid);
+        for (i, (&a, &b)) in recovered.iter().zip(v.iter()).enumerate() {
+            assert!(
+                (a - b).abs() < 1e-6,
+                "dim {i}: centroid of one should equal input, got {a} vs {b}"
+            );
+        }
+    }
+
+    /// Embed is deterministic (same text → same vector, INV-EMBEDDING-001).
+    #[test]
+    fn hash_embedder_deterministic_repeated() {
+        let h = HashEmbedder::new(DEFAULT_DIM);
+        let v1 = h.embed("deterministic embedding test");
+        let v2 = h.embed("deterministic embedding test");
+        let v3 = h.embed("deterministic embedding test");
+        assert_eq!(v1, v2);
+        assert_eq!(v2, v3);
+    }
+
+    /// Hash embedder output is normalized (L2 norm ≈ 1.0, INV-EMBEDDING-002).
+    #[test]
+    fn hash_embedder_output_normalized() {
+        let h = HashEmbedder::new(DEFAULT_DIM);
+        let v = h.embed("event sourcing pipeline architecture");
+        let norm: f32 = v.iter().map(|x| x * x).sum::<f32>().sqrt();
+        assert!(
+            (norm - 1.0).abs() < 1e-5,
+            "non-empty embedding should have L2 norm ≈ 1.0, got {norm}"
+        );
+    }
 }

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774420312/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b733007e"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fe5b63d184d7b2aa037fb58ec7d38010986bed0dbb4c0430d766ea9a18d3c6b9" :a :task/close-reason :v "Implemented: 3 agent prompts (Architecture Explorer, Code Review Analyst, Spec Auditor) in scripts/. Each teaches braid-native concept-aware workflow: read responses, follow steering, use braid vocabulary, correct misassignments, check status regularly." :op :assert}
+   {:e #blake3 "fe5b63d184d7b2aa037fb58ec7d38010986bed0dbb4c0430d766ea9a18d3c6b9" :a :task/closed-at :v 1774420311 :op :assert}
+   {:e #blake3 "fe5b63d184d7b2aa037fb58ec7d38010986bed0dbb4c0430d766ea9a18d3c6b9" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "fe5b63d184d7b2aa037fb58ec7d38010986bed0dbb4c0430d766ea9a18d3c6b9" :a :task/status :v :task.status/closed :op :assert}
+ ]}

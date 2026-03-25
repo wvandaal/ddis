@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774420309/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1eb0b302"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "97cc1c4b27bd17c7a5e10e09b6d8b31d07650ed4281eb24944c9b596836d4fbf" :a :task/close-reason :v "Implemented: 47 concept tests + 29 embedding tests + 5 E2E checks. Added centroid_of_one_is_itself, proptest_centroid_near_batch_mean, auto_link_concept_names, cosine_similar_higher_than_dissimilar, hash_embedder_deterministic_repeated, hash_embedder_output_normalized. Full CCE E2E script created." :op :assert}
+   {:e #blake3 "97cc1c4b27bd17c7a5e10e09b6d8b31d07650ed4281eb24944c9b596836d4fbf" :a :task/closed-at :v 1774420308 :op :assert}
+   {:e #blake3 "97cc1c4b27bd17c7a5e10e09b6d8b31d07650ed4281eb24944c9b596836d4fbf" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "97cc1c4b27bd17c7a5e10e09b6d8b31d07650ed4281eb24944c9b596836d4fbf" :a :task/status :v :task.status/closed :op :assert}
+ ]}

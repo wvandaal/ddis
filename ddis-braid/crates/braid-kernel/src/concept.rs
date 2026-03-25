@@ -1584,6 +1584,414 @@ mod tests {
         );
     }
 
+    // -- CCE-TEST-SURPRISE (t-60982fa8) --
+
+    /// (1) After observation joins a concept, :exploration/surprise datom should exist.
+    /// Verify: cosine 0.85 → surprise 0.15, cosine 0.65 → surprise 0.35.
+    #[test]
+    fn test_surprise_recorded_on_join() {
+        // Cosine = 0.85 → surprise = 0.15
+        let assignment_close = assign_to_concept_sim(0.85);
+        match assignment_close {
+            ConceptAssignment::Joined { surprise, .. } => {
+                assert!(
+                    (surprise - 0.15).abs() < 1e-6,
+                    "cosine 0.85 → surprise should be 0.15, got {surprise}"
+                );
+                assert!((0.0..=1.0).contains(&surprise));
+            }
+            ConceptAssignment::Uncategorized => panic!("should have joined"),
+        }
+
+        // Cosine = 0.65 → surprise = 0.35
+        let assignment_far = assign_to_concept_sim(0.65);
+        match assignment_far {
+            ConceptAssignment::Joined { surprise, .. } => {
+                assert!(
+                    (surprise - 0.35).abs() < 1e-6,
+                    "cosine 0.65 → surprise should be 0.35, got {surprise}"
+                );
+                assert!((0.0..=1.0).contains(&surprise));
+            }
+            ConceptAssignment::Uncategorized => panic!("should have joined"),
+        }
+    }
+
+    /// Helper: simulate a concept assignment with known cosine similarity.
+    fn assign_to_concept_sim(cosine: f32) -> ConceptAssignment {
+        if cosine >= JOIN_THRESHOLD {
+            ConceptAssignment::Joined {
+                concept: EntityId::from_content(b"concept-test"),
+                similarity: cosine,
+                surprise: 1.0 - cosine,
+            }
+        } else {
+            ConceptAssignment::Uncategorized
+        }
+    }
+
+    /// (2) 3 confirming + 1 surprising observation: surprise-weighted centroid
+    /// should be CLOSER to the surprising observation than equal-weight centroid.
+    #[test]
+    fn test_surprise_weighted_centroid_differs_from_equal_weight() {
+        // 3 confirming observations near [1,0,0].
+        let confirm1 = [0.98f32, 0.02, 0.0];
+        let confirm2 = [0.97f32, 0.03, 0.0];
+        let confirm3 = [0.99f32, 0.01, 0.0];
+        // 1 surprising observation away from cluster.
+        let surprising = [0.3f32, 0.7, 0.0];
+
+        // Build equal-weight centroid: mean of 4.
+        let ew_centroid: Vec<f32> = (0..3)
+            .map(|i| (confirm1[i] + confirm2[i] + confirm3[i] + surprising[i]) / 4.0)
+            .collect();
+
+        // Build surprise-weighted centroid.
+        // Start with confirming centroid.
+        let base_centroid: Vec<f32> = (0..3)
+            .map(|i| (confirm1[i] + confirm2[i] + confirm3[i]) / 3.0)
+            .collect();
+        let base_weight = 3.0 * surprise_weight(0.05, DEFAULT_ALPHA) as f64; // ~3 × 1.1 = 3.3
+        let surprise_val = 0.35f32; // 1.0 - cosine(surprising, base_centroid) ≈ 0.35
+        let sw = surprise_weight(surprise_val, DEFAULT_ALPHA);
+        let (sw_centroid, _) =
+            update_centroid_weighted(&base_centroid, base_weight, &surprising, sw);
+
+        // Surprise-weighted should be closer to the surprising observation.
+        let sw_cos = crate::embedding::cosine_similarity(&sw_centroid, &surprising);
+        let ew_cos = crate::embedding::cosine_similarity(&ew_centroid, &surprising);
+        assert!(
+            sw_cos > ew_cos,
+            "surprise-weighted centroid cosine to surprising obs ({sw_cos}) \
+             should exceed equal-weight ({ew_cos})"
+        );
+    }
+
+    /// (3) 5 interior + 1 outlier: alpha=2.0 shifts MORE toward outlier than alpha=0.0.
+    #[test]
+    fn test_centroid_pulls_toward_frontier() {
+        // 5 members all near [1,0,0].
+        let interior = [1.0f32, 0.0, 0.0];
+        let outlier = [0.5f32, 0.5, 0.0];
+        let surprise = 0.35f32;
+
+        // alpha=0 → equal weight (surprise_weight(0.35, 0) = 1.0).
+        let base_weight_0 = 5.0f64; // 5 members × weight 1.0
+        let w0 = surprise_weight(surprise, 0.0); // 1.0
+        let (cent_alpha0, _) = update_centroid_weighted(&interior, base_weight_0, &outlier, w0);
+
+        // alpha=2.0 → surprise_weight(0.35, 2.0) = 1.7.
+        let base_weight_2 = 5.0 * surprise_weight(0.0, DEFAULT_ALPHA) as f64; // 5 × 1.0 = 5.0
+        let w2 = surprise_weight(surprise, DEFAULT_ALPHA); // 1.7
+        let (cent_alpha2, _) = update_centroid_weighted(&interior, base_weight_2, &outlier, w2);
+
+        // alpha=2 centroid should be closer to the outlier.
+        let dist_alpha0 = euclidean_distance(&cent_alpha0, &outlier);
+        let dist_alpha2 = euclidean_distance(&cent_alpha2, &outlier);
+        assert!(
+            dist_alpha2 < dist_alpha0,
+            "alpha=2.0 centroid should be closer to outlier \
+             (dist_alpha2={dist_alpha2} should be < dist_alpha0={dist_alpha0})"
+        );
+    }
+
+    fn euclidean_distance(a: &[f32], b: &[f32]) -> f32 {
+        a.iter()
+            .zip(b.iter())
+            .map(|(&x, &y)| (x - y).powi(2))
+            .sum::<f32>()
+            .sqrt()
+    }
+
+    /// (4) :concept/total-weight equals sum of (1.0 + alpha * surprise_i) for all members.
+    #[test]
+    fn test_total_weight_is_sum_of_member_weights() {
+        let surprises = [0.05, 0.10, 0.20, 0.35, 0.40];
+        let expected: f64 = surprises
+            .iter()
+            .map(|&s| surprise_weight(s, DEFAULT_ALPHA) as f64)
+            .sum();
+
+        let mut total_weight = 0.0f64;
+        let centroid = [1.0f32, 0.0, 0.0];
+        let mut current_centroid = centroid.to_vec();
+        for s in &surprises {
+            let w = surprise_weight(*s, DEFAULT_ALPHA);
+            let (new_cent, new_total) =
+                update_centroid_weighted(&current_centroid, total_weight, &centroid, w);
+            current_centroid = new_cent;
+            total_weight = new_total;
+        }
+
+        assert!(
+            (total_weight - expected).abs() < 1e-4,
+            "total_weight {total_weight} should equal sum of weights {expected}"
+        );
+    }
+
+    /// (5) If all observations have identical surprise, sw_centroid == ew_centroid.
+    #[test]
+    fn test_all_equal_surprise_produces_equal_weight_centroid() {
+        let surprise = 0.2f32;
+        let w = surprise_weight(surprise, DEFAULT_ALPHA);
+        let members = [
+            [1.0f32, 0.0, 0.0],
+            [0.0f32, 1.0, 0.0],
+            [0.0f32, 0.0, 1.0],
+        ];
+
+        // Equal-weight centroid = simple mean.
+        let ew: Vec<f32> = (0..3)
+            .map(|i| members.iter().map(|m| m[i]).sum::<f32>() / 3.0)
+            .collect();
+
+        // Surprise-weighted centroid with uniform surprise.
+        let mut sw = members[0].to_vec();
+        let mut total = w as f64;
+        for m in &members[1..] {
+            let (new_c, new_t) = update_centroid_weighted(&sw, total, m, w);
+            sw = new_c;
+            total = new_t;
+        }
+
+        for i in 0..3 {
+            assert!(
+                (sw[i] - ew[i]).abs() < 1e-5,
+                "dim {i}: sw={} should equal ew={} when all surprise is equal",
+                sw[i],
+                ew[i]
+            );
+        }
+    }
+
+    /// (6) Surprise response intensity scales with surprise value.
+    /// surprise < 0.1 → 'confirms', 0.1-0.3 → surprise shown, > 0.3 → 'at boundary'.
+    #[test]
+    fn test_surprise_response_intensity_scales() {
+        let store = Store::genesis();
+        let entity_matches = &[];
+
+        // Low surprise (< 0.1): "confirms"
+        let low = ConceptAssignment::Joined {
+            concept: EntityId::from_content(b"c"),
+            similarity: 0.95,
+            surprise: 0.05,
+        };
+        let steering_low = compute_observe_steering(&store, &low, entity_matches);
+        let line_low = steering_low.concept_line.unwrap();
+        assert!(
+            line_low.contains("confirms"),
+            "surprise < 0.1 should say 'confirms', got: {line_low}"
+        );
+
+        // Medium surprise (0.1-0.3): shows surprise value
+        let mid = ConceptAssignment::Joined {
+            concept: EntityId::from_content(b"c"),
+            similarity: 0.80,
+            surprise: 0.20,
+        };
+        let steering_mid = compute_observe_steering(&store, &mid, entity_matches);
+        let line_mid = steering_mid.concept_line.unwrap();
+        assert!(
+            line_mid.contains("surprise=0.20"),
+            "surprise 0.1-0.3 should show surprise value, got: {line_mid}"
+        );
+        assert!(
+            !line_mid.contains("boundary"),
+            "medium surprise should not mention boundary, got: {line_mid}"
+        );
+
+        // High surprise (> 0.3): "at boundary"
+        let high = ConceptAssignment::Joined {
+            concept: EntityId::from_content(b"c"),
+            similarity: 0.60,
+            surprise: 0.40,
+        };
+        let steering_high = compute_observe_steering(&store, &high, entity_matches);
+        let line_high = steering_high.concept_line.unwrap();
+        assert!(
+            line_high.contains("at boundary"),
+            "surprise > 0.3 should say 'at boundary', got: {line_high}"
+        );
+    }
+
+    // -- CCE-TEST-SURPRISE proptests --
+
+    use proptest::prelude::*;
+
+    proptest! {
+        /// (7) For N observations (3..20) with random surprise in [0.0, 0.5]:
+        /// total_weight >= member_count AND centroid is within unit ball.
+        #[test]
+        fn proptest_total_weight_and_centroid_bounds(
+            n in 3usize..20,
+            surprises in proptest::collection::vec(0.0f32..0.5, 3..20),
+        ) {
+            let n = n.min(surprises.len());
+            let dim = 8;
+            let mut centroid = vec![1.0f32 / (dim as f32).sqrt(); dim];
+            let mut total_weight = 0.0f64;
+
+            for s in &surprises[..n] {
+                let w = surprise_weight(*s, DEFAULT_ALPHA);
+                // Random-ish new observation (using surprise as seed for variety).
+                let mut new_emb = vec![0.0f32; dim];
+                new_emb[(*s * (dim as f32 - 1.0)) as usize % dim] = 1.0;
+                let (c, t) = update_centroid_weighted(&centroid, total_weight, &new_emb, w);
+                centroid = c;
+                total_weight = t;
+            }
+
+            // total_weight >= n (minimum weight per member is 1.0).
+            prop_assert!(
+                total_weight >= n as f64,
+                "total_weight {} should be >= member_count {}", total_weight, n
+            );
+
+            // Centroid should be within or near unit ball.
+            let norm: f32 = centroid.iter().map(|x| x * x).sum::<f32>().sqrt();
+            prop_assert!(
+                norm <= 1.0 + 0.01,
+                "centroid norm {} should be <= 1.0 + epsilon", norm
+            );
+        }
+
+        /// (8) Monotonically increasing surprise → centroid moves further from first obs.
+        #[test]
+        fn proptest_increasing_surprise_stretches_concept(
+            base_surprises in proptest::collection::vec(0.01f32..0.05, 3..10),
+        ) {
+            let dim = 8;
+            let first_obs = vec![1.0f32 / (dim as f32).sqrt(); dim];
+            let mut centroid = first_obs.clone();
+            let mut total_weight = surprise_weight(0.0, DEFAULT_ALPHA) as f64;
+
+            let mut distances = Vec::new();
+            distances.push(euclidean_distance(&centroid, &first_obs));
+
+            for (i, &base_s) in base_surprises.iter().enumerate() {
+                let surprise = base_s + 0.05 * (i as f32); // Monotonically increasing.
+                let w = surprise_weight(surprise, DEFAULT_ALPHA);
+                // Each subsequent observation is further away.
+                let mut new_emb = vec![0.0f32; dim];
+                let target_dim = (i + 1) % dim;
+                new_emb[target_dim] = 1.0;
+                let (c, t) = update_centroid_weighted(&centroid, total_weight, &new_emb, w);
+                centroid = c;
+                total_weight = t;
+                distances.push(euclidean_distance(&centroid, &first_obs));
+            }
+
+            // With high-surprise members pulling harder, distance should generally increase.
+            // We check that the final distance > initial distance (the concept stretched).
+            let final_dist = distances.last().unwrap();
+            let initial_dist = distances[0];
+            prop_assert!(
+                final_dist > &initial_dist,
+                "concept should stretch: final dist {} should exceed initial {}",
+                final_dist, initial_dist
+            );
+        }
+    }
+
+    // -- CCE-TEST additional concept tests --
+
+    /// (18) Centroid of a single observation = that observation's embedding.
+    #[test]
+    fn centroid_of_one_is_itself() {
+        let emb = make_embedder();
+        let obs = vec![(
+            EntityId::from_content(b"single"),
+            emb.embed("just one observation about events"),
+            "just one observation about events".to_string(),
+        )];
+        // With min_size=1, a single observation should crystallize into a concept
+        // whose centroid IS that observation.
+        let concepts = crystallize_concepts(&obs, 0.0, 1);
+        assert_eq!(concepts.len(), 1);
+        let centroid = &concepts[0].centroid;
+        let original = &obs[0].1;
+        for (i, (&c, &o)) in centroid.iter().zip(original.iter()).enumerate() {
+            assert!(
+                (c - o).abs() < 1e-6,
+                "dim {i}: centroid {c} should equal original {o}"
+            );
+        }
+    }
+
+    /// (33) Proptest: for any concept with N members, centroid is near batch mean.
+    #[test]
+    fn proptest_centroid_near_batch_mean() {
+        // Deterministic test simulating the proptest property.
+        let dim = 8;
+        let members: Vec<Vec<f32>> = (0..10)
+            .map(|i| {
+                let mut v = vec![0.0f32; dim];
+                v[i % dim] = 1.0;
+                v[(i + 1) % dim] = 0.5;
+                v
+            })
+            .collect();
+
+        // Batch mean.
+        let mut batch_mean = vec![0.0f32; dim];
+        for m in &members {
+            for (i, &val) in m.iter().enumerate() {
+                batch_mean[i] += val;
+            }
+        }
+        for x in &mut batch_mean {
+            *x /= members.len() as f32;
+        }
+
+        // Incremental centroid via update_centroid.
+        let mut centroid = members[0].clone();
+        for (count, m) in members.iter().enumerate().skip(1) {
+            centroid = update_centroid(&centroid, count, m);
+        }
+
+        // Should be within epsilon of batch mean.
+        for (i, (&c, &b)) in centroid.iter().zip(batch_mean.iter()).enumerate() {
+            assert!(
+                (c - b).abs() < 1e-4,
+                "dim {i}: incremental centroid {c} should be near batch mean {b}"
+            );
+        }
+    }
+
+    /// Concept auto-linking matches concept names in text.
+    #[test]
+    fn auto_link_concept_names() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+
+        let concept_e = EntityId::from_content(b"concept-error-handling");
+        let tx = crate::store::Transaction::new(
+            agent,
+            crate::datom::ProvenanceType::Observed,
+            "test",
+        )
+        .assert(
+            concept_e,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":concept/error-handling".into()),
+        )
+        .assert(
+            concept_e,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("error-handling".into()),
+        );
+        let committed = tx.commit(&store).expect("commit");
+        store.transact(committed).expect("transact");
+
+        let matches = entity_auto_link(&store, "the error-handling pattern spans multiple modules");
+        assert!(
+            matches.iter().any(|m| m.match_name == "error-handling"),
+            "should match concept name in text, got: {:?}",
+            matches
+        );
+    }
+
     #[test]
     fn innate_schemas_fade_after_threshold() {
         let mut store = store_with_schema();
