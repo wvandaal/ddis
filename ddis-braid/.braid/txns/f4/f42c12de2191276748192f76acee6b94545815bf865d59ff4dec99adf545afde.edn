@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774474314/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S045-TEST-L: Unit tests for LOOPS implementations (4 new tests)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :db/ident :v :task/t-926e714a :op :assert}
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :task/created-at :v 1774474313 :op :assert}
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :task/description :v "CONTEXT: Paired testing task for S045-L1 (bridge label resolution) and S045-L2 (observation-aware routing dampening).\n\nUNIT TESTS (3 new tests):\n\n1. test_resolve_entity_label_concept (S045-L1):\n   - Property: resolve_entity_label for a concept entity returns the :concept/name value.\n   - Setup: Store with concept entity having :concept/name 'error-handling'.\n   - Assert: resolve_entity_label(store, concept_entity) == 'error-handling'.\n   - Failure diagnostic: Log entity datoms to show what attributes exist.\n\n2. test_resolve_entity_label_pkg (S045-L1):\n   - Property: resolve_entity_label for a :pkg/* entity returns the name without namespace.\n   - Setup: Store with :db/ident = ':pkg/cascade'.\n   - Assert: resolve_entity_label(store, entity) == 'cascade'.\n   - Failure diagnostic: Log the :db/ident value found vs expected.\n\n3. test_routing_dampening_saturated_concept (S045-L2):\n   - Property: A task whose nearest concept has 25 observations gets lower R(t) impact than one with 3 observations.\n   - Setup: Two concepts, one with member_count=25, one with member_count=3. Two tasks, each tracing to one concept.\n   - Assert: impact(task_25) < impact(task_3) when base impact is equal.\n   - Failure diagnostic: Log base impact, obs_count, dampening factor, and final impact for both tasks.\n\n4. test_routing_dampening_zero_observations (S045-L2):\n   - Property: A task whose concept has 0 observations gets NO dampening (factor = 1.0).\n   - Setup: Concept with member_count=0. Task tracing to it.\n   - Assert: dampened_impact == base_impact.\n   - Failure diagnostic: Log dampening calculation showing ln(0/5) = -inf clamped to 0.\n\nE2E VERIFICATION:\n- After S045-L1: Run braid status on the Go CLI store and visually verify bridge hypotheses show human names.\n- After S045-L2: Run braid guidance on the Go CLI store and verify that tasks in saturated concepts rank lower than tasks in fresh concepts.\n\nREGRESSION GATE:\n- cargo test -p braid-kernel (all existing guidance + routing tests must pass)\n- cargo clippy --all-targets -- -D warnings\n\nDEPENDS-ON: S045-L1, S045-L2." :op :assert}
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :task/id :v "t-926e714a" :op :assert}
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :task/labels :v :label/S045-LOOPS :op :assert}
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :task/title :v "S045-TEST-L: Unit tests for LOOPS implementations (4 new tests)" :op :assert}
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :task/title-l0 :v "S045-TEST-L" :op :assert}
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :task/title-l1 :v "S045-TEST-L: Unit tests for LOOPS implementations (4 new tests)" :op :assert}
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "41a9423269c3ac6d5a3e2d610c8d30a5007865a9c745cadf88e2a6e0f14b050f" :a :task/type :v :task.type/task :op :assert}
+ ]}

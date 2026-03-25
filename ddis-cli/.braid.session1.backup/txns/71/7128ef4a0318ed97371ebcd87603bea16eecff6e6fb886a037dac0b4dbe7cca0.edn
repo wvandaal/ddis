@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774372878/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: APP-INV-002 PARTIAL DIVERGENCE: Tier 6 LLM-as-Judge contradiction detection is non-deterministic. The consistency engine (consistency/llm.go) uses LLM calls with majority voting, which produces different results across runs. While APP-INV-054 provides graceful degradation and APP-INV-055 attempts statistical soundness via 3-run majority vote, this creates a tension with INV-002's requirement that 'the same spec MUST produce the same validation report regardless of wall-clock time, random seed, or execution environment.' Recommendation: either exclude Tier 6 from the determinism guarantee with an explicit carve-out in the spec, or cache/pin LLM results per spec version."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e34e2ccb3eaa634a1a86adb533bb5a9c3d7f08f06315dcd8ad8d8b0054b55f47" :a :db/ident :v :task/t-c1b45639 :op :assert}
+   {:e #blake3 "e34e2ccb3eaa634a1a86adb533bb5a9c3d7f08f06315dcd8ad8d8b0054b55f47" :a :task/created-at :v 1774372877 :op :assert}
+   {:e #blake3 "e34e2ccb3eaa634a1a86adb533bb5a9c3d7f08f06315dcd8ad8d8b0054b55f47" :a :task/id :v "t-c1b45639" :op :assert}
+   {:e #blake3 "e34e2ccb3eaa634a1a86adb533bb5a9c3d7f08f06315dcd8ad8d8b0054b55f47" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e34e2ccb3eaa634a1a86adb533bb5a9c3d7f08f06315dcd8ad8d8b0054b55f47" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e34e2ccb3eaa634a1a86adb533bb5a9c3d7f08f06315dcd8ad8d8b0054b55f47" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e34e2ccb3eaa634a1a86adb533bb5a9c3d7f08f06315dcd8ad8d8b0054b55f47" :a :task/title :v "APP-INV-002 PARTIAL DIVERGENCE: Tier 6 LLM-as-Judge contradiction detection is non-deterministic. The consistency engine (consistency/llm.go) uses LLM calls with majority voting, which produces different results across runs. While APP-INV-054 provides graceful degradation and APP-INV-055 attempts statistical soundness via 3-run majority vote, this creates a tension with INV-002's requirement that 'the same spec MUST produce the same validation report regardless of wall-clock time, random seed, or execution environment.' Recommendation: either exclude Tier 6 from the determinism guarantee with an explicit carve-out in the spec, or cache/pin LLM results per spec version." :op :assert}
+   {:e #blake3 "e34e2ccb3eaa634a1a86adb533bb5a9c3d7f08f06315dcd8ad8d8b0054b55f47" :a :task/title-l0 :v "Tier 6 LLM-as-Judge contr" :op :assert}
+   {:e #blake3 "e34e2ccb3eaa634a1a86adb533bb5a9c3d7f08f06315dcd8ad8d8b0054b55f47" :a :task/title-l1 :v "APP-INV-002 PARTIAL DIVERGENCE: Tier 6 LLM-as-Judge contradiction detection i..." :op :assert}
+   {:e #blake3 "e34e2ccb3eaa634a1a86adb533bb5a9c3d7f08f06315dcd8ad8d8b0054b55f47" :a :task/type :v :task.type/task :op :assert}
+ ]}

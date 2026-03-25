@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774373021/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Fix UTF-8 truncation bug in truncate() and truncateBytes() — splits multi-byte characters"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "246948ff45bce3661134003e0b714b68bb34a518f3172e3f7f7ebbc80dc7d674" :a :db/ident :v :task/t-ae1e3b39 :op :assert}
+   {:e #blake3 "246948ff45bce3661134003e0b714b68bb34a518f3172e3f7f7ebbc80dc7d674" :a :task/created-at :v 1774373020 :op :assert}
+   {:e #blake3 "246948ff45bce3661134003e0b714b68bb34a518f3172e3f7f7ebbc80dc7d674" :a :task/description :v "truncate() in consistency/graph.go (line 328) uses s[:maxLen-3] and truncateBytes() in llm/provider.go (line 147) uses b[:max]. Both perform raw byte slicing that can split multi-byte UTF-8 characters. Also in absorb/reconcile.go line 291. Fix: use rune-aware truncation (utf8.DecodeLastRuneInString loop or convert to []rune)." :op :assert}
+   {:e #blake3 "246948ff45bce3661134003e0b714b68bb34a518f3172e3f7f7ebbc80dc7d674" :a :task/id :v "t-ae1e3b39" :op :assert}
+   {:e #blake3 "246948ff45bce3661134003e0b714b68bb34a518f3172e3f7f7ebbc80dc7d674" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "246948ff45bce3661134003e0b714b68bb34a518f3172e3f7f7ebbc80dc7d674" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "246948ff45bce3661134003e0b714b68bb34a518f3172e3f7f7ebbc80dc7d674" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "246948ff45bce3661134003e0b714b68bb34a518f3172e3f7f7ebbc80dc7d674" :a :task/title :v "Fix UTF-8 truncation bug in truncate() and truncateBytes() — splits multi-byte characters" :op :assert}
+   {:e #blake3 "246948ff45bce3661134003e0b714b68bb34a518f3172e3f7f7ebbc80dc7d674" :a :task/title-l0 :v "splits multi-byte charact" :op :assert}
+   {:e #blake3 "246948ff45bce3661134003e0b714b68bb34a518f3172e3f7f7ebbc80dc7d674" :a :task/title-l1 :v "Fix UTF-8 truncation bug in truncate() and truncateBytes(): splits multi-byte..." :op :assert}
+   {:e #blake3 "246948ff45bce3661134003e0b714b68bb34a518f3172e3f7f7ebbc80dc7d674" :a :task/type :v :task.type/bug :op :assert}
+ ]}

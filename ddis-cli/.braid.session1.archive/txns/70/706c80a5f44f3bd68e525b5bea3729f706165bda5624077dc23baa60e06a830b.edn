@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774373005/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Fix pervasive error-swallowing across 5+ packages: cascade, db, drift, materialize, events"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f1973aeea055db3d67c8c861ad9eacbfa01290730bbd5e61fb19ba482eb3fe9d" :a :db/ident :v :task/t-24ad76b8 :op :assert}
+   {:e #blake3 "f1973aeea055db3d67c8c861ad9eacbfa01290730bbd5e61fb19ba482eb3fe9d" :a :task/created-at :v 1774373004 :op :assert}
+   {:e #blake3 "f1973aeea055db3d67c8c861ad9eacbfa01290730bbd5e61fb19ba482eb3fe9d" :a :task/description :v "16+ silent error discards across cascade.go (5), db.go (6), drift.go (3), materialize/snapshot.go (2), events/stream.go (1). Data loss risk in db.go migration: INSERT error discarded before DROP TABLE. Fix: propagate errors, log warnings for non-critical paths, check INSERT before DROP." :op :assert}
+   {:e #blake3 "f1973aeea055db3d67c8c861ad9eacbfa01290730bbd5e61fb19ba482eb3fe9d" :a :task/id :v "t-24ad76b8" :op :assert}
+   {:e #blake3 "f1973aeea055db3d67c8c861ad9eacbfa01290730bbd5e61fb19ba482eb3fe9d" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f1973aeea055db3d67c8c861ad9eacbfa01290730bbd5e61fb19ba482eb3fe9d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f1973aeea055db3d67c8c861ad9eacbfa01290730bbd5e61fb19ba482eb3fe9d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f1973aeea055db3d67c8c861ad9eacbfa01290730bbd5e61fb19ba482eb3fe9d" :a :task/title :v "Fix pervasive error-swallowing across 5+ packages: cascade, db, drift, materialize, events" :op :assert}
+   {:e #blake3 "f1973aeea055db3d67c8c861ad9eacbfa01290730bbd5e61fb19ba482eb3fe9d" :a :task/title-l0 :v "cascade, db, drift, mater" :op :assert}
+   {:e #blake3 "f1973aeea055db3d67c8c861ad9eacbfa01290730bbd5e61fb19ba482eb3fe9d" :a :task/title-l1 :v "Fix pervasive error-swallowing across 5+ packages: cascade, db, drift, materi..." :op :assert}
+   {:e #blake3 "f1973aeea055db3d67c8c861ad9eacbfa01290730bbd5e61fb19ba482eb3fe9d" :a :task/type :v :task.type/bug :op :assert}
+ ]}

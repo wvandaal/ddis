@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774401303/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "APP-INV-006 (Transaction State Machine): ALIGNED - Enforced at two levels: (1) SQL CHECK constraint allows only 'pending', 'committed', 'rolled_back' states, (2) CommitTransaction and RollbackTransaction both use WHERE status='pending', preventing transitions from committed or rolled_back. CreateTransaction always sets initial status to 'pending'. The invariant's three allowed transitions (pending->committed, pending->rolled_back, nothing else) are correctly implemented."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a9f8ff26cc3e674c7bbfd0320f68e031a5260379af1979de18c850f1dd6280ee" :a :db/doc :v "APP-INV-006 (Transaction State Machine): ALIGNED - Enforced at two levels: (1) SQL CHECK constraint allows only 'pending', 'committed', 'rolled_back' states, (2) CommitTransaction and RollbackTransaction both use WHERE status='pending', preventing transitions from committed or rolled_back. CreateTransaction always sets initial status to 'pending'. The invariant's three allowed transitions (pending->committed, pending->rolled_back, nothing else) are correctly implemented." :op :assert}
+   {:e #blake3 "a9f8ff26cc3e674c7bbfd0320f68e031a5260379af1979de18c850f1dd6280ee" :a :db/ident :v :observation/app-inv-006-transaction-state-machine-aligned-enforced :op :assert}
+   {:e #blake3 "a9f8ff26cc3e674c7bbfd0320f68e031a5260379af1979de18c850f1dd6280ee" :a :exploration/body :v "APP-INV-006 (Transaction State Machine): ALIGNED - Enforced at two levels: (1) SQL CHECK constraint allows only 'pending', 'committed', 'rolled_back' states, (2) CommitTransaction and RollbackTransaction both use WHERE status='pending', preventing transitions from committed or rolled_back. CreateTransaction always sets initial status to 'pending'. The invariant's three allowed transitions (pending->committed, pending->rolled_back, nothing else) are correctly implemented." :op :assert}
+   {:e #blake3 "a9f8ff26cc3e674c7bbfd0320f68e031a5260379af1979de18c850f1dd6280ee" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "a9f8ff26cc3e674c7bbfd0320f68e031a5260379af1979de18c850f1dd6280ee" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "a9f8ff26cc3e674c7bbfd0320f68e031a5260379af1979de18c850f1dd6280ee" :a :exploration/content-hash :v #bytes "3102ea804f5ad527e9d41860fb414b00d07a55d634146fdb7bf9658a93206c1c" :op :assert}
+   {:e #blake3 "a9f8ff26cc3e674c7bbfd0320f68e031a5260379af1979de18c850f1dd6280ee" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "a9f8ff26cc3e674c7bbfd0320f68e031a5260379af1979de18c850f1dd6280ee" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "a9f8ff26cc3e674c7bbfd0320f68e031a5260379af1979de18c850f1dd6280ee" :a :exploration/source-session :v #blake3 "7ddde8aedeb4a752380d365ac6626c28d930d9ae864f0bbda9bd66587b1153da" :op :assert}
+ ]}

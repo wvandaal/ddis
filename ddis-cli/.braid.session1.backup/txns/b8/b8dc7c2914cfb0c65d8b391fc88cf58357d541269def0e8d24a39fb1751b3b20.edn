@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774293299/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Audit storage package for SQL injection vulnerabilities"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8ca7cd9f0ce91bb87c600189beafdda285e259ff030ac00ac123870abc7689cd" :a :db/ident :v :task/t-4ef5568a :op :assert}
+   {:e #blake3 "8ca7cd9f0ce91bb87c600189beafdda285e259ff030ac00ac123870abc7689cd" :a :task/created-at :v 1774293298 :op :assert}
+   {:e #blake3 "8ca7cd9f0ce91bb87c600189beafdda285e259ff030ac00ac123870abc7689cd" :a :task/id :v "t-4ef5568a" :op :assert}
+   {:e #blake3 "8ca7cd9f0ce91bb87c600189beafdda285e259ff030ac00ac123870abc7689cd" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8ca7cd9f0ce91bb87c600189beafdda285e259ff030ac00ac123870abc7689cd" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8ca7cd9f0ce91bb87c600189beafdda285e259ff030ac00ac123870abc7689cd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8ca7cd9f0ce91bb87c600189beafdda285e259ff030ac00ac123870abc7689cd" :a :task/title :v "Audit storage package for SQL injection vulnerabilities" :op :assert}
+   {:e #blake3 "8ca7cd9f0ce91bb87c600189beafdda285e259ff030ac00ac123870abc7689cd" :a :task/title-l0 :v "Audit storage package for" :op :assert}
+   {:e #blake3 "8ca7cd9f0ce91bb87c600189beafdda285e259ff030ac00ac123870abc7689cd" :a :task/title-l1 :v "Audit storage package for SQL injection vulnerabilities" :op :assert}
+   {:e #blake3 "8ca7cd9f0ce91bb87c600189beafdda285e259ff030ac00ac123870abc7689cd" :a :task/type :v :task.type/task :op :assert}
+ ]}

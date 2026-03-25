@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774293308/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Review consistency engine for correctness against spec"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "da950d7f377dbc4fb4b4a1c4e1fe825bb99f802261e6db440364f3b18ff411ea" :a :db/ident :v :task/t-bbdb5756 :op :assert}
+   {:e #blake3 "da950d7f377dbc4fb4b4a1c4e1fe825bb99f802261e6db440364f3b18ff411ea" :a :task/created-at :v 1774293307 :op :assert}
+   {:e #blake3 "da950d7f377dbc4fb4b4a1c4e1fe825bb99f802261e6db440364f3b18ff411ea" :a :task/id :v "t-bbdb5756" :op :assert}
+   {:e #blake3 "da950d7f377dbc4fb4b4a1c4e1fe825bb99f802261e6db440364f3b18ff411ea" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "da950d7f377dbc4fb4b4a1c4e1fe825bb99f802261e6db440364f3b18ff411ea" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "da950d7f377dbc4fb4b4a1c4e1fe825bb99f802261e6db440364f3b18ff411ea" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "da950d7f377dbc4fb4b4a1c4e1fe825bb99f802261e6db440364f3b18ff411ea" :a :task/title :v "Review consistency engine for correctness against spec" :op :assert}
+   {:e #blake3 "da950d7f377dbc4fb4b4a1c4e1fe825bb99f802261e6db440364f3b18ff411ea" :a :task/title-l0 :v "Review consistency engine" :op :assert}
+   {:e #blake3 "da950d7f377dbc4fb4b4a1c4e1fe825bb99f802261e6db440364f3b18ff411ea" :a :task/title-l1 :v "Review consistency engine for correctness against spec" :op :assert}
+   {:e #blake3 "da950d7f377dbc4fb4b4a1c4e1fe825bb99f802261e6db440364f3b18ff411ea" :a :task/type :v :task.type/task :op :assert}
+ ]}

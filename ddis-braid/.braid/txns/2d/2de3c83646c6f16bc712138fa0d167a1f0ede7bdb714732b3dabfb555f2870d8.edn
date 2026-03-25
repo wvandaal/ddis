@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774473898/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DEFECT-006: Dead match arm in assign_to_concepts sort comparator (concept.rs:201-210). The Uncategorized variant handler maps to 0.0, but Uncategorized can never appear in the matches vec since only Joined variants are pushed at line 190. This is dead code that confuses readers into thinking Uncategorized could be in the return vec. Fix: use direct field extraction or unreachable!(). Style-level — no behavioral impact. Traces to: code clarity, INV-EMBEDDING-004."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7290c324c6676c876caeae9e8bb2f7a972c8625a986fc6e6696aca00d1df9e29" :a :db/doc :v "DEFECT-006: Dead match arm in assign_to_concepts sort comparator (concept.rs:201-210). The Uncategorized variant handler maps to 0.0, but Uncategorized can never appear in the matches vec since only Joined variants are pushed at line 190. This is dead code that confuses readers into thinking Uncategorized could be in the return vec. Fix: use direct field extraction or unreachable!(). Style-level — no behavioral impact. Traces to: code clarity, INV-EMBEDDING-004." :op :assert}
+   {:e #blake3 "7290c324c6676c876caeae9e8bb2f7a972c8625a986fc6e6696aca00d1df9e29" :a :db/ident :v :observation/defect-006-dead-match-arm-in-assign-to-concepts-sort-compar :op :assert}
+   {:e #blake3 "7290c324c6676c876caeae9e8bb2f7a972c8625a986fc6e6696aca00d1df9e29" :a :exploration/body :v "DEFECT-006: Dead match arm in assign_to_concepts sort comparator (concept.rs:201-210). The Uncategorized variant handler maps to 0.0, but Uncategorized can never appear in the matches vec since only Joined variants are pushed at line 190. This is dead code that confuses readers into thinking Uncategorized could be in the return vec. Fix: use direct field extraction or unreachable!(). Style-level — no behavioral impact. Traces to: code clarity, INV-EMBEDDING-004." :op :assert}
+   {:e #blake3 "7290c324c6676c876caeae9e8bb2f7a972c8625a986fc6e6696aca00d1df9e29" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "7290c324c6676c876caeae9e8bb2f7a972c8625a986fc6e6696aca00d1df9e29" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "7290c324c6676c876caeae9e8bb2f7a972c8625a986fc6e6696aca00d1df9e29" :a :exploration/content-hash :v #bytes "3a7170a2e7e0835e01a5e0b3f6ca5e23ef68010dbad6429891a0de4b03acca91" :op :assert}
+   {:e #blake3 "7290c324c6676c876caeae9e8bb2f7a972c8625a986fc6e6696aca00d1df9e29" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7290c324c6676c876caeae9e8bb2f7a972c8625a986fc6e6696aca00d1df9e29" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7290c324c6676c876caeae9e8bb2f7a972c8625a986fc6e6696aca00d1df9e29" :a :exploration/source-session :v #blake3 "a53a8585dfa17c1cb8e0a12d16f710708a71380cad283bd4212370c0084fcdad" :op :assert}
+ ]}

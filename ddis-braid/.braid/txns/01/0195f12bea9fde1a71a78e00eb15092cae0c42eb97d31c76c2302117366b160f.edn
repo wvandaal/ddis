@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774475552/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-5bd9bd5b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f2bb826915ec7b0005eb0cdba27bf76a418cca333e932dae078f37e91c3f8deb" :a :task/close-reason :v "REVISED: entity_label already exists at routing.rs:1890. Replaced by S045-L1-REV with surgical insertion approach." :op :assert}
+   {:e #blake3 "f2bb826915ec7b0005eb0cdba27bf76a418cca333e932dae078f37e91c3f8deb" :a :task/closed-at :v 1774475551 :op :assert}
+   {:e #blake3 "f2bb826915ec7b0005eb0cdba27bf76a418cca333e932dae078f37e91c3f8deb" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "f2bb826915ec7b0005eb0cdba27bf76a418cca333e932dae078f37e91c3f8deb" :a :task/status :v :task.status/closed :op :assert}
+ ]}

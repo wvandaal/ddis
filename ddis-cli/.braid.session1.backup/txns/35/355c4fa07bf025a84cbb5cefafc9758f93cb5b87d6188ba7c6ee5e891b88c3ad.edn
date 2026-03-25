@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774372822/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Witness system implements multi-level evidence hierarchy: Level 1 (annotation - code comment linking to invariant), Level 2 (test - test function targeting invariant), Level 3 (verify - mechanical annotation proof with --verify flag), Level 4 (review - Gestalt-framed review bundle with code snippets, review criteria, and spec context via --review-context). Auto-invalidation (APP-INV-041) when spec or code hashes change. Evidence types: test, annotation, scan, review, attestation, eval."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3eb5eecbe77b18d0a95c08ed104e90c9535b644aaa990e9b58830ba1453bf4d2" :a :db/ident :v :task/t-cecad16e :op :assert}
+   {:e #blake3 "3eb5eecbe77b18d0a95c08ed104e90c9535b644aaa990e9b58830ba1453bf4d2" :a :task/body :v "Witness system implements multi-level evidence hierarchy: Level 1 (annotation - code comment linking to invariant), Level 2 (test - test function targeting invariant), Level 3 (verify - mechanical annotation proof with --verify flag), Level 4 (review - Gestalt-framed review bundle with code snippets, review criteria, and spec context via --review-context). Auto-invalidation (APP-INV-041) when spec or code hashes change. Evidence types: test, annotation, scan, review, attestation, eval." :op :assert}
+   {:e #blake3 "3eb5eecbe77b18d0a95c08ed104e90c9535b644aaa990e9b58830ba1453bf4d2" :a :task/created-at :v 1774372821 :op :assert}
+   {:e #blake3 "3eb5eecbe77b18d0a95c08ed104e90c9535b644aaa990e9b58830ba1453bf4d2" :a :task/id :v "t-cecad16e" :op :assert}
+   {:e #blake3 "3eb5eecbe77b18d0a95c08ed104e90c9535b644aaa990e9b58830ba1453bf4d2" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "3eb5eecbe77b18d0a95c08ed104e90c9535b644aaa990e9b58830ba1453bf4d2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3eb5eecbe77b18d0a95c08ed104e90c9535b644aaa990e9b58830ba1453bf4d2" :a :task/title :v "Witness system implements multi-level evidence hierarchy: Level 1 (annotation -" :op :assert}
+   {:e #blake3 "3eb5eecbe77b18d0a95c08ed104e90c9535b644aaa990e9b58830ba1453bf4d2" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "bdd573981356d8435f1724e9cde2a14d994ac42abce6dfcd1aab558e3a88ea6f" :a :db/doc :v "Witness system implements multi-level evidence hierarchy: Level 1 (annotation - code comment linking to invariant), Level 2 (test - test function targeting invariant), Level 3 (verify - mechanical annotation proof with --verify flag), Level 4 (review - Gestalt-framed review bundle with code snippets, review criteria, and spec context via --review-context). Auto-invalidation (APP-INV-041) when spec or code hashes change. Evidence types: test, annotation, scan, review, attestation, eval." :op :assert}
+   {:e #blake3 "bdd573981356d8435f1724e9cde2a14d994ac42abce6dfcd1aab558e3a88ea6f" :a :db/ident :v :observation/witness-system-implements-multi-level-evidence-hierarchy-le :op :assert}
+   {:e #blake3 "bdd573981356d8435f1724e9cde2a14d994ac42abce6dfcd1aab558e3a88ea6f" :a :exploration/body :v "Witness system implements multi-level evidence hierarchy: Level 1 (annotation - code comment linking to invariant), Level 2 (test - test function targeting invariant), Level 3 (verify - mechanical annotation proof with --verify flag), Level 4 (review - Gestalt-framed review bundle with code snippets, review criteria, and spec context via --review-context). Auto-invalidation (APP-INV-041) when spec or code hashes change. Evidence types: test, annotation, scan, review, attestation, eval." :op :assert}
+   {:e #blake3 "bdd573981356d8435f1724e9cde2a14d994ac42abce6dfcd1aab558e3a88ea6f" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "bdd573981356d8435f1724e9cde2a14d994ac42abce6dfcd1aab558e3a88ea6f" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "bdd573981356d8435f1724e9cde2a14d994ac42abce6dfcd1aab558e3a88ea6f" :a :exploration/content-hash :v #bytes "5abdfa1745dc572343e46aa08de797b25dc6426d82b53b2ea940db4398ed4190" :op :assert}
+   {:e #blake3 "bdd573981356d8435f1724e9cde2a14d994ac42abce6dfcd1aab558e3a88ea6f" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "bdd573981356d8435f1724e9cde2a14d994ac42abce6dfcd1aab558e3a88ea6f" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "bdd573981356d8435f1724e9cde2a14d994ac42abce6dfcd1aab558e3a88ea6f" :a :exploration/source-session :v #blake3 "368e75f8ec0de3001f7b2e68b5e3d13fe130025d88de5aba4443f45a9f88ee4c" :op :assert}
+ ]}

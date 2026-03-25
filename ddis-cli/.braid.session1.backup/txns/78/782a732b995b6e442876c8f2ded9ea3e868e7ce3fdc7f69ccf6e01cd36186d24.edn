@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293293/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Bilateral cycle: discover -> refine -> drift -> absorb"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "100ef770e9ed740f538362906614f4468d3d5bf728078f3d95652f144a3bdbad" :a :db/doc :v "Bilateral cycle: discover -> refine -> drift -> absorb" :op :assert}
+   {:e #blake3 "100ef770e9ed740f538362906614f4468d3d5bf728078f3d95652f144a3bdbad" :a :db/ident :v :observation/bilateral-cycle-discover-refine-drift-absorb :op :assert}
+   {:e #blake3 "100ef770e9ed740f538362906614f4468d3d5bf728078f3d95652f144a3bdbad" :a :exploration/body :v "Bilateral cycle: discover -> refine -> drift -> absorb" :op :assert}
+   {:e #blake3 "100ef770e9ed740f538362906614f4468d3d5bf728078f3d95652f144a3bdbad" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "100ef770e9ed740f538362906614f4468d3d5bf728078f3d95652f144a3bdbad" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "100ef770e9ed740f538362906614f4468d3d5bf728078f3d95652f144a3bdbad" :a :exploration/content-hash :v #bytes "b0760d5f2dbe657ea547dc7e0db7aa98605b9cc25c0671b6a87f787eea27c883" :op :assert}
+   {:e #blake3 "100ef770e9ed740f538362906614f4468d3d5bf728078f3d95652f144a3bdbad" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "100ef770e9ed740f538362906614f4468d3d5bf728078f3d95652f144a3bdbad" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "100ef770e9ed740f538362906614f4468d3d5bf728078f3d95652f144a3bdbad" :a :exploration/source-session :v #blake3 "bc048690dfa9a534eaaaf8332ffbc85bc0fb702141d1c50e068958a28daa67af" :op :assert}
+ ]}

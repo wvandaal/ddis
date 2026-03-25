@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372739/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "APP-INV-001 Round-Trip Fidelity: ALIGNED. The Go CLI achieves byte-identical round-trip via raw_text storage in source_files table. Both RenderMonolith and RenderModular (renderer/monolith.go, renderer/modular.go) simply retrieve and write back the stored raw_text. This is a correct but trivial implementation — it preserves fidelity by storing the original verbatim rather than reconstructing from parsed structure. Test exists: tests/roundtrip_test.go with TestRoundTripMonolith and TestRoundTripModular verifying SHA-256 equivalence. The implementation matches the spec."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5ac6c3280938c47dcb9b8551dd9d2e549e8a62bd933cf625999fec0ed4acae25" :a :db/doc :v "APP-INV-001 Round-Trip Fidelity: ALIGNED. The Go CLI achieves byte-identical round-trip via raw_text storage in source_files table. Both RenderMonolith and RenderModular (renderer/monolith.go, renderer/modular.go) simply retrieve and write back the stored raw_text. This is a correct but trivial implementation — it preserves fidelity by storing the original verbatim rather than reconstructing from parsed structure. Test exists: tests/roundtrip_test.go with TestRoundTripMonolith and TestRoundTripModular verifying SHA-256 equivalence. The implementation matches the spec." :op :assert}
+   {:e #blake3 "5ac6c3280938c47dcb9b8551dd9d2e549e8a62bd933cf625999fec0ed4acae25" :a :db/ident :v :observation/app-inv-001-round-trip-fidelity-aligned-the-go-cli-achieve :op :assert}
+   {:e #blake3 "5ac6c3280938c47dcb9b8551dd9d2e549e8a62bd933cf625999fec0ed4acae25" :a :exploration/body :v "APP-INV-001 Round-Trip Fidelity: ALIGNED. The Go CLI achieves byte-identical round-trip via raw_text storage in source_files table. Both RenderMonolith and RenderModular (renderer/monolith.go, renderer/modular.go) simply retrieve and write back the stored raw_text. This is a correct but trivial implementation — it preserves fidelity by storing the original verbatim rather than reconstructing from parsed structure. Test exists: tests/roundtrip_test.go with TestRoundTripMonolith and TestRoundTripModular verifying SHA-256 equivalence. The implementation matches the spec." :op :assert}
+   {:e #blake3 "5ac6c3280938c47dcb9b8551dd9d2e549e8a62bd933cf625999fec0ed4acae25" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "5ac6c3280938c47dcb9b8551dd9d2e549e8a62bd933cf625999fec0ed4acae25" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "5ac6c3280938c47dcb9b8551dd9d2e549e8a62bd933cf625999fec0ed4acae25" :a :exploration/content-hash :v #bytes "9a8221b84f8dba355abe1d37590339f3393c10f278dd2da197c3cfaba11b1162" :op :assert}
+   {:e #blake3 "5ac6c3280938c47dcb9b8551dd9d2e549e8a62bd933cf625999fec0ed4acae25" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "5ac6c3280938c47dcb9b8551dd9d2e549e8a62bd933cf625999fec0ed4acae25" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "5ac6c3280938c47dcb9b8551dd9d2e549e8a62bd933cf625999fec0ed4acae25" :a :exploration/source-session :v #blake3 "368e75f8ec0de3001f7b2e68b5e3d13fe130025d88de5aba4443f45a9f88ee4c" :op :assert}
+ ]}

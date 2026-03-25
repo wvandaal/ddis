@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774368832/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The consistency package (3004 LOC) implements a 5-tier contradiction engine: Graph, SAT, Heuristic, SMT, LLM. 9 conflict types detected."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dee7b9986da5673d6c557a529d3c9b0b24c0b1fbbeaad73a307c12dbb34126f1" :a :db/doc :v "The consistency package (3004 LOC) implements a 5-tier contradiction engine: Graph, SAT, Heuristic, SMT, LLM. 9 conflict types detected." :op :assert}
+   {:e #blake3 "dee7b9986da5673d6c557a529d3c9b0b24c0b1fbbeaad73a307c12dbb34126f1" :a :db/ident :v :observation/the-consistency-package-3004-loc-implements-a-5-tier-contr :op :assert}
+   {:e #blake3 "dee7b9986da5673d6c557a529d3c9b0b24c0b1fbbeaad73a307c12dbb34126f1" :a :exploration/body :v "The consistency package (3004 LOC) implements a 5-tier contradiction engine: Graph, SAT, Heuristic, SMT, LLM. 9 conflict types detected." :op :assert}
+   {:e #blake3 "dee7b9986da5673d6c557a529d3c9b0b24c0b1fbbeaad73a307c12dbb34126f1" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "dee7b9986da5673d6c557a529d3c9b0b24c0b1fbbeaad73a307c12dbb34126f1" :a :exploration/confidence :v 0.93 :op :assert}
+   {:e #blake3 "dee7b9986da5673d6c557a529d3c9b0b24c0b1fbbeaad73a307c12dbb34126f1" :a :exploration/content-hash :v #bytes "32ce3b71bc6871903ddb0dcb8b69049afe07f4464c2641eb1c67962e9fe509f2" :op :assert}
+   {:e #blake3 "dee7b9986da5673d6c557a529d3c9b0b24c0b1fbbeaad73a307c12dbb34126f1" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "dee7b9986da5673d6c557a529d3c9b0b24c0b1fbbeaad73a307c12dbb34126f1" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "dee7b9986da5673d6c557a529d3c9b0b24c0b1fbbeaad73a307c12dbb34126f1" :a :exploration/source-session :v #blake3 "0f5a27075d4ed181794e1aa0926fab9a30b5c1e301ccceac3f82b550128fb11f" :op :assert}
+ ]}

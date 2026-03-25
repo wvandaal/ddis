@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372976/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FINDING-7: Pervasive error-swallowing pattern across at least 5 packages. cascade.go (5 discarded errors), drift.go (3 discarded errors in process drift computation), materialize/snapshot.go (2 discarded errors from LastInsertId/RowsAffected), db.go (6 discarded errors in migration code), events/stream.go (silently skips malformed JSONL). The common anti-pattern is '_, _ = someFunc()' or 'if err == nil { ... }' without the else branch. In aggregate, this means database corruption, disk-full conditions, and schema mismatches can all produce silently incorrect results."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0b84f58b54cb1fb58db4dd74805d3fb1d8139ab97404d7cdd4467c7b8408155b" :a :db/doc :v "FINDING-7: Pervasive error-swallowing pattern across at least 5 packages. cascade.go (5 discarded errors), drift.go (3 discarded errors in process drift computation), materialize/snapshot.go (2 discarded errors from LastInsertId/RowsAffected), db.go (6 discarded errors in migration code), events/stream.go (silently skips malformed JSONL). The common anti-pattern is '_, _ = someFunc()' or 'if err == nil { ... }' without the else branch. In aggregate, this means database corruption, disk-full conditions, and schema mismatches can all produce silently incorrect results." :op :assert}
+   {:e #blake3 "0b84f58b54cb1fb58db4dd74805d3fb1d8139ab97404d7cdd4467c7b8408155b" :a :db/ident :v :observation/finding-7-pervasive-error-swallowing-pattern-across-at-leas :op :assert}
+   {:e #blake3 "0b84f58b54cb1fb58db4dd74805d3fb1d8139ab97404d7cdd4467c7b8408155b" :a :exploration/body :v "FINDING-7: Pervasive error-swallowing pattern across at least 5 packages. cascade.go (5 discarded errors), drift.go (3 discarded errors in process drift computation), materialize/snapshot.go (2 discarded errors from LastInsertId/RowsAffected), db.go (6 discarded errors in migration code), events/stream.go (silently skips malformed JSONL). The common anti-pattern is '_, _ = someFunc()' or 'if err == nil { ... }' without the else branch. In aggregate, this means database corruption, disk-full conditions, and schema mismatches can all produce silently incorrect results." :op :assert}
+   {:e #blake3 "0b84f58b54cb1fb58db4dd74805d3fb1d8139ab97404d7cdd4467c7b8408155b" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "0b84f58b54cb1fb58db4dd74805d3fb1d8139ab97404d7cdd4467c7b8408155b" :a :exploration/confidence :v 0.93 :op :assert}
+   {:e #blake3 "0b84f58b54cb1fb58db4dd74805d3fb1d8139ab97404d7cdd4467c7b8408155b" :a :exploration/content-hash :v #bytes "c404da7351768575fd02137c298ac1b001e9e117ee06c974b9034ef928b50af1" :op :assert}
+   {:e #blake3 "0b84f58b54cb1fb58db4dd74805d3fb1d8139ab97404d7cdd4467c7b8408155b" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "0b84f58b54cb1fb58db4dd74805d3fb1d8139ab97404d7cdd4467c7b8408155b" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "0b84f58b54cb1fb58db4dd74805d3fb1d8139ab97404d7cdd4467c7b8408155b" :a :exploration/source-session :v #blake3 "bd7edb506c2c1d1fc9115e4b98eb99ec29bc3bacfa8866e5ab72763e52bada6a" :op :assert}
+ ]}

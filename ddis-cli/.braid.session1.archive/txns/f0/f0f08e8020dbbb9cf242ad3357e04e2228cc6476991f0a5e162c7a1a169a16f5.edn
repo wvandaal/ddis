@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372816/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FINDING-1: cascade.go (lines 74,84,94,127,139) silently discards 5 database errors using blank identifier. GetInvariantRegistryEntries, ListModules, GetModuleRelationships, GetBacklinks, GetModuleDomains all have their errors discarded. If the database is corrupted or a table is missing, the cascade analysis will return incomplete/wrong results with no indication that something went wrong. This violates Go error handling best practices."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "39d231ca93b6850980b45781009024364921492500ece0fb1d2f2fa17557630c" :a :db/doc :v "FINDING-1: cascade.go (lines 74,84,94,127,139) silently discards 5 database errors using blank identifier. GetInvariantRegistryEntries, ListModules, GetModuleRelationships, GetBacklinks, GetModuleDomains all have their errors discarded. If the database is corrupted or a table is missing, the cascade analysis will return incomplete/wrong results with no indication that something went wrong. This violates Go error handling best practices." :op :assert}
+   {:e #blake3 "39d231ca93b6850980b45781009024364921492500ece0fb1d2f2fa17557630c" :a :db/ident :v :observation/finding-1-cascadego-lines-748494127139-silently-disc :op :assert}
+   {:e #blake3 "39d231ca93b6850980b45781009024364921492500ece0fb1d2f2fa17557630c" :a :exploration/body :v "FINDING-1: cascade.go (lines 74,84,94,127,139) silently discards 5 database errors using blank identifier. GetInvariantRegistryEntries, ListModules, GetModuleRelationships, GetBacklinks, GetModuleDomains all have their errors discarded. If the database is corrupted or a table is missing, the cascade analysis will return incomplete/wrong results with no indication that something went wrong. This violates Go error handling best practices." :op :assert}
+   {:e #blake3 "39d231ca93b6850980b45781009024364921492500ece0fb1d2f2fa17557630c" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "39d231ca93b6850980b45781009024364921492500ece0fb1d2f2fa17557630c" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "39d231ca93b6850980b45781009024364921492500ece0fb1d2f2fa17557630c" :a :exploration/content-hash :v #bytes "325d391f9909a89c8364ed1e6b8d26b8a62e8cc6ce08b2ebf99c0e25c13f8096" :op :assert}
+   {:e #blake3 "39d231ca93b6850980b45781009024364921492500ece0fb1d2f2fa17557630c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "39d231ca93b6850980b45781009024364921492500ece0fb1d2f2fa17557630c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "39d231ca93b6850980b45781009024364921492500ece0fb1d2f2fa17557630c" :a :exploration/source-session :v #blake3 "368e75f8ec0de3001f7b2e68b5e3d13fe130025d88de5aba4443f45a9f88ee4c" :op :assert}
+ ]}

@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774293439/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Investigate insert.go (30KB) and queries.go (43KB) — the two largest files in the storage package. Likely contain SQL injection risks or unmaintainable query strings that need refactoring."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a5c279feb3dceaf7a5cac847a4af500458d77c7670799ce853fc73af50aacaea" :a :db/ident :v :task/t-040dcc5a :op :assert}
+   {:e #blake3 "a5c279feb3dceaf7a5cac847a4af500458d77c7670799ce853fc73af50aacaea" :a :task/created-at :v 1774293438 :op :assert}
+   {:e #blake3 "a5c279feb3dceaf7a5cac847a4af500458d77c7670799ce853fc73af50aacaea" :a :task/id :v "t-040dcc5a" :op :assert}
+   {:e #blake3 "a5c279feb3dceaf7a5cac847a4af500458d77c7670799ce853fc73af50aacaea" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a5c279feb3dceaf7a5cac847a4af500458d77c7670799ce853fc73af50aacaea" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a5c279feb3dceaf7a5cac847a4af500458d77c7670799ce853fc73af50aacaea" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a5c279feb3dceaf7a5cac847a4af500458d77c7670799ce853fc73af50aacaea" :a :task/title :v "Investigate insert.go (30KB) and queries.go (43KB) — the two largest files in the storage package. Likely contain SQL injection risks or unmaintainable query strings that need refactoring." :op :assert}
+   {:e #blake3 "a5c279feb3dceaf7a5cac847a4af500458d77c7670799ce853fc73af50aacaea" :a :task/title-l0 :v "the two largest files" :op :assert}
+   {:e #blake3 "a5c279feb3dceaf7a5cac847a4af500458d77c7670799ce853fc73af50aacaea" :a :task/title-l1 :v "Investigate insert.go (30KB) and queries.go (43KB): the two largest files in..." :op :assert}
+   {:e #blake3 "a5c279feb3dceaf7a5cac847a4af500458d77c7670799ce853fc73af50aacaea" :a :task/type :v :task.type/task :op :assert}
+ ]}

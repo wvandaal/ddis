@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372902/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FINDING-4: Systematic missing rows.Err() checks. After iterating sql.Rows with for rows.Next(), Go requires checking rows.Err() to detect iteration errors (network issues, encoding errors, context cancellation). Multiple files omit this: drift.go (line 320-331), materialize/snapshot.go ListSnapshots (line 97-98), cli/query.go, cli/project.go. The storage/queries.go file does this correctly but inconsistently -- some functions check, others dont."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "55b521da556302361b513bc413d5d32b8aeefa89a6798c9af3106b374f379e30" :a :db/doc :v "FINDING-4: Systematic missing rows.Err() checks. After iterating sql.Rows with for rows.Next(), Go requires checking rows.Err() to detect iteration errors (network issues, encoding errors, context cancellation). Multiple files omit this: drift.go (line 320-331), materialize/snapshot.go ListSnapshots (line 97-98), cli/query.go, cli/project.go. The storage/queries.go file does this correctly but inconsistently -- some functions check, others dont." :op :assert}
+   {:e #blake3 "55b521da556302361b513bc413d5d32b8aeefa89a6798c9af3106b374f379e30" :a :db/ident :v :observation/finding-4-systematic-missing-rowserr-checks-after-itera :op :assert}
+   {:e #blake3 "55b521da556302361b513bc413d5d32b8aeefa89a6798c9af3106b374f379e30" :a :exploration/body :v "FINDING-4: Systematic missing rows.Err() checks. After iterating sql.Rows with for rows.Next(), Go requires checking rows.Err() to detect iteration errors (network issues, encoding errors, context cancellation). Multiple files omit this: drift.go (line 320-331), materialize/snapshot.go ListSnapshots (line 97-98), cli/query.go, cli/project.go. The storage/queries.go file does this correctly but inconsistently -- some functions check, others dont." :op :assert}
+   {:e #blake3 "55b521da556302361b513bc413d5d32b8aeefa89a6798c9af3106b374f379e30" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "55b521da556302361b513bc413d5d32b8aeefa89a6798c9af3106b374f379e30" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "55b521da556302361b513bc413d5d32b8aeefa89a6798c9af3106b374f379e30" :a :exploration/content-hash :v #bytes "872a744276831f1d7d0fd837a568beb8cd015cf3830dc17cd914be6ae8f6b4d6" :op :assert}
+   {:e #blake3 "55b521da556302361b513bc413d5d32b8aeefa89a6798c9af3106b374f379e30" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "55b521da556302361b513bc413d5d32b8aeefa89a6798c9af3106b374f379e30" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "55b521da556302361b513bc413d5d32b8aeefa89a6798c9af3106b374f379e30" :a :exploration/source-session :v #blake3 "2685f2fe408e1ef2d0b8750b79dfe6710fa69524dd785cbd130ae4d4d79efc0f" :op :assert}
+ ]}

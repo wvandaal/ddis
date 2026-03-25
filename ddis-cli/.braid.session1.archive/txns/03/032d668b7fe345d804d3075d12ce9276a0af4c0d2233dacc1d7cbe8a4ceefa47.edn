@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372810/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Event sourcing pipeline: materialize engine uses deterministic fold (APP-INV-073). CausalSort via Kahn's algorithm with timestamp tiebreaker (APP-ADR-074). Stream Processors are fold observers that fire after content events (APP-INV-080). The fold is pure: events -> SQL state, replay produces identical state (idempotency, APP-INV-075). This is the most architecturally significant subsystem — it turns JSONL event streams into materialized SQL views, enabling the system to rebuild state from history."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "02f2b33fe0d3a9bd30b661471676376c747bf141546bca545cf4161d701562e7" :a :db/doc :v "Event sourcing pipeline: materialize engine uses deterministic fold (APP-INV-073). CausalSort via Kahn's algorithm with timestamp tiebreaker (APP-ADR-074). Stream Processors are fold observers that fire after content events (APP-INV-080). The fold is pure: events -> SQL state, replay produces identical state (idempotency, APP-INV-075). This is the most architecturally significant subsystem — it turns JSONL event streams into materialized SQL views, enabling the system to rebuild state from history." :op :assert}
+   {:e #blake3 "02f2b33fe0d3a9bd30b661471676376c747bf141546bca545cf4161d701562e7" :a :db/ident :v :observation/event-sourcing-pipeline-materialize-engine-uses-determinist :op :assert}
+   {:e #blake3 "02f2b33fe0d3a9bd30b661471676376c747bf141546bca545cf4161d701562e7" :a :exploration/body :v "Event sourcing pipeline: materialize engine uses deterministic fold (APP-INV-073). CausalSort via Kahn's algorithm with timestamp tiebreaker (APP-ADR-074). Stream Processors are fold observers that fire after content events (APP-INV-080). The fold is pure: events -> SQL state, replay produces identical state (idempotency, APP-INV-075). This is the most architecturally significant subsystem — it turns JSONL event streams into materialized SQL views, enabling the system to rebuild state from history." :op :assert}
+   {:e #blake3 "02f2b33fe0d3a9bd30b661471676376c747bf141546bca545cf4161d701562e7" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "02f2b33fe0d3a9bd30b661471676376c747bf141546bca545cf4161d701562e7" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "02f2b33fe0d3a9bd30b661471676376c747bf141546bca545cf4161d701562e7" :a :exploration/content-hash :v #bytes "c816d96ecf6721c812a9d380735cf03b0895491160713255ad31eeead0ebf651" :op :assert}
+   {:e #blake3 "02f2b33fe0d3a9bd30b661471676376c747bf141546bca545cf4161d701562e7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "02f2b33fe0d3a9bd30b661471676376c747bf141546bca545cf4161d701562e7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "02f2b33fe0d3a9bd30b661471676376c747bf141546bca545cf4161d701562e7" :a :exploration/source-session :v #blake3 "368e75f8ec0de3001f7b2e68b5e3d13fe130025d88de5aba4443f45a9f88ee4c" :op :assert}
+ ]}

@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774373013/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Fix O(n^2) pairwise consistency checks: SAT, SMT, LLM tiers lack batching and cost controls"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "be42f8bf8f15a20edc35f9221a296dfed951909c53471465636e55ac9fe571d2" :a :db/ident :v :task/t-85737065 :op :assert}
+   {:e #blake3 "be42f8bf8f15a20edc35f9221a296dfed951909c53471465636e55ac9fe571d2" :a :task/created-at :v 1774373012 :op :assert}
+   {:e #blake3 "be42f8bf8f15a20edc35f9221a296dfed951909c53471465636e55ac9fe571d2" :a :task/description :v "SAT (sat.go), SMT (smt.go), and LLM (llm.go) tiers all use O(n^2) pairwise checking. SMT spawns n*(n-1)/2 Z3 subprocesses with 30s timeout each. LLM makes 3*n*(n-1)/2 API calls with no rate limiting or cost estimation. For 50 invariants: 1225 Z3 invocations (worst 10+ hours), 3675 API calls. Fix: add batching, parallelism, cost estimates before execution, incremental solving for SMT." :op :assert}
+   {:e #blake3 "be42f8bf8f15a20edc35f9221a296dfed951909c53471465636e55ac9fe571d2" :a :task/id :v "t-85737065" :op :assert}
+   {:e #blake3 "be42f8bf8f15a20edc35f9221a296dfed951909c53471465636e55ac9fe571d2" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "be42f8bf8f15a20edc35f9221a296dfed951909c53471465636e55ac9fe571d2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "be42f8bf8f15a20edc35f9221a296dfed951909c53471465636e55ac9fe571d2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "be42f8bf8f15a20edc35f9221a296dfed951909c53471465636e55ac9fe571d2" :a :task/title :v "Fix O(n^2) pairwise consistency checks: SAT, SMT, LLM tiers lack batching and cost controls" :op :assert}
+   {:e #blake3 "be42f8bf8f15a20edc35f9221a296dfed951909c53471465636e55ac9fe571d2" :a :task/title-l0 :v "SAT, SMT, LLM tiers" :op :assert}
+   {:e #blake3 "be42f8bf8f15a20edc35f9221a296dfed951909c53471465636e55ac9fe571d2" :a :task/title-l1 :v "Fix O(n^2) pairwise consistency checks: SAT, SMT, LLM tiers lack batching and..." :op :assert}
+   {:e #blake3 "be42f8bf8f15a20edc35f9221a296dfed951909c53471465636e55ac9fe571d2" :a :task/type :v :task.type/bug :op :assert}
+ ]}

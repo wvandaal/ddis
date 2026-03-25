@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774401052/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Error handling gap in storage/db.go: Lines 71-73 and 106 call db.Exec() without checking errors (fire-and-forget pattern). Migration steps silently fail — data loss risk if INSERT INTO invariant_witnesses or DROP TABLE fails. Also lines 125-126, 134. Pattern: migration code consistently ignores Exec return values."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b5f1fec1e87a2ddeae790ac067de427488a80214d4ba8c7451066bd1d9046e69" :a :db/doc :v "Error handling gap in storage/db.go: Lines 71-73 and 106 call db.Exec() without checking errors (fire-and-forget pattern). Migration steps silently fail — data loss risk if INSERT INTO invariant_witnesses or DROP TABLE fails. Also lines 125-126, 134. Pattern: migration code consistently ignores Exec return values." :op :assert}
+   {:e #blake3 "b5f1fec1e87a2ddeae790ac067de427488a80214d4ba8c7451066bd1d9046e69" :a :db/ident :v :observation/error-handling-gap-in-storagedbgo-lines-71-73-and-106-cal :op :assert}
+   {:e #blake3 "b5f1fec1e87a2ddeae790ac067de427488a80214d4ba8c7451066bd1d9046e69" :a :exploration/body :v "Error handling gap in storage/db.go: Lines 71-73 and 106 call db.Exec() without checking errors (fire-and-forget pattern). Migration steps silently fail — data loss risk if INSERT INTO invariant_witnesses or DROP TABLE fails. Also lines 125-126, 134. Pattern: migration code consistently ignores Exec return values." :op :assert}
+   {:e #blake3 "b5f1fec1e87a2ddeae790ac067de427488a80214d4ba8c7451066bd1d9046e69" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "b5f1fec1e87a2ddeae790ac067de427488a80214d4ba8c7451066bd1d9046e69" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "b5f1fec1e87a2ddeae790ac067de427488a80214d4ba8c7451066bd1d9046e69" :a :exploration/content-hash :v #bytes "d009cb2089f603740fee6656a67d737013a9f36a30c0eedfa31e45455cc6e841" :op :assert}
+   {:e #blake3 "b5f1fec1e87a2ddeae790ac067de427488a80214d4ba8c7451066bd1d9046e69" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b5f1fec1e87a2ddeae790ac067de427488a80214d4ba8c7451066bd1d9046e69" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b5f1fec1e87a2ddeae790ac067de427488a80214d4ba8c7451066bd1d9046e69" :a :exploration/source-session :v #blake3 "7ddde8aedeb4a752380d365ac6626c28d930d9ae864f0bbda9bd66587b1153da" :op :assert}
+ ]}

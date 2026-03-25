@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774474016/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC S045-LOOPS: High-impact loop closures for DOGFOOD 8+/10"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7fca376f8f9d7c0bb6e3b5f878b6fcb1c97622b20fd665635cacc109406960e2" :a :db/ident :v :task/t-b4d81b36 :op :assert}
+   {:e #blake3 "7fca376f8f9d7c0bb6e3b5f878b6fcb1c97622b20fd665635cacc109406960e2" :a :task/created-at :v 1774474015 :op :assert}
+   {:e #blake3 "7fca376f8f9d7c0bb6e3b5f878b6fcb1c97622b20fd665635cacc109406960e2" :a :task/description :v "CONTEXT: DOGFOOD-2 Session 043 scored 6.7/10. Three primary weaknesses: (1) concept distribution skew (25/29 to invariants), (2) opaque entity IDs in bridge hypotheses, (3) static M(t). Of 5 identified loop closures (OAR, SEED, BOUNDARIES, BRIDGE-LABELS, M(t)-ACTIVITY), LOOP-4 and LOOP-1 have highest expected impact on Session 3 score. RATIONALE: LOOP-4 resolves opaque entity IDs that make bridge hypotheses unactionable (+0.5-0.8 expected score impact). LOOP-1 dampens observation-saturated routing that wastes information budget on exhausted areas (+0.3-0.5 expected impact). Together with DEFECT-001 normalization and CONCEPT-MULTI, these target all three weaknesses. DELIVERABLES: 2 loop closures, each with implementation + test. LOOP-4 in guidance.rs (bridge hypothesis label resolution). LOOP-1 in routing.rs (observation-aware dampening). ACCEPTANCE: (A) Bridge hypotheses show human-readable entity names. (B) R(t) impact diminishes for concepts with >5 observations. (C) All existing tests pass." :op :assert}
+   {:e #blake3 "7fca376f8f9d7c0bb6e3b5f878b6fcb1c97622b20fd665635cacc109406960e2" :a :task/id :v "t-b4d81b36" :op :assert}
+   {:e #blake3 "7fca376f8f9d7c0bb6e3b5f878b6fcb1c97622b20fd665635cacc109406960e2" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "7fca376f8f9d7c0bb6e3b5f878b6fcb1c97622b20fd665635cacc109406960e2" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "7fca376f8f9d7c0bb6e3b5f878b6fcb1c97622b20fd665635cacc109406960e2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7fca376f8f9d7c0bb6e3b5f878b6fcb1c97622b20fd665635cacc109406960e2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7fca376f8f9d7c0bb6e3b5f878b6fcb1c97622b20fd665635cacc109406960e2" :a :task/title :v "EPIC S045-LOOPS: High-impact loop closures for DOGFOOD 8+/10" :op :assert}
+   {:e #blake3 "7fca376f8f9d7c0bb6e3b5f878b6fcb1c97622b20fd665635cacc109406960e2" :a :task/title-l0 :v "EPIC S045-LOOPS" :op :assert}
+   {:e #blake3 "7fca376f8f9d7c0bb6e3b5f878b6fcb1c97622b20fd665635cacc109406960e2" :a :task/title-l1 :v "EPIC S045-LOOPS: High-impact loop closures for DOGFOOD 8+/10" :op :assert}
+   {:e #blake3 "7fca376f8f9d7c0bb6e3b5f878b6fcb1c97622b20fd665635cacc109406960e2" :a :task/traces-to :v #blake3 "791ce65b20564279d064cb37745fcdd4b9e31f36804346447a413c2befbb9709" :op :assert}
+   {:e #blake3 "7fca376f8f9d7c0bb6e3b5f878b6fcb1c97622b20fd665635cacc109406960e2" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "7fca376f8f9d7c0bb6e3b5f878b6fcb1c97622b20fd665635cacc109406960e2" :a :task/type :v :task.type/epic :op :assert}
+ ]}

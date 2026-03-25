@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774472255/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :db/ident :v :recon/trace-8f400ee87aca9b8c :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-neighborhood :v "FOUNDATION" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.schema.adr-foundation-014" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-neighbors :v ":impl/braid.src.commands.task.adr-foundation-014" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-neighbors :v ":task/t-06215eb2" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-neighbors :v ":task/t-3e4df429" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-neighbors :v ":task/t-5c8eab95" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-neighbors :v ":task/t-7007ba04" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-neighbors :v ":task/t-a13782e8" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-neighbors :v ":task/t-cd974c3c" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-neighbors :v ":task/t-e656e270" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-neighbors :v ":task/t-ff07bb5a" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-refs :v "ADR-FOUNDATION-014" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-refs :v "ADR-FOUNDATION-015" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-refs :v "ADR-FOUNDATION-016" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-refs :v "ADR-FOUNDATION-026" :op :assert}
+   {:e #blake3 "20124bb90336910e9709821e9e4ccb2c949bd8c67cdbcdf4ffb51698b89acee2" :a :recon/trace-refs :v "ADR-FOUNDATION-030" :op :assert}
+ ]}

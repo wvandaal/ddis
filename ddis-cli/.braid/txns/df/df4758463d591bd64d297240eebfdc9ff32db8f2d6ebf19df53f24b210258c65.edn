@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774401197/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "APP-INV-015 (Deterministic Hashing): ALIGNED - sha256Hex() is a 3-line function: sha256.Sum256([]byte(s)) formatted as hex. No salt, no timestamp, no process ID, no nonce. Used for content_hash on sections, source files, invariants, and ADRs. Produces identical output for identical input across all platforms per Go's crypto/sha256."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6cc9a64d809dd2f262597a6343134e71b200c3f1f76854ec9d58cb4c9769de08" :a :db/doc :v "APP-INV-015 (Deterministic Hashing): ALIGNED - sha256Hex() is a 3-line function: sha256.Sum256([]byte(s)) formatted as hex. No salt, no timestamp, no process ID, no nonce. Used for content_hash on sections, source files, invariants, and ADRs. Produces identical output for identical input across all platforms per Go's crypto/sha256." :op :assert}
+   {:e #blake3 "6cc9a64d809dd2f262597a6343134e71b200c3f1f76854ec9d58cb4c9769de08" :a :db/ident :v :observation/app-inv-015-deterministic-hashing-aligned-sha256hex-i :op :assert}
+   {:e #blake3 "6cc9a64d809dd2f262597a6343134e71b200c3f1f76854ec9d58cb4c9769de08" :a :exploration/body :v "APP-INV-015 (Deterministic Hashing): ALIGNED - sha256Hex() is a 3-line function: sha256.Sum256([]byte(s)) formatted as hex. No salt, no timestamp, no process ID, no nonce. Used for content_hash on sections, source files, invariants, and ADRs. Produces identical output for identical input across all platforms per Go's crypto/sha256." :op :assert}
+   {:e #blake3 "6cc9a64d809dd2f262597a6343134e71b200c3f1f76854ec9d58cb4c9769de08" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "6cc9a64d809dd2f262597a6343134e71b200c3f1f76854ec9d58cb4c9769de08" :a :exploration/confidence :v 0.98 :op :assert}
+   {:e #blake3 "6cc9a64d809dd2f262597a6343134e71b200c3f1f76854ec9d58cb4c9769de08" :a :exploration/content-hash :v #bytes "eefa296d6ba535d88a211a1e20e8230f6d6b0ad2d2b07994d7eff1c9f8d597b0" :op :assert}
+   {:e #blake3 "6cc9a64d809dd2f262597a6343134e71b200c3f1f76854ec9d58cb4c9769de08" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "6cc9a64d809dd2f262597a6343134e71b200c3f1f76854ec9d58cb4c9769de08" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "6cc9a64d809dd2f262597a6343134e71b200c3f1f76854ec9d58cb4c9769de08" :a :exploration/source-session :v #blake3 "7ddde8aedeb4a752380d365ac6626c28d930d9ae864f0bbda9bd66587b1153da" :op :assert}
+ ]}

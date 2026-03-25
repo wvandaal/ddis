@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372984/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FINDING-8: semantic.go init() function (line 189-191) exists only to satisfy unused import of strings package. The function body is _ = strings.TrimSpace. The strings import is only used by significantWords() which lives in graph.go (same package). This init() is dead code and a Go code smell - the import should be removed."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2ed6d43f07071d4f5fda27675f37ab8dea580e57249c27d441fed4ff5d9effe2" :a :db/doc :v "FINDING-8: semantic.go init() function (line 189-191) exists only to satisfy unused import of strings package. The function body is _ = strings.TrimSpace. The strings import is only used by significantWords() which lives in graph.go (same package). This init() is dead code and a Go code smell - the import should be removed." :op :assert}
+   {:e #blake3 "2ed6d43f07071d4f5fda27675f37ab8dea580e57249c27d441fed4ff5d9effe2" :a :db/ident :v :observation/finding-8-semanticgo-init-function-line-189-191-exists :op :assert}
+   {:e #blake3 "2ed6d43f07071d4f5fda27675f37ab8dea580e57249c27d441fed4ff5d9effe2" :a :exploration/body :v "FINDING-8: semantic.go init() function (line 189-191) exists only to satisfy unused import of strings package. The function body is _ = strings.TrimSpace. The strings import is only used by significantWords() which lives in graph.go (same package). This init() is dead code and a Go code smell - the import should be removed." :op :assert}
+   {:e #blake3 "2ed6d43f07071d4f5fda27675f37ab8dea580e57249c27d441fed4ff5d9effe2" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "2ed6d43f07071d4f5fda27675f37ab8dea580e57249c27d441fed4ff5d9effe2" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "2ed6d43f07071d4f5fda27675f37ab8dea580e57249c27d441fed4ff5d9effe2" :a :exploration/content-hash :v #bytes "bf4d0a3448f22e68ffd23e30267d8e52af5dc966346a8471e0607beb609175f1" :op :assert}
+   {:e #blake3 "2ed6d43f07071d4f5fda27675f37ab8dea580e57249c27d441fed4ff5d9effe2" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2ed6d43f07071d4f5fda27675f37ab8dea580e57249c27d441fed4ff5d9effe2" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2ed6d43f07071d4f5fda27675f37ab8dea580e57249c27d441fed4ff5d9effe2" :a :exploration/source-session :v #blake3 "bd7edb506c2c1d1fc9115e4b98eb99ec29bc3bacfa8866e5ab72763e52bada6a" :op :assert}
+ ]}

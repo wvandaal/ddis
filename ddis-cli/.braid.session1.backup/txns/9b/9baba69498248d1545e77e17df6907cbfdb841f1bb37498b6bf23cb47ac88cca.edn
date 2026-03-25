@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774372869/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: APP-INV-071 DIVERGENT: Parse command bypasses event log, writes directly to SQLite. The parse pipeline (parser/document.go) calls storage.InsertSpecIndex/InsertSourceFile/InsertSectionsDB directly instead of going through the event-sourced import+materialize path. To fix: either wire parse to emit events first and then materialize, or formally deprecate the legacy parse path in favor of import+materialize."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4c447601abe198f0de4485414b111f0add7b06078736bce11d723af5f28bc218" :a :db/ident :v :task/t-4a0e78ca :op :assert}
+   {:e #blake3 "4c447601abe198f0de4485414b111f0add7b06078736bce11d723af5f28bc218" :a :task/created-at :v 1774372868 :op :assert}
+   {:e #blake3 "4c447601abe198f0de4485414b111f0add7b06078736bce11d723af5f28bc218" :a :task/id :v "t-4a0e78ca" :op :assert}
+   {:e #blake3 "4c447601abe198f0de4485414b111f0add7b06078736bce11d723af5f28bc218" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4c447601abe198f0de4485414b111f0add7b06078736bce11d723af5f28bc218" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4c447601abe198f0de4485414b111f0add7b06078736bce11d723af5f28bc218" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4c447601abe198f0de4485414b111f0add7b06078736bce11d723af5f28bc218" :a :task/title :v "APP-INV-071 DIVERGENT: Parse command bypasses event log, writes directly to SQLite. The parse pipeline (parser/document.go) calls storage.InsertSpecIndex/InsertSourceFile/InsertSectionsDB directly instead of going through the event-sourced import+materialize path. To fix: either wire parse to emit events first and then materialize, or formally deprecate the legacy parse path in favor of import+materialize." :op :assert}
+   {:e #blake3 "4c447601abe198f0de4485414b111f0add7b06078736bce11d723af5f28bc218" :a :task/title-l0 :v "APP-INV-071 DIVERGENT" :op :assert}
+   {:e #blake3 "4c447601abe198f0de4485414b111f0add7b06078736bce11d723af5f28bc218" :a :task/title-l1 :v "APP-INV-071 DIVERGENT: Parse command bypasses event log, writes directly to S..." :op :assert}
+   {:e #blake3 "4c447601abe198f0de4485414b111f0add7b06078736bce11d723af5f28bc218" :a :task/type :v :task.type/task :op :assert}
+ ]}

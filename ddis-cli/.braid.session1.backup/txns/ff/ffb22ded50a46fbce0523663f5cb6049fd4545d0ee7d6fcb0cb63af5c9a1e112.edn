@@ -1,0 +1,37 @@
+{:tx/id #hlc "1774367234/0/c3d89db29683c1a81cb5f0a24f045b16"
+ :tx/agent "c3d89db29683c1a81cb5f0a24f045b16"
+ :tx/provenance :derived
+ :tx/rationale "D4-4: install runtime schema (ADR-DAEMON-003)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0ac5f3006923c80885cc118c475daefb89f91bece91f2d5a7226884593c806ba" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "0ac5f3006923c80885cc118c475daefb89f91bece91f2d5a7226884593c806ba" :a :db/doc :v "Wall clock milliseconds for request processing" :op :assert}
+   {:e #blake3 "0ac5f3006923c80885cc118c475daefb89f91bece91f2d5a7226884593c806ba" :a :db/ident :v :runtime/latency-ms :op :assert}
+   {:e #blake3 "0ac5f3006923c80885cc118c475daefb89f91bece91f2d5a7226884593c806ba" :a :db/resolutionMode :v :db.resolution/lww :op :assert}
+   {:e #blake3 "0ac5f3006923c80885cc118c475daefb89f91bece91f2d5a7226884593c806ba" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "239fd1ccbc3c61991651d0bc575aed2d496112873a341595ec6a3e84176bd4b6" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "239fd1ccbc3c61991651d0bc575aed2d496112873a341595ec6a3e84176bd4b6" :a :db/doc :v "JSON-RPC request ID as string" :op :assert}
+   {:e #blake3 "239fd1ccbc3c61991651d0bc575aed2d496112873a341595ec6a3e84176bd4b6" :a :db/ident :v :runtime/request-id :op :assert}
+   {:e #blake3 "239fd1ccbc3c61991651d0bc575aed2d496112873a341595ec6a3e84176bd4b6" :a :db/resolutionMode :v :db.resolution/lww :op :assert}
+   {:e #blake3 "239fd1ccbc3c61991651d0bc575aed2d496112873a341595ec6a3e84176bd4b6" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "4ce4bee44cc1e76fbe39aadde949aa5d6507d59097689b0c0bd3d137b33acebe" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "4ce4bee44cc1e76fbe39aadde949aa5d6507d59097689b0c0bd3d137b33acebe" :a :db/doc :v "Request outcome: success or error" :op :assert}
+   {:e #blake3 "4ce4bee44cc1e76fbe39aadde949aa5d6507d59097689b0c0bd3d137b33acebe" :a :db/ident :v :runtime/outcome :op :assert}
+   {:e #blake3 "4ce4bee44cc1e76fbe39aadde949aa5d6507d59097689b0c0bd3d137b33acebe" :a :db/resolutionMode :v :db.resolution/lww :op :assert}
+   {:e #blake3 "4ce4bee44cc1e76fbe39aadde949aa5d6507d59097689b0c0bd3d137b33acebe" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "b5db18384c1d11142f76dfbc92b5bd268bb80f871200a566f0842669b74860b0" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "b5db18384c1d11142f76dfbc92b5bd268bb80f871200a566f0842669b74860b0" :a :db/doc :v "Store datom count at time of request" :op :assert}
+   {:e #blake3 "b5db18384c1d11142f76dfbc92b5bd268bb80f871200a566f0842669b74860b0" :a :db/ident :v :runtime/datom-count :op :assert}
+   {:e #blake3 "b5db18384c1d11142f76dfbc92b5bd268bb80f871200a566f0842669b74860b0" :a :db/resolutionMode :v :db.resolution/lww :op :assert}
+   {:e #blake3 "b5db18384c1d11142f76dfbc92b5bd268bb80f871200a566f0842669b74860b0" :a :db/valueType :v :db.type/long :op :assert}
+   {:e #blake3 "d9cb481c26c2cc50f08be494475acb015e72b9651e19f09150cb6c2ccd0f2f6f" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "d9cb481c26c2cc50f08be494475acb015e72b9651e19f09150cb6c2ccd0f2f6f" :a :db/doc :v "Command name or tool name processed by the daemon" :op :assert}
+   {:e #blake3 "d9cb481c26c2cc50f08be494475acb015e72b9651e19f09150cb6c2ccd0f2f6f" :a :db/ident :v :runtime/command :op :assert}
+   {:e #blake3 "d9cb481c26c2cc50f08be494475acb015e72b9651e19f09150cb6c2ccd0f2f6f" :a :db/resolutionMode :v :db.resolution/lww :op :assert}
+   {:e #blake3 "d9cb481c26c2cc50f08be494475acb015e72b9651e19f09150cb6c2ccd0f2f6f" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "e7ba00db7acd425c90127bb20d4905e30d178eb41d6837781cf13768d8ce40d1" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "e7ba00db7acd425c90127bb20d4905e30d178eb41d6837781cf13768d8ce40d1" :a :db/doc :v "Whether refresh_if_needed found no new transactions (O(1) fast path)" :op :assert}
+   {:e #blake3 "e7ba00db7acd425c90127bb20d4905e30d178eb41d6837781cf13768d8ce40d1" :a :db/ident :v :runtime/cache-hit :op :assert}
+   {:e #blake3 "e7ba00db7acd425c90127bb20d4905e30d178eb41d6837781cf13768d8ce40d1" :a :db/resolutionMode :v :db.resolution/lww :op :assert}
+   {:e #blake3 "e7ba00db7acd425c90127bb20d4905e30d178eb41d6837781cf13768d8ce40d1" :a :db/valueType :v :db.type/boolean :op :assert}
+ ]}

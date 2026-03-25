@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372765/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Parser implements a 4-pass pipeline (APP-ADR-009): Pass 1 builds section tree from headings, Pass 2 extracts 12 element types (invariants, ADRs, quality gates, negative specs, verification prompts, meta-instructions, worked examples, WHY-NOT annotations, comparison blocks, performance budgets, state machines, glossary entries), Pass 3 extracts cross-references, Pass 4 resolves cross-references. Supports both monolith and modular parsing. Each element type has its own recognizer file. Formatting hints recorded for round-trip fidelity (APP-INV-001)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a7827cbb8a209581d68c2c75a65a7d2a7fca0f92f1cfae490223f1fcc859f401" :a :db/doc :v "Parser implements a 4-pass pipeline (APP-ADR-009): Pass 1 builds section tree from headings, Pass 2 extracts 12 element types (invariants, ADRs, quality gates, negative specs, verification prompts, meta-instructions, worked examples, WHY-NOT annotations, comparison blocks, performance budgets, state machines, glossary entries), Pass 3 extracts cross-references, Pass 4 resolves cross-references. Supports both monolith and modular parsing. Each element type has its own recognizer file. Formatting hints recorded for round-trip fidelity (APP-INV-001)." :op :assert}
+   {:e #blake3 "a7827cbb8a209581d68c2c75a65a7d2a7fca0f92f1cfae490223f1fcc859f401" :a :db/ident :v :observation/parser-implements-a-4-pass-pipeline-app-adr-009-pass-1-bu :op :assert}
+   {:e #blake3 "a7827cbb8a209581d68c2c75a65a7d2a7fca0f92f1cfae490223f1fcc859f401" :a :exploration/body :v "Parser implements a 4-pass pipeline (APP-ADR-009): Pass 1 builds section tree from headings, Pass 2 extracts 12 element types (invariants, ADRs, quality gates, negative specs, verification prompts, meta-instructions, worked examples, WHY-NOT annotations, comparison blocks, performance budgets, state machines, glossary entries), Pass 3 extracts cross-references, Pass 4 resolves cross-references. Supports both monolith and modular parsing. Each element type has its own recognizer file. Formatting hints recorded for round-trip fidelity (APP-INV-001)." :op :assert}
+   {:e #blake3 "a7827cbb8a209581d68c2c75a65a7d2a7fca0f92f1cfae490223f1fcc859f401" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "a7827cbb8a209581d68c2c75a65a7d2a7fca0f92f1cfae490223f1fcc859f401" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "a7827cbb8a209581d68c2c75a65a7d2a7fca0f92f1cfae490223f1fcc859f401" :a :exploration/content-hash :v #bytes "25b49a2ec0311a5fd4fdb9aa01c7ad93129d8912b91c8038a59383d687f160ba" :op :assert}
+   {:e #blake3 "a7827cbb8a209581d68c2c75a65a7d2a7fca0f92f1cfae490223f1fcc859f401" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "a7827cbb8a209581d68c2c75a65a7d2a7fca0f92f1cfae490223f1fcc859f401" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "a7827cbb8a209581d68c2c75a65a7d2a7fca0f92f1cfae490223f1fcc859f401" :a :exploration/source-session :v #blake3 "368e75f8ec0de3001f7b2e68b5e3d13fe130025d88de5aba4443f45a9f88ee4c" :op :assert}
+ ]}

@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774474205/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S045-D2: Post-dogfood triage — score-based decision tree execution"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :db/ident :v :task/t-1824003a :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/created-at :v 1774474204 :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/description :v "CONTEXT: After DOGFOOD-2 Session 3 completes, a triage step decides the project path based on the composite score.\n\nRATIONALE: Empirical results must map to concrete next actions. The decision tree:\n  8+/10: Close DOGFOOD-2, close DOGFOOD-EXTERNAL (t-59f761c3), proceed to DOGFOOD-3 verdict.\n  6-7/10: Identify which metric failed:\n    - Low entropy -> innate concept descriptions need domain tuning, or JOIN_THRESHOLD needs per-domain override\n    - Low actionability -> normalization insufficient, add kind_weight parameter per frontier type\n    - High prediction error -> insufficient calibration data (<10 data points)\n  <6/10: Fundamental issue:\n    - Hash embedder may be insufficient for semantic concept assignment\n    - Test with model2vec as alternative\n    - Or derive initial concepts from directory structure instead of Piagetian categories\n\nAPPROACH:\n1. Record the Session 3 composite score as a braid observation.\n2. Based on score bracket, execute the appropriate decision branch.\n3. Create follow-up tasks for any identified remediations.\n4. If 8+/10, run the task closures and prepare DOGFOOD-3.\n\nACCEPTANCE: (A) Score recorded. (B) Appropriate decision branch taken. (C) Follow-up tasks created if score < 8. (D) DOGFOOD-2 closed if score >= 8.\n\nDEPENDS-ON: S045-D1." :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/id :v "t-1824003a" :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/labels :v :label/S045-DOGFOOD :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/title :v "S045-D2: Post-dogfood triage — score-based decision tree execution" :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/title-l0 :v "S045-D2" :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/title-l1 :v "S045-D2: Post-dogfood triage — score-based decision tree execution" :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "e0d5a077db2758d1069c091c57cf46b37c45defc317de4c9bd9efdcc2e9224bb" :a :task/type :v :task.type/task :op :assert}
+ ]}

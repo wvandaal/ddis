@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372893/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FINDING-3: db.go lines 71-73: Silent error discard during data migration. db.Exec(INSERT INTO invariant_witnesses SELECT * FROM _witnesses_old) discards its error, then immediately drops the source table. If the INSERT fails (constraint violation, disk full, etc.), witness data is permanently lost. The migration code (lines 106,125,129,132,134) also discards multiple db.Exec errors."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "714343eb664922e0650e07ba6dca16e625e11cfd741f63816dc37cc52d0268d5" :a :db/doc :v "FINDING-3: db.go lines 71-73: Silent error discard during data migration. db.Exec(INSERT INTO invariant_witnesses SELECT * FROM _witnesses_old) discards its error, then immediately drops the source table. If the INSERT fails (constraint violation, disk full, etc.), witness data is permanently lost. The migration code (lines 106,125,129,132,134) also discards multiple db.Exec errors." :op :assert}
+   {:e #blake3 "714343eb664922e0650e07ba6dca16e625e11cfd741f63816dc37cc52d0268d5" :a :db/ident :v :observation/finding-3-dbgo-lines-71-73-silent-error-discard-during-da :op :assert}
+   {:e #blake3 "714343eb664922e0650e07ba6dca16e625e11cfd741f63816dc37cc52d0268d5" :a :exploration/body :v "FINDING-3: db.go lines 71-73: Silent error discard during data migration. db.Exec(INSERT INTO invariant_witnesses SELECT * FROM _witnesses_old) discards its error, then immediately drops the source table. If the INSERT fails (constraint violation, disk full, etc.), witness data is permanently lost. The migration code (lines 106,125,129,132,134) also discards multiple db.Exec errors." :op :assert}
+   {:e #blake3 "714343eb664922e0650e07ba6dca16e625e11cfd741f63816dc37cc52d0268d5" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "714343eb664922e0650e07ba6dca16e625e11cfd741f63816dc37cc52d0268d5" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "714343eb664922e0650e07ba6dca16e625e11cfd741f63816dc37cc52d0268d5" :a :exploration/content-hash :v #bytes "6ba8611229b4b5ba677efc091fbe39f9dde2851503beeba4bb269890c2441a56" :op :assert}
+   {:e #blake3 "714343eb664922e0650e07ba6dca16e625e11cfd741f63816dc37cc52d0268d5" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "714343eb664922e0650e07ba6dca16e625e11cfd741f63816dc37cc52d0268d5" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "714343eb664922e0650e07ba6dca16e625e11cfd741f63816dc37cc52d0268d5" :a :exploration/source-session :v #blake3 "2685f2fe408e1ef2d0b8750b79dfe6710fa69524dd785cbd130ae4d4d79efc0f" :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372774/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Drift analysis system measures 3 drift types: (1) ImplDrift — unspecified (code without spec), unimplemented (spec without code), contradictions (integrates consistency engine tiers 2-4); (2) IntentDrift — uncovered non-negotiables via keyword overlap heuristic; (3) ProcessDrift — witness coverage, spec-first ratio, tool intermediation, validate gating. Outputs remediation packages with priority. Planned divergences tracked in session state. Quality breakdown into correctness/depth/coherence dimensions."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4abcbd1dba8c529a9bf87a771f7e36dc5503eaffd01bd79a92a253d1c258a1df" :a :db/doc :v "Drift analysis system measures 3 drift types: (1) ImplDrift — unspecified (code without spec), unimplemented (spec without code), contradictions (integrates consistency engine tiers 2-4); (2) IntentDrift — uncovered non-negotiables via keyword overlap heuristic; (3) ProcessDrift — witness coverage, spec-first ratio, tool intermediation, validate gating. Outputs remediation packages with priority. Planned divergences tracked in session state. Quality breakdown into correctness/depth/coherence dimensions." :op :assert}
+   {:e #blake3 "4abcbd1dba8c529a9bf87a771f7e36dc5503eaffd01bd79a92a253d1c258a1df" :a :db/ident :v :observation/drift-analysis-system-measures-3-drift-types-1-impldrift :op :assert}
+   {:e #blake3 "4abcbd1dba8c529a9bf87a771f7e36dc5503eaffd01bd79a92a253d1c258a1df" :a :exploration/body :v "Drift analysis system measures 3 drift types: (1) ImplDrift — unspecified (code without spec), unimplemented (spec without code), contradictions (integrates consistency engine tiers 2-4); (2) IntentDrift — uncovered non-negotiables via keyword overlap heuristic; (3) ProcessDrift — witness coverage, spec-first ratio, tool intermediation, validate gating. Outputs remediation packages with priority. Planned divergences tracked in session state. Quality breakdown into correctness/depth/coherence dimensions." :op :assert}
+   {:e #blake3 "4abcbd1dba8c529a9bf87a771f7e36dc5503eaffd01bd79a92a253d1c258a1df" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "4abcbd1dba8c529a9bf87a771f7e36dc5503eaffd01bd79a92a253d1c258a1df" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "4abcbd1dba8c529a9bf87a771f7e36dc5503eaffd01bd79a92a253d1c258a1df" :a :exploration/content-hash :v #bytes "393fec6b567771eee373e7b566168042c4399e5802a76fc5d318b99a515843a2" :op :assert}
+   {:e #blake3 "4abcbd1dba8c529a9bf87a771f7e36dc5503eaffd01bd79a92a253d1c258a1df" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "4abcbd1dba8c529a9bf87a771f7e36dc5503eaffd01bd79a92a253d1c258a1df" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "4abcbd1dba8c529a9bf87a771f7e36dc5503eaffd01bd79a92a253d1c258a1df" :a :exploration/source-session :v #blake3 "368e75f8ec0de3001f7b2e68b5e3d13fe130025d88de5aba4443f45a9f88ee4c" :op :assert}
+ ]}

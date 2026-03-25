@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774475798/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f8cd6be2"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/close-reason :v "Subsumed by test_frontier_all_three_candidates in S045-TEST-Q-REV (t-f88df1e5) which tests with acquisition-aligned scoring." :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/closed-at :v 1774475797 :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/status :v :task.status/closed :op :assert}
+ ]}

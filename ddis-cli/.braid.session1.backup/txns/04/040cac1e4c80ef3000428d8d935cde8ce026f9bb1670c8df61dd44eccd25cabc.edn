@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774372926/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: The keyword overlap heuristic in absorb/reconcile.go (matchThreshold=0.6) and drift/drift.go (hasSignificantOverlap with 30% + 2 keyword threshold) are semantically weak. Both use bag-of-words matching that misses synonyms, abbreviations, and compositional meaning. Consider using the existing LSI vectors from the search package for semantic similarity instead of reinventing a weaker version. This would unify the similarity metric across reconciliation, drift, and search."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "98a2d31e44b2b9c8799f256532fac2250ebb8e97a450a2c59a354e0cbc19d8d3" :a :db/ident :v :task/t-e1bc0b22 :op :assert}
+   {:e #blake3 "98a2d31e44b2b9c8799f256532fac2250ebb8e97a450a2c59a354e0cbc19d8d3" :a :task/created-at :v 1774372925 :op :assert}
+   {:e #blake3 "98a2d31e44b2b9c8799f256532fac2250ebb8e97a450a2c59a354e0cbc19d8d3" :a :task/id :v "t-e1bc0b22" :op :assert}
+   {:e #blake3 "98a2d31e44b2b9c8799f256532fac2250ebb8e97a450a2c59a354e0cbc19d8d3" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "98a2d31e44b2b9c8799f256532fac2250ebb8e97a450a2c59a354e0cbc19d8d3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "98a2d31e44b2b9c8799f256532fac2250ebb8e97a450a2c59a354e0cbc19d8d3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "98a2d31e44b2b9c8799f256532fac2250ebb8e97a450a2c59a354e0cbc19d8d3" :a :task/title :v "The keyword overlap heuristic in absorb/reconcile.go (matchThreshold=0.6) and drift/drift.go (hasSignificantOverlap with 30% + 2 keyword threshold) are semantically weak. Both use bag-of-words matching that misses synonyms, abbreviations, and compositional meaning. Consider using the existing LSI vectors from the search package for semantic similarity instead of reinventing a weaker version. This would unify the similarity metric across reconciliation, drift, and search." :op :assert}
+   {:e #blake3 "98a2d31e44b2b9c8799f256532fac2250ebb8e97a450a2c59a354e0cbc19d8d3" :a :task/title-l0 :v "The keyword overlap heuri" :op :assert}
+   {:e #blake3 "98a2d31e44b2b9c8799f256532fac2250ebb8e97a450a2c59a354e0cbc19d8d3" :a :task/title-l1 :v "The keyword overlap heuristic in absorb/reconcile.go (matchThreshold=0.6) and..." :op :assert}
+   {:e #blake3 "98a2d31e44b2b9c8799f256532fac2250ebb8e97a450a2c59a354e0cbc19d8d3" :a :task/type :v :task.type/task :op :assert}
+ ]}

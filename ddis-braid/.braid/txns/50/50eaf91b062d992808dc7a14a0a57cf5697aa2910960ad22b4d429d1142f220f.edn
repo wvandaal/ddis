@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774475573/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S045-L1-REV: Add :concept/name + :session/name + :pkg/ stripping to existing entity_label (LOOP-4)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "265a1f298b6d6200f72405c343878e5b606239422e11e692615cab82aa7a08da" :a :db/ident :v :task/t-ea96e36c :op :assert}
+   {:e #blake3 "265a1f298b6d6200f72405c343878e5b606239422e11e692615cab82aa7a08da" :a :task/created-at :v 1774475572 :op :assert}
+   {:e #blake3 "265a1f298b6d6200f72405c343878e5b606239422e11e692615cab82aa7a08da" :a :task/description :v "CONTEXT: LOOP-4 from FIVE-LOOP-CLOSURES. Bridge hypotheses show opaque identifiers. entity_label() already exists at routing.rs:1890-1937 and is already called by generate_bridge_hypotheses (line 1839). It resolves :spec/id -> :task/id -> :exploration/body -> :task/title -> :db/ident -> hex fallback. But it MISSES :concept/name, :session/name, and :pkg/ prefix stripping. Actual dogfood output: 'What connects :session/s-1774400978 to :session/s-1774293270?'\n\nAPPROACH: Modify entity_label() at routing.rs:1890 — 3 surgical insertions:\n1. After :spec/id + :task/id loop (line 1903), add:\n   for attr in &[':concept/name', ':session/name'] {\n       if let Some(d) = datoms.iter().find(|d| d.attribute.as_str() == *attr && d.op == Op::Assert) {\n           if let Value::String(s) = &d.value { return s.clone(); }\n       }\n   }\n2. In the :db/ident handler (line 1920), add :pkg/ prefix stripping:\n   if parts.len() == 2 && parts[0] == 'pkg' { return parts[1].to_string(); }\n   (Before the existing long-slug truncation at line 1926.)\n\nTotal: ~10 lines of insertions into an existing function.\n\nACCEPTANCE: (A) entity_label(store, concept_entity) == concept's :concept/name. (B) entity_label(store, session_entity) == session's :session/name. (C) entity_label(store, pkg_entity) == package name without ':pkg/' prefix. (D) All 17+ existing entity_label tests pass unchanged. (E) Bridge hypotheses in dogfood CLI show human-readable names.\n\nFILE: crates/braid-kernel/src/routing.rs (entity_label, line 1890)" :op :assert}
+   {:e #blake3 "265a1f298b6d6200f72405c343878e5b606239422e11e692615cab82aa7a08da" :a :task/id :v "t-ea96e36c" :op :assert}
+   {:e #blake3 "265a1f298b6d6200f72405c343878e5b606239422e11e692615cab82aa7a08da" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "265a1f298b6d6200f72405c343878e5b606239422e11e692615cab82aa7a08da" :a :task/labels :v :label/S045-LOOPS :op :assert}
+   {:e #blake3 "265a1f298b6d6200f72405c343878e5b606239422e11e692615cab82aa7a08da" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "265a1f298b6d6200f72405c343878e5b606239422e11e692615cab82aa7a08da" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "265a1f298b6d6200f72405c343878e5b606239422e11e692615cab82aa7a08da" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "265a1f298b6d6200f72405c343878e5b606239422e11e692615cab82aa7a08da" :a :task/title :v "S045-L1-REV: Add :concept/name + :session/name + :pkg/ stripping to existing entity_label (LOOP-4)" :op :assert}
+   {:e #blake3 "265a1f298b6d6200f72405c343878e5b606239422e11e692615cab82aa7a08da" :a :task/title-l0 :v "S045-L1-REV" :op :assert}
+   {:e #blake3 "265a1f298b6d6200f72405c343878e5b606239422e11e692615cab82aa7a08da" :a :task/title-l1 :v "S045-L1-REV: Add :concept/name + :session/name + :pkg/ stripping to existing..." :op :assert}
+   {:e #blake3 "265a1f298b6d6200f72405c343878e5b606239422e11e692615cab82aa7a08da" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "265a1f298b6d6200f72405c343878e5b606239422e11e692615cab82aa7a08da" :a :task/type :v :task.type/bug :op :assert}
+ ]}

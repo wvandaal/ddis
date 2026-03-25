@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774475739/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3fd5eb1e"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3919e2a80a6adae4addb80bc10b2bf5813496dea487f1614987741499e825eec" :a :task/close-reason :v "REVISED: Tests must match the acquisition-function-aligned scoring from S045-Q1-REV, not naive normalization. Replaced by S045-TEST-Q-REV." :op :assert}
+   {:e #blake3 "3919e2a80a6adae4addb80bc10b2bf5813496dea487f1614987741499e825eec" :a :task/closed-at :v 1774475738 :op :assert}
+   {:e #blake3 "3919e2a80a6adae4addb80bc10b2bf5813496dea487f1614987741499e825eec" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "3919e2a80a6adae4addb80bc10b2bf5813496dea487f1614987741499e825eec" :a :task/status :v :task.status/closed :op :assert}
+ ]}

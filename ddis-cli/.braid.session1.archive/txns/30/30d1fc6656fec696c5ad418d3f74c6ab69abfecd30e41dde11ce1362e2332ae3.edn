@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372767/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "APP-INV-010/APP-INV-020 Oplog+Event Stream Append-Only: ALIGNED. Both oplog.go and events/stream.go enforce append-only via O_APPEND|O_CREATE|O_WRONLY flags. No Seek, Truncate, or WriteAt operations exist anywhere in either package. The AppendEvent function explicitly documents the negative spec: 'A function that cannot seek cannot overwrite.' The implementation is structurally correct — the OS-level file flags prevent modification. Code annotations reference the correct spec IDs."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d75f325216acc315c84b419b255907ffb74bbf35698dec8f4119bc55f8f85051" :a :db/doc :v "APP-INV-010/APP-INV-020 Oplog+Event Stream Append-Only: ALIGNED. Both oplog.go and events/stream.go enforce append-only via O_APPEND|O_CREATE|O_WRONLY flags. No Seek, Truncate, or WriteAt operations exist anywhere in either package. The AppendEvent function explicitly documents the negative spec: 'A function that cannot seek cannot overwrite.' The implementation is structurally correct — the OS-level file flags prevent modification. Code annotations reference the correct spec IDs." :op :assert}
+   {:e #blake3 "d75f325216acc315c84b419b255907ffb74bbf35698dec8f4119bc55f8f85051" :a :db/ident :v :observation/app-inv-010app-inv-020-oplogevent-stream-append-only-alig :op :assert}
+   {:e #blake3 "d75f325216acc315c84b419b255907ffb74bbf35698dec8f4119bc55f8f85051" :a :exploration/body :v "APP-INV-010/APP-INV-020 Oplog+Event Stream Append-Only: ALIGNED. Both oplog.go and events/stream.go enforce append-only via O_APPEND|O_CREATE|O_WRONLY flags. No Seek, Truncate, or WriteAt operations exist anywhere in either package. The AppendEvent function explicitly documents the negative spec: 'A function that cannot seek cannot overwrite.' The implementation is structurally correct — the OS-level file flags prevent modification. Code annotations reference the correct spec IDs." :op :assert}
+   {:e #blake3 "d75f325216acc315c84b419b255907ffb74bbf35698dec8f4119bc55f8f85051" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "d75f325216acc315c84b419b255907ffb74bbf35698dec8f4119bc55f8f85051" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "d75f325216acc315c84b419b255907ffb74bbf35698dec8f4119bc55f8f85051" :a :exploration/content-hash :v #bytes "a3bf5b59d898ae1b192979fccc3c9e6fb46d9c71a425d29fb56a18123a793f2e" :op :assert}
+   {:e #blake3 "d75f325216acc315c84b419b255907ffb74bbf35698dec8f4119bc55f8f85051" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d75f325216acc315c84b419b255907ffb74bbf35698dec8f4119bc55f8f85051" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d75f325216acc315c84b419b255907ffb74bbf35698dec8f4119bc55f8f85051" :a :exploration/source-session :v #blake3 "368e75f8ec0de3001f7b2e68b5e3d13fe130025d88de5aba4443f45a9f88ee4c" :op :assert}
+ ]}

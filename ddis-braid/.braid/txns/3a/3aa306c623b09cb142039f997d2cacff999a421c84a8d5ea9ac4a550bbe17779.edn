@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774474108/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S045-Q4: Merge redundant datom scans in co_occurrence_matrix and explore_candidates (DEFECT-007)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fb566fa2133564e19d6f66c233ee0ea7a777bfa1c191244dda951c835b3ec399" :a :db/ident :v :task/t-4e0dda24 :op :assert}
+   {:e #blake3 "fb566fa2133564e19d6f66c233ee0ea7a777bfa1c191244dda951c835b3ec399" :a :task/created-at :v 1774474107 :op :assert}
+   {:e #blake3 "fb566fa2133564e19d6f66c233ee0ea7a777bfa1c191244dda951c835b3ec399" :a :task/description :v "CONTEXT: DEFECT-007 from Session 044 audit. co_occurrence_matrix() (concept.rs:446-501) does two full datom scans: Phase 1 for :exploration/concept Refs, Phase 2 for :concept/name. These can be merged into one pass. Similarly, explore_candidates() (concept.rs:575-675) does 3 separate scans for :db/ident, :exploration/mentions-entity, and :composition/from+to.\n\nRATIONALE: Each O(D) scan costs ~1ms at 95K datoms. Merging saves 1-2ms per co_occurrence_matrix call and 2ms per explore_candidates call. Since both are called in the observe hot path (via frontier_recommendation), this saves 3-4ms per observation. Not blocking but good hygiene.\n\nAPPROACH:\n1. co_occurrence_matrix: Replace two-loop structure with single loop:\n   for d in store.datoms() {\n       if d.op != Op::Assert { continue; }\n       if d.attribute == concept_ref_attr { // Phase 1 }\n       else if d.attribute == name_attr { // Phase 2 }\n   }\n2. explore_candidates: Replace three-loop structure with single loop dispatching on attribute:\n   for d in store.datoms() {\n       if d.op != Op::Assert { continue; }\n       match d.attribute {\n           a if a == ident_attr => { // :db/ident pkg collection }\n           a if a == mentions_attr => { // observed entities }\n           a if a == comp_from_attr => { // composition from }\n           a if a == comp_to_attr => { // composition to }\n           _ => {}\n       }\n   }\n\nACCEPTANCE: (A) co_occurrence_matrix produces identical results to current implementation (verify with existing test_co_occurrence_matrix_coupled, _disjoint, _subset). (B) explore_candidates produces identical results (verify with test_frontier_explore). (C) No new tests needed — existing tests cover correctness.\n\nCONSIDERATIONS: This is a performance optimization with zero behavioral change. The single-pass approach is the same pattern used in concept_inventory_with_innate (concept.rs:329). FILE: crates/braid-kernel/src/concept.rs" :op :assert}
+   {:e #blake3 "fb566fa2133564e19d6f66c233ee0ea7a777bfa1c191244dda951c835b3ec399" :a :task/id :v "t-4e0dda24" :op :assert}
+   {:e #blake3 "fb566fa2133564e19d6f66c233ee0ea7a777bfa1c191244dda951c835b3ec399" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "fb566fa2133564e19d6f66c233ee0ea7a777bfa1c191244dda951c835b3ec399" :a :task/labels :v :label/S045-QUALITY :op :assert}
+   {:e #blake3 "fb566fa2133564e19d6f66c233ee0ea7a777bfa1c191244dda951c835b3ec399" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "fb566fa2133564e19d6f66c233ee0ea7a777bfa1c191244dda951c835b3ec399" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "fb566fa2133564e19d6f66c233ee0ea7a777bfa1c191244dda951c835b3ec399" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "fb566fa2133564e19d6f66c233ee0ea7a777bfa1c191244dda951c835b3ec399" :a :task/title :v "S045-Q4: Merge redundant datom scans in co_occurrence_matrix and explore_candidates (DEFECT-007)" :op :assert}
+   {:e #blake3 "fb566fa2133564e19d6f66c233ee0ea7a777bfa1c191244dda951c835b3ec399" :a :task/title-l0 :v "S045-Q4" :op :assert}
+   {:e #blake3 "fb566fa2133564e19d6f66c233ee0ea7a777bfa1c191244dda951c835b3ec399" :a :task/title-l1 :v "S045-Q4: Merge redundant datom scans in co_occurrence_matrix and explore_cand..." :op :assert}
+   {:e #blake3 "fb566fa2133564e19d6f66c233ee0ea7a777bfa1c191244dda951c835b3ec399" :a :task/traces-to :v #blake3 "bb68771c0f403c927260336945dceada87933be4981b2fe81d8ec63e5430a4dd" :op :assert}
+   {:e #blake3 "fb566fa2133564e19d6f66c233ee0ea7a777bfa1c191244dda951c835b3ec399" :a :task/type :v :task.type/task :op :assert}
+ ]}

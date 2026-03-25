@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774474294/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :db/ident :v :recon/trace-65c26edde7213399 :op :assert}
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :recon/trace-neighborhood :v "FOUNDATION" :op :assert}
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :recon/trace-neighbors :v ":task/t-034c8992" :op :assert}
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :recon/trace-neighbors :v ":task/t-06215eb2" :op :assert}
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :recon/trace-neighbors :v ":task/t-308df6f1" :op :assert}
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :recon/trace-neighbors :v ":task/t-378b7136" :op :assert}
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :recon/trace-neighbors :v ":task/t-3e4df429" :op :assert}
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :recon/trace-neighbors :v ":task/t-5c8eab95" :op :assert}
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :recon/trace-neighbors :v ":task/t-7007ba04" :op :assert}
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :recon/trace-neighbors :v ":task/t-a13782e8" :op :assert}
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :recon/trace-neighbors :v ":task/t-cd974c3c" :op :assert}
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :recon/trace-neighbors :v ":task/t-e656e270" :op :assert}
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :recon/trace-refs :v "ADR-FOUNDATION-030" :op :assert}
+   {:e #blake3 "bea1df94e41dbb39c33f5ae79891544475a3f2ff03792fb5f208c6287643afe5" :a :recon/trace-refs :v "INV-EMBEDDING-004" :op :assert}
+ ]}

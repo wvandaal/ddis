@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774473836/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DEFECT-005: No test for frontier_recommendation winner selection across all three candidate types simultaneously. The existing tests (test_frontier_explore, test_frontier_deepen, test_frontier_bridge) each test one kind in isolation. There is no test where Explore, Deepen, AND Bridge all return candidates and the winner selection is verified under normalized scoring. This gap means the normalization fix (DEFECT-001) cannot be regression-tested. Location: concept.rs tests. Traces to: FRONTIER-STEER."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3735c5533e8dd3c8f9bc907bcc4541dcd356ce948fb4a45368104c248ae5f8ef" :a :db/ident :v :task/t-ad0e8740 :op :assert}
+   {:e #blake3 "3735c5533e8dd3c8f9bc907bcc4541dcd356ce948fb4a45368104c248ae5f8ef" :a :task/body :v "DEFECT-005: No test for frontier_recommendation winner selection across all three candidate types simultaneously. The existing tests (test_frontier_explore, test_frontier_deepen, test_frontier_bridge) each test one kind in isolation. There is no test where Explore, Deepen, AND Bridge all return candidates and the winner selection is verified under normalized scoring. This gap means the normalization fix (DEFECT-001) cannot be regression-tested. Location: concept.rs tests. Traces to: FRONTIER-STEER." :op :assert}
+   {:e #blake3 "3735c5533e8dd3c8f9bc907bcc4541dcd356ce948fb4a45368104c248ae5f8ef" :a :task/created-at :v 1774473835 :op :assert}
+   {:e #blake3 "3735c5533e8dd3c8f9bc907bcc4541dcd356ce948fb4a45368104c248ae5f8ef" :a :task/id :v "t-ad0e8740" :op :assert}
+   {:e #blake3 "3735c5533e8dd3c8f9bc907bcc4541dcd356ce948fb4a45368104c248ae5f8ef" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "3735c5533e8dd3c8f9bc907bcc4541dcd356ce948fb4a45368104c248ae5f8ef" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3735c5533e8dd3c8f9bc907bcc4541dcd356ce948fb4a45368104c248ae5f8ef" :a :task/title :v "DEFECT-005: No test for frontier_recommendation winner selection across all" :op :assert}
+   {:e #blake3 "3735c5533e8dd3c8f9bc907bcc4541dcd356ce948fb4a45368104c248ae5f8ef" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "93b0eb538851e7d71c626291fb5c862bce1ad3db9fe8d0a24e51f09e7a5b9356" :a :db/doc :v "DEFECT-005: No test for frontier_recommendation winner selection across all three candidate types simultaneously. The existing tests (test_frontier_explore, test_frontier_deepen, test_frontier_bridge) each test one kind in isolation. There is no test where Explore, Deepen, AND Bridge all return candidates and the winner selection is verified under normalized scoring. This gap means the normalization fix (DEFECT-001) cannot be regression-tested. Location: concept.rs tests. Traces to: FRONTIER-STEER." :op :assert}
+   {:e #blake3 "93b0eb538851e7d71c626291fb5c862bce1ad3db9fe8d0a24e51f09e7a5b9356" :a :db/ident :v :observation/defect-005-no-test-for-frontier-recommendation-winner-selec :op :assert}
+   {:e #blake3 "93b0eb538851e7d71c626291fb5c862bce1ad3db9fe8d0a24e51f09e7a5b9356" :a :exploration/body :v "DEFECT-005: No test for frontier_recommendation winner selection across all three candidate types simultaneously. The existing tests (test_frontier_explore, test_frontier_deepen, test_frontier_bridge) each test one kind in isolation. There is no test where Explore, Deepen, AND Bridge all return candidates and the winner selection is verified under normalized scoring. This gap means the normalization fix (DEFECT-001) cannot be regression-tested. Location: concept.rs tests. Traces to: FRONTIER-STEER." :op :assert}
+   {:e #blake3 "93b0eb538851e7d71c626291fb5c862bce1ad3db9fe8d0a24e51f09e7a5b9356" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "93b0eb538851e7d71c626291fb5c862bce1ad3db9fe8d0a24e51f09e7a5b9356" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "93b0eb538851e7d71c626291fb5c862bce1ad3db9fe8d0a24e51f09e7a5b9356" :a :exploration/content-hash :v #bytes "9ae74e8275686cc19cce93c0d573c42c6c1024b9afa3899108ed4d13d20406cd" :op :assert}
+   {:e #blake3 "93b0eb538851e7d71c626291fb5c862bce1ad3db9fe8d0a24e51f09e7a5b9356" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "93b0eb538851e7d71c626291fb5c862bce1ad3db9fe8d0a24e51f09e7a5b9356" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "93b0eb538851e7d71c626291fb5c862bce1ad3db9fe8d0a24e51f09e7a5b9356" :a :exploration/source-session :v #blake3 "a53a8585dfa17c1cb8e0a12d16f710708a71380cad283bd4212370c0084fcdad" :op :assert}
+ ]}

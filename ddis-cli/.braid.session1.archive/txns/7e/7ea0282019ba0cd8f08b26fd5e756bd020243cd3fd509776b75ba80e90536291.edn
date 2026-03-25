@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372824/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FINDING-2: SMT solver (smt.go) has O(n^2) pairwise Z3 subprocess invocations. With n invariants having semi-formal expressions, it spawns up to n*(n-1)/2 Z3 processes sequentially, each with a 30-second timeout. For a spec with 97 invariants, if 50 have semi-formal expressions, that is 1225 Z3 invocations with worst-case 10+ hours runtime. No parallelism, no batching, no incremental solving. The SAT solver (sat.go) has the same O(n^2) pattern but is in-process so less costly."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d66c18ea07c2e99e99783d741c7b2624682e6c09b0bb70d6ba96a810c0ddc7ee" :a :db/doc :v "FINDING-2: SMT solver (smt.go) has O(n^2) pairwise Z3 subprocess invocations. With n invariants having semi-formal expressions, it spawns up to n*(n-1)/2 Z3 processes sequentially, each with a 30-second timeout. For a spec with 97 invariants, if 50 have semi-formal expressions, that is 1225 Z3 invocations with worst-case 10+ hours runtime. No parallelism, no batching, no incremental solving. The SAT solver (sat.go) has the same O(n^2) pattern but is in-process so less costly." :op :assert}
+   {:e #blake3 "d66c18ea07c2e99e99783d741c7b2624682e6c09b0bb70d6ba96a810c0ddc7ee" :a :db/ident :v :observation/finding-2-smt-solver-smtgo-has-on2-pairwise-z3-subpro :op :assert}
+   {:e #blake3 "d66c18ea07c2e99e99783d741c7b2624682e6c09b0bb70d6ba96a810c0ddc7ee" :a :exploration/body :v "FINDING-2: SMT solver (smt.go) has O(n^2) pairwise Z3 subprocess invocations. With n invariants having semi-formal expressions, it spawns up to n*(n-1)/2 Z3 processes sequentially, each with a 30-second timeout. For a spec with 97 invariants, if 50 have semi-formal expressions, that is 1225 Z3 invocations with worst-case 10+ hours runtime. No parallelism, no batching, no incremental solving. The SAT solver (sat.go) has the same O(n^2) pattern but is in-process so less costly." :op :assert}
+   {:e #blake3 "d66c18ea07c2e99e99783d741c7b2624682e6c09b0bb70d6ba96a810c0ddc7ee" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "d66c18ea07c2e99e99783d741c7b2624682e6c09b0bb70d6ba96a810c0ddc7ee" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "d66c18ea07c2e99e99783d741c7b2624682e6c09b0bb70d6ba96a810c0ddc7ee" :a :exploration/content-hash :v #bytes "f79b25aef864aa2eb81b285d2793ba0cce6c5b315a58b906e7b7101f0edab3eb" :op :assert}
+   {:e #blake3 "d66c18ea07c2e99e99783d741c7b2624682e6c09b0bb70d6ba96a810c0ddc7ee" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d66c18ea07c2e99e99783d741c7b2624682e6c09b0bb70d6ba96a810c0ddc7ee" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d66c18ea07c2e99e99783d741c7b2624682e6c09b0bb70d6ba96a810c0ddc7ee" :a :exploration/source-session :v #blake3 "368e75f8ec0de3001f7b2e68b5e3d13fe130025d88de5aba4443f45a9f88ee4c" :op :assert}
+ ]}

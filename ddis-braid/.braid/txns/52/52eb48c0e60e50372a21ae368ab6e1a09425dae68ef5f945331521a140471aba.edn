@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774474123/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S045-Q5: Clean dead Uncategorized match arm in assign_to_concepts sort (DEFECT-006)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dc502fdccab953a4e027ebc3aa8a9a84e559074f02cc6e141afbcb5793dd6fdc" :a :db/ident :v :task/t-df290826 :op :assert}
+   {:e #blake3 "dc502fdccab953a4e027ebc3aa8a9a84e559074f02cc6e141afbcb5793dd6fdc" :a :task/created-at :v 1774474122 :op :assert}
+   {:e #blake3 "dc502fdccab953a4e027ebc3aa8a9a84e559074f02cc6e141afbcb5793dd6fdc" :a :task/description :v "CONTEXT: DEFECT-006 from Session 044 audit. The sort comparator in assign_to_concepts (concept.rs:201-210) handles ConceptAssignment::Uncategorized by mapping it to similarity 0.0, but this variant can never appear in the matches vec since only Joined variants are pushed at line 190.\n\nRATIONALE: Dead code confuses readers into thinking Uncategorized could be in the return vec. Removing the dead arm makes the function's contract clearer.\n\nAPPROACH: Replace the match-with-default sort comparator with direct field extraction:\n   matches.sort_by(|a, b| {\n       let sim_a = match a { ConceptAssignment::Joined { similarity, .. } => *similarity, _ => 0.0 };\n       let sim_b = match b { ConceptAssignment::Joined { similarity, .. } => *similarity, _ => 0.0 };\n       sim_b.partial_cmp(&sim_a).unwrap_or(std::cmp::Ordering::Equal)\n   });\nKeep the _ => 0.0 fallback for compiler exhaustiveness but add a debug_assert! that it's unreachable, or document with a comment.\n\nACCEPTANCE: (A) Existing test_assign_to_concepts_multi, _single, _none all pass. (B) Sort behavior unchanged.\n\nCONSIDERATIONS: Style-level fix. No behavioral impact. FILE: crates/braid-kernel/src/concept.rs" :op :assert}
+   {:e #blake3 "dc502fdccab953a4e027ebc3aa8a9a84e559074f02cc6e141afbcb5793dd6fdc" :a :task/id :v "t-df290826" :op :assert}
+   {:e #blake3 "dc502fdccab953a4e027ebc3aa8a9a84e559074f02cc6e141afbcb5793dd6fdc" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "dc502fdccab953a4e027ebc3aa8a9a84e559074f02cc6e141afbcb5793dd6fdc" :a :task/labels :v :label/S045-QUALITY :op :assert}
+   {:e #blake3 "dc502fdccab953a4e027ebc3aa8a9a84e559074f02cc6e141afbcb5793dd6fdc" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "dc502fdccab953a4e027ebc3aa8a9a84e559074f02cc6e141afbcb5793dd6fdc" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "dc502fdccab953a4e027ebc3aa8a9a84e559074f02cc6e141afbcb5793dd6fdc" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "dc502fdccab953a4e027ebc3aa8a9a84e559074f02cc6e141afbcb5793dd6fdc" :a :task/title :v "S045-Q5: Clean dead Uncategorized match arm in assign_to_concepts sort (DEFECT-006)" :op :assert}
+   {:e #blake3 "dc502fdccab953a4e027ebc3aa8a9a84e559074f02cc6e141afbcb5793dd6fdc" :a :task/title-l0 :v "S045-Q5" :op :assert}
+   {:e #blake3 "dc502fdccab953a4e027ebc3aa8a9a84e559074f02cc6e141afbcb5793dd6fdc" :a :task/title-l1 :v "S045-Q5: Clean dead Uncategorized match arm in assign_to_concepts sort (DEFEC..." :op :assert}
+   {:e #blake3 "dc502fdccab953a4e027ebc3aa8a9a84e559074f02cc6e141afbcb5793dd6fdc" :a :task/traces-to :v #blake3 "bb68771c0f403c927260336945dceada87933be4981b2fe81d8ec63e5430a4dd" :op :assert}
+   {:e #blake3 "dc502fdccab953a4e027ebc3aa8a9a84e559074f02cc6e141afbcb5793dd6fdc" :a :task/type :v :task.type/task :op :assert}
+ ]}

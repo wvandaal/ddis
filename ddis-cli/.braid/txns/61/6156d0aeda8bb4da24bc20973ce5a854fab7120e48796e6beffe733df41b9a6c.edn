@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774401174/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Test coverage gaps: 12 of 38 internal packages (31%) have ZERO test files: bundle, cascade, diff, exemplar, impact, implorder, oplog, progress, query, renderer, skeleton, state. Several of these are critical: oplog (event logging), query (the query engine), state (session state management), impact (impact analysis). The query package is especially concerning — it handles all spec element lookups and cross-reference resolution, yet has no tests. State manages session persistence with raw SQL but no test coverage."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bc339749a00b93421f69281a744b8c5723b44b52f36ee7d737f3bd911dd74420" :a :db/doc :v "Test coverage gaps: 12 of 38 internal packages (31%) have ZERO test files: bundle, cascade, diff, exemplar, impact, implorder, oplog, progress, query, renderer, skeleton, state. Several of these are critical: oplog (event logging), query (the query engine), state (session state management), impact (impact analysis). The query package is especially concerning — it handles all spec element lookups and cross-reference resolution, yet has no tests. State manages session persistence with raw SQL but no test coverage." :op :assert}
+   {:e #blake3 "bc339749a00b93421f69281a744b8c5723b44b52f36ee7d737f3bd911dd74420" :a :db/ident :v :observation/test-coverage-gaps-12-of-38-internal-packages-31-have-ze :op :assert}
+   {:e #blake3 "bc339749a00b93421f69281a744b8c5723b44b52f36ee7d737f3bd911dd74420" :a :exploration/body :v "Test coverage gaps: 12 of 38 internal packages (31%) have ZERO test files: bundle, cascade, diff, exemplar, impact, implorder, oplog, progress, query, renderer, skeleton, state. Several of these are critical: oplog (event logging), query (the query engine), state (session state management), impact (impact analysis). The query package is especially concerning — it handles all spec element lookups and cross-reference resolution, yet has no tests. State manages session persistence with raw SQL but no test coverage." :op :assert}
+   {:e #blake3 "bc339749a00b93421f69281a744b8c5723b44b52f36ee7d737f3bd911dd74420" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "bc339749a00b93421f69281a744b8c5723b44b52f36ee7d737f3bd911dd74420" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "bc339749a00b93421f69281a744b8c5723b44b52f36ee7d737f3bd911dd74420" :a :exploration/content-hash :v #bytes "335a5fcc42fe843ae0391905cb618a2422949bb0451faf7b738ea2d911b3872f" :op :assert}
+   {:e #blake3 "bc339749a00b93421f69281a744b8c5723b44b52f36ee7d737f3bd911dd74420" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "bc339749a00b93421f69281a744b8c5723b44b52f36ee7d737f3bd911dd74420" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "bc339749a00b93421f69281a744b8c5723b44b52f36ee7d737f3bd911dd74420" :a :exploration/source-session :v #blake3 "7ddde8aedeb4a752380d365ac6626c28d930d9ae864f0bbda9bd66587b1153da" :op :assert}
+ ]}

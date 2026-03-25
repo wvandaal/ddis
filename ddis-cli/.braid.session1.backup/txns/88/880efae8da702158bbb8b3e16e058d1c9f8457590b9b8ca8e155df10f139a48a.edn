@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372933/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FINDING-5: truncate() in graph.go (line 328) and truncateBytes() in llm/provider.go (line 147) both perform raw byte slicing on strings without respecting UTF-8 codepoint boundaries. truncate(s, maxLen) uses s[:maxLen-3] which splits multi-byte characters. If any invariant statement or error message contains non-ASCII characters (common in internationalized specs or copy-pasted Unicode), the output will contain invalid UTF-8. Go strings are byte slices but rune-aware truncation (using utf8.DecodeLastRuneInString or rune slicing) is required for correctness."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1c8606663eeb168e8d316dcc4d414ed5599fbe7e944de1ed5beac25304b437c6" :a :db/doc :v "FINDING-5: truncate() in graph.go (line 328) and truncateBytes() in llm/provider.go (line 147) both perform raw byte slicing on strings without respecting UTF-8 codepoint boundaries. truncate(s, maxLen) uses s[:maxLen-3] which splits multi-byte characters. If any invariant statement or error message contains non-ASCII characters (common in internationalized specs or copy-pasted Unicode), the output will contain invalid UTF-8. Go strings are byte slices but rune-aware truncation (using utf8.DecodeLastRuneInString or rune slicing) is required for correctness." :op :assert}
+   {:e #blake3 "1c8606663eeb168e8d316dcc4d414ed5599fbe7e944de1ed5beac25304b437c6" :a :db/ident :v :observation/finding-5-truncate-in-graphgo-line-328-and-truncatebyt :op :assert}
+   {:e #blake3 "1c8606663eeb168e8d316dcc4d414ed5599fbe7e944de1ed5beac25304b437c6" :a :exploration/body :v "FINDING-5: truncate() in graph.go (line 328) and truncateBytes() in llm/provider.go (line 147) both perform raw byte slicing on strings without respecting UTF-8 codepoint boundaries. truncate(s, maxLen) uses s[:maxLen-3] which splits multi-byte characters. If any invariant statement or error message contains non-ASCII characters (common in internationalized specs or copy-pasted Unicode), the output will contain invalid UTF-8. Go strings are byte slices but rune-aware truncation (using utf8.DecodeLastRuneInString or rune slicing) is required for correctness." :op :assert}
+   {:e #blake3 "1c8606663eeb168e8d316dcc4d414ed5599fbe7e944de1ed5beac25304b437c6" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "1c8606663eeb168e8d316dcc4d414ed5599fbe7e944de1ed5beac25304b437c6" :a :exploration/confidence :v 0.92 :op :assert}
+   {:e #blake3 "1c8606663eeb168e8d316dcc4d414ed5599fbe7e944de1ed5beac25304b437c6" :a :exploration/content-hash :v #bytes "03357f6ac3a055c70484a72ebee5153ce6b8f8be4b1bbce5ed82a749afed97f6" :op :assert}
+   {:e #blake3 "1c8606663eeb168e8d316dcc4d414ed5599fbe7e944de1ed5beac25304b437c6" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "1c8606663eeb168e8d316dcc4d414ed5599fbe7e944de1ed5beac25304b437c6" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "1c8606663eeb168e8d316dcc4d414ed5599fbe7e944de1ed5beac25304b437c6" :a :exploration/source-session :v #blake3 "2685f2fe408e1ef2d0b8750b79dfe6710fa69524dd785cbd130ae4d4d79efc0f" :op :assert}
+ ]}

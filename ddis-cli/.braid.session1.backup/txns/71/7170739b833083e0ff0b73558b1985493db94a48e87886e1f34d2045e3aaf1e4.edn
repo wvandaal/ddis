@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774372907/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BUG: braid observe panics on multi-byte UTF-8 characters (em-dash) at char boundary. The observe command at crates/braid/src/commands/observe.rs:337 does byte-level truncation that can split multi-byte chars. Error: 'end byte index 80 is not a char boundary; it is inside ... (bytes 78..81)'. Fix: use char_indices() for truncation instead of byte slicing."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5af5fba96d99cce196a660102eb1cdd70e696ef98ceb9ab10e983ee6296ecc9f" :a :db/ident :v :task/t-1a7d446e :op :assert}
+   {:e #blake3 "5af5fba96d99cce196a660102eb1cdd70e696ef98ceb9ab10e983ee6296ecc9f" :a :task/created-at :v 1774372906 :op :assert}
+   {:e #blake3 "5af5fba96d99cce196a660102eb1cdd70e696ef98ceb9ab10e983ee6296ecc9f" :a :task/id :v "t-1a7d446e" :op :assert}
+   {:e #blake3 "5af5fba96d99cce196a660102eb1cdd70e696ef98ceb9ab10e983ee6296ecc9f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5af5fba96d99cce196a660102eb1cdd70e696ef98ceb9ab10e983ee6296ecc9f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5af5fba96d99cce196a660102eb1cdd70e696ef98ceb9ab10e983ee6296ecc9f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5af5fba96d99cce196a660102eb1cdd70e696ef98ceb9ab10e983ee6296ecc9f" :a :task/title :v "BUG: braid observe panics on multi-byte UTF-8 characters (em-dash) at char boundary. The observe command at crates/braid/src/commands/observe.rs:337 does byte-level truncation that can split multi-byte chars. Error: 'end byte index 80 is not a char boundary; it is inside ... (bytes 78..81)'. Fix: use char_indices() for truncation instead of byte slicing." :op :assert}
+   {:e #blake3 "5af5fba96d99cce196a660102eb1cdd70e696ef98ceb9ab10e983ee6296ecc9f" :a :task/title-l0 :v "BUG" :op :assert}
+   {:e #blake3 "5af5fba96d99cce196a660102eb1cdd70e696ef98ceb9ab10e983ee6296ecc9f" :a :task/title-l1 :v "BUG: braid observe panics on multi-byte UTF-8 characters (em-dash) at char bo..." :op :assert}
+   {:e #blake3 "5af5fba96d99cce196a660102eb1cdd70e696ef98ceb9ab10e983ee6296ecc9f" :a :task/type :v :task.type/task :op :assert}
+ ]}

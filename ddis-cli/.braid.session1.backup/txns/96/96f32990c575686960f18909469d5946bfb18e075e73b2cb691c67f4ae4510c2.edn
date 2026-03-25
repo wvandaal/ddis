@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372743/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Consistency engine implements 5-tier contradiction detection: Tier 2 (Graph — governance overlap, cycles), Tier 3 (SAT — propositional encoding via gophersat), Tier 4 (Heuristic — polarity, quantifier, numeric + LSI semantic), Tier 5 (SMT — Z3 subprocess for SMT-LIB2), Tier 6 (LLM-as-judge via Anthropic API). Tiers are executed in order, results deduplicated by element pair keeping highest confidence. 9 ConflictTypes defined. The architecture is well-decomposed: one file per tier (graph.go, sat.go, heuristic.go, semantic.go, smt.go, llm.go)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "07fe6b30141d633c9e13d30e7aee67994ec8794c84f21f4784da80b36a053a25" :a :db/doc :v "Consistency engine implements 5-tier contradiction detection: Tier 2 (Graph — governance overlap, cycles), Tier 3 (SAT — propositional encoding via gophersat), Tier 4 (Heuristic — polarity, quantifier, numeric + LSI semantic), Tier 5 (SMT — Z3 subprocess for SMT-LIB2), Tier 6 (LLM-as-judge via Anthropic API). Tiers are executed in order, results deduplicated by element pair keeping highest confidence. 9 ConflictTypes defined. The architecture is well-decomposed: one file per tier (graph.go, sat.go, heuristic.go, semantic.go, smt.go, llm.go)." :op :assert}
+   {:e #blake3 "07fe6b30141d633c9e13d30e7aee67994ec8794c84f21f4784da80b36a053a25" :a :db/ident :v :observation/consistency-engine-implements-5-tier-contradiction-detection :op :assert}
+   {:e #blake3 "07fe6b30141d633c9e13d30e7aee67994ec8794c84f21f4784da80b36a053a25" :a :exploration/body :v "Consistency engine implements 5-tier contradiction detection: Tier 2 (Graph — governance overlap, cycles), Tier 3 (SAT — propositional encoding via gophersat), Tier 4 (Heuristic — polarity, quantifier, numeric + LSI semantic), Tier 5 (SMT — Z3 subprocess for SMT-LIB2), Tier 6 (LLM-as-judge via Anthropic API). Tiers are executed in order, results deduplicated by element pair keeping highest confidence. 9 ConflictTypes defined. The architecture is well-decomposed: one file per tier (graph.go, sat.go, heuristic.go, semantic.go, smt.go, llm.go)." :op :assert}
+   {:e #blake3 "07fe6b30141d633c9e13d30e7aee67994ec8794c84f21f4784da80b36a053a25" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "07fe6b30141d633c9e13d30e7aee67994ec8794c84f21f4784da80b36a053a25" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "07fe6b30141d633c9e13d30e7aee67994ec8794c84f21f4784da80b36a053a25" :a :exploration/content-hash :v #bytes "d510b87be440a35fc0e322a009aa5f32307d1afe5a923830aad9ae81ab8c3798" :op :assert}
+   {:e #blake3 "07fe6b30141d633c9e13d30e7aee67994ec8794c84f21f4784da80b36a053a25" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "07fe6b30141d633c9e13d30e7aee67994ec8794c84f21f4784da80b36a053a25" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "07fe6b30141d633c9e13d30e7aee67994ec8794c84f21f4784da80b36a053a25" :a :exploration/source-session :v #blake3 "368e75f8ec0de3001f7b2e68b5e3d13fe130025d88de5aba4443f45a9f88ee4c" :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293312/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "CLI package is 10,095 lines across 53 Go files, defining ~50 Cobra commands. Key commands by size: issue (624 LOC), materialize (473 LOC), manifestsync (458 LOC), cli_test (415 LOC), crystallize (410 LOC), patch (383 LOC), witness (325 LOC), next (320 LOC), triage (305 LOC), importcmd (303 LOC), refine (285 LOC). The root.go file is 200 LOC. This is a VERY feature-rich CLI."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "257886684af89457c79abb3a588caca835b1402ecb9b54f48637abc3f3564350" :a :db/doc :v "CLI package is 10,095 lines across 53 Go files, defining ~50 Cobra commands. Key commands by size: issue (624 LOC), materialize (473 LOC), manifestsync (458 LOC), cli_test (415 LOC), crystallize (410 LOC), patch (383 LOC), witness (325 LOC), next (320 LOC), triage (305 LOC), importcmd (303 LOC), refine (285 LOC). The root.go file is 200 LOC. This is a VERY feature-rich CLI." :op :assert}
+   {:e #blake3 "257886684af89457c79abb3a588caca835b1402ecb9b54f48637abc3f3564350" :a :db/ident :v :observation/cli-package-is-10095-lines-across-53-go-files-defining-50 :op :assert}
+   {:e #blake3 "257886684af89457c79abb3a588caca835b1402ecb9b54f48637abc3f3564350" :a :exploration/body :v "CLI package is 10,095 lines across 53 Go files, defining ~50 Cobra commands. Key commands by size: issue (624 LOC), materialize (473 LOC), manifestsync (458 LOC), cli_test (415 LOC), crystallize (410 LOC), patch (383 LOC), witness (325 LOC), next (320 LOC), triage (305 LOC), importcmd (303 LOC), refine (285 LOC). The root.go file is 200 LOC. This is a VERY feature-rich CLI." :op :assert}
+   {:e #blake3 "257886684af89457c79abb3a588caca835b1402ecb9b54f48637abc3f3564350" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "257886684af89457c79abb3a588caca835b1402ecb9b54f48637abc3f3564350" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "257886684af89457c79abb3a588caca835b1402ecb9b54f48637abc3f3564350" :a :exploration/content-hash :v #bytes "dce471c54c438171a91ad73850545f850fc17099cb90fe66aa41ddcd62810991" :op :assert}
+   {:e #blake3 "257886684af89457c79abb3a588caca835b1402ecb9b54f48637abc3f3564350" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "257886684af89457c79abb3a588caca835b1402ecb9b54f48637abc3f3564350" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "257886684af89457c79abb3a588caca835b1402ecb9b54f48637abc3f3564350" :a :exploration/source-session :v #blake3 "bc048690dfa9a534eaaaf8332ffbc85bc0fb702141d1c50e068958a28daa67af" :op :assert}
+ ]}

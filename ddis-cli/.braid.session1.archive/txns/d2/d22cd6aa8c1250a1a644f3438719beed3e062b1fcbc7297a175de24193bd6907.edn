@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293280/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SQLite is the backing store with 30+ tables via modernc.org/sqlite"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "982ce8582c1f120600ebf77a37af70d8dd7eef37c467ff9a39a1cdbd114b4400" :a :db/doc :v "SQLite is the backing store with 30+ tables via modernc.org/sqlite" :op :assert}
+   {:e #blake3 "982ce8582c1f120600ebf77a37af70d8dd7eef37c467ff9a39a1cdbd114b4400" :a :db/ident :v :observation/sqlite-is-the-backing-store-with-30-tables-via-moderncorg :op :assert}
+   {:e #blake3 "982ce8582c1f120600ebf77a37af70d8dd7eef37c467ff9a39a1cdbd114b4400" :a :exploration/body :v "SQLite is the backing store with 30+ tables via modernc.org/sqlite" :op :assert}
+   {:e #blake3 "982ce8582c1f120600ebf77a37af70d8dd7eef37c467ff9a39a1cdbd114b4400" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "982ce8582c1f120600ebf77a37af70d8dd7eef37c467ff9a39a1cdbd114b4400" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "982ce8582c1f120600ebf77a37af70d8dd7eef37c467ff9a39a1cdbd114b4400" :a :exploration/content-hash :v #bytes "df206a96f6911812df1c2ec5b08503a0a7bf3b964e6b1a91fc62087402c3611c" :op :assert}
+   {:e #blake3 "982ce8582c1f120600ebf77a37af70d8dd7eef37c467ff9a39a1cdbd114b4400" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "982ce8582c1f120600ebf77a37af70d8dd7eef37c467ff9a39a1cdbd114b4400" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "982ce8582c1f120600ebf77a37af70d8dd7eef37c467ff9a39a1cdbd114b4400" :a :exploration/source-session :v #blake3 "bc048690dfa9a534eaaaf8332ffbc85bc0fb702141d1c50e068958a28daa67af" :op :assert}
+ ]}

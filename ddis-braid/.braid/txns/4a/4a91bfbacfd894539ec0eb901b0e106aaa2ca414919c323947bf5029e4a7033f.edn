@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774475555/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8a7bbd37"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6234d18b4084310bb8da7ea3b9bb2a13cb92c8c05de89a4383240ee3a2b0c0bb" :a :task/close-reason :v "REVISED: CE-OAR already exists at routing.rs:750-868. Replaced by S045-L2-REV with concept-level coverage addition." :op :assert}
+   {:e #blake3 "6234d18b4084310bb8da7ea3b9bb2a13cb92c8c05de89a4383240ee3a2b0c0bb" :a :task/closed-at :v 1774475554 :op :assert}
+   {:e #blake3 "6234d18b4084310bb8da7ea3b9bb2a13cb92c8c05de89a4383240ee3a2b0c0bb" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "6234d18b4084310bb8da7ea3b9bb2a13cb92c8c05de89a4383240ee3a2b0c0bb" :a :task/status :v :task.status/closed :op :assert}
+ ]}

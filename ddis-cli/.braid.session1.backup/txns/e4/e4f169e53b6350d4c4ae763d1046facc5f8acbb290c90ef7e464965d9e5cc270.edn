@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372889/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Go CLI has 24,492 LOC of tests across 55 test files. The largest test file is tests/invariant_behavioral_test.go at 4,261 LOC - this is a comprehensive behavioral test suite for invariant processing. Strong test coverage in: validator (1032), parser (970), discover (854), discovery (818), storage (802), search (782), triage (775). Tests total about 39% of non-test source LOC (24K test vs 62K total). The test/source ratio suggests high coverage of the core subsystems."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a47283703850ce4e7c4a83395634e9561c6d3ea81ee49a847207db94b2f5d893" :a :db/doc :v "Go CLI has 24,492 LOC of tests across 55 test files. The largest test file is tests/invariant_behavioral_test.go at 4,261 LOC - this is a comprehensive behavioral test suite for invariant processing. Strong test coverage in: validator (1032), parser (970), discover (854), discovery (818), storage (802), search (782), triage (775). Tests total about 39% of non-test source LOC (24K test vs 62K total). The test/source ratio suggests high coverage of the core subsystems." :op :assert}
+   {:e #blake3 "a47283703850ce4e7c4a83395634e9561c6d3ea81ee49a847207db94b2f5d893" :a :db/ident :v :observation/go-cli-has-24492-loc-of-tests-across-55-test-files-the-lar :op :assert}
+   {:e #blake3 "a47283703850ce4e7c4a83395634e9561c6d3ea81ee49a847207db94b2f5d893" :a :exploration/body :v "Go CLI has 24,492 LOC of tests across 55 test files. The largest test file is tests/invariant_behavioral_test.go at 4,261 LOC - this is a comprehensive behavioral test suite for invariant processing. Strong test coverage in: validator (1032), parser (970), discover (854), discovery (818), storage (802), search (782), triage (775). Tests total about 39% of non-test source LOC (24K test vs 62K total). The test/source ratio suggests high coverage of the core subsystems." :op :assert}
+   {:e #blake3 "a47283703850ce4e7c4a83395634e9561c6d3ea81ee49a847207db94b2f5d893" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "a47283703850ce4e7c4a83395634e9561c6d3ea81ee49a847207db94b2f5d893" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "a47283703850ce4e7c4a83395634e9561c6d3ea81ee49a847207db94b2f5d893" :a :exploration/content-hash :v #bytes "845da56dd17b375e55e4a45beac5623e413ecb1be66f520fb620084c8f7e6473" :op :assert}
+   {:e #blake3 "a47283703850ce4e7c4a83395634e9561c6d3ea81ee49a847207db94b2f5d893" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "a47283703850ce4e7c4a83395634e9561c6d3ea81ee49a847207db94b2f5d893" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "a47283703850ce4e7c4a83395634e9561c6d3ea81ee49a847207db94b2f5d893" :a :exploration/source-session :v #blake3 "2685f2fe408e1ef2d0b8750b79dfe6710fa69524dd785cbd130ae4d4d79efc0f" :op :assert}
+ ]}

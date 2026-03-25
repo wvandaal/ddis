@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774372876/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Search system is triple-layered: (1) FTS5 full-text search for exact/prefix queries, (2) LSI (Latent Semantic Indexing) via gonum SVD for semantic similarity (TF-IDF matrix, truncated SVD to k dimensions, cosine similarity), (3) PageRank authority scoring from cross-reference graph. The ContextBundle (search/context.go, 906 LOC) is the most important user-facing data structure - it assembles a complete pre-flight briefing for any spec element including constraints, coverage gaps, related elements, impact radius, witness status, and editing guidance."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ca632bd1078645efd58f35710be4058022870440a67ca6fe067c4a4f3235a8dc" :a :db/ident :v :task/t-19ed4d93 :op :assert}
+   {:e #blake3 "ca632bd1078645efd58f35710be4058022870440a67ca6fe067c4a4f3235a8dc" :a :task/body :v "Search system is triple-layered: (1) FTS5 full-text search for exact/prefix queries, (2) LSI (Latent Semantic Indexing) via gonum SVD for semantic similarity (TF-IDF matrix, truncated SVD to k dimensions, cosine similarity), (3) PageRank authority scoring from cross-reference graph. The ContextBundle (search/context.go, 906 LOC) is the most important user-facing data structure - it assembles a complete pre-flight briefing for any spec element including constraints, coverage gaps, related elements, impact radius, witness status, and editing guidance." :op :assert}
+   {:e #blake3 "ca632bd1078645efd58f35710be4058022870440a67ca6fe067c4a4f3235a8dc" :a :task/created-at :v 1774372875 :op :assert}
+   {:e #blake3 "ca632bd1078645efd58f35710be4058022870440a67ca6fe067c4a4f3235a8dc" :a :task/id :v "t-19ed4d93" :op :assert}
+   {:e #blake3 "ca632bd1078645efd58f35710be4058022870440a67ca6fe067c4a4f3235a8dc" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "ca632bd1078645efd58f35710be4058022870440a67ca6fe067c4a4f3235a8dc" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ca632bd1078645efd58f35710be4058022870440a67ca6fe067c4a4f3235a8dc" :a :task/title :v "Search system is triple-layered: (1) FTS5 full-text search for exact/prefix" :op :assert}
+   {:e #blake3 "ca632bd1078645efd58f35710be4058022870440a67ca6fe067c4a4f3235a8dc" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "d7d65a3ac2d854800c01d3d31c670cbb8f4dd6178740a23eb0f0909f4e39c204" :a :db/doc :v "Search system is triple-layered: (1) FTS5 full-text search for exact/prefix queries, (2) LSI (Latent Semantic Indexing) via gonum SVD for semantic similarity (TF-IDF matrix, truncated SVD to k dimensions, cosine similarity), (3) PageRank authority scoring from cross-reference graph. The ContextBundle (search/context.go, 906 LOC) is the most important user-facing data structure - it assembles a complete pre-flight briefing for any spec element including constraints, coverage gaps, related elements, impact radius, witness status, and editing guidance." :op :assert}
+   {:e #blake3 "d7d65a3ac2d854800c01d3d31c670cbb8f4dd6178740a23eb0f0909f4e39c204" :a :db/ident :v :observation/search-system-is-triple-layered-1-fts5-full-text-search-f :op :assert}
+   {:e #blake3 "d7d65a3ac2d854800c01d3d31c670cbb8f4dd6178740a23eb0f0909f4e39c204" :a :exploration/body :v "Search system is triple-layered: (1) FTS5 full-text search for exact/prefix queries, (2) LSI (Latent Semantic Indexing) via gonum SVD for semantic similarity (TF-IDF matrix, truncated SVD to k dimensions, cosine similarity), (3) PageRank authority scoring from cross-reference graph. The ContextBundle (search/context.go, 906 LOC) is the most important user-facing data structure - it assembles a complete pre-flight briefing for any spec element including constraints, coverage gaps, related elements, impact radius, witness status, and editing guidance." :op :assert}
+   {:e #blake3 "d7d65a3ac2d854800c01d3d31c670cbb8f4dd6178740a23eb0f0909f4e39c204" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "d7d65a3ac2d854800c01d3d31c670cbb8f4dd6178740a23eb0f0909f4e39c204" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "d7d65a3ac2d854800c01d3d31c670cbb8f4dd6178740a23eb0f0909f4e39c204" :a :exploration/content-hash :v #bytes "633038aeab0f0e70d645965d08dbfb7144424b7ce91a18358498fa439748c511" :op :assert}
+   {:e #blake3 "d7d65a3ac2d854800c01d3d31c670cbb8f4dd6178740a23eb0f0909f4e39c204" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d7d65a3ac2d854800c01d3d31c670cbb8f4dd6178740a23eb0f0909f4e39c204" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d7d65a3ac2d854800c01d3d31c670cbb8f4dd6178740a23eb0f0909f4e39c204" :a :exploration/source-session :v #blake3 "368e75f8ec0de3001f7b2e68b5e3d13fe130025d88de5aba4443f45a9f88ee4c" :op :assert}
+ ]}

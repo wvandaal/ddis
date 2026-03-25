@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774401076/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Storage layer uses 30-table normalized SQLite schema (APP-ADR-005). Core entity types: SpecIndex, SourceFile, Section (heading tree), Invariant (6-component INV blocks), ADR (with options), NegativeSpec, QualityGate, VerificationPrompt/Check, MetaInstruction, WorkedExample, WhyNotAnnotation, ComparisonBlock, PerformanceBudget/Entry, StateMachine/Cell, GlossaryEntry, CrossReference, Module/Relationship, Manifest, InvariantRegistry, InvariantWitness, ChallengeResult, Transaction/TxOperation, FormattingHint. This is a relational model — contrasts with braid's datom model."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "423e24bf9b960f7bdb01369f06899d133d3b3c2f6ca0f54d95479d1d67715316" :a :db/doc :v "Storage layer uses 30-table normalized SQLite schema (APP-ADR-005). Core entity types: SpecIndex, SourceFile, Section (heading tree), Invariant (6-component INV blocks), ADR (with options), NegativeSpec, QualityGate, VerificationPrompt/Check, MetaInstruction, WorkedExample, WhyNotAnnotation, ComparisonBlock, PerformanceBudget/Entry, StateMachine/Cell, GlossaryEntry, CrossReference, Module/Relationship, Manifest, InvariantRegistry, InvariantWitness, ChallengeResult, Transaction/TxOperation, FormattingHint. This is a relational model — contrasts with braid's datom model." :op :assert}
+   {:e #blake3 "423e24bf9b960f7bdb01369f06899d133d3b3c2f6ca0f54d95479d1d67715316" :a :db/ident :v :observation/storage-layer-uses-30-table-normalized-sqlite-schema-app-ad :op :assert}
+   {:e #blake3 "423e24bf9b960f7bdb01369f06899d133d3b3c2f6ca0f54d95479d1d67715316" :a :exploration/body :v "Storage layer uses 30-table normalized SQLite schema (APP-ADR-005). Core entity types: SpecIndex, SourceFile, Section (heading tree), Invariant (6-component INV blocks), ADR (with options), NegativeSpec, QualityGate, VerificationPrompt/Check, MetaInstruction, WorkedExample, WhyNotAnnotation, ComparisonBlock, PerformanceBudget/Entry, StateMachine/Cell, GlossaryEntry, CrossReference, Module/Relationship, Manifest, InvariantRegistry, InvariantWitness, ChallengeResult, Transaction/TxOperation, FormattingHint. This is a relational model — contrasts with braid's datom model." :op :assert}
+   {:e #blake3 "423e24bf9b960f7bdb01369f06899d133d3b3c2f6ca0f54d95479d1d67715316" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "423e24bf9b960f7bdb01369f06899d133d3b3c2f6ca0f54d95479d1d67715316" :a :exploration/confidence :v 0.92 :op :assert}
+   {:e #blake3 "423e24bf9b960f7bdb01369f06899d133d3b3c2f6ca0f54d95479d1d67715316" :a :exploration/content-hash :v #bytes "201152de161a720c2daddf5add651c7295702806914f00ae5210b55982701f31" :op :assert}
+   {:e #blake3 "423e24bf9b960f7bdb01369f06899d133d3b3c2f6ca0f54d95479d1d67715316" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "423e24bf9b960f7bdb01369f06899d133d3b3c2f6ca0f54d95479d1d67715316" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "423e24bf9b960f7bdb01369f06899d133d3b3c2f6ca0f54d95479d1d67715316" :a :exploration/source-session :v #blake3 "7ddde8aedeb4a752380d365ac6626c28d930d9ae864f0bbda9bd66587b1153da" :op :assert}
+ ]}

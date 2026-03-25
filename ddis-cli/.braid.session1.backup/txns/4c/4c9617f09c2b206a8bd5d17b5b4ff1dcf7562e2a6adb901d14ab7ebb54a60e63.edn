@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774373113/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DOGFOOD-2 SESSION 1 RESULTS: 3 agents, mean overall score 4.0/10. Orientation 4.3, Guidance Responsiveness 2.3, Discovery 2.5, Persistence 6.3. M(t) static at 0.78 across all agents. F(S) barely moved (0.56-0.57). Recommendations static. Boundaries never measured. New P0: UTF-8 panic on em-dash. FEGH bridges generated but labels opaque. Same diagnosis as S037: structured note-taking, not intelligence amplifier."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3d5d79d72f940acb5dcd09e5f150259f4158f1640c645234c20ffb2038b18831" :a :db/doc :v "DOGFOOD-2 SESSION 1 RESULTS: 3 agents, mean overall score 4.0/10. Orientation 4.3, Guidance Responsiveness 2.3, Discovery 2.5, Persistence 6.3. M(t) static at 0.78 across all agents. F(S) barely moved (0.56-0.57). Recommendations static. Boundaries never measured. New P0: UTF-8 panic on em-dash. FEGH bridges generated but labels opaque. Same diagnosis as S037: structured note-taking, not intelligence amplifier." :op :assert}
+   {:e #blake3 "3d5d79d72f940acb5dcd09e5f150259f4158f1640c645234c20ffb2038b18831" :a :db/ident :v :observation/dogfood-2-session-1-results-3-agents-mean-overall-score-4 :op :assert}
+   {:e #blake3 "3d5d79d72f940acb5dcd09e5f150259f4158f1640c645234c20ffb2038b18831" :a :exploration/body :v "DOGFOOD-2 SESSION 1 RESULTS: 3 agents, mean overall score 4.0/10. Orientation 4.3, Guidance Responsiveness 2.3, Discovery 2.5, Persistence 6.3. M(t) static at 0.78 across all agents. F(S) barely moved (0.56-0.57). Recommendations static. Boundaries never measured. New P0: UTF-8 panic on em-dash. FEGH bridges generated but labels opaque. Same diagnosis as S037: structured note-taking, not intelligence amplifier." :op :assert}
+   {:e #blake3 "3d5d79d72f940acb5dcd09e5f150259f4158f1640c645234c20ffb2038b18831" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "3d5d79d72f940acb5dcd09e5f150259f4158f1640c645234c20ffb2038b18831" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "3d5d79d72f940acb5dcd09e5f150259f4158f1640c645234c20ffb2038b18831" :a :exploration/content-hash :v #bytes "b98a38dbc3f9d2b21392b15cac6d0aaf1fcf321f070d879280616276f1deaf9c" :op :assert}
+   {:e #blake3 "3d5d79d72f940acb5dcd09e5f150259f4158f1640c645234c20ffb2038b18831" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "3d5d79d72f940acb5dcd09e5f150259f4158f1640c645234c20ffb2038b18831" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "3d5d79d72f940acb5dcd09e5f150259f4158f1640c645234c20ffb2038b18831" :a :exploration/source-session :v #blake3 "229bfc706efdd29c6f12db8bea570d6448658f711294860cbaf7b68d4bacba5f" :op :assert}
+ ]}

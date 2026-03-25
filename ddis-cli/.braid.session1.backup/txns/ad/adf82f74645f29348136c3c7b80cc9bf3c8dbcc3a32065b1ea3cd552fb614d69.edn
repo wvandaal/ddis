@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774293441/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Audit the SAT (sat.go, 363 LOC) and SMT (smt.go, 528 LOC) consistency tiers for correctness: semi-formal expression to propositional/SMT-LIB2 encoding soundness."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f91c62e0b1eac58d09238d1ce5afa9a01ff971602f7e020b3956e0db9de13f94" :a :db/ident :v :task/t-029104fc :op :assert}
+   {:e #blake3 "f91c62e0b1eac58d09238d1ce5afa9a01ff971602f7e020b3956e0db9de13f94" :a :task/created-at :v 1774293440 :op :assert}
+   {:e #blake3 "f91c62e0b1eac58d09238d1ce5afa9a01ff971602f7e020b3956e0db9de13f94" :a :task/id :v "t-029104fc" :op :assert}
+   {:e #blake3 "f91c62e0b1eac58d09238d1ce5afa9a01ff971602f7e020b3956e0db9de13f94" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "f91c62e0b1eac58d09238d1ce5afa9a01ff971602f7e020b3956e0db9de13f94" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f91c62e0b1eac58d09238d1ce5afa9a01ff971602f7e020b3956e0db9de13f94" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f91c62e0b1eac58d09238d1ce5afa9a01ff971602f7e020b3956e0db9de13f94" :a :task/title :v "Audit the SAT (sat.go, 363 LOC) and SMT (smt.go, 528 LOC) consistency tiers for correctness: semi-formal expression to propositional/SMT-LIB2 encoding soundness." :op :assert}
+   {:e #blake3 "f91c62e0b1eac58d09238d1ce5afa9a01ff971602f7e020b3956e0db9de13f94" :a :task/title-l0 :v "semi-formal expression to" :op :assert}
+   {:e #blake3 "f91c62e0b1eac58d09238d1ce5afa9a01ff971602f7e020b3956e0db9de13f94" :a :task/title-l1 :v "Audit the SAT (sat.go, 363 LOC) and SMT (smt.go, 528 LOC) consistency tiers f..." :op :assert}
+   {:e #blake3 "f91c62e0b1eac58d09238d1ce5afa9a01ff971602f7e020b3956e0db9de13f94" :a :task/type :v :task.type/task :op :assert}
+ ]}

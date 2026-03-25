@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774474187/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S045-D1: Execute DOGFOOD-2 Session 3 measurement protocol on Go CLI"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bb0d4ab6d21528f94399e6d41ef915c31309a82ec7faf1ec7d2bb2ce5c5503c0" :a :db/ident :v :task/t-18bb8eac :op :assert}
+   {:e #blake3 "bb0d4ab6d21528f94399e6d41ef915c31309a82ec7faf1ec7d2bb2ce5c5503c0" :a :task/created-at :v 1774474186 :op :assert}
+   {:e #blake3 "bb0d4ab6d21528f94399e6d41ef915c31309a82ec7faf1ec7d2bb2ce5c5503c0" :a :task/description :v "CONTEXT: DOGFOOD-2 (t-655e3cf2) has 2/3 sessions complete. Session 3 is the critical measurement session validating multi-membership (CONCEPT-MULTI), frontier steering (FRONTIER-STEER), and loop closures (S045-L1, S045-L2).\n\nRATIONALE: The hypothetico-deductive loop (ADR-FOUNDATION-014) requires empirical falsification. Three hypotheses with explicit falsification conditions:\n  H1: Multi-membership improves concept distribution entropy. FALSIFICATION: max-concept >60% of memberships.\n  H2: Frontier steering produces actionable recommendations. FALSIFICATION: mean actionability <1.0 on 0-2 scale.\n  H3: Prediction error decreases. FALSIFICATION: mean error >0.30.\n\nAPPROACH — 3 phases:\nPhase A (10 observations):\n  - 3 about well-explored packages (parser, storage, events)\n  - 3 about unexplored packages (witness, challenge, absorb)\n  - 2 cross-cutting (error handling, testing patterns)\n  - 2 architectural (coupling analysis, module boundaries)\nPhase B (measurement):\n  braid status -q  # concept distribution\n  braid query -- concept member counts\n  Score each frontier recommendation: 2=actionable, 1=reasonable, 0=unhelpful\nPhase C (harvest + score):\n  braid harvest --commit\n  Compute: entropy(30%) + actionability(40%) + prediction_error(30%)\n  8+/10 = PASS. 6-7 = remediate. <6 = architectural issue.\n\nACCEPTANCE: (A) 10 observations made spanning diverse packages. (B) Concept entropy H computed. (C) Steering actionability scored per recommendation. (D) Prediction error compared to Session 2 baseline 0.224. (E) Composite score computed and recorded as observation. (F) DOGFOOD-2 closed if >=8/10.\n\nDEPENDS-ON: S045-Q1, S045-L1, S045-L2 (fixes + loop closures must land before this runs)." :op :assert}
+   {:e #blake3 "bb0d4ab6d21528f94399e6d41ef915c31309a82ec7faf1ec7d2bb2ce5c5503c0" :a :task/id :v "t-18bb8eac" :op :assert}
+   {:e #blake3 "bb0d4ab6d21528f94399e6d41ef915c31309a82ec7faf1ec7d2bb2ce5c5503c0" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "bb0d4ab6d21528f94399e6d41ef915c31309a82ec7faf1ec7d2bb2ce5c5503c0" :a :task/labels :v :label/S045-DOGFOOD :op :assert}
+   {:e #blake3 "bb0d4ab6d21528f94399e6d41ef915c31309a82ec7faf1ec7d2bb2ce5c5503c0" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "bb0d4ab6d21528f94399e6d41ef915c31309a82ec7faf1ec7d2bb2ce5c5503c0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bb0d4ab6d21528f94399e6d41ef915c31309a82ec7faf1ec7d2bb2ce5c5503c0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bb0d4ab6d21528f94399e6d41ef915c31309a82ec7faf1ec7d2bb2ce5c5503c0" :a :task/title :v "S045-D1: Execute DOGFOOD-2 Session 3 measurement protocol on Go CLI" :op :assert}
+   {:e #blake3 "bb0d4ab6d21528f94399e6d41ef915c31309a82ec7faf1ec7d2bb2ce5c5503c0" :a :task/title-l0 :v "S045-D1" :op :assert}
+   {:e #blake3 "bb0d4ab6d21528f94399e6d41ef915c31309a82ec7faf1ec7d2bb2ce5c5503c0" :a :task/title-l1 :v "S045-D1: Execute DOGFOOD-2 Session 3 measurement protocol on Go CLI" :op :assert}
+   {:e #blake3 "bb0d4ab6d21528f94399e6d41ef915c31309a82ec7faf1ec7d2bb2ce5c5503c0" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "bb0d4ab6d21528f94399e6d41ef915c31309a82ec7faf1ec7d2bb2ce5c5503c0" :a :task/type :v :task.type/task :op :assert}
+ ]}

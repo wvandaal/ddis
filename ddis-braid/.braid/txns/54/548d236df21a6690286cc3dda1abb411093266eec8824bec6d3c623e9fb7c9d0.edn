@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774473833/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DEFECT-004: No test for latest-wins semantics in assign_to_concepts. The function correctly uses BTreeMap insert overwrite to keep only the latest :concept/embedding per entity, but no test creates a store with two embedding assertions for the same concept entity and verifies that the later one is used for similarity comparison. This is the same append-only latest-wins pattern as find_nearest_concept, which also lacks this specific test. Location: concept.rs tests. Traces to: INV-STORE-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "19fc48ba824633862772ebe386bae41cd5bd1faeb92336a83867c7cc8b868948" :a :db/doc :v "DEFECT-004: No test for latest-wins semantics in assign_to_concepts. The function correctly uses BTreeMap insert overwrite to keep only the latest :concept/embedding per entity, but no test creates a store with two embedding assertions for the same concept entity and verifies that the later one is used for similarity comparison. This is the same append-only latest-wins pattern as find_nearest_concept, which also lacks this specific test. Location: concept.rs tests. Traces to: INV-STORE-001." :op :assert}
+   {:e #blake3 "19fc48ba824633862772ebe386bae41cd5bd1faeb92336a83867c7cc8b868948" :a :db/ident :v :observation/defect-004-no-test-for-latest-wins-semantics-in-assign-to-c :op :assert}
+   {:e #blake3 "19fc48ba824633862772ebe386bae41cd5bd1faeb92336a83867c7cc8b868948" :a :exploration/body :v "DEFECT-004: No test for latest-wins semantics in assign_to_concepts. The function correctly uses BTreeMap insert overwrite to keep only the latest :concept/embedding per entity, but no test creates a store with two embedding assertions for the same concept entity and verifies that the later one is used for similarity comparison. This is the same append-only latest-wins pattern as find_nearest_concept, which also lacks this specific test. Location: concept.rs tests. Traces to: INV-STORE-001." :op :assert}
+   {:e #blake3 "19fc48ba824633862772ebe386bae41cd5bd1faeb92336a83867c7cc8b868948" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "19fc48ba824633862772ebe386bae41cd5bd1faeb92336a83867c7cc8b868948" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "19fc48ba824633862772ebe386bae41cd5bd1faeb92336a83867c7cc8b868948" :a :exploration/content-hash :v #bytes "17386bf56b96714d77bf9c6a6d4caf1d64dfb43e27bf3f9e3920fb91d8d829ab" :op :assert}
+   {:e #blake3 "19fc48ba824633862772ebe386bae41cd5bd1faeb92336a83867c7cc8b868948" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "19fc48ba824633862772ebe386bae41cd5bd1faeb92336a83867c7cc8b868948" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "19fc48ba824633862772ebe386bae41cd5bd1faeb92336a83867c7cc8b868948" :a :exploration/source-session :v #blake3 "a53a8585dfa17c1cb8e0a12d16f710708a71380cad283bd4212370c0084fcdad" :op :assert}
+ ]}

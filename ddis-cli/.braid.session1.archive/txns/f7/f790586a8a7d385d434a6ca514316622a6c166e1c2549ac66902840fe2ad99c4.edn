@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774372860/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Code annotation system uses structured comments in source files (ddis:verb TARGET) with 8 verbs: maintains, implements, interfaces, tests, validates-via, postcondition, relates-to, satisfies. Supports 30+ languages via CommentFamily map (C-style //, hash #, SQL --, semicolon ;, HTML comments). The scan package walks code directories extracting annotations, which are stored in code_annotations table. The witness system uses these annotations to mechanically verify spec-code traceability. This is the spec-code bridge that enables bidirectional drift detection."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "435707edc6dec26660f3aae038f99d5afeea8bd320ffbefeeec02edcd1f57d85" :a :db/ident :v :task/t-1edd3feb :op :assert}
+   {:e #blake3 "435707edc6dec26660f3aae038f99d5afeea8bd320ffbefeeec02edcd1f57d85" :a :task/body :v "Code annotation system uses structured comments in source files (ddis:verb TARGET) with 8 verbs: maintains, implements, interfaces, tests, validates-via, postcondition, relates-to, satisfies. Supports 30+ languages via CommentFamily map (C-style //, hash #, SQL --, semicolon ;, HTML comments). The scan package walks code directories extracting annotations, which are stored in code_annotations table. The witness system uses these annotations to mechanically verify spec-code traceability. This is the spec-code bridge that enables bidirectional drift detection." :op :assert}
+   {:e #blake3 "435707edc6dec26660f3aae038f99d5afeea8bd320ffbefeeec02edcd1f57d85" :a :task/created-at :v 1774372859 :op :assert}
+   {:e #blake3 "435707edc6dec26660f3aae038f99d5afeea8bd320ffbefeeec02edcd1f57d85" :a :task/id :v "t-1edd3feb" :op :assert}
+   {:e #blake3 "435707edc6dec26660f3aae038f99d5afeea8bd320ffbefeeec02edcd1f57d85" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "435707edc6dec26660f3aae038f99d5afeea8bd320ffbefeeec02edcd1f57d85" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "435707edc6dec26660f3aae038f99d5afeea8bd320ffbefeeec02edcd1f57d85" :a :task/title :v "Code annotation system uses structured comments in source files (ddis:verb" :op :assert}
+   {:e #blake3 "435707edc6dec26660f3aae038f99d5afeea8bd320ffbefeeec02edcd1f57d85" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "c3f407f531df86166723cecb1d06358e879cf33d22483d1e480f1e57b04f0efc" :a :db/doc :v "Code annotation system uses structured comments in source files (ddis:verb TARGET) with 8 verbs: maintains, implements, interfaces, tests, validates-via, postcondition, relates-to, satisfies. Supports 30+ languages via CommentFamily map (C-style //, hash #, SQL --, semicolon ;, HTML comments). The scan package walks code directories extracting annotations, which are stored in code_annotations table. The witness system uses these annotations to mechanically verify spec-code traceability. This is the spec-code bridge that enables bidirectional drift detection." :op :assert}
+   {:e #blake3 "c3f407f531df86166723cecb1d06358e879cf33d22483d1e480f1e57b04f0efc" :a :db/ident :v :observation/code-annotation-system-uses-structured-comments-in-source-fi :op :assert}
+   {:e #blake3 "c3f407f531df86166723cecb1d06358e879cf33d22483d1e480f1e57b04f0efc" :a :exploration/body :v "Code annotation system uses structured comments in source files (ddis:verb TARGET) with 8 verbs: maintains, implements, interfaces, tests, validates-via, postcondition, relates-to, satisfies. Supports 30+ languages via CommentFamily map (C-style //, hash #, SQL --, semicolon ;, HTML comments). The scan package walks code directories extracting annotations, which are stored in code_annotations table. The witness system uses these annotations to mechanically verify spec-code traceability. This is the spec-code bridge that enables bidirectional drift detection." :op :assert}
+   {:e #blake3 "c3f407f531df86166723cecb1d06358e879cf33d22483d1e480f1e57b04f0efc" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "c3f407f531df86166723cecb1d06358e879cf33d22483d1e480f1e57b04f0efc" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "c3f407f531df86166723cecb1d06358e879cf33d22483d1e480f1e57b04f0efc" :a :exploration/content-hash :v #bytes "5b217ac04d1e09adb853ff8eb14eaa9e877afcf60a9625b889c555ffc0547b66" :op :assert}
+   {:e #blake3 "c3f407f531df86166723cecb1d06358e879cf33d22483d1e480f1e57b04f0efc" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "c3f407f531df86166723cecb1d06358e879cf33d22483d1e480f1e57b04f0efc" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "c3f407f531df86166723cecb1d06358e879cf33d22483d1e480f1e57b04f0efc" :a :exploration/source-session :v #blake3 "368e75f8ec0de3001f7b2e68b5e3d13fe130025d88de5aba4443f45a9f88ee4c" :op :assert}
+ ]}

@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774474002/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC S045-QUALITY: Session 044 defect remediation before dogfood"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :db/ident :v :task/t-22dfd1f5 :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/created-at :v 1774474001 :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/description :v "CONTEXT: Session 044 cleanroom audit found 0 CRITICAL, 3 MAJOR, 4 MINOR, 2 STYLE defects in CONCEPT-MULTI, FRONTIER-STEER, and FRONTIER-TEST implementations. This EPIC resolves all actionable defects (excluding DEFECT-002/003 which are documented design limitations of the embedded store model). RATIONALE: These fixes directly impact DOGFOOD-2 Session 3 quality. DEFECT-001 (incommensurable frontier scores) systematically suppresses Deepen recommendations that would address the 25/29 concept skew observed in Session 043. Without normalization, the dogfood score ceiling is ~7/10. DELIVERABLES: 5 tasks (3 code fixes + 2 test additions), all in crates/braid-kernel/src/concept.rs. No architectural changes, no new files. ACCEPTANCE: (A) All existing 2009 tests pass. (B) 4 new tests added and passing. (C) Frontier recommendation produces normalized scores in [0,1]. (D) co_occurrence_matrix uses single datom scan." :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/id :v "t-22dfd1f5" :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/title :v "EPIC S045-QUALITY: Session 044 defect remediation before dogfood" :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/title-l0 :v "EPIC S045-QUALITY" :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/title-l1 :v "EPIC S045-QUALITY: Session 044 defect remediation before dogfood" :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/traces-to :v #blake3 "791ce65b20564279d064cb37745fcdd4b9e31f36804346447a413c2befbb9709" :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/traces-to :v #blake3 "bb68771c0f403c927260336945dceada87933be4981b2fe81d8ec63e5430a4dd" :op :assert}
+   {:e #blake3 "92fcec0e14d5131c38b960ca622779c3c3662e7e4fc84f071c910ff330e15ccb" :a :task/type :v :task.type/epic :op :assert}
+ ]}

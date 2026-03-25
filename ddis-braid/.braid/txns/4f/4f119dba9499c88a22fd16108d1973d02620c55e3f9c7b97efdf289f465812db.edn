@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774474090/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S045-Q3: Add cross-type frontier winner selection test (DEFECT-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :db/ident :v :task/t-f8cd6be2 :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/created-at :v 1774474089 :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/description :v "CONTEXT: DEFECT-005 from Session 044 audit. The three frontier tests (test_frontier_explore, test_frontier_deepen, test_frontier_bridge) each test one kind in isolation. No test creates a store where all three candidate types return results simultaneously and verifies winner selection.\n\nRATIONALE: After S045-Q1 applies score normalization, we need a test that exercises the full comparison path. An isolated test can't catch normalization regressions because each test only has one candidate type (which always normalizes to 1.0).\n\nAPPROACH: Create test_frontier_all_three_candidates:\n1. Build store with schema.\n2. Add 5 :pkg/* entities with composition edges, mark 2 as explored — triggers Explore candidates.\n3. Add a concept with high variance (>=0.8) and >=3 members — triggers Deepen candidate.\n4. Add two concepts with disjoint membership sets (>=2 each) — triggers Bridge candidate.\n5. Call frontier_recommendation().\n6. Assert result is Some. Assert the winning kind is the one with the highest NORMALIZED score.\n7. Verify that all three FrontierKind variants appear in the pre-sort candidate list (may need to refactor frontier_recommendation to expose candidates for testing, or use a helper that returns all candidates).\n\nACCEPTANCE: (A) Test constructs a store triggering all 3 candidate types. (B) Test passes with normalized scoring. (C) If normalization is removed, test may fail (depending on scale relationship).\n\nDEPENDS-ON: S045-Q1 (normalization must be in place for this test to be meaningful).\n\nCONSIDERATIONS: May need to expose a frontier_candidates() function that returns the full Vec<FrontierRec> before winner selection, to make assertions about all three types. This is a minor API addition, not a refactor. FILE: crates/braid-kernel/src/concept.rs (tests module)" :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/id :v "t-f8cd6be2" :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/labels :v :label/S045-QUALITY :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/title :v "S045-Q3: Add cross-type frontier winner selection test (DEFECT-005)" :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/title-l0 :v "S045-Q3" :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/title-l1 :v "S045-Q3: Add cross-type frontier winner selection test (DEFECT-005)" :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/traces-to :v #blake3 "bb68771c0f403c927260336945dceada87933be4981b2fe81d8ec63e5430a4dd" :op :assert}
+   {:e #blake3 "80381738812489a24b3e699050a61d34f8101dc210383c5be8c09088310c8824" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372714/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Go CLI has 48 Cobra commands organized into 5 groups: Core (parse/validate/coverage/drift/next/spec/issue/triage/materialize/project), Investigation (context/search/query/exemplar/impact/cascade/contradict/history/bisect/blame), Improvement (refine/discover/absorb/witness/scan/challenge), Planning (progress/implorder/checklist/bundle/skeleton/diff/tasks), Utility (render/seed/log/tx/state/checkpoint/init/patch/manifest/agenthelp/rename/import/replay). Bare 'ddis' delegates to 'next' command."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d6db35a8b1cd6f9eb9a1c64d8c1f3e9a22a165f924e058559d1326ee16ae7c33" :a :db/doc :v "Go CLI has 48 Cobra commands organized into 5 groups: Core (parse/validate/coverage/drift/next/spec/issue/triage/materialize/project), Investigation (context/search/query/exemplar/impact/cascade/contradict/history/bisect/blame), Improvement (refine/discover/absorb/witness/scan/challenge), Planning (progress/implorder/checklist/bundle/skeleton/diff/tasks), Utility (render/seed/log/tx/state/checkpoint/init/patch/manifest/agenthelp/rename/import/replay). Bare 'ddis' delegates to 'next' command." :op :assert}
+   {:e #blake3 "d6db35a8b1cd6f9eb9a1c64d8c1f3e9a22a165f924e058559d1326ee16ae7c33" :a :db/ident :v :observation/go-cli-has-48-cobra-commands-organized-into-5-groups-core :op :assert}
+   {:e #blake3 "d6db35a8b1cd6f9eb9a1c64d8c1f3e9a22a165f924e058559d1326ee16ae7c33" :a :exploration/body :v "Go CLI has 48 Cobra commands organized into 5 groups: Core (parse/validate/coverage/drift/next/spec/issue/triage/materialize/project), Investigation (context/search/query/exemplar/impact/cascade/contradict/history/bisect/blame), Improvement (refine/discover/absorb/witness/scan/challenge), Planning (progress/implorder/checklist/bundle/skeleton/diff/tasks), Utility (render/seed/log/tx/state/checkpoint/init/patch/manifest/agenthelp/rename/import/replay). Bare 'ddis' delegates to 'next' command." :op :assert}
+   {:e #blake3 "d6db35a8b1cd6f9eb9a1c64d8c1f3e9a22a165f924e058559d1326ee16ae7c33" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "d6db35a8b1cd6f9eb9a1c64d8c1f3e9a22a165f924e058559d1326ee16ae7c33" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "d6db35a8b1cd6f9eb9a1c64d8c1f3e9a22a165f924e058559d1326ee16ae7c33" :a :exploration/content-hash :v #bytes "ff1e48739fb470724a19d0b8d1b912fe646f7a60a804e171e05420662372f192" :op :assert}
+   {:e #blake3 "d6db35a8b1cd6f9eb9a1c64d8c1f3e9a22a165f924e058559d1326ee16ae7c33" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d6db35a8b1cd6f9eb9a1c64d8c1f3e9a22a165f924e058559d1326ee16ae7c33" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d6db35a8b1cd6f9eb9a1c64d8c1f3e9a22a165f924e058559d1326ee16ae7c33" :a :exploration/source-session :v #blake3 "368e75f8ec0de3001f7b2e68b5e3d13fe130025d88de5aba4443f45a9f88ee4c" :op :assert}
+ ]}

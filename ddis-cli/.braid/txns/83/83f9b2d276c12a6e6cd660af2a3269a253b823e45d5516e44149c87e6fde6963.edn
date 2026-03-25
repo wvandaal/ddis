@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774401166/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "APP-INV-010 (Oplog Append-Only): ALIGNED - Append() uses os.O_APPEND|os.O_CREATE|os.O_WRONLY flags. No DELETE/UPDATE operations exist in oplog package. ReadAll/ReadFiltered are read-only. JSONL format with monotonic timestamps (time.Now().UTC()). The only mutation path is filesystem-level (outside code control), which is expected."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "09dfaaf12d92668e02aaf6c520646c37cf7ca0d32aa93b409229f0a646e400e6" :a :db/doc :v "APP-INV-010 (Oplog Append-Only): ALIGNED - Append() uses os.O_APPEND|os.O_CREATE|os.O_WRONLY flags. No DELETE/UPDATE operations exist in oplog package. ReadAll/ReadFiltered are read-only. JSONL format with monotonic timestamps (time.Now().UTC()). The only mutation path is filesystem-level (outside code control), which is expected." :op :assert}
+   {:e #blake3 "09dfaaf12d92668e02aaf6c520646c37cf7ca0d32aa93b409229f0a646e400e6" :a :db/ident :v :observation/app-inv-010-oplog-append-only-aligned-append-uses-os :op :assert}
+   {:e #blake3 "09dfaaf12d92668e02aaf6c520646c37cf7ca0d32aa93b409229f0a646e400e6" :a :exploration/body :v "APP-INV-010 (Oplog Append-Only): ALIGNED - Append() uses os.O_APPEND|os.O_CREATE|os.O_WRONLY flags. No DELETE/UPDATE operations exist in oplog package. ReadAll/ReadFiltered are read-only. JSONL format with monotonic timestamps (time.Now().UTC()). The only mutation path is filesystem-level (outside code control), which is expected." :op :assert}
+   {:e #blake3 "09dfaaf12d92668e02aaf6c520646c37cf7ca0d32aa93b409229f0a646e400e6" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "09dfaaf12d92668e02aaf6c520646c37cf7ca0d32aa93b409229f0a646e400e6" :a :exploration/confidence :v 0.92 :op :assert}
+   {:e #blake3 "09dfaaf12d92668e02aaf6c520646c37cf7ca0d32aa93b409229f0a646e400e6" :a :exploration/content-hash :v #bytes "72c612cde6d04048abb399cdde4556c74ccbf2a8ee9b6f91157abc67a7679200" :op :assert}
+   {:e #blake3 "09dfaaf12d92668e02aaf6c520646c37cf7ca0d32aa93b409229f0a646e400e6" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "09dfaaf12d92668e02aaf6c520646c37cf7ca0d32aa93b409229f0a646e400e6" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "09dfaaf12d92668e02aaf6c520646c37cf7ca0d32aa93b409229f0a646e400e6" :a :exploration/source-session :v #blake3 "7ddde8aedeb4a752380d365ac6626c28d930d9ae864f0bbda9bd66587b1153da" :op :assert}
+ ]}

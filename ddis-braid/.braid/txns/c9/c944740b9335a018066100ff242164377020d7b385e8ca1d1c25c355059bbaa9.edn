@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774474029/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC S045-DOGFOOD: DOGFOOD-2 Session 3 execution + verdict"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :db/ident :v :task/t-b9f9a7a4 :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/created-at :v 1774474028 :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/description :v "CONTEXT: DOGFOOD-2 has 2/3 sessions complete. Session 3 is the critical next step — it measures whether multi-membership (Session 044), frontier steering (Session 044), and loop closures (Session 045 pre-work) improve the CCE's empirical performance. RATIONALE: The hypothetico-deductive loop requires empirical falsification. Three hypotheses are testable: concept entropy, steering actionability, prediction error. DOGFOOD-2 Session 3 produces the data; DOGFOOD-3 produces the verdict. DELIVERABLES: Session 3 execution on Go CLI, measurement protocol, composite scoring, post-dogfood triage. ACCEPTANCE: (A) 10 observations made with diverse package targeting. (B) Concept entropy H computed and compared to Session 043 baseline. (C) Steering actionability scored per recommendation. (D) Prediction error compared across sessions. (E) Composite score computed. (F) If >=8/10, DOGFOOD-2 and DOGFOOD-EXTERNAL closed." :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/id :v "t-b9f9a7a4" :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/title :v "EPIC S045-DOGFOOD: DOGFOOD-2 Session 3 execution + verdict" :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/title-l0 :v "EPIC S045-DOGFOOD" :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/title-l1 :v "EPIC S045-DOGFOOD: DOGFOOD-2 Session 3 execution + verdict" :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/type :v :task.type/epic :op :assert}
+ ]}

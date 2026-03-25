@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774401081/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SQL safety in storage/insert.go is GOOD: all 25+ Insert functions use parameterized queries (?-placeholders). No raw string interpolation in SQL values. However, deleteSpecData line 749 uses fmt.Sprintf to build table names — safe since table names are hardcoded strings, but violates the principle of least surprise. One SQL injection vector: if the tables list were ever populated from user input, this would be exploitable."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8b1be962d2cd563d1e6b5ee86237648248e9e58c069a11be50bc6194ed26b8a4" :a :db/doc :v "SQL safety in storage/insert.go is GOOD: all 25+ Insert functions use parameterized queries (?-placeholders). No raw string interpolation in SQL values. However, deleteSpecData line 749 uses fmt.Sprintf to build table names — safe since table names are hardcoded strings, but violates the principle of least surprise. One SQL injection vector: if the tables list were ever populated from user input, this would be exploitable." :op :assert}
+   {:e #blake3 "8b1be962d2cd563d1e6b5ee86237648248e9e58c069a11be50bc6194ed26b8a4" :a :db/ident :v :observation/sql-safety-in-storageinsertgo-is-good-all-25-insert-func :op :assert}
+   {:e #blake3 "8b1be962d2cd563d1e6b5ee86237648248e9e58c069a11be50bc6194ed26b8a4" :a :exploration/body :v "SQL safety in storage/insert.go is GOOD: all 25+ Insert functions use parameterized queries (?-placeholders). No raw string interpolation in SQL values. However, deleteSpecData line 749 uses fmt.Sprintf to build table names — safe since table names are hardcoded strings, but violates the principle of least surprise. One SQL injection vector: if the tables list were ever populated from user input, this would be exploitable." :op :assert}
+   {:e #blake3 "8b1be962d2cd563d1e6b5ee86237648248e9e58c069a11be50bc6194ed26b8a4" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "8b1be962d2cd563d1e6b5ee86237648248e9e58c069a11be50bc6194ed26b8a4" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "8b1be962d2cd563d1e6b5ee86237648248e9e58c069a11be50bc6194ed26b8a4" :a :exploration/content-hash :v #bytes "446a016802ac3e7ebb9b3c2fd8c9ef997220c75f84904245bf7c7c54331aa3df" :op :assert}
+   {:e #blake3 "8b1be962d2cd563d1e6b5ee86237648248e9e58c069a11be50bc6194ed26b8a4" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "8b1be962d2cd563d1e6b5ee86237648248e9e58c069a11be50bc6194ed26b8a4" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "8b1be962d2cd563d1e6b5ee86237648248e9e58c069a11be50bc6194ed26b8a4" :a :exploration/source-session :v #blake3 "7ddde8aedeb4a752380d365ac6626c28d930d9ae864f0bbda9bd66587b1153da" :op :assert}
+ ]}

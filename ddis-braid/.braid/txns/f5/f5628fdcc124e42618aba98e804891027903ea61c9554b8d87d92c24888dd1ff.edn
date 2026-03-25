@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774474051/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S045-Q1: Normalize frontier recommendation scores to [0,1] per candidate type (DEFECT-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "755c97a8526b99caba15af291afcac8af6ddfe8807b42d61de98cc92a2cfafd4" :a :db/ident :v :task/t-9dcaf6b4 :op :assert}
+   {:e #blake3 "755c97a8526b99caba15af291afcac8af6ddfe8807b42d61de98cc92a2cfafd4" :a :task/created-at :v 1774474050 :op :assert}
+   {:e #blake3 "755c97a8526b99caba15af291afcac8af6ddfe8807b42d61de98cc92a2cfafd4" :a :task/description :v "CONTEXT: DEFECT-001 from Session 044 audit. frontier_recommendation() (concept.rs:554-571) compares scores from three candidate types using raw values, but the scales are incommensurable: Explore scores in integer connection counts (1-10), Deepen scores in variance units (0.1-1.5), Bridge scores in half-member-counts (2-20). This systematically favors Bridge over Deepen.\n\nRATIONALE: The acquisition function must compare information gain across heterogeneous sources. Raw scores measure different units — connection count, variance, and membership size. Normalization to [0,1] per candidate type makes comparison meaningful. This is the standard approach in multi-objective optimization (Pareto normalization).\n\nAPPROACH: Add a normalize_candidates() helper that divides each score by the per-type maximum. Call it after collecting all candidates and before sorting. Preserve raw scores in a new raw_score field on FrontierRec for debugging.\n\nSteps:\n1. Add raw_score: f64 field to FrontierRec struct (concept.rs:530).\n2. In frontier_recommendation() (concept.rs:554), after collecting all candidates, normalize:\n   - Group candidates by kind\n   - For each group, find max score\n   - Divide each candidate score by its group max (guard against max=0)\n   - Store original in raw_score\n3. Sort normalized scores as before.\n\nACCEPTANCE: (A) In a store with all three candidate types, Deepen with variance=0.8 and Bridge with 5+5 members produce comparable normalized scores (both near 1.0 if each is its group max). (B) With a single candidate type, score is normalized to 1.0. (C) Empty candidates returns None. (D) All existing frontier tests pass.\n\nCONSIDERATIONS: Adding raw_score is a struct field addition — callers that destructure FrontierRec will need updating. The Display impl for FrontierKind is exhaustive. The E2E test greps for 'explore|deepen|bridge' which is unaffected by score normalization. FILE: crates/braid-kernel/src/concept.rs" :op :assert}
+   {:e #blake3 "755c97a8526b99caba15af291afcac8af6ddfe8807b42d61de98cc92a2cfafd4" :a :task/id :v "t-9dcaf6b4" :op :assert}
+   {:e #blake3 "755c97a8526b99caba15af291afcac8af6ddfe8807b42d61de98cc92a2cfafd4" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "755c97a8526b99caba15af291afcac8af6ddfe8807b42d61de98cc92a2cfafd4" :a :task/labels :v :label/S045-QUALITY :op :assert}
+   {:e #blake3 "755c97a8526b99caba15af291afcac8af6ddfe8807b42d61de98cc92a2cfafd4" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "755c97a8526b99caba15af291afcac8af6ddfe8807b42d61de98cc92a2cfafd4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "755c97a8526b99caba15af291afcac8af6ddfe8807b42d61de98cc92a2cfafd4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "755c97a8526b99caba15af291afcac8af6ddfe8807b42d61de98cc92a2cfafd4" :a :task/title :v "S045-Q1: Normalize frontier recommendation scores to [0,1] per candidate type (DEFECT-001)" :op :assert}
+   {:e #blake3 "755c97a8526b99caba15af291afcac8af6ddfe8807b42d61de98cc92a2cfafd4" :a :task/title-l0 :v "S045-Q1" :op :assert}
+   {:e #blake3 "755c97a8526b99caba15af291afcac8af6ddfe8807b42d61de98cc92a2cfafd4" :a :task/title-l1 :v "S045-Q1: Normalize frontier recommendation scores to [0,1] per candidate type..." :op :assert}
+   {:e #blake3 "755c97a8526b99caba15af291afcac8af6ddfe8807b42d61de98cc92a2cfafd4" :a :task/traces-to :v #blake3 "791ce65b20564279d064cb37745fcdd4b9e31f36804346447a413c2befbb9709" :op :assert}
+   {:e #blake3 "755c97a8526b99caba15af291afcac8af6ddfe8807b42d61de98cc92a2cfafd4" :a :task/type :v :task.type/bug :op :assert}
+ ]}

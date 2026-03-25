@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293540/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Potential issue: the search engine rebuilds the LSI index on every query (BuildLSI inside Search function). This is O(n*k^2) SVD decomposition per query, which will be slow for large specs. The index should be precomputed and cached. The FTS5 index is persistent but LSI is ephemeral."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6257a0560c26d0eae5437d78288bbe395096471281afaecb4d4c73aeb73c9d7e" :a :db/doc :v "Potential issue: the search engine rebuilds the LSI index on every query (BuildLSI inside Search function). This is O(n*k^2) SVD decomposition per query, which will be slow for large specs. The index should be precomputed and cached. The FTS5 index is persistent but LSI is ephemeral." :op :assert}
+   {:e #blake3 "6257a0560c26d0eae5437d78288bbe395096471281afaecb4d4c73aeb73c9d7e" :a :db/ident :v :observation/potential-issue-the-search-engine-rebuilds-the-lsi-index-on :op :assert}
+   {:e #blake3 "6257a0560c26d0eae5437d78288bbe395096471281afaecb4d4c73aeb73c9d7e" :a :exploration/body :v "Potential issue: the search engine rebuilds the LSI index on every query (BuildLSI inside Search function). This is O(n*k^2) SVD decomposition per query, which will be slow for large specs. The index should be precomputed and cached. The FTS5 index is persistent but LSI is ephemeral." :op :assert}
+   {:e #blake3 "6257a0560c26d0eae5437d78288bbe395096471281afaecb4d4c73aeb73c9d7e" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "6257a0560c26d0eae5437d78288bbe395096471281afaecb4d4c73aeb73c9d7e" :a :exploration/confidence :v 0.88 :op :assert}
+   {:e #blake3 "6257a0560c26d0eae5437d78288bbe395096471281afaecb4d4c73aeb73c9d7e" :a :exploration/content-hash :v #bytes "3c5a2fe10a770d0057f42ac49c563ea9fcefa14171419abb7d3ed82489ee67bb" :op :assert}
+   {:e #blake3 "6257a0560c26d0eae5437d78288bbe395096471281afaecb4d4c73aeb73c9d7e" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "6257a0560c26d0eae5437d78288bbe395096471281afaecb4d4c73aeb73c9d7e" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "6257a0560c26d0eae5437d78288bbe395096471281afaecb4d4c73aeb73c9d7e" :a :exploration/source-session :v #blake3 "54b60ca45d888324d8a4672b7750169df7a00b2b661743c1ffce01925aae3568" :op :assert}
+ ]}

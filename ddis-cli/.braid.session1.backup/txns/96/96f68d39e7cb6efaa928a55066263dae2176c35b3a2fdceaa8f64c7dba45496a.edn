@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372945/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FINDING-6: LLM Tier 6 consistency analysis (llm.go) makes 3 * n*(n-1)/2 API calls (3 calls per pair for majority vote). For 20 unparsed invariants, that is 570 API calls. No rate limiting, no cost estimation, no progress indicator, no caching of results. A user running ddis consistency --tier 6 could inadvertently spend significant money. The O(n^2) pairwise pattern with no batching, parallelism, or early termination is shared across SAT, SMT, heuristic, semantic, and LLM tiers."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e90e3c1cbdd374f637b4e24bbb50f9f624937e8e83ac00ddf500b07847c6746e" :a :db/doc :v "FINDING-6: LLM Tier 6 consistency analysis (llm.go) makes 3 * n*(n-1)/2 API calls (3 calls per pair for majority vote). For 20 unparsed invariants, that is 570 API calls. No rate limiting, no cost estimation, no progress indicator, no caching of results. A user running ddis consistency --tier 6 could inadvertently spend significant money. The O(n^2) pairwise pattern with no batching, parallelism, or early termination is shared across SAT, SMT, heuristic, semantic, and LLM tiers." :op :assert}
+   {:e #blake3 "e90e3c1cbdd374f637b4e24bbb50f9f624937e8e83ac00ddf500b07847c6746e" :a :db/ident :v :observation/finding-6-llm-tier-6-consistency-analysis-llmgo-makes-3 :op :assert}
+   {:e #blake3 "e90e3c1cbdd374f637b4e24bbb50f9f624937e8e83ac00ddf500b07847c6746e" :a :exploration/body :v "FINDING-6: LLM Tier 6 consistency analysis (llm.go) makes 3 * n*(n-1)/2 API calls (3 calls per pair for majority vote). For 20 unparsed invariants, that is 570 API calls. No rate limiting, no cost estimation, no progress indicator, no caching of results. A user running ddis consistency --tier 6 could inadvertently spend significant money. The O(n^2) pairwise pattern with no batching, parallelism, or early termination is shared across SAT, SMT, heuristic, semantic, and LLM tiers." :op :assert}
+   {:e #blake3 "e90e3c1cbdd374f637b4e24bbb50f9f624937e8e83ac00ddf500b07847c6746e" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "e90e3c1cbdd374f637b4e24bbb50f9f624937e8e83ac00ddf500b07847c6746e" :a :exploration/confidence :v 0.88 :op :assert}
+   {:e #blake3 "e90e3c1cbdd374f637b4e24bbb50f9f624937e8e83ac00ddf500b07847c6746e" :a :exploration/content-hash :v #bytes "d4feedf8098d9cff4db77260d96d755ce13799ad4efe2e8339003e2bc5c6fa89" :op :assert}
+   {:e #blake3 "e90e3c1cbdd374f637b4e24bbb50f9f624937e8e83ac00ddf500b07847c6746e" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "e90e3c1cbdd374f637b4e24bbb50f9f624937e8e83ac00ddf500b07847c6746e" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "e90e3c1cbdd374f637b4e24bbb50f9f624937e8e83ac00ddf500b07847c6746e" :a :exploration/source-session :v #blake3 "bd7edb506c2c1d1fc9115e4b98eb99ec29bc3bacfa8866e5ab72763e52bada6a" :op :assert}
+ ]}

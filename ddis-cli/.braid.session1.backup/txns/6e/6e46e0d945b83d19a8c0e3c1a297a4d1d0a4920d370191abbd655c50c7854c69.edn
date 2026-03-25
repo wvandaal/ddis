@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774372914/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Architecture documentation: the Go CLI has 38 internal packages with clear domain separation but the dependency graph has concerning coupling. The search/context.go ContextBundle (906 LOC) imports from impact, oplog, process, query, storage - 5 internal packages. The absorb/reconcile.go imports from autoprompt, storage. This suggests a layering violation where the search package depends on nearly everything. A proper architecture doc showing the dependency DAG would identify circular or excessive coupling."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "673b10ccc8d146ff27d32b0a9acf474480bb09106d4e106739b28e499f70bdb8" :a :db/ident :v :task/t-f29a97bd :op :assert}
+   {:e #blake3 "673b10ccc8d146ff27d32b0a9acf474480bb09106d4e106739b28e499f70bdb8" :a :task/created-at :v 1774372913 :op :assert}
+   {:e #blake3 "673b10ccc8d146ff27d32b0a9acf474480bb09106d4e106739b28e499f70bdb8" :a :task/id :v "t-f29a97bd" :op :assert}
+   {:e #blake3 "673b10ccc8d146ff27d32b0a9acf474480bb09106d4e106739b28e499f70bdb8" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "673b10ccc8d146ff27d32b0a9acf474480bb09106d4e106739b28e499f70bdb8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "673b10ccc8d146ff27d32b0a9acf474480bb09106d4e106739b28e499f70bdb8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "673b10ccc8d146ff27d32b0a9acf474480bb09106d4e106739b28e499f70bdb8" :a :task/title :v "Architecture documentation: the Go CLI has 38 internal packages with clear domain separation but the dependency graph has concerning coupling. The search/context.go ContextBundle (906 LOC) imports from impact, oplog, process, query, storage - 5 internal packages. The absorb/reconcile.go imports from autoprompt, storage. This suggests a layering violation where the search package depends on nearly everything. A proper architecture doc showing the dependency DAG would identify circular or excessive coupling." :op :assert}
+   {:e #blake3 "673b10ccc8d146ff27d32b0a9acf474480bb09106d4e106739b28e499f70bdb8" :a :task/title-l0 :v "the Go CLI has" :op :assert}
+   {:e #blake3 "673b10ccc8d146ff27d32b0a9acf474480bb09106d4e106739b28e499f70bdb8" :a :task/title-l1 :v "Architecture documentation: the Go CLI has 38 internal packages with clear do..." :op :assert}
+   {:e #blake3 "673b10ccc8d146ff27d32b0a9acf474480bb09106d4e106739b28e499f70bdb8" :a :task/type :v :task.type/task :op :assert}
+ ]}

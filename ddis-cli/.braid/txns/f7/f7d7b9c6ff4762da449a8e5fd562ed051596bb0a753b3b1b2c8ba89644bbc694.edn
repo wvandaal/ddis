@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774401098/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "APP-INV-001 (Round-Trip Fidelity): ALIGNED - RenderMonolith writes stored raw_text verbatim back to disk (atomic rename). ParseDocument stores raw text on ingest. Trivially correct by construction: raw_text in = raw_text out. 5 test functions in roundtrip_test.go cover monolith, modular, CLI self-spec, idempotency, and line preservation."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "73803eff7c132f21d138eafa3e62e4695d6687b54fcfdd974ea526146061ebef" :a :db/doc :v "APP-INV-001 (Round-Trip Fidelity): ALIGNED - RenderMonolith writes stored raw_text verbatim back to disk (atomic rename). ParseDocument stores raw text on ingest. Trivially correct by construction: raw_text in = raw_text out. 5 test functions in roundtrip_test.go cover monolith, modular, CLI self-spec, idempotency, and line preservation." :op :assert}
+   {:e #blake3 "73803eff7c132f21d138eafa3e62e4695d6687b54fcfdd974ea526146061ebef" :a :db/ident :v :observation/app-inv-001-round-trip-fidelity-aligned-rendermonolith :op :assert}
+   {:e #blake3 "73803eff7c132f21d138eafa3e62e4695d6687b54fcfdd974ea526146061ebef" :a :exploration/body :v "APP-INV-001 (Round-Trip Fidelity): ALIGNED - RenderMonolith writes stored raw_text verbatim back to disk (atomic rename). ParseDocument stores raw text on ingest. Trivially correct by construction: raw_text in = raw_text out. 5 test functions in roundtrip_test.go cover monolith, modular, CLI self-spec, idempotency, and line preservation." :op :assert}
+   {:e #blake3 "73803eff7c132f21d138eafa3e62e4695d6687b54fcfdd974ea526146061ebef" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "73803eff7c132f21d138eafa3e62e4695d6687b54fcfdd974ea526146061ebef" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "73803eff7c132f21d138eafa3e62e4695d6687b54fcfdd974ea526146061ebef" :a :exploration/content-hash :v #bytes "16da93315b61dc80526e323b2dd2bc0b1cc9622040b864f1f4006f9c104d9f67" :op :assert}
+   {:e #blake3 "73803eff7c132f21d138eafa3e62e4695d6687b54fcfdd974ea526146061ebef" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "73803eff7c132f21d138eafa3e62e4695d6687b54fcfdd974ea526146061ebef" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "73803eff7c132f21d138eafa3e62e4695d6687b54fcfdd974ea526146061ebef" :a :exploration/source-session :v #blake3 "7ddde8aedeb4a752380d365ac6626c28d930d9ae864f0bbda9bd66587b1153da" :op :assert}
+ ]}

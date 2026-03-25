@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774473807/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-294216c5"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "53609bf5e5454c502e6ceac782b9219143b1a1f7b0a641c3deb6129dd71b2f87" :a :task/close-reason :v "Observation record (DOGFOOD-2 Session 1 result), not actionable work" :op :assert}
+   {:e #blake3 "53609bf5e5454c502e6ceac782b9219143b1a1f7b0a641c3deb6129dd71b2f87" :a :task/closed-at :v 1774473806 :op :assert}
+   {:e #blake3 "53609bf5e5454c502e6ceac782b9219143b1a1f7b0a641c3deb6129dd71b2f87" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "53609bf5e5454c502e6ceac782b9219143b1a1f7b0a641c3deb6129dd71b2f87" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774474335/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S045-TEST-D: DOGFOOD-2 Session 3 measurement and scoring protocol"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :db/ident :v :task/t-94095ca1 :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/created-at :v 1774474334 :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/description :v "CONTEXT: Paired testing/verification task for S045-D1 (DOGFOOD-2 Session 3 execution). This is the measurement and scoring task that validates the Session 045 deliverables empirically.\n\nMEASUREMENT PROTOCOL:\n\n1. Concept Distribution Entropy:\n   - Query: braid query -- '[:find ?name ?count :where [?c :concept/name ?name] [?c :concept/member-count ?count]]'\n   - Compute: H = -sum(p_i * ln(p_i)) where p_i = count_i / sum(counts)\n   - Baseline: Session 043 H ~= 0.3 (25/29 skew)\n   - Target: H >= 1.5\n   - PASS: max-concept < 60% of total memberships\n   - FAIL: max-concept >= 60% of total memberships\n   - Diagnostic: Log full concept distribution table and entropy calculation step by step.\n\n2. Steering Actionability:\n   - For each frontier recommendation shown during the 10 observations:\n     Score: 2 = immediately actionable, 1 = reasonable but vague, 0 = unhelpful/wrong\n   - Compute: mean(scores)\n   - Target: mean >= 1.5\n   - PASS: mean >= 1.0\n   - FAIL: mean < 1.0\n   - Diagnostic: Log each recommendation text, its score, and justification.\n\n3. Prediction Error:\n   - After harvest, compare predicted delta-F(S) for top-3 recommendations vs actual delta-F(S).\n   - Compute: mean(|predicted - actual|)\n   - Baseline: Session 038 mean error 0.224\n   - Target: <= 0.20\n   - PASS: <= 0.30\n   - FAIL: > 0.30\n   - Diagnostic: Log each hypothesis with predicted, actual, and error.\n\nCOMPOSITE SCORE:\n   score = entropy_normalized * 0.30 + actionability_normalized * 0.40 + (1 - error_normalized) * 0.30\n   where each component is normalized to [0, 1]:\n     entropy_normalized = min(H / 2.0, 1.0)\n     actionability_normalized = mean_score / 2.0\n     error_normalized = min(mean_error / 0.5, 1.0)\n   Final: score * 10 = composite /10\n\nACCEPTANCE: All 3 metrics measured and recorded as braid observation.\n\nDEPENDS-ON: S045-D1." :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/id :v "t-94095ca1" :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/labels :v :label/S045-DOGFOOD :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/title :v "S045-TEST-D: DOGFOOD-2 Session 3 measurement and scoring protocol" :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/title-l0 :v "S045-TEST-D" :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/title-l1 :v "S045-TEST-D: DOGFOOD-2 Session 3 measurement and scoring protocol" :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "49d0ea5c9425ef87e34f95c00ff1d0f71c4a07bc575c277b99f538378a43d437" :a :task/type :v :task.type/task :op :assert}
+ ]}

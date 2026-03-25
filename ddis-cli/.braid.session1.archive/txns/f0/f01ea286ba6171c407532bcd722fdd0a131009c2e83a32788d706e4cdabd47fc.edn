@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774293303/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Map Cobra command tree to understand CLI architecture"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "194f4f431c2fe0ff936f41929cfe0a11e1367e8e4e18668830ca91c48bea8a35" :a :db/ident :v :task/t-33d0d600 :op :assert}
+   {:e #blake3 "194f4f431c2fe0ff936f41929cfe0a11e1367e8e4e18668830ca91c48bea8a35" :a :task/created-at :v 1774293302 :op :assert}
+   {:e #blake3 "194f4f431c2fe0ff936f41929cfe0a11e1367e8e4e18668830ca91c48bea8a35" :a :task/id :v "t-33d0d600" :op :assert}
+   {:e #blake3 "194f4f431c2fe0ff936f41929cfe0a11e1367e8e4e18668830ca91c48bea8a35" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "194f4f431c2fe0ff936f41929cfe0a11e1367e8e4e18668830ca91c48bea8a35" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "194f4f431c2fe0ff936f41929cfe0a11e1367e8e4e18668830ca91c48bea8a35" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "194f4f431c2fe0ff936f41929cfe0a11e1367e8e4e18668830ca91c48bea8a35" :a :task/title :v "Map Cobra command tree to understand CLI architecture" :op :assert}
+   {:e #blake3 "194f4f431c2fe0ff936f41929cfe0a11e1367e8e4e18668830ca91c48bea8a35" :a :task/title-l0 :v "Map Cobra command tree" :op :assert}
+   {:e #blake3 "194f4f431c2fe0ff936f41929cfe0a11e1367e8e4e18668830ca91c48bea8a35" :a :task/title-l1 :v "Map Cobra command tree to understand CLI architecture" :op :assert}
+   {:e #blake3 "194f4f431c2fe0ff936f41929cfe0a11e1367e8e4e18668830ca91c48bea8a35" :a :task/type :v :task.type/task :op :assert}
+ ]}

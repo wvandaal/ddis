@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774372599/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DOGFOOD-2 SESSION 1 START: 3 parallel agents doing real work on Go CLI. Store 2061 datoms, M(t)=0.78"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b666142a5364a12e59eb9ac162a83835172d04257f2b0c624ba3951965e20e4e" :a :db/doc :v "DOGFOOD-2 SESSION 1 START: 3 parallel agents doing real work on Go CLI. Store 2061 datoms, M(t)=0.78" :op :assert}
+   {:e #blake3 "b666142a5364a12e59eb9ac162a83835172d04257f2b0c624ba3951965e20e4e" :a :db/ident :v :observation/dogfood-2-session-1-start-3-parallel-agents-doing-real-work :op :assert}
+   {:e #blake3 "b666142a5364a12e59eb9ac162a83835172d04257f2b0c624ba3951965e20e4e" :a :exploration/body :v "DOGFOOD-2 SESSION 1 START: 3 parallel agents doing real work on Go CLI. Store 2061 datoms, M(t)=0.78" :op :assert}
+   {:e #blake3 "b666142a5364a12e59eb9ac162a83835172d04257f2b0c624ba3951965e20e4e" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "b666142a5364a12e59eb9ac162a83835172d04257f2b0c624ba3951965e20e4e" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "b666142a5364a12e59eb9ac162a83835172d04257f2b0c624ba3951965e20e4e" :a :exploration/content-hash :v #bytes "daad5878934a22278c8b580f33ccb9868f93f5bfdd9508d09bf4966a40775c0c" :op :assert}
+   {:e #blake3 "b666142a5364a12e59eb9ac162a83835172d04257f2b0c624ba3951965e20e4e" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b666142a5364a12e59eb9ac162a83835172d04257f2b0c624ba3951965e20e4e" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b666142a5364a12e59eb9ac162a83835172d04257f2b0c624ba3951965e20e4e" :a :exploration/source-session :v #blake3 "368e75f8ec0de3001f7b2e68b5e3d13fe130025d88de5aba4443f45a9f88ee4c" :op :assert}
+ ]}

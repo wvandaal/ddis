@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774401131/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "APP-INV-002 (Validation Determinism): ALIGNED - 20 checks run in fixed order via AllChecks() slice. No time.Now(), rand, or OS-dependent state in any check logic. Check 19 (VCS) depends on git but gracefully degrades. The Validate function is a pure fold over deterministic checks. Tests in validator_test.go verify check composability."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2a6c2e7bf65a9de5499726f2b9e629f93058f20b5d4f1de74dc1044be9621180" :a :db/ident :v :task/t-f9e173ca :op :assert}
+   {:e #blake3 "2a6c2e7bf65a9de5499726f2b9e629f93058f20b5d4f1de74dc1044be9621180" :a :task/body :v "APP-INV-002 (Validation Determinism): ALIGNED - 20 checks run in fixed order via AllChecks() slice. No time.Now(), rand, or OS-dependent state in any check logic. Check 19 (VCS) depends on git but gracefully degrades. The Validate function is a pure fold over deterministic checks. Tests in validator_test.go verify check composability." :op :assert}
+   {:e #blake3 "2a6c2e7bf65a9de5499726f2b9e629f93058f20b5d4f1de74dc1044be9621180" :a :task/created-at :v 1774401130 :op :assert}
+   {:e #blake3 "2a6c2e7bf65a9de5499726f2b9e629f93058f20b5d4f1de74dc1044be9621180" :a :task/id :v "t-f9e173ca" :op :assert}
+   {:e #blake3 "2a6c2e7bf65a9de5499726f2b9e629f93058f20b5d4f1de74dc1044be9621180" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "2a6c2e7bf65a9de5499726f2b9e629f93058f20b5d4f1de74dc1044be9621180" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2a6c2e7bf65a9de5499726f2b9e629f93058f20b5d4f1de74dc1044be9621180" :a :task/title :v "APP-INV-002 (Validation Determinism): ALIGNED - 20 checks run in fixed order" :op :assert}
+   {:e #blake3 "2a6c2e7bf65a9de5499726f2b9e629f93058f20b5d4f1de74dc1044be9621180" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "fdbdd9d0ac0af91c3342b12f96ae1c218374cca761855e464500af32439daeb1" :a :db/doc :v "APP-INV-002 (Validation Determinism): ALIGNED - 20 checks run in fixed order via AllChecks() slice. No time.Now(), rand, or OS-dependent state in any check logic. Check 19 (VCS) depends on git but gracefully degrades. The Validate function is a pure fold over deterministic checks. Tests in validator_test.go verify check composability." :op :assert}
+   {:e #blake3 "fdbdd9d0ac0af91c3342b12f96ae1c218374cca761855e464500af32439daeb1" :a :db/ident :v :observation/app-inv-002-validation-determinism-aligned-20-checks-ru :op :assert}
+   {:e #blake3 "fdbdd9d0ac0af91c3342b12f96ae1c218374cca761855e464500af32439daeb1" :a :exploration/body :v "APP-INV-002 (Validation Determinism): ALIGNED - 20 checks run in fixed order via AllChecks() slice. No time.Now(), rand, or OS-dependent state in any check logic. Check 19 (VCS) depends on git but gracefully degrades. The Validate function is a pure fold over deterministic checks. Tests in validator_test.go verify check composability." :op :assert}
+   {:e #blake3 "fdbdd9d0ac0af91c3342b12f96ae1c218374cca761855e464500af32439daeb1" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "fdbdd9d0ac0af91c3342b12f96ae1c218374cca761855e464500af32439daeb1" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "fdbdd9d0ac0af91c3342b12f96ae1c218374cca761855e464500af32439daeb1" :a :exploration/content-hash :v #bytes "843a0f62b0c195fac2ea27a25f621942656f49168d4fd57f2e019e18bfc5b18b" :op :assert}
+   {:e #blake3 "fdbdd9d0ac0af91c3342b12f96ae1c218374cca761855e464500af32439daeb1" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "fdbdd9d0ac0af91c3342b12f96ae1c218374cca761855e464500af32439daeb1" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "fdbdd9d0ac0af91c3342b12f96ae1c218374cca761855e464500af32439daeb1" :a :exploration/source-session :v #blake3 "7ddde8aedeb4a752380d365ac6626c28d930d9ae864f0bbda9bd66587b1153da" :op :assert}
+ ]}

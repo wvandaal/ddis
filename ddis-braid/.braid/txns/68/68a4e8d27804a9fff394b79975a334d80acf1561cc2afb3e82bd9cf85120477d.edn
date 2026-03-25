@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774473859/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DEFECT-007: Two full datom scans in co_occurrence_matrix (concept.rs:452-468). Phase 1 scans for :exploration/concept Refs, Phase 2 scans for :concept/name. These can be merged into a single scan that collects both attributes simultaneously, saving one O(D) pass. At 95K datoms this saves ~1ms. Same pattern in explore_candidates (concept.rs:575-675) which does 3 separate datom scans for :db/ident, :exploration/mentions-entity, and :composition/from+to. Both can be merged to single-pass. Traces to: performance optimization, not blocking."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "67d4614dc2343f91c7577e73f5dc905f3bfa9ca6cae541984548300f07850a5e" :a :db/doc :v "DEFECT-007: Two full datom scans in co_occurrence_matrix (concept.rs:452-468). Phase 1 scans for :exploration/concept Refs, Phase 2 scans for :concept/name. These can be merged into a single scan that collects both attributes simultaneously, saving one O(D) pass. At 95K datoms this saves ~1ms. Same pattern in explore_candidates (concept.rs:575-675) which does 3 separate datom scans for :db/ident, :exploration/mentions-entity, and :composition/from+to. Both can be merged to single-pass. Traces to: performance optimization, not blocking." :op :assert}
+   {:e #blake3 "67d4614dc2343f91c7577e73f5dc905f3bfa9ca6cae541984548300f07850a5e" :a :db/ident :v :observation/defect-007-two-full-datom-scans-in-co-occurrence-matrix-co :op :assert}
+   {:e #blake3 "67d4614dc2343f91c7577e73f5dc905f3bfa9ca6cae541984548300f07850a5e" :a :exploration/body :v "DEFECT-007: Two full datom scans in co_occurrence_matrix (concept.rs:452-468). Phase 1 scans for :exploration/concept Refs, Phase 2 scans for :concept/name. These can be merged into a single scan that collects both attributes simultaneously, saving one O(D) pass. At 95K datoms this saves ~1ms. Same pattern in explore_candidates (concept.rs:575-675) which does 3 separate datom scans for :db/ident, :exploration/mentions-entity, and :composition/from+to. Both can be merged to single-pass. Traces to: performance optimization, not blocking." :op :assert}
+   {:e #blake3 "67d4614dc2343f91c7577e73f5dc905f3bfa9ca6cae541984548300f07850a5e" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "67d4614dc2343f91c7577e73f5dc905f3bfa9ca6cae541984548300f07850a5e" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "67d4614dc2343f91c7577e73f5dc905f3bfa9ca6cae541984548300f07850a5e" :a :exploration/content-hash :v #bytes "c9ec356f37502a82a8b9290ad910f330d0a258e1bc62e0359d2fbdddda24b159" :op :assert}
+   {:e #blake3 "67d4614dc2343f91c7577e73f5dc905f3bfa9ca6cae541984548300f07850a5e" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "67d4614dc2343f91c7577e73f5dc905f3bfa9ca6cae541984548300f07850a5e" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "67d4614dc2343f91c7577e73f5dc905f3bfa9ca6cae541984548300f07850a5e" :a :exploration/source-session :v #blake3 "a53a8585dfa17c1cb8e0a12d16f710708a71380cad283bd4212370c0084fcdad" :op :assert}
+ ]}

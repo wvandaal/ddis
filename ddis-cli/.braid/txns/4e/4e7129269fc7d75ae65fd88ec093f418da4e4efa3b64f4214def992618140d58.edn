@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774401335/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "APP-INV-013 (Impact Termination): DIVERGENT - The cascade.Analyze function does NOT perform BFS traversal. The depth parameter (1-5) is accepted but unused (_ = depth, line 48: 'reserved for future multi-hop cascade'). It only does direct module relationship lookups and backlink counts. Since there is no graph traversal, the cycle-safety property is trivially satisfied, but the actual invariant requirement (BFS visiting each node at most once) is vacuously true because there is no BFS at all. The multi-hop impact analysis described by the invariant is unimplemented."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ca3ee80fb291fe97c4cb7989a78572aecca58521ff6a0be72fab5e6d3611227a" :a :db/doc :v "APP-INV-013 (Impact Termination): DIVERGENT - The cascade.Analyze function does NOT perform BFS traversal. The depth parameter (1-5) is accepted but unused (_ = depth, line 48: 'reserved for future multi-hop cascade'). It only does direct module relationship lookups and backlink counts. Since there is no graph traversal, the cycle-safety property is trivially satisfied, but the actual invariant requirement (BFS visiting each node at most once) is vacuously true because there is no BFS at all. The multi-hop impact analysis described by the invariant is unimplemented." :op :assert}
+   {:e #blake3 "ca3ee80fb291fe97c4cb7989a78572aecca58521ff6a0be72fab5e6d3611227a" :a :db/ident :v :observation/app-inv-013-impact-termination-divergent-the-cascadean :op :assert}
+   {:e #blake3 "ca3ee80fb291fe97c4cb7989a78572aecca58521ff6a0be72fab5e6d3611227a" :a :exploration/body :v "APP-INV-013 (Impact Termination): DIVERGENT - The cascade.Analyze function does NOT perform BFS traversal. The depth parameter (1-5) is accepted but unused (_ = depth, line 48: 'reserved for future multi-hop cascade'). It only does direct module relationship lookups and backlink counts. Since there is no graph traversal, the cycle-safety property is trivially satisfied, but the actual invariant requirement (BFS visiting each node at most once) is vacuously true because there is no BFS at all. The multi-hop impact analysis described by the invariant is unimplemented." :op :assert}
+   {:e #blake3 "ca3ee80fb291fe97c4cb7989a78572aecca58521ff6a0be72fab5e6d3611227a" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "ca3ee80fb291fe97c4cb7989a78572aecca58521ff6a0be72fab5e6d3611227a" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "ca3ee80fb291fe97c4cb7989a78572aecca58521ff6a0be72fab5e6d3611227a" :a :exploration/content-hash :v #bytes "f5222f2f19246630ec1dcae5cd5f35c57e707329755755392c1bcd931c4d1ab5" :op :assert}
+   {:e #blake3 "ca3ee80fb291fe97c4cb7989a78572aecca58521ff6a0be72fab5e6d3611227a" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "ca3ee80fb291fe97c4cb7989a78572aecca58521ff6a0be72fab5e6d3611227a" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "ca3ee80fb291fe97c4cb7989a78572aecca58521ff6a0be72fab5e6d3611227a" :a :exploration/source-session :v #blake3 "7ddde8aedeb4a752380d365ac6626c28d930d9ae864f0bbda9bd66587b1153da" :op :assert}
+ ]}

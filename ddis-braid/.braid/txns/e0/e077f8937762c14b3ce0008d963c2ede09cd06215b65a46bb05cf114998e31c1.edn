@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774474073/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S045-Q2: Add latest-wins semantics test for assign_to_concepts (DEFECT-004)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f235f229a7443b15a36b9b17bf732598c168fef0f7d8818138ccb65219d43de4" :a :db/ident :v :task/t-62eb3212 :op :assert}
+   {:e #blake3 "f235f229a7443b15a36b9b17bf732598c168fef0f7d8818138ccb65219d43de4" :a :task/created-at :v 1774474072 :op :assert}
+   {:e #blake3 "f235f229a7443b15a36b9b17bf732598c168fef0f7d8818138ccb65219d43de4" :a :task/description :v "CONTEXT: DEFECT-004 from Session 044 audit. assign_to_concepts() (concept.rs:167) correctly uses BTreeMap insert overwrite to keep only the latest :concept/embedding per entity, but no test verifies this latest-wins behavior. The same pattern exists in find_nearest_concept() and is the canonical append-only store query pattern.\n\nRATIONALE: Append-only stores may have multiple Assert datoms for the same (entity, attribute) tuple. The two-phase BTreeMap pattern relies on EAVT-ordered iteration where later assertions overwrite earlier ones. Without a test, a refactor could break this silently.\n\nAPPROACH: Create test_assign_to_concepts_latest_wins:\n1. Build store with innate concepts.\n2. Add a concept with embedding from 'alpha topic' at tx=10.\n3. Add second :concept/embedding for SAME entity from 'beta topic' at tx=11.\n4. Create observation embedding from 'beta topic words'.\n5. Assert that assign_to_concepts returns a match with similarity > cosine(alpha_emb, obs_emb).\nThis proves the function uses the later (beta) embedding, not the earlier (alpha) one.\n\nACCEPTANCE: (A) Test passes. (B) If we reverse the BTreeMap to a Vec (breaking latest-wins), the test fails — falsifiable.\n\nCONSIDERATIONS: The HashEmbedder is deterministic (INV-EMBEDDING-001), so cosine values are reproducible. Use make_embedder() from the test module. FILE: crates/braid-kernel/src/concept.rs (tests module)" :op :assert}
+   {:e #blake3 "f235f229a7443b15a36b9b17bf732598c168fef0f7d8818138ccb65219d43de4" :a :task/id :v "t-62eb3212" :op :assert}
+   {:e #blake3 "f235f229a7443b15a36b9b17bf732598c168fef0f7d8818138ccb65219d43de4" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "f235f229a7443b15a36b9b17bf732598c168fef0f7d8818138ccb65219d43de4" :a :task/labels :v :label/S045-QUALITY :op :assert}
+   {:e #blake3 "f235f229a7443b15a36b9b17bf732598c168fef0f7d8818138ccb65219d43de4" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "f235f229a7443b15a36b9b17bf732598c168fef0f7d8818138ccb65219d43de4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f235f229a7443b15a36b9b17bf732598c168fef0f7d8818138ccb65219d43de4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f235f229a7443b15a36b9b17bf732598c168fef0f7d8818138ccb65219d43de4" :a :task/title :v "S045-Q2: Add latest-wins semantics test for assign_to_concepts (DEFECT-004)" :op :assert}
+   {:e #blake3 "f235f229a7443b15a36b9b17bf732598c168fef0f7d8818138ccb65219d43de4" :a :task/title-l0 :v "S045-Q2" :op :assert}
+   {:e #blake3 "f235f229a7443b15a36b9b17bf732598c168fef0f7d8818138ccb65219d43de4" :a :task/title-l1 :v "S045-Q2: Add latest-wins semantics test for assign_to_concepts (DEFECT-004)" :op :assert}
+   {:e #blake3 "f235f229a7443b15a36b9b17bf732598c168fef0f7d8818138ccb65219d43de4" :a :task/traces-to :v #blake3 "192793a3a1efa8195c4a1f3cdff307e17d88478917e1e520ef6eb8651526cb67" :op :assert}
+   {:e #blake3 "f235f229a7443b15a36b9b17bf732598c168fef0f7d8818138ccb65219d43de4" :a :task/type :v :task.type/task :op :assert}
+ ]}
