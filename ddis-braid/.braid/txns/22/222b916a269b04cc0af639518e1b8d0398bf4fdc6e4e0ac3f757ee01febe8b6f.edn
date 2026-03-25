@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774454136/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CALIBRATABLE-PARAMS: Make all 5 CCE constants learnable policy datoms with calibration feedback"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9797d0a639b42b8b0a11e8fe4c36c0da261bfefc07b6e26607d7ad2ebe485858" :a :db/ident :v :task/t-d72764a7 :op :assert}
+   {:e #blake3 "9797d0a639b42b8b0a11e8fe4c36c0da261bfefc07b6e26607d7ad2ebe485858" :a :task/created-at :v 1774454135 :op :assert}
+   {:e #blake3 "9797d0a639b42b8b0a11e8fe4c36c0da261bfefc07b6e26607d7ad2ebe485858" :a :task/description :v "CONTEXT: JOIN_THRESHOLD was calibrated empirically from 0.65 to 0.20 for model2vec. This was a manual process. All 5 CCE constants should be policy datoms that the system calibrates automatically via the hypothesis ledger. THREE LEVELS: (1) Rust constant — bootstrap default when store is empty. (2) Policy manifest datom — per-project override (:policy/concept-join-threshold etc). (3) Calibrated datom — learned from feedback via OBSERVER-4. CONSTANTS TO WIRE: JOIN_THRESHOLD (0.20, concept assignment sensitivity), MIN_CLUSTER_SIZE (3, crystallization minimum), SPLIT_THRESHOLD (0.5, concept breadth tolerance), MERGE_THRESHOLD (0.85, concept similarity tolerance), DEFAULT_ALPHA (2.0, surprise amplification). CALIBRATION LOOP: Every concept assignment is a testable prediction. Agent correction ('this is about Y not X') = negative outcome. Agent adoption of concept name = positive outcome. Hypothesis ledger tracks predicted vs actual. Calibration step adjusts threshold: too many false negatives → lower, too many false positives → raise. Calibrated values are CRDT-mergeable via set union — teams share learned thresholds. APPROACH: (1) Add get_config reads for all 5 constants at their call sites (observe.rs for JOIN_THRESHOLD already done, harvest.rs for MIN_CLUSTER_SIZE, concept.rs for SPLIT/MERGE, observe.rs for DEFAULT_ALPHA). (2) Add :policy/* schema attributes for each. (3) Wire concept assignment outcomes into hypothesis ledger. (4) Add calibration step to harvest that adjusts thresholds based on error rates. ACCEPTANCE: (A) All 5 constants readable from store with constant fallback. (B) Policy manifest can override each. (C) At least JOIN_THRESHOLD demonstrates feedback-driven adjustment. DEPENDS-ON: nothing (all infrastructure exists)." :op :assert}
+   {:e #blake3 "9797d0a639b42b8b0a11e8fe4c36c0da261bfefc07b6e26607d7ad2ebe485858" :a :task/id :v "t-d72764a7" :op :assert}
+   {:e #blake3 "9797d0a639b42b8b0a11e8fe4c36c0da261bfefc07b6e26607d7ad2ebe485858" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9797d0a639b42b8b0a11e8fe4c36c0da261bfefc07b6e26607d7ad2ebe485858" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9797d0a639b42b8b0a11e8fe4c36c0da261bfefc07b6e26607d7ad2ebe485858" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9797d0a639b42b8b0a11e8fe4c36c0da261bfefc07b6e26607d7ad2ebe485858" :a :task/title :v "CALIBRATABLE-PARAMS: Make all 5 CCE constants learnable policy datoms with calibration feedback" :op :assert}
+   {:e #blake3 "9797d0a639b42b8b0a11e8fe4c36c0da261bfefc07b6e26607d7ad2ebe485858" :a :task/title-l0 :v "CALIBRATABLE-PARAMS" :op :assert}
+   {:e #blake3 "9797d0a639b42b8b0a11e8fe4c36c0da261bfefc07b6e26607d7ad2ebe485858" :a :task/title-l1 :v "CALIBRATABLE-PARAMS: Make all 5 CCE constants learnable policy datoms with ca..." :op :assert}
+   {:e #blake3 "9797d0a639b42b8b0a11e8fe4c36c0da261bfefc07b6e26607d7ad2ebe485858" :a :task/traces-to :v #blake3 "ae7031515bf946ce4de40322d02bb271972e4a77f8e92e3f03c3cf56de803488" :op :assert}
+   {:e #blake3 "9797d0a639b42b8b0a11e8fe4c36c0da261bfefc07b6e26607d7ad2ebe485858" :a :task/type :v :task.type/task :op :assert}
+ ]}

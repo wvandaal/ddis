@@ -1,0 +1,52 @@
+{:tx/id #hlc "1774454159/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 3 candidates from task 'unsessioned harvest (3 txns since last harvest)'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "048bcce56daf5e721d183e1580d47eb4babb75d32dce9562eccc11c8a41b66e6" :a :db/ident :v :session/s-1774454160300 :op :assert}
+   {:e #blake3 "048bcce56daf5e721d183e1580d47eb4babb75d32dce9562eccc11c8a41b66e6" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "048bcce56daf5e721d183e1580d47eb4babb75d32dce9562eccc11c8a41b66e6" :a :session/current :v #blake3 "048bcce56daf5e721d183e1580d47eb4babb75d32dce9562eccc11c8a41b66e6" :op :assert}
+   {:e #blake3 "048bcce56daf5e721d183e1580d47eb4babb75d32dce9562eccc11c8a41b66e6" :a :session/start-datom-count :v 91639 :op :assert}
+   {:e #blake3 "048bcce56daf5e721d183e1580d47eb4babb75d32dce9562eccc11c8a41b66e6" :a :session/start-fitness :v 0.6164633807245018 :op :assert}
+   {:e #blake3 "048bcce56daf5e721d183e1580d47eb4babb75d32dce9562eccc11c8a41b66e6" :a :session/start-time :v "2026-03-25T15:56:00Z" :op :assert}
+   {:e #blake3 "048bcce56daf5e721d183e1580d47eb4babb75d32dce9562eccc11c8a41b66e6" :a :session/started-at :v 1774454160 :op :assert}
+   {:e #blake3 "048bcce56daf5e721d183e1580d47eb4babb75d32dce9562eccc11c8a41b66e6" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "048bcce56daf5e721d183e1580d47eb4babb75d32dce9562eccc11c8a41b66e6" :a :session/task :v "## Session Synthesis Directive\n\n**Next session task**: continue: unsessioned harvest (3 txns since last harvest)\nRun: `braid seed --task \"continue: unsessioned harvest (3 txns since last harvest)\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "544e9fa802d5af1ffaae6faf49738fd700c609b14fef384c5ead450a99d3b6f6" :a :hypothesis/action :v #blake3 "eaade17023f6224061de39130967f6a6e804cbd8dc07fb82bcd37b182bf556b1" :op :assert}
+   {:e #blake3 "544e9fa802d5af1ffaae6faf49738fd700c609b14fef384c5ead450a99d3b6f6" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "544e9fa802d5af1ffaae6faf49738fd700c609b14fef384c5ead450a99d3b6f6" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "544e9fa802d5af1ffaae6faf49738fd700c609b14fef384c5ead450a99d3b6f6" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "544e9fa802d5af1ffaae6faf49738fd700c609b14fef384c5ead450a99d3b6f6" :a :hypothesis/predicted :v 1.0 :op :assert}
+   {:e #blake3 "544e9fa802d5af1ffaae6faf49738fd700c609b14fef384c5ead450a99d3b6f6" :a :hypothesis/timestamp :v #inst 1774454160 :op :assert}
+   {:e #blake3 "98d8dbab508a654e37699d25d58e27a2115b870ea099fdbf17e1094aabf4e5e6" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "c006b84b63d8164698444d31042390772a6c33003105c0308fdc27058146d8c5" :a :hypothesis/action :v #blake3 "11146360f74be633495a6342dd8200186db3c8cf4a9c36a3c12288606c58cf62" :op :assert}
+   {:e #blake3 "c006b84b63d8164698444d31042390772a6c33003105c0308fdc27058146d8c5" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "c006b84b63d8164698444d31042390772a6c33003105c0308fdc27058146d8c5" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "c006b84b63d8164698444d31042390772a6c33003105c0308fdc27058146d8c5" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "c006b84b63d8164698444d31042390772a6c33003105c0308fdc27058146d8c5" :a :hypothesis/predicted :v 0.751894838947926 :op :assert}
+   {:e #blake3 "c006b84b63d8164698444d31042390772a6c33003105c0308fdc27058146d8c5" :a :hypothesis/timestamp :v #inst 1774454160 :op :assert}
+   {:e #blake3 "c708c4e4c55a9d8fb624b65935e9825acbb5a296691539c7b28741497ae9ce14" :a :hypothesis/action :v #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :op :assert}
+   {:e #blake3 "c708c4e4c55a9d8fb624b65935e9825acbb5a296691539c7b28741497ae9ce14" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "c708c4e4c55a9d8fb624b65935e9825acbb5a296691539c7b28741497ae9ce14" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "c708c4e4c55a9d8fb624b65935e9825acbb5a296691539c7b28741497ae9ce14" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "c708c4e4c55a9d8fb624b65935e9825acbb5a296691539c7b28741497ae9ce14" :a :hypothesis/predicted :v 0.31341226952877993 :op :assert}
+   {:e #blake3 "c708c4e4c55a9d8fb624b65935e9825acbb5a296691539c7b28741497ae9ce14" :a :hypothesis/timestamp :v #inst 1774454160 :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :db/doc :v "Harvest session for task: unsessioned harvest (3 txns since last harvest)" :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :db/ident :v :harvest/session-braid-user-1774454159 :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/accomplishments :v "Session entity: :recon/trace-85011ba8cacf97f4; Session entity: :task/t-d72764a7" :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/candidate-count :v 3 :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/codebase-snapshot :v "Codebase: 0 LOC across 0 source files\nTests: 1992 passing" :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/context-metrics :v "{\"candidates\":3,\"k_eff_estimated\":\"0.95\",\"observations\":0,\"output_tokens_est\":764,\"tasks_closed\":0,\"tx_count\":3,\"wall_elapsed_s\":91}" :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/delta-summary :v "+97 datoms, +9 entities" :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/git-summary :v "branch=main, 1 commits, 22 files (+346/-6)\n  536c309a Session 043: MODEL2VEC ACTIVATED — concept assignment works end-to-end\nHot files:\n  ddis-braid/.braid/txns/9d/9dd8cfad5ddc8361ec36beea44d5e622ca7853f20621bd63c5dd67c511216a12.edn (80 lines changed)\n  ddis-braid/.braid/txns/fb/fbe516d9af33a949c8f6f95502a44476579ca86d9768b309a752f65322921b65.edn (79 lines changed)\n  ddis-braid/.braid/txns/0a/0ab8d96e68a0211955015159bb44ed8b2ad26c183cb058bda2ea725670a8ba1f.edn (16 lines changed)\n  ddis-braid/.braid/txns/0e/0eaa2406a71594ccd321ffbe6815c0ace19fb98f158d2cd9dc6cef95c79b0bd3.edn (16 lines changed)\n  ddis-braid/.braid/txns/71/71d8b0c0eaf00c7cfd55c1baa801b325a8504f221880d7df2ea5bb5890398288.edn (14 lines changed)\n  ddis-braid/.braid/txns/00/00961381da4c27a69aa39e146d4995c063627a807cf70ef2f5336bf554ccbc47.edn (11 lines changed)\n  ddis-braid/.braid/txns/38/380245be975abb06be23cf5f7c94041d226e71f6edac8a5a8884723d9fd31a3b.edn (11 lines changed)\n  ddis-braid/.braid/txns/6c/6cc94971d23f35e67d6835a1fc9d89b5a12b87ce5e5fc60f73d3a1fcfa44cae0.edn (11 lines changed)" :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/recommended-tasks :v "t-655e3cf2,t-d9536d87,t-56b8f57e" :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/store-datom-count :v 91603 :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/store-entity-count :v 9179 :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: unsessioned harvest (3 txns since last harvest)\nRun: `braid seed --task \"continue: unsessioned harvest (3 txns since last harvest)\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/task :v "unsessioned harvest (3 txns since last harvest)" :op :assert}
+   {:e #blake3 "f8fdf757e22dcbf3eb43746d92a07f085ae81bc74de61e5d1ea8f9fe341cac2e" :a :harvest/tx-since-last :v 3 :op :assert}
+ ]}
