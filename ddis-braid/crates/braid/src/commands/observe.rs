@@ -532,6 +532,72 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         .unwrap_or("observation")
         .to_string();
 
+    // --- CE-OBSERVE: Responsive observation — contextual micro-hypotheses ---
+    let connections =
+        braid_kernel::connections::propose_connections(store, entity, args.text);
+    let topo_events =
+        braid_kernel::connections::detect_topological_events(&connections, store);
+
+    let mut responsive_parts: Vec<String> = Vec::new();
+
+    // Connection information
+    if !connections.is_empty() {
+        let top = &connections[0];
+        let body_attr = Attribute::from_keyword(":exploration/body");
+        if let Some(Value::String(target_text)) = store.live_value(top.target, &body_attr)
+        {
+            let target_preview = braid_kernel::budget::safe_truncate_bytes(target_text, 60);
+            let ellipsis = if target_text.len() > 60 { "..." } else { "" };
+            responsive_parts.push(format!(
+                "connected: '{}{}' (shared: {})",
+                target_preview,
+                ellipsis,
+                top.shared_keywords.join(", ")
+            ));
+        } else {
+            responsive_parts.push(format!(
+                "connected: entity (shared: {})",
+                top.shared_keywords.join(", ")
+            ));
+        }
+
+        if connections.len() > 1 {
+            responsive_parts.push(format!(
+                "{} total connections found",
+                connections.len()
+            ));
+        }
+    }
+
+    // Topological events
+    for event in &topo_events {
+        responsive_parts.push(event.clone());
+    }
+
+    // Micro-hypothesis: a follow-up question based on connections
+    if !connections.is_empty() {
+        let keywords: Vec<&str> = connections[0]
+            .shared_keywords
+            .iter()
+            .map(|s| s.as_str())
+            .collect();
+        if keywords.len() >= 2 {
+            responsive_parts.push(format!(
+                "\u{2192} Does {} interact with {} in unexpected ways?",
+                keywords[0], keywords[1]
+            ));
+        } else if !keywords.is_empty() {
+            responsive_parts.push(format!(
+                "\u{2192} What else depends on {}?",
+                keywords[0]
+            ));
+        }
+    } else {
+        responsive_parts.push(
+            "\u{2192} No connections yet. What else relates to this?".to_string(),
+        );
+    }
+
     // --- META-3: Real-time crystallization feedback (INV-GUIDANCE-014, INV-BILATERAL-001) ---
     let has_spec_refs = args.text.contains("INV-") || args.text.contains("ADR-") || args.text.contains("NEG-");
     let spec_refs_exist = if has_spec_refs {
@@ -606,6 +672,18 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         ),
         10,
     ));
+
+    // CE-OBSERVE: Responsive context blocks (connections, topo events, micro-hypothesis)
+    if !responsive_parts.is_empty() {
+        // In agent mode, this single block stays concise (3 lines max from responsive_parts).
+        // In human mode, the full projection shows everything.
+        let responsive_text = responsive_parts.join("\n");
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Methodology,
+            responsive_text,
+            13, // Between summary (15) and store (10) — shown before tags
+        ));
+    }
 
     // Tags if present (UserRequested)
     if !args.tags.is_empty() {
@@ -727,6 +805,17 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         })),
         "auto_crystallized": auto_crystallized,
         "cotransacted": cotx_entities.iter().map(|(t, i)| serde_json::json!({"type": t, "ident": i})).collect::<Vec<_>>(),
+        "connections": connections.iter().map(|c| {
+            let hex: String = c.target.as_bytes().iter().take(8).map(|b| format!("{b:02x}")).collect();
+            serde_json::json!({
+                "target": hex,
+                "similarity": c.similarity,
+                "raw_jaccard": c.raw_jaccard,
+                "shared_keywords": c.shared_keywords,
+            })
+        }).collect::<Vec<_>>(),
+        "topological_events": topo_events,
+        "micro_hypothesis": responsive_parts.last().cloned(),
     });
     if let serde_json::Value::Object(ref mut map) = json {
         let acp = projection.to_json();

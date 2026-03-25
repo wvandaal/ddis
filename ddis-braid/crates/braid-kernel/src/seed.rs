@@ -673,8 +673,16 @@ fn namespace_activation_map() -> &'static [(&'static str, &'static str)] {
 }
 
 /// Generic activation sentence when no namespace match is found.
+/// CE-SEED: For braid-internal projects, leads with full description.
+/// For external projects, uses a compressed 1-line reference so domain
+/// knowledge takes priority in the orientation.
 const GENERIC_ACTIVATION: &str =
     "Braid: append-only datom store with CRDT merge. Harvest/seed lifecycle makes conversations disposable, knowledge durable.";
+
+/// Compressed activation for external (non-braid) projects.
+/// CE-SEED: Domain observations should dominate; braid description is secondary.
+const EXTERNAL_ACTIVATION: &str =
+    "Braid runtime: observe, harvest, seed. See AGENTS.md for details.";
 
 fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> String {
     let current_datoms = store.len();
@@ -686,6 +694,7 @@ fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> St
     // === Namespace-aware formal system activation (CTP-1) ===
     // Extract spec refs from the task, deduplicate by namespace, and prepend
     // activation sentences that prime the agent's reasoning for the domain.
+    let is_braid = is_braid_project(store);
     let activation_block = {
         let spec_refs = crate::task::parse_spec_refs(task);
         let mut seen_namespaces = std::collections::BTreeSet::new();
@@ -701,7 +710,14 @@ fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> St
             }
         }
         if activations.is_empty() && !task.is_empty() {
-            activations.push(GENERIC_ACTIVATION);
+            // CE-SEED: External projects get compressed braid description so
+            // domain observations dominate the orientation. Braid internals
+            // are irrelevant to agents investigating the managed project.
+            if is_braid {
+                activations.push(GENERIC_ACTIVATION);
+            } else {
+                activations.push(EXTERNAL_ACTIVATION);
+            }
         }
         activations.join("\n")
     };
@@ -709,7 +725,7 @@ fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> St
     // === Project identity (1 dense line with spec-language activation) ===
     // C8-FIX-3: Use project-appropriate identity. External projects get a
     // generic "braid store" identity without braid-internal implementation details.
-    let is_braid = is_braid_project(store);
+    // Note: is_braid already computed above for activation block.
     let project_label = if is_braid {
         "Braid: append-only datom store (CRDT merge, content-addressed)"
     } else {
@@ -757,12 +773,52 @@ fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> St
     } else {
         format!("{codebase_headline}. {test_line}")
     };
+    // CE-SEED: For external projects, lead with domain observations.
+    // Agents investigating a Go CLI don't need to know braid's internals --
+    // they need to know what prior sessions discovered about the project.
+    // The braid identity line is demoted to after observations.
+    let mut parts: Vec<String> = Vec::new();
+    if !is_braid {
+        // Collect domain observations (`:exploration/body` from `braid:observe`)
+        // sorted by recency (newest first). These are the agent's captured
+        // knowledge about the managed project.
+        let mut domain_obs: Vec<(u64, String)> = Vec::new();
+        for datom in store.datoms() {
+            if datom.attribute.as_str() == ":db/doc"
+                && datom.op == Op::Assert
+            {
+                let is_obs = store.entity_datoms(datom.entity).iter().any(|d| {
+                    d.attribute.as_str() == ":exploration/source"
+                        && d.op == Op::Assert
+                        && matches!(&d.value, Value::String(s) if s == "braid:observe")
+                });
+                if is_obs {
+                    if let Value::String(ref doc) = datom.value {
+                        if doc.len() > 20 {
+                            domain_obs.push((datom.tx.wall_time(), doc.clone()));
+                        }
+                    }
+                }
+            }
+        }
+        domain_obs.sort_by_key(|(t, _)| std::cmp::Reverse(*t));
+
+        if !domain_obs.is_empty() {
+            parts.push("Domain knowledge:".to_string());
+            for (_, doc) in domain_obs.iter().take(10) {
+                parts.push(format!("  - {}", truncate_chars(doc, 120)));
+            }
+        }
+    }
+
     // CTP-1: Activation block is prepended before the project identity line.
-    let mut parts = if activation_block.is_empty() {
-        vec![codebase_line]
+    // CE-SEED: For external projects, this comes AFTER domain observations.
+    if activation_block.is_empty() {
+        parts.push(codebase_line);
     } else {
-        vec![activation_block, codebase_line]
-    };
+        parts.push(activation_block);
+        parts.push(codebase_line);
+    }
 
     // Key files (top 5, compressed to one block)
     if let Some(latest) = excerpts.first() {
@@ -803,6 +859,8 @@ fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> St
     // === Stage 0 success criterion + maturity signal ===
     // The most important context for any "continue" task: WHERE ARE WE?
     // Only show for real stores (>100 datoms) — proptests use tiny stores.
+    // CE-SEED: For external projects, show a compact status line without
+    // braid-internal goals. Agents don't need to know about HARVEST.md.
     if current_datoms > 100 {
         let harvest_count = store
             .datoms()
@@ -823,10 +881,17 @@ fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> St
             })
             .count();
 
-        parts.push(format!(
-            "Goal: harvest/seed replaces HARVEST.md. Status: {} harvests, {} observations, {} decisions captured.",
-            harvest_count, observation_count, decision_count
-        ));
+        if is_braid {
+            parts.push(format!(
+                "Goal: harvest/seed replaces HARVEST.md. Status: {} harvests, {} observations, {} decisions captured.",
+                harvest_count, observation_count, decision_count
+            ));
+        } else {
+            parts.push(format!(
+                "Knowledge: {} harvests, {} observations, {} decisions captured.",
+                harvest_count, observation_count, decision_count
+            ));
+        }
     }
 
     // === Spec landscape: namespace-grouped project architecture ===
@@ -2492,9 +2557,13 @@ pub fn assemble(
 
     // BACKFILL: Fill remaining budget with high-value structural entities.
     //
-    // Strategy: spec entities first (project invariants — the rules of the game),
-    // then recent non-observation entities. Observations are in Orientation;
-    // showing them raw in State wastes budget with zero new information.
+    // CE-SEED: For external (non-braid) projects, domain observations are
+    // the highest-value content. Agents need to know what prior sessions
+    // discovered about the managed project, not braid internals.
+    //
+    // Strategy (braid-internal): spec entities first, then observations.
+    // Strategy (external): observations first, then bootstrap hypotheses,
+    //   then compressed project context.
     //
     // Spec entities use Summary projection (compact: "INV-SEED-001 — Budget Compliance")
     // to pack more project rules into the budget. Full projection on specs wastes
@@ -2504,14 +2573,136 @@ pub fn assemble(
         .map(|e| e.entity)
         .chain(harvest_entities.iter().copied())
         .collect();
+    let is_braid = is_braid_project(store);
+
+    // CE-SEED Pass -1: Domain observations FIRST for external projects.
+    // For non-braid projects, observations about the managed project are
+    // the single most valuable seed content. They tell the incoming agent
+    // what prior sessions learned. Move them before the cheat sheet.
+    if !is_braid && state_tokens < state_budget.saturating_sub(100) {
+        let already_shown_pre: BTreeSet<EntityId> = state_entries
+            .iter()
+            .map(|e| e.entity)
+            .chain(harvest_entities.iter().copied())
+            .collect();
+        // Build content fingerprints from Orientation to avoid duplication.
+        let orientation_sessions = discover_recent_sessions(store, 3);
+        let mut orientation_prefixes: BTreeSet<String> = BTreeSet::new();
+        for sess in &orientation_sessions {
+            for a in &sess.accomplishments {
+                orientation_prefixes.insert(a.chars().take(50).collect());
+            }
+            for d in &sess.decisions {
+                orientation_prefixes.insert(d.chars().take(50).collect());
+            }
+        }
+
+        let mut domain_entries: Vec<(u64, EntityId, String)> = Vec::new();
+        for datom in store.datoms() {
+            if datom.attribute.as_str() == ":db/doc"
+                && datom.op == Op::Assert
+                && !already_shown_pre.contains(&datom.entity)
+            {
+                let is_obs = store.entity_datoms(datom.entity).iter().any(|d| {
+                    d.attribute.as_str() == ":exploration/source"
+                        && d.op == Op::Assert
+                        && matches!(&d.value, Value::String(s) if s == "braid:observe")
+                });
+                if is_obs {
+                    if let Value::String(ref doc) = datom.value {
+                        let prefix: String = doc.chars().take(50).collect();
+                        if doc.len() > 40 && !orientation_prefixes.contains(&prefix) {
+                            domain_entries.push((datom.tx.wall_time(), datom.entity, doc.clone()));
+                        }
+                    }
+                }
+            }
+        }
+        domain_entries.sort_by_key(|(t, _, _)| std::cmp::Reverse(*t));
+
+        if !domain_entries.is_empty() {
+            let obs_cap = ((state_budget.saturating_sub(state_tokens)) / 25).max(3).min(10);
+            let mut obs_lines = vec!["Domain observations (project knowledge):".to_string()];
+            for (_, _, doc) in domain_entries.iter().take(obs_cap) {
+                obs_lines.push(format!("  - {}", truncate_chars(doc, 150)));
+            }
+            let obs_text = obs_lines.join("\n");
+            let obs_tokens = obs_text.split_whitespace().count() * 4 / 3;
+            if state_tokens + obs_tokens <= state_budget {
+                state_entries.push(StateEntry {
+                    entity: EntityId::from_ident(":domain-observations"),
+                    content: obs_text,
+                    tokens: obs_tokens,
+                    projection: ProjectionLevel::Summary,
+                });
+                state_tokens += obs_tokens;
+            }
+        }
+
+        // CE-SEED: Bootstrap hypotheses — structural inferences from filesystem.
+        // These give the agent a starting mental model of the project even when
+        // no observations exist yet.
+        let hypothesis_entities: Vec<(String, f64)> = store
+            .datoms()
+            .filter(|d| {
+                d.attribute.as_str() == ":db/doc"
+                    && d.op == Op::Assert
+            })
+            .filter_map(|d| {
+                let is_hyp = store.entity_datoms(d.entity).iter().any(|d2| {
+                    d2.attribute.as_str() == ":exploration/category"
+                        && d2.op == Op::Assert
+                        && matches!(&d2.value,
+                            Value::String(s) | Value::Keyword(s)
+                            if s.contains("hypothesis") || s.contains("bootstrap"))
+                });
+                if is_hyp {
+                    if let Value::String(ref doc) = d.value {
+                        let conf = store.entity_datoms(d.entity).iter().find_map(|d2| {
+                            if d2.attribute.as_str() == ":exploration/confidence" && d2.op == Op::Assert {
+                                match d2.value {
+                                    Value::Double(f) => Some(f),
+                                    _ => None,
+                                }
+                            } else {
+                                None
+                            }
+                        }).unwrap_or(ordered_float::OrderedFloat(0.5));
+                        Some((doc.clone(), conf.into_inner()))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        if !hypothesis_entities.is_empty() && state_tokens < state_budget.saturating_sub(50) {
+            let mut hyp_lines = vec!["Bootstrap hypotheses:".to_string()];
+            for (text, conf) in hypothesis_entities.iter().take(5) {
+                hyp_lines.push(format!("  - [conf={:.1}] {}", conf, truncate_chars(text, 120)));
+            }
+            let hyp_text = hyp_lines.join("\n");
+            let hyp_tokens = hyp_text.split_whitespace().count() * 4 / 3;
+            if state_tokens + hyp_tokens <= state_budget {
+                state_entries.push(StateEntry {
+                    entity: EntityId::from_ident(":bootstrap-hypotheses"),
+                    content: hyp_text,
+                    tokens: hyp_tokens,
+                    projection: ProjectionLevel::Summary,
+                });
+                state_tokens += hyp_tokens;
+            }
+        }
+    }
+
     if state_tokens < state_budget.saturating_sub(50) {
         // Pass 0: Project context cheat sheet — synthesized from store data.
         // This is the HIGHEST-VALUE content in the entire seed. An agent reading
         // this can immediately start working: knows the types, patterns, commands,
         // and current focus. ~100 tokens, worth 10x that in orientation time saved.
         {
-            // C8-FIX-3: Compute once for the entire cheat sheet block.
-            let is_braid = is_braid_project(store);
 
             // Derive current stage/status from most recent harvest task.
             // C8-FIX-3: Stage hints are braid-internal; external projects get
@@ -2727,7 +2918,13 @@ pub fn assemble(
         // Orientation shows accomplishments/decisions from last 2 sessions. Here we
         // show observations that carry genuinely NEW information — architectural
         // insights, patterns discovered, questions raised.
-        if state_tokens < state_budget.saturating_sub(100) {
+        // CE-SEED: For external projects, Pass -1 already included domain observations
+        // at the TOP of state. Only run this pass for braid-internal projects, or if
+        // Pass -1 didn't add anything (no observations existed yet).
+        let domain_obs_already_shown = state_entries
+            .iter()
+            .any(|e| e.content.starts_with("Domain observations"));
+        if !domain_obs_already_shown && state_tokens < state_budget.saturating_sub(100) {
             let already_shown2: BTreeSet<EntityId> = state_entries
                 .iter()
                 .map(|e| e.entity)
@@ -3002,6 +3199,8 @@ pub fn group_state_entries(entries: &[StateEntry]) -> Vec<(String, Vec<&StateEnt
             specs.push(entry);
         } else if c.starts_with("Session history")
             || c.starts_with("Key observations")
+            || c.starts_with("Domain observations")
+            || c.starts_with("Bootstrap hypotheses")
             || c.starts_with("Specification landscape")
             || c.starts_with("Project context")
         {
@@ -3063,6 +3262,8 @@ pub fn verify_seed(seed: &SeedOutput, store: &Store, budget: usize) -> SeedVerif
         ":session-trajectory",
         ":key-observations",
         ":spec-landscape",
+        ":domain-observations",   // CE-SEED: domain knowledge for external projects
+        ":bootstrap-hypotheses",  // CE-SEED: filesystem-inferred hypotheses
     ]
     .iter()
     .map(|s| EntityId::from_ident(s))
