@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774458401/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SESSION 043 FINAL REVIEW: The ground truth is that braid's value proposition is STEERING, not storage. Storage is table stakes. The unique value is understanding (embeddings), placement (concepts), and guidance (steering questions). Currently: storage works perfectly, steering works imperfectly. Three fixes to cross the voluntary adoption threshold: (1) concept naming (STEER-1b), (2) observe response cleanup (STEER-3b), (3) near-miss feedback and embedder-aware threshold (STEER-2). Execute these three, then DOGFOOD-4 to measure. Predicted: 7+/10."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7a105633c41462eb8063f83581a12766cbf8ad4f643ebb4080f7f51d822e136c" :a :db/doc :v "SESSION 043 FINAL REVIEW: The ground truth is that braid's value proposition is STEERING, not storage. Storage is table stakes. The unique value is understanding (embeddings), placement (concepts), and guidance (steering questions). Currently: storage works perfectly, steering works imperfectly. Three fixes to cross the voluntary adoption threshold: (1) concept naming (STEER-1b), (2) observe response cleanup (STEER-3b), (3) near-miss feedback and embedder-aware threshold (STEER-2). Execute these three, then DOGFOOD-4 to measure. Predicted: 7+/10." :op :assert}
+   {:e #blake3 "7a105633c41462eb8063f83581a12766cbf8ad4f643ebb4080f7f51d822e136c" :a :db/ident :v :observation/session-043-final-review-the-ground-truth-is-that-braids-v :op :assert}
+   {:e #blake3 "7a105633c41462eb8063f83581a12766cbf8ad4f643ebb4080f7f51d822e136c" :a :exploration/body :v "SESSION 043 FINAL REVIEW: The ground truth is that braid's value proposition is STEERING, not storage. Storage is table stakes. The unique value is understanding (embeddings), placement (concepts), and guidance (steering questions). Currently: storage works perfectly, steering works imperfectly. Three fixes to cross the voluntary adoption threshold: (1) concept naming (STEER-1b), (2) observe response cleanup (STEER-3b), (3) near-miss feedback and embedder-aware threshold (STEER-2). Execute these three, then DOGFOOD-4 to measure. Predicted: 7+/10." :op :assert}
+   {:e #blake3 "7a105633c41462eb8063f83581a12766cbf8ad4f643ebb4080f7f51d822e136c" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "7a105633c41462eb8063f83581a12766cbf8ad4f643ebb4080f7f51d822e136c" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "7a105633c41462eb8063f83581a12766cbf8ad4f643ebb4080f7f51d822e136c" :a :exploration/content-hash :v #bytes "e3a9aca75cc286bd4b0ce8098736822696c1dd5ac5476c8673aee143fce23b21" :op :assert}
+   {:e #blake3 "7a105633c41462eb8063f83581a12766cbf8ad4f643ebb4080f7f51d822e136c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7a105633c41462eb8063f83581a12766cbf8ad4f643ebb4080f7f51d822e136c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7a105633c41462eb8063f83581a12766cbf8ad4f643ebb4080f7f51d822e136c" :a :exploration/source-session :v #blake3 "daeac6dcd6509c6dca69a8bd6227c55a7e51ed13976016b8b1cadf21fa57a85d" :op :assert}
+ ]}

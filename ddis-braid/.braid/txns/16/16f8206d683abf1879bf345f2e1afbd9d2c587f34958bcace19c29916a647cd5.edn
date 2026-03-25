@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774457679/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "testing what it feels like to observe something right now in this moment"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fb8b468a8197d3f9e6eb8557436dc088cf38a7b46148f016f756c71a9473b577" :a :db/doc :v "testing what it feels like to observe something right now in this moment" :op :assert}
+   {:e #blake3 "fb8b468a8197d3f9e6eb8557436dc088cf38a7b46148f016f756c71a9473b577" :a :db/ident :v :observation/testing-what-it-feels-like-to-observe-something-right-now-in :op :assert}
+   {:e #blake3 "fb8b468a8197d3f9e6eb8557436dc088cf38a7b46148f016f756c71a9473b577" :a :exploration/body :v "testing what it feels like to observe something right now in this moment" :op :assert}
+   {:e #blake3 "fb8b468a8197d3f9e6eb8557436dc088cf38a7b46148f016f756c71a9473b577" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "fb8b468a8197d3f9e6eb8557436dc088cf38a7b46148f016f756c71a9473b577" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "fb8b468a8197d3f9e6eb8557436dc088cf38a7b46148f016f756c71a9473b577" :a :exploration/content-hash :v #bytes "885557eed6ff16b0bb19e0e6608fac4b1ee2f876955c60f9145617ef556c0520" :op :assert}
+   {:e #blake3 "fb8b468a8197d3f9e6eb8557436dc088cf38a7b46148f016f756c71a9473b577" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "fb8b468a8197d3f9e6eb8557436dc088cf38a7b46148f016f756c71a9473b577" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "fb8b468a8197d3f9e6eb8557436dc088cf38a7b46148f016f756c71a9473b577" :a :exploration/source-session :v #blake3 "daeac6dcd6509c6dca69a8bd6227c55a7e51ed13976016b8b1cadf21fa57a85d" :op :assert}
+ ]}
