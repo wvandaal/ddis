@@ -5354,4 +5354,643 @@ mod tests {
             "apply_datoms bare retract should remove live_view entry"
         );
     }
+
+    // -----------------------------------------------------------------------
+    // SOUND-ISO-v2: Incremental/Batch Duality Invariant (INV-STORE-IDX-005)
+    //
+    // Every incremental data structure maintained by transact() must match
+    // its batch-recomputed equivalent via from_datoms(). This establishes
+    // that the incremental maintenance path is sound.
+    // -----------------------------------------------------------------------
+
+    /// Helper: assert that live_value matches between two stores for a given
+    /// (entity, attribute) pair. Panics with a descriptive message on mismatch.
+    fn assert_live_value_iso(
+        incremental: &Store,
+        batch: &Store,
+        entity: EntityId,
+        attr: &Attribute,
+        label: &str,
+    ) {
+        assert_eq!(
+            incremental.live_value(entity, attr),
+            batch.live_value(entity, attr),
+            "INV-STORE-IDX-005: live_value mismatch for ({}, {}) — \
+             incremental and batch paths diverge",
+            label,
+            attr.as_str(),
+        );
+    }
+
+    /// Helper: create a store with full schema (genesis + L1-L4 attributes).
+    /// Needed because transact() validates attributes against the schema.
+    fn store_with_full_schema() -> Store {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("braid:schema");
+        let tx_id = TxId::new(1, 0, agent);
+        let schema_datoms = crate::schema::full_schema_datoms(tx_id);
+        let mut tx = Transaction::new(agent, ProvenanceType::Derived, "bootstrap full schema");
+        for d in &schema_datoms {
+            tx = tx.assert(d.entity, d.attribute.clone(), d.value.clone());
+        }
+        let committed = tx.commit(&store).expect("schema commit");
+        store.transact(committed).expect("schema transact");
+        store
+    }
+
+    // Verifies: INV-STORE-IDX-005 — Incremental/Batch Duality across a
+    // realistic multi-step transaction sequence: genesis, spec elements,
+    // impl links, observations, tasks with status changes, and retractions.
+    #[test]
+    fn test_incremental_batch_duality_basic() {
+        use crate::bilateral::compute_fitness;
+
+        let mut store = store_with_full_schema();
+        let agent = AgentId::from_name("test:iso");
+
+        // --- Phase 1: 5 spec elements with element-type, ident, falsification ---
+        for i in 1..=5 {
+            let ident = format!(":spec/test-inv-{i:03}");
+            let e = EntityId::from_ident(&ident);
+            let tx = Transaction::new(agent, ProvenanceType::Observed, "add spec element")
+                .assert(
+                    e,
+                    Attribute::from_keyword(":spec/element-type"),
+                    Value::Keyword("invariant".to_string()),
+                )
+                .assert(
+                    e,
+                    Attribute::from_keyword(":db/ident"),
+                    Value::Keyword(ident.clone()),
+                )
+                .assert(
+                    e,
+                    Attribute::from_keyword(":spec/falsification"),
+                    Value::String(format!("violated if test {i} fails")),
+                )
+                .commit(&store)
+                .unwrap();
+            store.transact(tx).unwrap();
+        }
+
+        // --- Phase 2: 3 impl links referencing spec elements ---
+        for i in 1..=3 {
+            let impl_ident = format!(":impl/test-impl-{i:03}");
+            let spec_ident = format!(":spec/test-inv-{i:03}");
+            let impl_e = EntityId::from_ident(&impl_ident);
+            let spec_e = EntityId::from_ident(&spec_ident);
+            let tx = Transaction::new(agent, ProvenanceType::Observed, "add impl link")
+                .assert(
+                    impl_e,
+                    Attribute::from_keyword(":impl/implements"),
+                    Value::Ref(spec_e),
+                )
+                .commit(&store)
+                .unwrap();
+            store.transact(tx).unwrap();
+        }
+
+        // --- Phase 3: 3 observations with confidence ---
+        for i in 1..=3 {
+            let obs_ident = format!(":exploration/test-obs-{i:03}");
+            let e = EntityId::from_ident(&obs_ident);
+            let confidence = 0.5 + (i as f64) * 0.1; // 0.6, 0.7, 0.8
+            let tx = Transaction::new(agent, ProvenanceType::Observed, "add observation")
+                .assert(
+                    e,
+                    Attribute::from_keyword(":exploration/body"),
+                    Value::String(format!("observation {i}")),
+                )
+                .assert(
+                    e,
+                    Attribute::from_keyword(":exploration/confidence"),
+                    Value::Double(ordered_float::OrderedFloat(confidence)),
+                )
+                .commit(&store)
+                .unwrap();
+            store.transact(tx).unwrap();
+        }
+
+        // --- Phase 4: 2 tasks, one with status change (retract-then-assert) ---
+        let task1 = EntityId::from_ident(":task/test-task-001");
+        let task2 = EntityId::from_ident(":task/test-task-002");
+        let status_attr = Attribute::from_keyword(":task/status");
+
+        // Task 1: create with status open
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "create task 1")
+            .assert(
+                task1,
+                Attribute::from_keyword(":task/title"),
+                Value::String("Test task one".into()),
+            )
+            .assert(
+                task1,
+                status_attr.clone(),
+                Value::Keyword("open".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        // Task 2: create with status open
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "create task 2")
+            .assert(
+                task2,
+                Attribute::from_keyword(":task/title"),
+                Value::String("Test task two".into()),
+            )
+            .assert(
+                task2,
+                status_attr.clone(),
+                Value::Keyword("open".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        // Task 1: close it (retract open, assert closed)
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "close task 1")
+            .retract(
+                task1,
+                status_attr.clone(),
+                Value::Keyword("open".into()),
+            )
+            .assert(
+                task1,
+                status_attr.clone(),
+                Value::Keyword("closed".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        // --- Phase 5: Retract one spec element's falsification ---
+        let spec3 = EntityId::from_ident(":spec/test-inv-003");
+        let falsification_attr = Attribute::from_keyword(":spec/falsification");
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "update falsification")
+            .retract(
+                spec3,
+                falsification_attr.clone(),
+                Value::String("violated if test 3 fails".to_string()),
+            )
+            .assert(
+                spec3,
+                falsification_attr.clone(),
+                Value::String("violated if convergence stalls".to_string()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        // ====== Rebuild from datoms (batch path) ======
+        let rebuilt = Store::from_datoms(store.datom_set().clone());
+
+        // --- Check 1: LIVE view isomorphism ---
+        // Spec elements
+        for i in 1..=5 {
+            let ident = format!(":spec/test-inv-{i:03}");
+            let e = EntityId::from_ident(&ident);
+            assert_live_value_iso(
+                &store,
+                &rebuilt,
+                e,
+                &Attribute::from_keyword(":spec/element-type"),
+                &ident,
+            );
+            assert_live_value_iso(
+                &store,
+                &rebuilt,
+                e,
+                &Attribute::from_keyword(":db/ident"),
+                &ident,
+            );
+            assert_live_value_iso(
+                &store,
+                &rebuilt,
+                e,
+                &Attribute::from_keyword(":spec/falsification"),
+                &ident,
+            );
+        }
+
+        // Tasks
+        assert_live_value_iso(
+            &store,
+            &rebuilt,
+            task1,
+            &status_attr,
+            ":task/test-task-001",
+        );
+        assert_live_value_iso(
+            &store,
+            &rebuilt,
+            task2,
+            &status_attr,
+            ":task/test-task-002",
+        );
+
+        // Task 1 should be closed (retract-then-assert result)
+        assert_eq!(
+            store.live_value(task1, &status_attr),
+            Some(&Value::Keyword("closed".into())),
+            "task 1 should be closed after retract-then-assert"
+        );
+
+        // Updated falsification for spec 3
+        assert_eq!(
+            store.live_value(spec3, &falsification_attr),
+            Some(&Value::String("violated if convergence stalls".to_string())),
+            "spec 3 falsification should reflect updated value"
+        );
+
+        // Observations
+        for i in 1..=3 {
+            let ident = format!(":exploration/test-obs-{i:03}");
+            let e = EntityId::from_ident(&ident);
+            assert_live_value_iso(
+                &store,
+                &rebuilt,
+                e,
+                &Attribute::from_keyword(":exploration/body"),
+                &ident,
+            );
+            assert_live_value_iso(
+                &store,
+                &rebuilt,
+                e,
+                &Attribute::from_keyword(":exploration/confidence"),
+                &ident,
+            );
+        }
+
+        // --- Check 2: Frontier isomorphism ---
+        assert_eq!(
+            store.frontier(),
+            rebuilt.frontier(),
+            "INV-STORE-IDX-005: frontier must match between incremental and batch"
+        );
+
+        // --- Check 3: Datom count isomorphism ---
+        assert_eq!(
+            store.len(),
+            rebuilt.len(),
+            "INV-STORE-IDX-005: datom count must match between incremental and batch"
+        );
+
+        // --- Check 4: Entity count isomorphism ---
+        assert_eq!(
+            store.entity_count(),
+            rebuilt.entity_count(),
+            "INV-STORE-IDX-005: entity count must match between incremental and batch"
+        );
+
+        // --- Check 5: MaterializedViews fitness isomorphism ---
+        let inc_fitness = store.views().fitness();
+        let batch_fitness = rebuilt.views().fitness();
+        assert!(
+            (inc_fitness.total - batch_fitness.total).abs() < 1e-10,
+            "INV-STORE-IDX-005: views().fitness().total mismatch: \
+             incremental={:.6} batch={:.6}",
+            inc_fitness.total,
+            batch_fitness.total,
+        );
+
+        // Also verify against the full batch compute_fitness
+        let full_batch = compute_fitness(&store);
+        let full_batch_rebuilt = compute_fitness(&rebuilt);
+        assert!(
+            (full_batch.total - full_batch_rebuilt.total).abs() < 1e-10,
+            "INV-STORE-IDX-005: compute_fitness() must agree for same datom set: \
+             original={:.6} rebuilt={:.6}",
+            full_batch.total,
+            full_batch_rebuilt.total,
+        );
+
+        // --- Check 6: MaterializedViews accumulator isomorphism ---
+        let iv = store.views();
+        let bv = rebuilt.views();
+        assert_eq!(
+            iv.spec_count, bv.spec_count,
+            "spec_count mismatch: inc={} batch={}",
+            iv.spec_count, bv.spec_count,
+        );
+        assert_eq!(
+            iv.coverage_impl_targets.len(),
+            bv.coverage_impl_targets.len(),
+            "coverage_impl_targets.len mismatch",
+        );
+        assert_eq!(
+            iv.confidence_count, bv.confidence_count,
+            "confidence_count mismatch",
+        );
+        assert!(
+            (iv.confidence_sum - bv.confidence_sum).abs() < 1e-10,
+            "confidence_sum mismatch: inc={} batch={}",
+            iv.confidence_sum,
+            bv.confidence_sum,
+        );
+        assert_eq!(
+            iv.observation_count, bv.observation_count,
+            "observation_count mismatch",
+        );
+        assert_eq!(
+            iv.entity_count_for_phi, bv.entity_count_for_phi,
+            "entity_count_for_phi mismatch: inc={} batch={}",
+            iv.entity_count_for_phi, bv.entity_count_for_phi,
+        );
+    }
+
+    // Verifies: INV-STORE-IDX-005 — retract-then-assert produces identical
+    // LIVE view state whether computed incrementally or via batch rebuild.
+    #[test]
+    fn test_isomorphism_after_retract_then_assert() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test:iso-rta");
+        let entity = EntityId::from_ident(":test/iso-rta-entity");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        // Tx1: assert V1
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "assert v1")
+            .assert(entity, attr.clone(), Value::String("V1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // Tx2: retract V1, assert V2
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "retract v1, assert v2")
+            .retract(entity, attr.clone(), Value::String("V1".into()))
+            .assert(entity, attr.clone(), Value::String("V2".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        // Tx3: retract V2, assert V3 (second update)
+        let tx3 = Transaction::new(agent, ProvenanceType::Observed, "retract v2, assert v3")
+            .retract(entity, attr.clone(), Value::String("V2".into()))
+            .assert(entity, attr.clone(), Value::String("V3".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx3).unwrap();
+
+        let rebuilt = Store::from_datoms(store.datom_set().clone());
+
+        // LIVE view must agree: both should show V3
+        assert_live_value_iso(&store, &rebuilt, entity, &attr, ":test/iso-rta-entity");
+        assert_eq!(
+            store.live_value(entity, &attr),
+            Some(&Value::String("V3".into())),
+            "live value should be V3 after two retract-then-assert cycles"
+        );
+
+        // Frontier must agree
+        assert_eq!(
+            store.frontier(),
+            rebuilt.frontier(),
+            "frontier must match after retract-then-assert"
+        );
+
+        // Datom count must agree (all 3 asserts + 2 retracts + metadata preserved)
+        assert_eq!(
+            store.len(),
+            rebuilt.len(),
+            "datom count must match after retract-then-assert"
+        );
+    }
+
+    // Verifies: INV-STORE-IDX-005 — bare retract (no subsequent assert)
+    // produces identical LIVE view state: entry removed in both paths.
+    #[test]
+    fn test_isomorphism_after_bare_retract() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test:iso-bare");
+        let entity = EntityId::from_ident(":test/iso-bare-entity");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        // Tx1: assert V1
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "assert v1")
+            .assert(entity, attr.clone(), Value::String("V1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // Verify V1 is live before retraction
+        assert_eq!(
+            store.live_value(entity, &attr),
+            Some(&Value::String("V1".into())),
+        );
+
+        // Tx2: bare retract V1 (no new assert)
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "bare retract v1")
+            .retract(entity, attr.clone(), Value::String("V1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        let rebuilt = Store::from_datoms(store.datom_set().clone());
+
+        // LIVE view: both paths must show None (entry removed)
+        assert_eq!(
+            store.live_value(entity, &attr),
+            None,
+            "incremental: bare retract should remove live_view entry"
+        );
+        assert_eq!(
+            rebuilt.live_value(entity, &attr),
+            None,
+            "batch: bare retract should remove live_view entry"
+        );
+
+        // Frontier must agree
+        assert_eq!(
+            store.frontier(),
+            rebuilt.frontier(),
+            "frontier must match after bare retract"
+        );
+
+        // Datom count must agree
+        assert_eq!(
+            store.len(),
+            rebuilt.len(),
+            "datom count must match after bare retract"
+        );
+
+        // Entity count must agree
+        assert_eq!(
+            store.entity_count(),
+            rebuilt.entity_count(),
+            "entity count must match after bare retract"
+        );
+    }
+
+    // Verifies: INV-STORE-IDX-005 — frontier matches between incremental
+    // and batch paths after 10 transactions from 3 different agents.
+    #[test]
+    fn test_frontier_incremental_equals_batch() {
+        let mut store = Store::genesis();
+
+        let agents = [
+            AgentId::from_name("iso:agent-alpha"),
+            AgentId::from_name("iso:agent-beta"),
+            AgentId::from_name("iso:agent-gamma"),
+        ];
+
+        // 10 transactions, round-robin across 3 agents
+        for i in 0..10 {
+            let agent = agents[i % 3];
+            let entity = EntityId::from_ident(&format!(":test/frontier-iso-{i}"));
+            let tx = Transaction::new(agent, ProvenanceType::Observed, "frontier test")
+                .assert(
+                    entity,
+                    Attribute::from_keyword(":db/doc"),
+                    Value::String(format!("document {i}")),
+                )
+                .commit(&store)
+                .unwrap();
+            store.transact(tx).unwrap();
+        }
+
+        let rebuilt = Store::from_datoms(store.datom_set().clone());
+
+        // Frontier equality (uses Frontier's PartialEq derive)
+        assert_eq!(
+            store.frontier(),
+            rebuilt.frontier(),
+            "INV-STORE-IDX-005: frontier must match after 10 txns from 3 agents"
+        );
+
+        // All 3 agents must appear in both frontiers
+        for agent in &agents {
+            assert!(
+                store.frontier().contains_key(agent),
+                "incremental frontier must contain agent {:?}",
+                agent,
+            );
+            assert!(
+                rebuilt.frontier().contains_key(agent),
+                "batch frontier must contain agent {:?}",
+                agent,
+            );
+            // Per-agent max tx must match
+            assert_eq!(
+                store.frontier().max_tx_for(agent),
+                rebuilt.frontier().max_tx_for(agent),
+                "max_tx_for agent {:?} must match",
+                agent,
+            );
+        }
+
+        // Datom count must agree
+        assert_eq!(
+            store.len(),
+            rebuilt.len(),
+            "datom count must match after multi-agent transactions"
+        );
+    }
+
+    // Verifies: INV-STORE-IDX-005 — datom count equality after a mixed
+    // workload of asserts, retractions, and updates.
+    #[test]
+    fn test_datom_count_incremental_equals_batch() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test:iso-count");
+
+        // Phase 1: 5 plain asserts
+        for i in 0..5 {
+            let entity = EntityId::from_ident(&format!(":test/count-{i}"));
+            let tx = Transaction::new(agent, ProvenanceType::Observed, "assert")
+                .assert(
+                    entity,
+                    Attribute::from_keyword(":db/doc"),
+                    Value::String(format!("doc {i}")),
+                )
+                .commit(&store)
+                .unwrap();
+            store.transact(tx).unwrap();
+        }
+
+        // Phase 2: retract-then-assert (update) on entity 0
+        let e0 = EntityId::from_ident(":test/count-0");
+        let doc_attr = Attribute::from_keyword(":db/doc");
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "update")
+            .retract(e0, doc_attr.clone(), Value::String("doc 0".into()))
+            .assert(
+                e0,
+                doc_attr.clone(),
+                Value::String("doc 0 updated".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        // Phase 3: bare retract on entity 1
+        let e1 = EntityId::from_ident(":test/count-1");
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "bare retract")
+            .retract(e1, doc_attr.clone(), Value::String("doc 1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        // Phase 4: add 3 more asserts
+        for i in 5..8 {
+            let entity = EntityId::from_ident(&format!(":test/count-{i}"));
+            let tx = Transaction::new(agent, ProvenanceType::Observed, "more asserts")
+                .assert(
+                    entity,
+                    Attribute::from_keyword(":db/doc"),
+                    Value::String(format!("doc {i}")),
+                )
+                .commit(&store)
+                .unwrap();
+            store.transact(tx).unwrap();
+        }
+
+        let rebuilt = Store::from_datoms(store.datom_set().clone());
+
+        // Datom count (primary assertion)
+        assert_eq!(
+            store.len(),
+            rebuilt.len(),
+            "INV-STORE-IDX-005: datom count must match after mixed workload: \
+             incremental={} batch={}",
+            store.len(),
+            rebuilt.len(),
+        );
+
+        // Entity count
+        assert_eq!(
+            store.entity_count(),
+            rebuilt.entity_count(),
+            "entity count must match after mixed workload"
+        );
+
+        // Frontier
+        assert_eq!(
+            store.frontier(),
+            rebuilt.frontier(),
+            "frontier must match after mixed workload"
+        );
+
+        // Spot-check LIVE values
+        assert_live_value_iso(&store, &rebuilt, e0, &doc_attr, ":test/count-0");
+        assert_eq!(
+            store.live_value(e0, &doc_attr),
+            Some(&Value::String("doc 0 updated".into())),
+            "e0 should show updated value"
+        );
+
+        assert_live_value_iso(&store, &rebuilt, e1, &doc_attr, ":test/count-1");
+        assert_eq!(
+            store.live_value(e1, &doc_attr),
+            None,
+            "e1 should have no live value after bare retract"
+        );
+
+        // Entity 2 should be unchanged
+        let e2 = EntityId::from_ident(":test/count-2");
+        assert_live_value_iso(&store, &rebuilt, e2, &doc_attr, ":test/count-2");
+        assert_eq!(
+            store.live_value(e2, &doc_attr),
+            Some(&Value::String("doc 2".into())),
+        );
+    }
 }

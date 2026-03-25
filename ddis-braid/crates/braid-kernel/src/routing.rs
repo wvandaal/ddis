@@ -9,6 +9,7 @@
 //! - **Action computation**: Single code path for ACP (INV-BUDGET-009).
 //! - **Spec anchor**: Task-to-spec resolution scoring (SFE-3.1).
 //! - **Action classification**: Follow-through tracking (RFL-3).
+//! - **OAR**: Observation-Aware Routing — dampen explored areas, boost unexplored (CE-OAR).
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -234,6 +235,10 @@ pub struct RoutingMetrics {
     /// CE-6: Projected fitness delta magnitude from gradient routing.
     /// The exact projected change in F(S) if this task were completed.
     pub gradient_delta: f64,
+    /// CE-OAR: Observation-aware routing factor.
+    /// Dampens tasks in heavily-observed areas, boosts unexplored areas.
+    /// Formula: 1/(1 + 0.3*N) for N observations, or 1.2 for 0 observations.
+    pub observation_dampening: f64,
 }
 
 /// R(t) routing weights (defaults from spec).
@@ -655,6 +660,7 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
                 spec_anchor: 1.0,
                 session_boost: 1.0,
                 gradient_delta: 0.0, // Populated in compute_routing_from_store
+                observation_dampening: 1.0, // Populated in compute_routing_from_store
             };
 
             let values = [
@@ -738,6 +744,128 @@ pub fn compute_routing_with_calibration(
 /// [`compute_routing_with_calibration`] to avoid redundant hypothesis scans.
 pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
     compute_routing_from_store_inner(store)
+}
+
+// ---------------------------------------------------------------------------
+// CE-OAR: Observation-Aware Routing
+// ---------------------------------------------------------------------------
+
+/// Compute observation coverage per namespace for this session.
+///
+/// Returns a map from namespace (lowercase) to observation count since the
+/// last harvest. Namespaces are extracted from spec refs (INV-MERGE-001 ->
+/// "merge") found in observation bodies. Observations without spec refs
+/// contribute to a keyword-derived area.
+///
+/// CE-OAR: This drives the dampening/boosting of R(t) scores based on where
+/// the agent has already been looking this session.
+fn observation_coverage(store: &Store) -> BTreeMap<String, usize> {
+    let boundary = crate::methodology::last_harvest_wall_time(store);
+    let mut coverage: BTreeMap<String, usize> = BTreeMap::new();
+
+    let body_attr = Attribute::from_keyword(":exploration/body");
+    for d in store.attribute_datoms(&body_attr) {
+        if d.tx.wall_time() <= boundary {
+            continue;
+        }
+        if d.op != Op::Assert {
+            continue;
+        }
+        if let Value::String(body) = &d.value {
+            let refs = crate::task::parse_spec_refs(body);
+            if refs.is_empty() {
+                // No spec refs — extract first significant keyword as area.
+                let area = body
+                    .split_whitespace()
+                    .find(|w| {
+                        w.len() > 4
+                            && w.chars()
+                                .all(|c| c.is_alphanumeric() || c == '/' || c == '_' || c == '-')
+                    })
+                    .unwrap_or("general")
+                    .to_lowercase();
+                *coverage.entry(area).or_insert(0) += 1;
+            } else {
+                for spec_ref in &refs {
+                    let namespace = extract_oar_namespace(spec_ref);
+                    *coverage.entry(namespace).or_insert(0) += 1;
+                }
+            }
+        }
+    }
+    coverage
+}
+
+/// Extract namespace from a spec ref: "INV-MERGE-001" -> "merge".
+///
+/// Splits by '-', skips the type prefix (INV/ADR/NEG), takes the namespace
+/// part, and lowercases it.
+fn extract_oar_namespace(spec_ref: &str) -> String {
+    let parts: Vec<&str> = spec_ref.split('-').collect();
+    if parts.len() >= 3 {
+        parts[1].to_lowercase()
+    } else if parts.len() == 2 {
+        parts[1].to_lowercase()
+    } else {
+        spec_ref.to_lowercase()
+    }
+}
+
+/// Extract the namespace for a task, derived from its spec refs or title keywords.
+///
+/// Priority: spec refs in title (INV-MERGE-001 -> "merge"), then first
+/// significant keyword in the title.
+fn extract_task_namespace(store: &Store, entity: EntityId) -> String {
+    let title = store
+        .entity_datoms(entity)
+        .iter()
+        .find(|d| d.attribute.as_str() == ":task/title" && d.op == Op::Assert)
+        .and_then(|d| match &d.value {
+            Value::String(s) => Some(s.clone()),
+            _ => None,
+        });
+
+    let title = match title {
+        Some(t) => t,
+        None => return "general".to_string(),
+    };
+
+    // Try spec refs first
+    let refs = crate::task::parse_spec_refs(&title);
+    if !refs.is_empty() {
+        return extract_oar_namespace(&refs[0]);
+    }
+
+    // Fallback: first significant keyword
+    title
+        .split_whitespace()
+        .find(|w| {
+            w.len() > 4
+                && w.chars()
+                    .all(|c| c.is_alphanumeric() || c == '/' || c == '_' || c == '-')
+        })
+        .unwrap_or("general")
+        .to_lowercase()
+}
+
+/// Compute observation-aware dampening factor for a task based on its
+/// namespace coverage this session.
+///
+/// CE-OAR formula:
+/// - 0 observations in namespace -> 1.2 (20% boost for unexplored areas)
+/// - N observations -> 1.0 / (1.0 + 0.3 * N) (dampening for explored areas)
+///
+/// The 0.3 coefficient means ~3 observations halves the priority:
+/// - 1 obs -> 0.77
+/// - 3 obs -> 0.53
+/// - 8 obs -> 0.28
+pub fn observation_dampening(task_namespace: &str, coverage: &BTreeMap<String, usize>) -> f64 {
+    let obs_count = coverage.get(task_namespace).copied().unwrap_or(0);
+    if obs_count == 0 {
+        1.2 // Boost unexplored areas
+    } else {
+        1.0 / (1.0 + 0.3 * obs_count as f64)
+    }
 }
 
 fn compute_routing_from_store_inner(store: &Store) -> Vec<TaskRouting> {
@@ -883,6 +1011,19 @@ fn compute_routing_from_store_inner(store: &Store) -> Vec<TaskRouting> {
             if mag > f64::EPSILON {
                 r.impact += mag * 2.0;
             }
+        }
+    }
+
+    // CE-OAR: Observation-Aware Routing — dampen explored areas, boost unexplored.
+    // After 3+ observations about topic X, tasks about X drop in ranking.
+    // Tasks in unexplored areas get a 20% boost.
+    let coverage = observation_coverage(store);
+    if !coverage.is_empty() {
+        for r in &mut routings {
+            let ns = extract_task_namespace(store, r.entity);
+            let factor = observation_dampening(&ns, &coverage);
+            r.metrics.observation_dampening = factor;
+            r.impact *= factor;
         }
     }
 
@@ -2124,5 +2265,296 @@ mod tests {
                 );
             }
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // CE-OAR: Observation-Aware Routing tests
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_extract_oar_namespace() {
+        assert_eq!(extract_oar_namespace("INV-MERGE-001"), "merge");
+        assert_eq!(extract_oar_namespace("ADR-STORE-007"), "store");
+        assert_eq!(extract_oar_namespace("NEG-MUTATION-001"), "mutation");
+        assert_eq!(extract_oar_namespace("INV-FOUNDATION-012"), "foundation");
+        // Edge cases
+        assert_eq!(extract_oar_namespace("INV-X"), "x");
+        assert_eq!(extract_oar_namespace("solo"), "solo");
+    }
+
+    #[test]
+    fn test_observation_dampening_formula() {
+        let mut cov = BTreeMap::new();
+
+        // 0 observations -> 1.2 (boost unexplored)
+        assert!(
+            (observation_dampening("merge", &cov) - 1.2).abs() < 0.01,
+            "0 obs should yield 1.2 boost"
+        );
+
+        // 1 observation -> 1/(1+0.3) = 0.769
+        cov.insert("merge".to_string(), 1);
+        let d1 = observation_dampening("merge", &cov);
+        assert!(
+            (d1 - 0.769).abs() < 0.01,
+            "1 obs should yield ~0.769, got {d1}"
+        );
+
+        // 3 observations -> 1/(1+0.9) = 0.526
+        cov.insert("merge".to_string(), 3);
+        let d3 = observation_dampening("merge", &cov);
+        assert!(
+            (d3 - 0.526).abs() < 0.05,
+            "3 obs should yield ~0.526, got {d3}"
+        );
+
+        // 8 observations -> 1/(1+2.4) = 0.294
+        cov.insert("merge".to_string(), 8);
+        let d8 = observation_dampening("merge", &cov);
+        assert!(
+            (d8 - 0.294).abs() < 0.05,
+            "8 obs should yield ~0.294, got {d8}"
+        );
+
+        // Different namespace still unexplored
+        assert!(
+            (observation_dampening("store", &cov) - 1.2).abs() < 0.01,
+            "unobserved namespace should get 1.2 boost"
+        );
+    }
+
+    #[test]
+    fn test_observation_coverage_counts_session_observations() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test");
+
+        // First, create a harvest boundary so observations after it are "this session"
+        let tx_harvest = TxId::new(
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+                .saturating_sub(120), // 2 minutes ago
+            0,
+            agent,
+        );
+        let harvest_entity = EntityId::from_ident(":harvest/test-boundary");
+        store.apply_datoms(&[Datom::new(
+            harvest_entity,
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            tx_harvest,
+            Op::Assert,
+        )]);
+
+        // Now add 3 observations about "merge" (referencing INV-MERGE-001)
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        for i in 0..3 {
+            let tx = TxId::new(now + i, 0, agent);
+            let obs = EntityId::from_content(format!("obs-merge-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs,
+                Attribute::from_keyword(":exploration/body"),
+                Value::String(format!("Reviewing INV-MERGE-001 merge semantics pass {i}")),
+                tx,
+                Op::Assert,
+            )]);
+        }
+
+        // Add 1 observation about "store"
+        let tx_store = TxId::new(now + 10, 0, agent);
+        let obs_store = EntityId::from_content(b"obs-store-0");
+        store.apply_datoms(&[Datom::new(
+            obs_store,
+            Attribute::from_keyword(":exploration/body"),
+            Value::String("Checking ADR-STORE-006 daemon architecture".to_string()),
+            tx_store,
+            Op::Assert,
+        )]);
+
+        let cov = observation_coverage(&store);
+        assert_eq!(
+            cov.get("merge").copied().unwrap_or(0),
+            3,
+            "Should count 3 merge observations"
+        );
+        assert_eq!(
+            cov.get("store").copied().unwrap_or(0),
+            1,
+            "Should count 1 store observation"
+        );
+        // "foundation" not observed
+        assert_eq!(
+            cov.get("foundation").copied().unwrap_or(0),
+            0,
+            "foundation should have 0 observations"
+        );
+    }
+
+    #[test]
+    fn test_observation_coverage_keyword_fallback() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test");
+
+        // Harvest boundary
+        let tx_harvest = TxId::new(
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+                .saturating_sub(120),
+            0,
+            agent,
+        );
+        store.apply_datoms(&[Datom::new(
+            EntityId::from_ident(":harvest/test-kw"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            tx_harvest,
+            Op::Assert,
+        )]);
+
+        // Observation without spec refs — should use keyword extraction
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let tx = TxId::new(now, 0, agent);
+        store.apply_datoms(&[Datom::new(
+            EntityId::from_content(b"obs-kw-0"),
+            Attribute::from_keyword(":exploration/body"),
+            Value::String("The routing algorithm needs optimization".to_string()),
+            tx,
+            Op::Assert,
+        )]);
+
+        let cov = observation_coverage(&store);
+        // "routing" is the first word > 4 chars that is all alphanumeric
+        assert!(
+            cov.get("routing").copied().unwrap_or(0) >= 1,
+            "Should extract 'routing' as keyword area, got coverage: {:?}",
+            cov
+        );
+    }
+
+    #[test]
+    fn test_observation_coverage_ignores_pre_harvest_observations() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test");
+
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+
+        // Add observation BEFORE harvest
+        let tx_pre = TxId::new(now.saturating_sub(200), 0, agent);
+        store.apply_datoms(&[Datom::new(
+            EntityId::from_content(b"obs-old"),
+            Attribute::from_keyword(":exploration/body"),
+            Value::String("Old observation about INV-MERGE-002".to_string()),
+            tx_pre,
+            Op::Assert,
+        )]);
+
+        // Harvest boundary AFTER the observation
+        let tx_harvest = TxId::new(now.saturating_sub(100), 0, agent);
+        store.apply_datoms(&[Datom::new(
+            EntityId::from_ident(":harvest/test-pre"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            tx_harvest,
+            Op::Assert,
+        )]);
+
+        // Add observation AFTER harvest
+        let tx_post = TxId::new(now, 0, agent);
+        store.apply_datoms(&[Datom::new(
+            EntityId::from_content(b"obs-new"),
+            Attribute::from_keyword(":exploration/body"),
+            Value::String("New observation about INV-STORE-001".to_string()),
+            tx_post,
+            Op::Assert,
+        )]);
+
+        let cov = observation_coverage(&store);
+        // Pre-harvest observation should be excluded
+        assert_eq!(
+            cov.get("merge").copied().unwrap_or(0),
+            0,
+            "Pre-harvest observations should be excluded"
+        );
+        // Post-harvest observation should be included
+        assert_eq!(
+            cov.get("store").copied().unwrap_or(0),
+            1,
+            "Post-harvest observations should be included"
+        );
+    }
+
+    #[test]
+    fn test_oar_dampens_explored_boosts_unexplored() {
+        // Unit test for the dampening/boosting logic using known coverage.
+        let mut coverage = BTreeMap::new();
+        coverage.insert("merge".to_string(), 5);
+        // "merge" has 5 observations -> factor = 1/(1+1.5) = 0.4
+        // "store" has 0 observations -> factor = 1.2
+
+        let merge_factor = observation_dampening("merge", &coverage);
+        let store_factor = observation_dampening("store", &coverage);
+
+        // merge should be dampened
+        assert!(
+            merge_factor < 1.0,
+            "Explored area should be dampened: {merge_factor}"
+        );
+        assert!(
+            (merge_factor - 0.4).abs() < 0.01,
+            "5 obs: expected ~0.4, got {merge_factor}"
+        );
+
+        // store should be boosted
+        assert!(
+            store_factor > 1.0,
+            "Unexplored area should be boosted: {store_factor}"
+        );
+        assert!(
+            (store_factor - 1.2).abs() < 0.01,
+            "0 obs: expected 1.2, got {store_factor}"
+        );
+
+        // A task with base impact 0.5:
+        // merge: 0.5 * 0.4 = 0.2
+        // store: 0.5 * 1.2 = 0.6
+        // store task should rank higher than merge task
+        let merge_impact = 0.5 * merge_factor;
+        let store_impact = 0.5 * store_factor;
+        assert!(
+            store_impact > merge_impact,
+            "Unexplored task should rank higher: store={store_impact} > merge={merge_impact}"
+        );
+    }
+
+    #[test]
+    fn test_oar_zero_coverage_no_change() {
+        // When there are NO observations at all, coverage map is empty.
+        // Every namespace gets 1.2 (boost), but since ALL get the same factor,
+        // relative ordering is unchanged — effectively no change.
+        let coverage = BTreeMap::new();
+        let f1 = observation_dampening("merge", &coverage);
+        let f2 = observation_dampening("store", &coverage);
+        let f3 = observation_dampening("guidance", &coverage);
+
+        assert!(
+            (f1 - f2).abs() < f64::EPSILON && (f2 - f3).abs() < f64::EPSILON,
+            "With zero coverage, all factors should be equal (1.2)"
+        );
+        assert!(
+            (f1 - 1.2).abs() < 0.01,
+            "With zero coverage, factor should be 1.2"
+        );
     }
 }

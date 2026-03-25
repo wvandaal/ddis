@@ -26,6 +26,7 @@
 pub mod agent_md;
 pub mod agent_store;
 pub mod bilateral;
+pub mod bootstrap_hypotheses;
 pub mod branch;
 pub mod budget;
 pub mod census;

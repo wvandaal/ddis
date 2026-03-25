@@ -3629,6 +3629,7 @@ mod tests {
                     spec_anchor: 1.0,
                     session_boost: 1.0,
                     gradient_delta: 0.05,
+                    observation_dampening: 1.0,
                 },
                 acquisition_score: crate::budget::AcquisitionScore::from_factors(
                     crate::budget::ObservationKind::Task, 0.7, 1.0, 1.0, 1.0,
@@ -3651,6 +3652,7 @@ mod tests {
                     spec_anchor: 1.0,
                     session_boost: 1.0,
                     gradient_delta: 0.0,
+                    observation_dampening: 1.0,
                 },
                 acquisition_score: crate::budget::AcquisitionScore::from_factors(
                     crate::budget::ObservationKind::Task, 0.3, 1.0, 1.0, 1.0,
@@ -3700,6 +3702,7 @@ mod tests {
                 spec_anchor: 1.0,
                 session_boost: 1.0,
                 gradient_delta: 0.0,
+                observation_dampening: 1.0,
             },
             acquisition_score: crate::budget::AcquisitionScore::from_factors(
                 crate::budget::ObservationKind::Task, 0.0, 1.0, 1.0, 1.0,
