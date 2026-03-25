@@ -67,6 +67,7 @@ fn make_routing(ident: &str, impact: f64, gradient_delta: f64) -> TaskRouting {
             session_boost: 1.0,
             gradient_delta,
             observation_dampening: 1.0,
+            concept_dampening: 1.0,
         },
         acquisition_score: AcquisitionScore::from_factors(
             ObservationKind::Task,

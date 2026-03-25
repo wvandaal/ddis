@@ -196,15 +196,16 @@ pub fn assign_to_concepts(
         }
     }
 
-    // Sort by similarity descending (primary match first).
+    // Sort by similarity descending. The Uncategorized arm is unreachable
+    // (only Joined variants are pushed above) but required for exhaustiveness.
     matches.sort_by(|a, b| {
         let sim_a = match a {
             ConceptAssignment::Joined { similarity, .. } => *similarity,
-            ConceptAssignment::Uncategorized => 0.0,
+            _ => 0.0,
         };
         let sim_b = match b {
             ConceptAssignment::Joined { similarity, .. } => *similarity,
-            ConceptAssignment::Uncategorized => 0.0,
+            _ => 0.0,
         };
         sim_b.partial_cmp(&sim_a).unwrap_or(std::cmp::Ordering::Equal)
     });
@@ -447,27 +448,25 @@ pub fn co_occurrence_matrix(store: &Store) -> Vec<ConceptCoOccurrence> {
     let concept_ref_attr = Attribute::from_keyword(":exploration/concept");
     let name_attr = Attribute::from_keyword(":concept/name");
 
-    // Phase 1: Build concept → member set mapping from :exploration/concept Refs.
+    // Single pass: collect both concept membership and concept names.
     let mut members: BTreeMap<EntityId, HashSet<EntityId>> = BTreeMap::new();
+    let mut names: BTreeMap<EntityId, String> = BTreeMap::new();
     for d in store.datoms() {
-        if d.op == Op::Assert && d.attribute == concept_ref_attr {
+        if d.op != Op::Assert {
+            continue;
+        }
+        if d.attribute == concept_ref_attr {
             if let Value::Ref(concept_entity) = d.value {
                 members.entry(concept_entity).or_default().insert(d.entity);
             }
-        }
-    }
-
-    // Phase 2: Build concept name lookup.
-    let mut names: BTreeMap<EntityId, String> = BTreeMap::new();
-    for d in store.datoms() {
-        if d.op == Op::Assert && d.attribute == name_attr {
+        } else if d.attribute == name_attr {
             if let Value::String(ref s) = d.value {
                 names.insert(d.entity, s.clone());
             }
         }
     }
 
-    // Phase 3: Compute pairwise Jaccard.
+    // Phase 2: Compute pairwise Jaccard.
     let concept_ids: Vec<EntityId> = members.keys().copied().collect();
     let mut pairs = Vec::new();
 
@@ -578,14 +577,31 @@ fn explore_candidates(store: &Store) -> Vec<FrontierRec> {
     let comp_from_attr = Attribute::from_keyword(":composition/from");
     let comp_to_attr = Attribute::from_keyword(":composition/to");
 
-    // Collect all :pkg/* entities.
+    // Single pass: collect pkg entities, observed entities, and composition edges.
     let mut pkg_entities: BTreeMap<EntityId, String> = BTreeMap::new();
+    let mut observed: HashSet<EntityId> = HashSet::new();
+    let mut edge_from: BTreeMap<EntityId, EntityId> = BTreeMap::new();
+    let mut edge_to: BTreeMap<EntityId, EntityId> = BTreeMap::new();
+
     for d in store.datoms() {
-        if d.op == Op::Assert && d.attribute == ident_attr {
+        if d.op != Op::Assert {
+            continue;
+        }
+        if d.attribute == ident_attr {
             if let Value::Keyword(ref s) = d.value {
                 if s.starts_with(":pkg/") {
                     pkg_entities.insert(d.entity, s.clone());
                 }
+            }
+        } else if d.attribute == mentions_attr {
+            if let Value::Ref(target) = d.value {
+                observed.insert(target);
+            }
+        } else if let Value::Ref(target) = d.value {
+            if d.attribute == comp_from_attr {
+                edge_from.insert(d.entity, target);
+            } else if d.attribute == comp_to_attr {
+                edge_to.insert(d.entity, target);
             }
         }
     }
@@ -594,34 +610,9 @@ fn explore_candidates(store: &Store) -> Vec<FrontierRec> {
         return Vec::new();
     }
 
-    // Collect observed (mentioned) entities.
-    let mut observed: HashSet<EntityId> = HashSet::new();
-    for d in store.datoms() {
-        if d.op == Op::Assert && d.attribute == mentions_attr {
-            if let Value::Ref(target) = d.value {
-                observed.insert(target);
-            }
-        }
-    }
+    let total_packages = pkg_entities.len();
 
-    // Collect composition edges: build package->package neighbor map.
-    // Composition edges are entities with :composition/from -> pkg_a, :composition/to -> pkg_b.
-    // First pass: collect from/to per edge entity.
-    let mut edge_from: BTreeMap<EntityId, EntityId> = BTreeMap::new();
-    let mut edge_to: BTreeMap<EntityId, EntityId> = BTreeMap::new();
-    for d in store.datoms() {
-        if d.op != Op::Assert {
-            continue;
-        }
-        if let Value::Ref(target) = d.value {
-            if d.attribute == comp_from_attr {
-                edge_from.insert(d.entity, target);
-            } else if d.attribute == comp_to_attr {
-                edge_to.insert(d.entity, target);
-            }
-        }
-    }
-    // Second pass: for each complete edge (has both from and to), add neighbor links.
+    // Build neighbor map from complete edges (has both from and to).
     let mut neighbors: BTreeMap<EntityId, HashSet<EntityId>> = BTreeMap::new();
     for (edge, from_pkg) in &edge_from {
         if let Some(to_pkg) = edge_to.get(edge) {
@@ -662,7 +653,7 @@ fn explore_candidates(store: &Store) -> Vec<FrontierRec> {
             candidates.push(FrontierRec {
                 kind: FrontierKind::Explore,
                 target: name.to_string(),
-                score: connections as f64,
+                score: connections as f64 / total_packages.max(1) as f64,
                 rationale: format!(
                     "imported by {} ({connections} deps, 0 observations)",
                     deps_str
@@ -677,6 +668,7 @@ fn explore_candidates(store: &Store) -> Vec<FrontierRec> {
 /// Find concepts with high variance (knowledge uncertainty).
 fn deepen_candidates(store: &Store, current_embedding: &[f32]) -> Vec<FrontierRec> {
     let inventory = concept_inventory(store);
+    let total_observations: usize = inventory.iter().map(|c| c.member_count).sum();
     let mut candidates = Vec::new();
 
     for c in &inventory {
@@ -685,7 +677,9 @@ fn deepen_candidates(store: &Store, current_embedding: &[f32]) -> Vec<FrontierRe
             let distance_bonus = c.embedding.as_ref().map_or(0.0, |emb| {
                 1.0 - cosine_similarity(emb, current_embedding) as f64
             });
-            let score = c.variance + distance_bonus * 0.1;
+            let obs_fraction = c.member_count as f64 / total_observations.max(1) as f64;
+            let base_score = (c.variance / crate::SPLIT_THRESHOLD) * obs_fraction;
+            let score = base_score * (1.0 + distance_bonus * 0.1);
 
             candidates.push(FrontierRec {
                 kind: FrontierKind::Deepen,
@@ -706,6 +700,7 @@ fn deepen_candidates(store: &Store, current_embedding: &[f32]) -> Vec<FrontierRe
 fn bridge_candidates(store: &Store) -> Vec<FrontierRec> {
     let co_occ = co_occurrence_matrix(store);
     let inventory = concept_inventory(store);
+    let total_observations: usize = inventory.iter().map(|c| c.member_count).sum();
     let mut candidates = Vec::new();
 
     for pair in &co_occ {
@@ -726,7 +721,7 @@ fn bridge_candidates(store: &Store) -> Vec<FrontierRec> {
             .unwrap_or(0);
 
         if a_count >= 2 && b_count >= 2 {
-            let score = (a_count + b_count) as f64 * 0.5;
+            let score = (1.0 - pair.jaccard) * (a_count + b_count) as f64 / (2.0 * total_observations.max(1) as f64);
             candidates.push(FrontierRec {
                 kind: FrontierKind::Bridge,
                 target: format!("{} <-> {}", pair.name_a, pair.name_b),
@@ -3770,6 +3765,370 @@ mod tests {
                     && matrix[i].concept_b == matrix[j].concept_a;
                 assert!(!duplicate, "co-occurrence matrix should not have duplicate pairs");
             }
+        }
+    }
+
+    /// Property P3: All frontier candidate scores are in [0.0, 1.0].
+    #[test]
+    fn test_frontier_scores_bounded_zero_one() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(10, 0, agent);
+        let emb = make_embedder();
+
+        // Create 10 :pkg/* entities with composition edges.
+        let mut pkgs = Vec::new();
+        for i in 0..10 {
+            let name = format!(":pkg/module-{i}");
+            let e = EntityId::from_ident(&name);
+            store.apply_datoms(&[Datom::new(
+                e,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(name.clone()),
+                tx,
+                Op::Assert,
+            )]);
+            pkgs.push(e);
+        }
+        // Edges: module-0 imports module-2..9 (8 edges).
+        let comp_from = Attribute::from_keyword(":composition/from");
+        let comp_to = Attribute::from_keyword(":composition/to");
+        for target_idx in 2..10 {
+            let edge = EntityId::from_content(format!("edge-0-{target_idx}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                edge, comp_from.clone(), Value::Ref(pkgs[0]), tx, Op::Assert,
+            )]);
+            store.apply_datoms(&[Datom::new(
+                edge, comp_to.clone(), Value::Ref(pkgs[target_idx]), tx, Op::Assert,
+            )]);
+        }
+        // Mark module-0 as explored.
+        let mentions_attr = Attribute::from_keyword(":exploration/mentions-entity");
+        let obs = EntityId::from_content(b"obs-bound-1");
+        store.apply_datoms(&[Datom::new(
+            obs, mentions_attr, Value::Ref(pkgs[0]), tx, Op::Assert,
+        )]);
+
+        // Create a high-variance concept.
+        let concept = EntityId::from_content(b"concept:variance-test");
+        store.apply_datoms(&[Datom::new(
+            concept, Attribute::from_keyword(":concept/name"),
+            Value::String("variance-test".into()), tx, Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept, Attribute::from_keyword(":concept/member-count"),
+            Value::Long(10), tx, Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept, Attribute::from_keyword(":concept/variance"),
+            Value::Double(ordered_float::OrderedFloat(0.45)), tx, Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept, Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(crate::embedding::embedding_to_bytes(&emb.embed("variance topic"))),
+            tx, Op::Assert,
+        )]);
+
+        let current_emb = emb.embed("test observation");
+        let rec = frontier_recommendation(&store, &current_emb);
+        if let Some(r) = &rec {
+            assert!(
+                r.score >= 0.0 && r.score <= 1.0,
+                "frontier score should be in [0, 1], got {} for kind {:?}",
+                r.score, r.kind
+            );
+        }
+    }
+
+    /// Property P2: Higher variance produces higher Deepen score.
+    #[test]
+    fn test_frontier_deepen_monotonicity() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(10, 0, agent);
+        let emb = make_embedder();
+
+        // Create two concepts with same member count but different variance.
+        let concept_low = EntityId::from_content(b"concept:low-var");
+        let concept_high = EntityId::from_content(b"concept:high-var");
+
+        for (concept, name, variance) in &[
+            (concept_low, "low-var", 0.15),
+            (concept_high, "high-var", 0.45),
+        ] {
+            store.apply_datoms(&[Datom::new(
+                *concept, Attribute::from_keyword(":concept/name"),
+                Value::String(name.to_string()), tx, Op::Assert,
+            )]);
+            store.apply_datoms(&[Datom::new(
+                *concept, Attribute::from_keyword(":concept/member-count"),
+                Value::Long(5), tx, Op::Assert,
+            )]);
+            store.apply_datoms(&[Datom::new(
+                *concept, Attribute::from_keyword(":concept/variance"),
+                Value::Double(ordered_float::OrderedFloat(*variance)), tx, Op::Assert,
+            )]);
+            store.apply_datoms(&[Datom::new(
+                *concept, Attribute::from_keyword(":concept/embedding"),
+                Value::Bytes(crate::embedding::embedding_to_bytes(&emb.embed(name))),
+                tx, Op::Assert,
+            )]);
+        }
+
+        let current_emb = emb.embed("something distant");
+        let rec = frontier_recommendation(&store, &current_emb);
+        assert!(rec.is_some(), "should have deepen recommendation");
+        let rec = rec.unwrap();
+        assert_eq!(rec.kind, FrontierKind::Deepen);
+        assert_eq!(rec.target, "high-var", "higher variance should win");
+    }
+
+    /// Commensurability: Deepen and Explore produce comparable scores.
+    #[test]
+    fn test_frontier_commensurable() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(10, 0, agent);
+        let emb = make_embedder();
+
+        // Create 5 packages, mark 2 explored, 3 connected to explored.
+        let mut pkgs = Vec::new();
+        for i in 0..5 {
+            let name = format!(":pkg/mod-{i}");
+            let e = EntityId::from_ident(&name);
+            store.apply_datoms(&[Datom::new(
+                e, Attribute::from_keyword(":db/ident"),
+                Value::Keyword(name), tx, Op::Assert,
+            )]);
+            pkgs.push(e);
+        }
+        let comp_from = Attribute::from_keyword(":composition/from");
+        let comp_to = Attribute::from_keyword(":composition/to");
+        // mod-0 imports mod-2, mod-3, mod-4
+        for idx in 2..5 {
+            let edge = EntityId::from_content(format!("edge-c-{idx}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                edge, comp_from.clone(), Value::Ref(pkgs[0]), tx, Op::Assert,
+            )]);
+            store.apply_datoms(&[Datom::new(
+                edge, comp_to.clone(), Value::Ref(pkgs[idx]), tx, Op::Assert,
+            )]);
+        }
+        let mentions = Attribute::from_keyword(":exploration/mentions-entity");
+        for &pkg in &pkgs[0..2] {
+            let obs = EntityId::from_content(format!("obs-c-{:?}", pkg).as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs, mentions.clone(), Value::Ref(pkg), tx, Op::Assert,
+            )]);
+        }
+
+        // Create a high-variance concept with members = total observations.
+        let concept = EntityId::from_content(b"concept:commensurate");
+        store.apply_datoms(&[Datom::new(
+            concept, Attribute::from_keyword(":concept/name"),
+            Value::String("commensurate".into()), tx, Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept, Attribute::from_keyword(":concept/member-count"),
+            Value::Long(5), tx, Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept, Attribute::from_keyword(":concept/variance"),
+            Value::Double(ordered_float::OrderedFloat(0.4)), tx, Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept, Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(crate::embedding::embedding_to_bytes(&emb.embed("distant topic entirely"))),
+            tx, Op::Assert,
+        )]);
+
+        let current_emb = emb.embed("observation about something");
+        let rec = frontier_recommendation(&store, &current_emb);
+        assert!(rec.is_some(), "should recommend something");
+        let r = rec.unwrap();
+        // Both types should produce scores in reasonable range (not 0 or wildly different).
+        assert!(r.score > 0.0, "winning score should be positive");
+        assert!(r.score <= 1.0, "winning score should be at most 1.0, got {}", r.score);
+    }
+
+    /// Regression guard: single-scan co_occurrence_matrix matches expected Jaccard.
+    #[test]
+    fn test_co_occurrence_single_scan_equivalence() {
+        // This replicates the coupled test setup to ensure the merged single-scan
+        // produces identical results to the original two-scan implementation.
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(10, 0, agent);
+
+        let concept_a = EntityId::from_content(b"concept:scan-a");
+        let concept_b = EntityId::from_content(b"concept:scan-b");
+        store.apply_datoms(&[Datom::new(
+            concept_a, Attribute::from_keyword(":concept/name"),
+            Value::String("scan-a".into()), tx, Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept_b, Attribute::from_keyword(":concept/name"),
+            Value::String("scan-b".into()), tx, Op::Assert,
+        )]);
+
+        let concept_attr = Attribute::from_keyword(":exploration/concept");
+        // 4 in A, 4 in B, 2 shared.
+        for i in 0..4 {
+            let obs = EntityId::from_content(format!("obs-scan-a-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs, concept_attr.clone(), Value::Ref(concept_a), tx, Op::Assert,
+            )]);
+        }
+        for i in 0..4 {
+            let obs = EntityId::from_content(format!("obs-scan-b-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs, concept_attr.clone(), Value::Ref(concept_b), tx, Op::Assert,
+            )]);
+        }
+        // 2 shared: obs-scan-a-0 and obs-scan-a-1 also in B.
+        for i in 0..2 {
+            let obs = EntityId::from_content(format!("obs-scan-a-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs, concept_attr.clone(), Value::Ref(concept_b), tx, Op::Assert,
+            )]);
+        }
+
+        let matrix = co_occurrence_matrix(&store);
+        let pair = matrix.iter().find(|p| {
+            (p.concept_a == concept_a && p.concept_b == concept_b)
+                || (p.concept_a == concept_b && p.concept_b == concept_a)
+        });
+        assert!(pair.is_some(), "should find scan-a/scan-b pair");
+        // A: {a0, a1, a2, a3}, B: {b0, b1, b2, b3, a0, a1}
+        // Intersection: {a0, a1} = 2, Union: {a0..a3, b0..b3} = 8
+        // Jaccard = 2/8 = 0.25
+        let j = pair.unwrap().jaccard;
+        assert!(
+            (j - 0.25).abs() < 0.01,
+            "single-scan Jaccard should be 0.25, got {j:.3}"
+        );
+    }
+
+    /// Property: assign_to_concepts never returns Uncategorized in the vec.
+    #[test]
+    fn test_assign_to_concepts_no_uncategorized_in_vec() {
+        let store = store_with_innate_concepts();
+        let emb = make_embedder();
+        // Try multiple observation texts with various thresholds.
+        let texts = [
+            "package boundaries modules",
+            "quantum chromodynamics",
+            "error handling cascade",
+            "imports coupling violations",
+            "",
+        ];
+        for text in &texts {
+            if text.is_empty() { continue; }
+            let v = emb.embed(text);
+            for threshold in &[0.01_f32, 0.2, 0.5, 0.9] {
+                let assignments = assign_to_concepts(&store, &v, *threshold);
+                for (i, a) in assignments.iter().enumerate() {
+                    assert!(
+                        !matches!(a, ConceptAssignment::Uncategorized),
+                        "assign_to_concepts should never include Uncategorized in result vec \
+                         (text='{text}', threshold={threshold}, index={i})"
+                    );
+                }
+            }
+        }
+    }
+
+    /// Edge case: With only Deepen candidates (no Explore or Bridge),
+    /// the winner score should still be bounded by [0, 1].
+    #[test]
+    fn test_frontier_single_type_normalization() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(10, 0, agent);
+        let emb = make_embedder();
+
+        // No :pkg/* entities (no Explore), no disjoint concepts (no Bridge).
+        // Only one concept with high variance -> only Deepen.
+        let concept = EntityId::from_content(b"concept:only-deepen");
+        store.apply_datoms(&[Datom::new(
+            concept, Attribute::from_keyword(":concept/name"),
+            Value::String("only-deepen".into()), tx, Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept, Attribute::from_keyword(":concept/member-count"),
+            Value::Long(5), tx, Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept, Attribute::from_keyword(":concept/variance"),
+            Value::Double(ordered_float::OrderedFloat(0.4)), tx, Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept, Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(crate::embedding::embedding_to_bytes(&emb.embed("only deepen topic"))),
+            tx, Op::Assert,
+        )]);
+
+        let current_emb = emb.embed("something entirely different");
+        let rec = frontier_recommendation(&store, &current_emb);
+        assert!(rec.is_some(), "should recommend deepening");
+        let r = rec.unwrap();
+        assert_eq!(r.kind, FrontierKind::Deepen);
+        assert!(r.score >= 0.0 && r.score <= 1.0, "score should be in [0,1], got {}", r.score);
+    }
+
+    /// Verify that assign_to_concepts uses the latest embedding when multiple
+    /// assertions exist for the same concept entity (append-only latest-wins).
+    #[test]
+    fn test_assign_to_concepts_latest_wins() {
+        let mut store = store_with_schema();
+        let emb = make_embedder();
+        let agent = AgentId::from_name("test");
+        let concept = EntityId::from_content(b"concept:evolving");
+
+        // Tx 10: initial embedding from "alpha topic words"
+        let tx1 = TxId::new(10, 0, agent);
+        let alpha_emb = emb.embed("alpha topic words unique");
+        store.apply_datoms(&[Datom::new(
+            concept,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("evolving".into()),
+            tx1,
+            Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept,
+            Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(embedding_to_bytes(&alpha_emb)),
+            tx1,
+            Op::Assert,
+        )]);
+
+        // Tx 11: updated embedding from "beta topic words" (overwrites in latest-wins)
+        let tx2 = TxId::new(11, 0, agent);
+        let beta_emb = emb.embed("beta topic words unique");
+        store.apply_datoms(&[Datom::new(
+            concept,
+            Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(embedding_to_bytes(&beta_emb)),
+            tx2,
+            Op::Assert,
+        )]);
+
+        // Observation that's closer to beta than alpha
+        let obs_emb = emb.embed("beta topic words unique similar");
+        let assignments = assign_to_concepts(&store, &obs_emb, 0.01);
+
+        assert!(!assignments.is_empty(), "should match at least one concept");
+        if let ConceptAssignment::Joined { similarity, .. } = &assignments[0] {
+            // Verify the similarity is computed against beta (the later embedding),
+            // not alpha. If latest-wins is broken, similarity would be lower.
+            let direct_beta_sim = cosine_similarity(&beta_emb, &obs_emb);
+            let direct_alpha_sim = cosine_similarity(&alpha_emb, &obs_emb);
+            assert!(
+                (*similarity - direct_beta_sim).abs() < 0.01,
+                "should use latest embedding (beta, sim={direct_beta_sim:.4}), \
+                 not first (alpha, sim={direct_alpha_sim:.4}), got sim={similarity:.4}"
+            );
         }
     }
 }
