@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774480258/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7c926e62"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/close-reason :v "REVISED: Merged into comprehensive DF1-REV that also includes E2E verification of fresh init." :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/closed-at :v 1774480257 :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/status :v :task.status/closed :op :assert}
+ ]}

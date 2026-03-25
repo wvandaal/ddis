@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774480285/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S045-DF1-REV: Clear Go CLI store, fresh init, verify innate concepts + schema"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :db/ident :v :task/t-dad6123f :op :assert}
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :task/created-at :v 1774480284 :op :assert}
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :task/description :v "CONTEXT: DOGFOOD-2 Session 3 scored 3.5/10 because the Go CLI store lacked innate concepts. A fresh init with the current binary (which includes all Session 044/045 improvements) is required.\n\nAPPROACH:\n1. Back up: cp -r /data/projects/ddis/ddis-cli/.braid /data/projects/ddis/ddis-cli/.braid.session3.backup\n2. Delete: rm -rf /data/projects/ddis/ddis-cli/.braid\n3. Also delete any .cache outside .braid: rm -rf /data/projects/ddis/ddis-cli/.braid/.cache\n4. Re-init: cd /data/projects/ddis/ddis-cli && /data/projects/ddis/ddis-braid/target/release/braid init\n5. Verify innate concepts:\n   braid query '[:find ?name :where [?c :concept/innate true] [?c :concept/name ?name]]'\n   Expected: 5 results (components, dependencies, invariants, patterns, anomalies)\n6. Verify fresh store:\n   braid status — should show fresh store, 0 observations, 5 innate concepts\n7. Verify no ghost commands, no harvest nag, no vacuous boundaries in status output.\n\nACCEPTANCE:\n(A) .braid.session3.backup exists preserving old data.\n(B) Fresh store with genesis datoms + L1-L3 schema + innate concepts.\n(C) braid query returns exactly 5 innate concept names.\n(D) braid status shows concepts line listing all 5.\n(E) No ghost command references in any output.\n(F) No harvest nag on fresh store.\n\nFILE: /data/projects/ddis/ddis-cli/.braid/" :op :assert}
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :task/id :v "t-dad6123f" :op :assert}
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :task/labels :v :label/DOGFOOD-RETRY :op :assert}
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :task/title :v "S045-DF1-REV: Clear Go CLI store, fresh init, verify innate concepts + schema" :op :assert}
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :task/title-l0 :v "S045-DF1-REV" :op :assert}
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :task/title-l1 :v "S045-DF1-REV: Clear Go CLI store, fresh init, verify innate concepts + schema" :op :assert}
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :task/traces-to :v #blake3 "192793a3a1efa8195c4a1f3cdff307e17d88478917e1e520ef6eb8651526cb67" :op :assert}
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :task/traces-to :v #blake3 "9e58bf66fbe9a770927c24f388c5a5363fb79dffb7e8b5ab329f96b1714c7b48" :op :assert}
+   {:e #blake3 "edadcd503e5cd294f6fb7a0a157cc87cdaa4de22f1bd023536831755c17b1d73" :a :task/type :v :task.type/task :op :assert}
+ ]}

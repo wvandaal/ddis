@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774480050/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a49bce38"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/close-reason :v "Deferred: clear+reinit is the right approach for dogfood. The Go CLI store has 290 txns of cruft from 5 prior sessions. Fresh init tests the actual user experience. Upgrade command is a separate future feature." :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/closed-at :v 1774480049 :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "0925a56044ad899e47a34b41245066ea53c3b72c7ec82ca7736fe26dd688fd98" :a :task/status :v :task.status/closed :op :assert}
+ ]}

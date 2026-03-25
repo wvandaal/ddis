@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293477/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Search engine (2163 LOC): Hybrid search with 3+1 signals fused via Reciprocal Rank Fusion (RRF, K=60). Signal 1: BM25 via FTS5 full-text search with glossary-based query expansion. Signal 2: LSI (Latent Semantic Indexing) with SVD-based dimensionality reduction (k=50 max). Signal 3: PageRank authority scores computed from cross-reference graph. Signal 4: Type boosting (invariants 1.2x, ADRs 1.1x, glossary 0.8x). Query expansion uses glossary bidirectionally: query term to glossary definition, glossary definition to glossary term. LSI vectors stored as BLOB in SQLite."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f11a8924dd885c64d9fff7062b75e03328b8c95bb1c0a36111ea7248e23883f0" :a :db/doc :v "Search engine (2163 LOC): Hybrid search with 3+1 signals fused via Reciprocal Rank Fusion (RRF, K=60). Signal 1: BM25 via FTS5 full-text search with glossary-based query expansion. Signal 2: LSI (Latent Semantic Indexing) with SVD-based dimensionality reduction (k=50 max). Signal 3: PageRank authority scores computed from cross-reference graph. Signal 4: Type boosting (invariants 1.2x, ADRs 1.1x, glossary 0.8x). Query expansion uses glossary bidirectionally: query term to glossary definition, glossary definition to glossary term. LSI vectors stored as BLOB in SQLite." :op :assert}
+   {:e #blake3 "f11a8924dd885c64d9fff7062b75e03328b8c95bb1c0a36111ea7248e23883f0" :a :db/ident :v :observation/search-engine-2163-loc-hybrid-search-with-31-signals-fus :op :assert}
+   {:e #blake3 "f11a8924dd885c64d9fff7062b75e03328b8c95bb1c0a36111ea7248e23883f0" :a :exploration/body :v "Search engine (2163 LOC): Hybrid search with 3+1 signals fused via Reciprocal Rank Fusion (RRF, K=60). Signal 1: BM25 via FTS5 full-text search with glossary-based query expansion. Signal 2: LSI (Latent Semantic Indexing) with SVD-based dimensionality reduction (k=50 max). Signal 3: PageRank authority scores computed from cross-reference graph. Signal 4: Type boosting (invariants 1.2x, ADRs 1.1x, glossary 0.8x). Query expansion uses glossary bidirectionally: query term to glossary definition, glossary definition to glossary term. LSI vectors stored as BLOB in SQLite." :op :assert}
+   {:e #blake3 "f11a8924dd885c64d9fff7062b75e03328b8c95bb1c0a36111ea7248e23883f0" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "f11a8924dd885c64d9fff7062b75e03328b8c95bb1c0a36111ea7248e23883f0" :a :exploration/confidence :v 0.91 :op :assert}
+   {:e #blake3 "f11a8924dd885c64d9fff7062b75e03328b8c95bb1c0a36111ea7248e23883f0" :a :exploration/content-hash :v #bytes "60b5cb676763f2942a8c199140383e12150d20b973532ee90215e0192d239991" :op :assert}
+   {:e #blake3 "f11a8924dd885c64d9fff7062b75e03328b8c95bb1c0a36111ea7248e23883f0" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f11a8924dd885c64d9fff7062b75e03328b8c95bb1c0a36111ea7248e23883f0" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f11a8924dd885c64d9fff7062b75e03328b8c95bb1c0a36111ea7248e23883f0" :a :exploration/source-session :v #blake3 "54b60ca45d888324d8a4672b7750169df7a00b2b661743c1ffce01925aae3568" :op :assert}
+ ]}

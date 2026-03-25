@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774481376/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :derived
+ :tx/rationale "HL-3: hypothesis outcome"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "412bfa24cf1cbe1bfe8bd8e4ab294f514d1e35b57a9e31459db6095663dbb7c8" :a :hypothesis/actual :v 0.0 :op :assert}
+   {:e #blake3 "412bfa24cf1cbe1bfe8bd8e4ab294f514d1e35b57a9e31459db6095663dbb7c8" :a :hypothesis/completed :v #inst 1774481354 :op :assert}
+   {:e #blake3 "412bfa24cf1cbe1bfe8bd8e4ab294f514d1e35b57a9e31459db6095663dbb7c8" :a :hypothesis/error :v 1.0 :op :assert}
+ ]}

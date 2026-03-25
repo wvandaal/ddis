@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774401358/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "APP-INV-020 (Event Stream Append-Only): ALIGNED - AppendEvent explicitly documents APP-INV-020 compliance in code comments. Uses os.O_APPEND|os.O_CREATE|os.O_WRONLY with no Seek/Truncate/WriteAt. Opens and closes handle per call (no reuse). ReadStream uses os.Open (read-only). Structurally identical to oplog.Append (APP-INV-010) but with more explicit documentation of the append-only contract. Three-stream architecture (spec, implementation, observation) via CorrelateStreams."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "47f34fbe840e79dd5062e10d4155363edd7b989e3b0d931a34d9c0eeee13850b" :a :db/doc :v "APP-INV-020 (Event Stream Append-Only): ALIGNED - AppendEvent explicitly documents APP-INV-020 compliance in code comments. Uses os.O_APPEND|os.O_CREATE|os.O_WRONLY with no Seek/Truncate/WriteAt. Opens and closes handle per call (no reuse). ReadStream uses os.Open (read-only). Structurally identical to oplog.Append (APP-INV-010) but with more explicit documentation of the append-only contract. Three-stream architecture (spec, implementation, observation) via CorrelateStreams." :op :assert}
+   {:e #blake3 "47f34fbe840e79dd5062e10d4155363edd7b989e3b0d931a34d9c0eeee13850b" :a :db/ident :v :observation/app-inv-020-event-stream-append-only-aligned-appendeven :op :assert}
+   {:e #blake3 "47f34fbe840e79dd5062e10d4155363edd7b989e3b0d931a34d9c0eeee13850b" :a :exploration/body :v "APP-INV-020 (Event Stream Append-Only): ALIGNED - AppendEvent explicitly documents APP-INV-020 compliance in code comments. Uses os.O_APPEND|os.O_CREATE|os.O_WRONLY with no Seek/Truncate/WriteAt. Opens and closes handle per call (no reuse). ReadStream uses os.Open (read-only). Structurally identical to oplog.Append (APP-INV-010) but with more explicit documentation of the append-only contract. Three-stream architecture (spec, implementation, observation) via CorrelateStreams." :op :assert}
+   {:e #blake3 "47f34fbe840e79dd5062e10d4155363edd7b989e3b0d931a34d9c0eeee13850b" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "47f34fbe840e79dd5062e10d4155363edd7b989e3b0d931a34d9c0eeee13850b" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "47f34fbe840e79dd5062e10d4155363edd7b989e3b0d931a34d9c0eeee13850b" :a :exploration/content-hash :v #bytes "1bc0816f24db45f839b173540fb8915557473319b2f30661e9ddb33260d862fa" :op :assert}
+   {:e #blake3 "47f34fbe840e79dd5062e10d4155363edd7b989e3b0d931a34d9c0eeee13850b" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "47f34fbe840e79dd5062e10d4155363edd7b989e3b0d931a34d9c0eeee13850b" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "47f34fbe840e79dd5062e10d4155363edd7b989e3b0d931a34d9c0eeee13850b" :a :exploration/source-session :v #blake3 "9883de011b95976d78b474f5b9540f57e0bd64b6ea755a3db43ae9ccdcfac17b" :op :assert}
+ ]}

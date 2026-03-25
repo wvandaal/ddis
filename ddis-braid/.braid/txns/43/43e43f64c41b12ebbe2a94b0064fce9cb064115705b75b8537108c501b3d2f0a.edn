@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774480266/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-9b539223"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/close-reason :v "REVISED: Replaced by DF3-REV with both CCE-specific and holistic scoring." :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/closed-at :v 1774480265 :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/status :v :task.status/closed :op :assert}
+ ]}

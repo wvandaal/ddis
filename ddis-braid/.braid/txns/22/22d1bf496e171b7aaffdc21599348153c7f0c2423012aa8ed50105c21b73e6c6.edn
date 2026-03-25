@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774481273/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-583e0ce0"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0a9f151d558c67da585f20da8af8c611fd14e5399282dd6210c23c9c5b1d643f" :a :task/close-reason :v "Completed: 10 observations, 8-dimension evaluation. Score 3.7/10. CRITICAL: concept collapse (jaccard=1.00 between all 4 main concepts), frontier degeneration (same template 8/10 times), hash embedder provides zero discriminative power." :op :assert}
+   {:e #blake3 "0a9f151d558c67da585f20da8af8c611fd14e5399282dd6210c23c9c5b1d643f" :a :task/closed-at :v 1774481272 :op :assert}
+   {:e #blake3 "0a9f151d558c67da585f20da8af8c611fd14e5399282dd6210c23c9c5b1d643f" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "0a9f151d558c67da585f20da8af8c611fd14e5399282dd6210c23c9c5b1d643f" :a :task/status :v :task.status/closed :op :assert}
+ ]}

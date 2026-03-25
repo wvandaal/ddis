@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774480066/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S045-DF1: Clear Go CLI braid store and fresh init with current binary"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :db/ident :v :task/t-7c926e62 :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/created-at :v 1774480065 :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/description :v "CONTEXT: DOGFOOD-2 Session 3 scored 3.5/10 due to legacy store lacking innate concepts. Fresh init is the right approach: tests the actual user experience, eliminates 290-txn cruft as confounding variable, and validates C7 self-bootstrap.\n\nAPPROACH:\n1. Back up the existing store: cp -r /data/projects/ddis/ddis-cli/.braid /data/projects/ddis/ddis-cli/.braid.session3.backup\n2. Remove the store: rm -rf /data/projects/ddis/ddis-cli/.braid\n3. Remove the cache: rm -rf /data/projects/ddis/ddis-cli/.braid/.cache (if separate)\n4. Re-initialize: cd /data/projects/ddis/ddis-cli && braid init\n5. Verify: braid status should show fresh store with innate concepts.\n\nACCEPTANCE: (A) .braid.session3.backup exists with the old store. (B) braid status shows fresh store with 5 innate concepts. (C) braid query returns concept/name results for all 5 innate concepts." :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/id :v "t-7c926e62" :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/labels :v :label/DOGFOOD-RETRY :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/title :v "S045-DF1: Clear Go CLI braid store and fresh init with current binary" :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/title-l0 :v "S045-DF1" :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/title-l1 :v "S045-DF1: Clear Go CLI braid store and fresh init with current binary" :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/traces-to :v #blake3 "192793a3a1efa8195c4a1f3cdff307e17d88478917e1e520ef6eb8651526cb67" :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/traces-to :v #blake3 "9e58bf66fbe9a770927c24f388c5a5363fb79dffb7e8b5ab329f96b1714c7b48" :op :assert}
+   {:e #blake3 "af64338b8492ef58d8a410e179863f7c710a3c5ed129188ae16b06c8c41205e8" :a :task/type :v :task.type/task :op :assert}
+ ]}

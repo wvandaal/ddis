@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774401119/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Concurrency analysis: Go CLI is entirely single-threaded. Zero goroutines, zero mutexes, zero channels across all 38 internal packages. Global mutable state found: parser/diagnostic.go line 54 uses a package-level var GlobalDiagnostics with no synchronization. Comment claims 'safe for single-threaded use' but this is a global mutable singleton — any future concurrency addition would silently race. Also, the comment on line 25-26 is misleading: it says 'safe to append concurrently' but only because extractors are sequential."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "644500aa6f06503ca1387e335db3173b72b07b677435428705682ae749b6a796" :a :db/doc :v "Concurrency analysis: Go CLI is entirely single-threaded. Zero goroutines, zero mutexes, zero channels across all 38 internal packages. Global mutable state found: parser/diagnostic.go line 54 uses a package-level var GlobalDiagnostics with no synchronization. Comment claims 'safe for single-threaded use' but this is a global mutable singleton — any future concurrency addition would silently race. Also, the comment on line 25-26 is misleading: it says 'safe to append concurrently' but only because extractors are sequential." :op :assert}
+   {:e #blake3 "644500aa6f06503ca1387e335db3173b72b07b677435428705682ae749b6a796" :a :db/ident :v :observation/concurrency-analysis-go-cli-is-entirely-single-threaded-ze :op :assert}
+   {:e #blake3 "644500aa6f06503ca1387e335db3173b72b07b677435428705682ae749b6a796" :a :exploration/body :v "Concurrency analysis: Go CLI is entirely single-threaded. Zero goroutines, zero mutexes, zero channels across all 38 internal packages. Global mutable state found: parser/diagnostic.go line 54 uses a package-level var GlobalDiagnostics with no synchronization. Comment claims 'safe for single-threaded use' but this is a global mutable singleton — any future concurrency addition would silently race. Also, the comment on line 25-26 is misleading: it says 'safe to append concurrently' but only because extractors are sequential." :op :assert}
+   {:e #blake3 "644500aa6f06503ca1387e335db3173b72b07b677435428705682ae749b6a796" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "644500aa6f06503ca1387e335db3173b72b07b677435428705682ae749b6a796" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "644500aa6f06503ca1387e335db3173b72b07b677435428705682ae749b6a796" :a :exploration/content-hash :v #bytes "0bd9811ef0af819759eba4f34629232da63aea77168f794527b0b9bce393f1f3" :op :assert}
+   {:e #blake3 "644500aa6f06503ca1387e335db3173b72b07b677435428705682ae749b6a796" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "644500aa6f06503ca1387e335db3173b72b07b677435428705682ae749b6a796" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "644500aa6f06503ca1387e335db3173b72b07b677435428705682ae749b6a796" :a :exploration/source-session :v #blake3 "7ddde8aedeb4a752380d365ac6626c28d930d9ae864f0bbda9bd66587b1153da" :op :assert}
+ ]}

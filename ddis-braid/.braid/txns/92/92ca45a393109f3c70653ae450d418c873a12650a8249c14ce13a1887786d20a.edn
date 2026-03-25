@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774480107/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S045-DF3: Score dogfood results and execute decision tree"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :db/ident :v :task/t-9b539223 :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/created-at :v 1774480106 :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/description :v "CONTEXT: Score the dogfood results and decide the next path. Uses the raw data from DF2.\n\nAPPROACH:\n1. METRIC 1 — Concept Distribution Entropy:\n   - From DF2 concept counts, compute p_i = count_i / sum(counts).\n   - H = -sum(p_i * ln(p_i)). Session 043 baseline: H ~= 0.3.\n   - PASS: H >= 1.5. FAIL: max-concept > 60% of total memberships.\n\n2. METRIC 2 — Steering Actionability:\n   - From DF2 frontier recommendation scores (0-2 each).\n   - Compute mean across all recommendations.\n   - PASS: mean >= 1.5. FAIL: mean < 1.0.\n\n3. METRIC 3 — Prediction Error:\n   - From DF2 hypothesis predictions vs actuals (if available after harvest).\n   - Compute mean(|predicted - actual|). Baseline: 0.224.\n   - PASS: <= 0.20. FAIL: > 0.30.\n\n4. Composite: entropy(30%) + actionability(40%) + prediction_error(30%) -> /10.\n   - >= 8: Close DOGFOOD-2, DOGFOOD-EXTERNAL. Proceed to DOGFOOD-3 verdict.\n   - 6-7: Identify failing metric, create remediation tasks.\n   - < 6: Architectural issue — hash embedder quality, innate concept descriptions, or threshold tuning.\n\n5. Record score as braid observation in MAIN store (ddis-braid).\n\nACCEPTANCE: (A) Score computed from raw data. (B) Decision branch executed. (C) Score recorded as observation. (D) Follow-up tasks created if score < 8.\n\nDEPENDS-ON: S045-DF2." :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/id :v "t-9b539223" :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/labels :v :label/DOGFOOD-RETRY :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/labels :v :label/S045 :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/title :v "S045-DF3: Score dogfood results and execute decision tree" :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/title-l0 :v "S045-DF3" :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/title-l1 :v "S045-DF3: Score dogfood results and execute decision tree" :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/traces-to :v #blake3 "791ce65b20564279d064cb37745fcdd4b9e31f36804346447a413c2befbb9709" :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "c67a3198cd61e15e7c9b018ee9472d1e22d48b2cdd3d3a523e115fe91818c6e1" :a :task/type :v :task.type/task :op :assert}
+ ]}

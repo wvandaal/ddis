@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774401031/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Go CLI has 38 internal packages: absorb, annotate, autoprompt, bundle, cascade, causal, challenge, checklist, cli, consistency, coverage, diff, discover, discovery, drift, events, exemplar, impact, implorder, llm, materialize, oplog, parser, process, progress, projector, query, refine, renderer, search, skeleton, state, storage, triage, validator, witness, workspace. This is the full package inventory for architecture mapping."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2973d3a6e5e018a44ebc29da3a0ecaa60d2539d9deb08e1c0021f271503f3f8f" :a :db/doc :v "Go CLI has 38 internal packages: absorb, annotate, autoprompt, bundle, cascade, causal, challenge, checklist, cli, consistency, coverage, diff, discover, discovery, drift, events, exemplar, impact, implorder, llm, materialize, oplog, parser, process, progress, projector, query, refine, renderer, search, skeleton, state, storage, triage, validator, witness, workspace. This is the full package inventory for architecture mapping." :op :assert}
+   {:e #blake3 "2973d3a6e5e018a44ebc29da3a0ecaa60d2539d9deb08e1c0021f271503f3f8f" :a :db/ident :v :observation/go-cli-has-38-internal-packages-absorb-annotate-autopromp :op :assert}
+   {:e #blake3 "2973d3a6e5e018a44ebc29da3a0ecaa60d2539d9deb08e1c0021f271503f3f8f" :a :exploration/body :v "Go CLI has 38 internal packages: absorb, annotate, autoprompt, bundle, cascade, causal, challenge, checklist, cli, consistency, coverage, diff, discover, discovery, drift, events, exemplar, impact, implorder, llm, materialize, oplog, parser, process, progress, projector, query, refine, renderer, search, skeleton, state, storage, triage, validator, witness, workspace. This is the full package inventory for architecture mapping." :op :assert}
+   {:e #blake3 "2973d3a6e5e018a44ebc29da3a0ecaa60d2539d9deb08e1c0021f271503f3f8f" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "2973d3a6e5e018a44ebc29da3a0ecaa60d2539d9deb08e1c0021f271503f3f8f" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "2973d3a6e5e018a44ebc29da3a0ecaa60d2539d9deb08e1c0021f271503f3f8f" :a :exploration/content-hash :v #bytes "e603d5b384a206d612375609f1032a01ee2fcad47486c7fdc3a5a3ed72c29e11" :op :assert}
+   {:e #blake3 "2973d3a6e5e018a44ebc29da3a0ecaa60d2539d9deb08e1c0021f271503f3f8f" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2973d3a6e5e018a44ebc29da3a0ecaa60d2539d9deb08e1c0021f271503f3f8f" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2973d3a6e5e018a44ebc29da3a0ecaa60d2539d9deb08e1c0021f271503f3f8f" :a :exploration/source-session :v #blake3 "7ddde8aedeb4a752380d365ac6626c28d930d9ae864f0bbda9bd66587b1153da" :op :assert}
+ ]}

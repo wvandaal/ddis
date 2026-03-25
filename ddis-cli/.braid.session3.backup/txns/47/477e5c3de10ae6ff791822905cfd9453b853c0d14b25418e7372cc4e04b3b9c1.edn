@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774479079/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The challenge subsystem (internal/challenge) is the adversarial complement to witness. It generates targeted falsification attempts against invariants. Each challenge carries a confidence_threshold that determines when the invariant is considered refuted. The challenge protocol feeds back into the bilateral cycle — a successful challenge triggers an absorb phase where the spec element is revised or retracted."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2b0d170b131b09dd87eb4f45d25781b28cda668b6f4bda756b0870f146f711e0" :a :db/doc :v "The challenge subsystem (internal/challenge) is the adversarial complement to witness. It generates targeted falsification attempts against invariants. Each challenge carries a confidence_threshold that determines when the invariant is considered refuted. The challenge protocol feeds back into the bilateral cycle — a successful challenge triggers an absorb phase where the spec element is revised or retracted." :op :assert}
+   {:e #blake3 "2b0d170b131b09dd87eb4f45d25781b28cda668b6f4bda756b0870f146f711e0" :a :db/ident :v :observation/the-challenge-subsystem-internalchallenge-is-the-adversar :op :assert}
+   {:e #blake3 "2b0d170b131b09dd87eb4f45d25781b28cda668b6f4bda756b0870f146f711e0" :a :exploration/body :v "The challenge subsystem (internal/challenge) is the adversarial complement to witness. It generates targeted falsification attempts against invariants. Each challenge carries a confidence_threshold that determines when the invariant is considered refuted. The challenge protocol feeds back into the bilateral cycle — a successful challenge triggers an absorb phase where the spec element is revised or retracted." :op :assert}
+   {:e #blake3 "2b0d170b131b09dd87eb4f45d25781b28cda668b6f4bda756b0870f146f711e0" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "2b0d170b131b09dd87eb4f45d25781b28cda668b6f4bda756b0870f146f711e0" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "2b0d170b131b09dd87eb4f45d25781b28cda668b6f4bda756b0870f146f711e0" :a :exploration/content-hash :v #bytes "87acbc758b3f6cd33c0c9057fae059477fd3d4326e6107e09c9b8855e6769c85" :op :assert}
+   {:e #blake3 "2b0d170b131b09dd87eb4f45d25781b28cda668b6f4bda756b0870f146f711e0" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2b0d170b131b09dd87eb4f45d25781b28cda668b6f4bda756b0870f146f711e0" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2b0d170b131b09dd87eb4f45d25781b28cda668b6f4bda756b0870f146f711e0" :a :exploration/source-session :v #blake3 "1f18c1501b1ea9f7b6c627effc07288d79453a7311de2e1056b649da0b55f43c" :op :assert}
+ ]}

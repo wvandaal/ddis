@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774480262/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c9d6a75c"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "57e2484d23429c89f0a026f0a79c0af337b20a1dacf88b3f0f3c5e67111e1353" :a :task/close-reason :v "REVISED: Replaced by DF2-REV with full 8-dimension scoring rubric, verbatim output capture, and E2E script." :op :assert}
+   {:e #blake3 "57e2484d23429c89f0a026f0a79c0af337b20a1dacf88b3f0f3c5e67111e1353" :a :task/closed-at :v 1774480261 :op :assert}
+   {:e #blake3 "57e2484d23429c89f0a026f0a79c0af337b20a1dacf88b3f0f3c5e67111e1353" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "57e2484d23429c89f0a026f0a79c0af337b20a1dacf88b3f0f3c5e67111e1353" :a :task/status :v :task.status/closed :op :assert}
+ ]}

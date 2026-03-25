@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774293602/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "EVALUATION SESSION SUMMARY: Explored 12+ packages of 62,490 LOC Go CLI using braid observe/status/task workflow. Made 12 observations, created 3 tasks (plus 1 auto-created from COTX). F(S) moved from 0.52 to 0.56 (+0.04). M(t) stable at 0.55. The harvest/seed cycle works -- seed output captured 33 entities with observations, tasks, and session context. Key issue: most observations are 'unanchored' (delta-cryst: -0.1) because there is no spec to anchor against in this exploration use case."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0938f38af5dc2292c1b15e9393fd5c3295f4595a6f28a14a2c721a09e03a6ee7" :a :db/doc :v "EVALUATION SESSION SUMMARY: Explored 12+ packages of 62,490 LOC Go CLI using braid observe/status/task workflow. Made 12 observations, created 3 tasks (plus 1 auto-created from COTX). F(S) moved from 0.52 to 0.56 (+0.04). M(t) stable at 0.55. The harvest/seed cycle works -- seed output captured 33 entities with observations, tasks, and session context. Key issue: most observations are 'unanchored' (delta-cryst: -0.1) because there is no spec to anchor against in this exploration use case." :op :assert}
+   {:e #blake3 "0938f38af5dc2292c1b15e9393fd5c3295f4595a6f28a14a2c721a09e03a6ee7" :a :db/ident :v :observation/evaluation-session-summary-explored-12-packages-of-62490 :op :assert}
+   {:e #blake3 "0938f38af5dc2292c1b15e9393fd5c3295f4595a6f28a14a2c721a09e03a6ee7" :a :exploration/body :v "EVALUATION SESSION SUMMARY: Explored 12+ packages of 62,490 LOC Go CLI using braid observe/status/task workflow. Made 12 observations, created 3 tasks (plus 1 auto-created from COTX). F(S) moved from 0.52 to 0.56 (+0.04). M(t) stable at 0.55. The harvest/seed cycle works -- seed output captured 33 entities with observations, tasks, and session context. Key issue: most observations are 'unanchored' (delta-cryst: -0.1) because there is no spec to anchor against in this exploration use case." :op :assert}
+   {:e #blake3 "0938f38af5dc2292c1b15e9393fd5c3295f4595a6f28a14a2c721a09e03a6ee7" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "0938f38af5dc2292c1b15e9393fd5c3295f4595a6f28a14a2c721a09e03a6ee7" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "0938f38af5dc2292c1b15e9393fd5c3295f4595a6f28a14a2c721a09e03a6ee7" :a :exploration/content-hash :v #bytes "972711be8087e8abc578ff59789067206b3d20636c96bf8a5f03b472a8dd0b8f" :op :assert}
+   {:e #blake3 "0938f38af5dc2292c1b15e9393fd5c3295f4595a6f28a14a2c721a09e03a6ee7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "0938f38af5dc2292c1b15e9393fd5c3295f4595a6f28a14a2c721a09e03a6ee7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "0938f38af5dc2292c1b15e9393fd5c3295f4595a6f28a14a2c721a09e03a6ee7" :a :exploration/source-session :v #blake3 "0ed009d766c425cc8df1c935926bf2239fb58f0ef2b51bc9961caf2f2fffe019" :op :assert}
+ ]}

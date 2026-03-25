@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774479064/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The parser package (internal/parser) handles YAML manifest parsing with strict validation. It enforces the INV/ADR/NEG ontology from manifest.yaml and produces typed AST nodes. The bilateral cycle depends on parser output fidelity — if parser silently drops fields, drift detection in bilateral scan becomes unreliable."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6a57b25771e275a300e22f47acc86062c653d5e75ea2a1ba6307ca7004c9e893" :a :db/doc :v "The parser package (internal/parser) handles YAML manifest parsing with strict validation. It enforces the INV/ADR/NEG ontology from manifest.yaml and produces typed AST nodes. The bilateral cycle depends on parser output fidelity — if parser silently drops fields, drift detection in bilateral scan becomes unreliable." :op :assert}
+   {:e #blake3 "6a57b25771e275a300e22f47acc86062c653d5e75ea2a1ba6307ca7004c9e893" :a :db/ident :v :observation/the-parser-package-internalparser-handles-yaml-manifest-p :op :assert}
+   {:e #blake3 "6a57b25771e275a300e22f47acc86062c653d5e75ea2a1ba6307ca7004c9e893" :a :exploration/body :v "The parser package (internal/parser) handles YAML manifest parsing with strict validation. It enforces the INV/ADR/NEG ontology from manifest.yaml and produces typed AST nodes. The bilateral cycle depends on parser output fidelity — if parser silently drops fields, drift detection in bilateral scan becomes unreliable." :op :assert}
+   {:e #blake3 "6a57b25771e275a300e22f47acc86062c653d5e75ea2a1ba6307ca7004c9e893" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "6a57b25771e275a300e22f47acc86062c653d5e75ea2a1ba6307ca7004c9e893" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "6a57b25771e275a300e22f47acc86062c653d5e75ea2a1ba6307ca7004c9e893" :a :exploration/content-hash :v #bytes "8126f755a1ee48e6a9aa59fe3d1526766d6c446fdc97fb90ae178a73708ff591" :op :assert}
+   {:e #blake3 "6a57b25771e275a300e22f47acc86062c653d5e75ea2a1ba6307ca7004c9e893" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "6a57b25771e275a300e22f47acc86062c653d5e75ea2a1ba6307ca7004c9e893" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "6a57b25771e275a300e22f47acc86062c653d5e75ea2a1ba6307ca7004c9e893" :a :exploration/source-session :v #blake3 "1f18c1501b1ea9f7b6c627effc07288d79453a7311de2e1056b649da0b55f43c" :op :assert}
+ ]}

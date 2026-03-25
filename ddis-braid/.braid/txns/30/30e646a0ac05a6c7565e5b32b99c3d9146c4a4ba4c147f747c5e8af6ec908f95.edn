@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774481349/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8a01aa8f"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "290ada6d8b5cd1c09350a439583330c53067232128707ddd848a5064f253cc70" :a :task/close-reason :v "Scored: 3.48/10. Decision: <6/10 = ARCHITECTURAL ISSUE. Root cause: hash embedder provides zero discriminative power at JOIN_THRESHOLD=0.20. All observations match all concepts. Remediation: raise threshold to 0.50+ for hash embedder, or switch to model2vec semantic embeddings." :op :assert}
+   {:e #blake3 "290ada6d8b5cd1c09350a439583330c53067232128707ddd848a5064f253cc70" :a :task/closed-at :v 1774481348 :op :assert}
+   {:e #blake3 "290ada6d8b5cd1c09350a439583330c53067232128707ddd848a5064f253cc70" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "290ada6d8b5cd1c09350a439583330c53067232128707ddd848a5064f253cc70" :a :task/status :v :task.status/closed :op :assert}
+ ]}

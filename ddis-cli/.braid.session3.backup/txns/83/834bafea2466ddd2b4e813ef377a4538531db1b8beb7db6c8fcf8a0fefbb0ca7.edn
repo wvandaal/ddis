@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774479081/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The absorb package (internal/absorb) handles the integration of external feedback and challenge results into the specification. It implements the second half of the bilateral cycle: discover finds new facts, absorb incorporates them. The absorb_decision function determines whether to accept, reject, or defer incoming changes based on the contradiction engine's verdict and the element's maturity level."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1b79ad4c5dc4a692c65b6f6d6f166f51cdcb5ce84423f76e0433212bac414c88" :a :db/doc :v "The absorb package (internal/absorb) handles the integration of external feedback and challenge results into the specification. It implements the second half of the bilateral cycle: discover finds new facts, absorb incorporates them. The absorb_decision function determines whether to accept, reject, or defer incoming changes based on the contradiction engine's verdict and the element's maturity level." :op :assert}
+   {:e #blake3 "1b79ad4c5dc4a692c65b6f6d6f166f51cdcb5ce84423f76e0433212bac414c88" :a :db/ident :v :observation/the-absorb-package-internalabsorb-handles-the-integration :op :assert}
+   {:e #blake3 "1b79ad4c5dc4a692c65b6f6d6f166f51cdcb5ce84423f76e0433212bac414c88" :a :exploration/body :v "The absorb package (internal/absorb) handles the integration of external feedback and challenge results into the specification. It implements the second half of the bilateral cycle: discover finds new facts, absorb incorporates them. The absorb_decision function determines whether to accept, reject, or defer incoming changes based on the contradiction engine's verdict and the element's maturity level." :op :assert}
+   {:e #blake3 "1b79ad4c5dc4a692c65b6f6d6f166f51cdcb5ce84423f76e0433212bac414c88" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "1b79ad4c5dc4a692c65b6f6d6f166f51cdcb5ce84423f76e0433212bac414c88" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "1b79ad4c5dc4a692c65b6f6d6f166f51cdcb5ce84423f76e0433212bac414c88" :a :exploration/content-hash :v #bytes "babd4cf4893e9c72dbc6f6cde37864ea26f46878b750220ea14ccabb65dda4ee" :op :assert}
+   {:e #blake3 "1b79ad4c5dc4a692c65b6f6d6f166f51cdcb5ce84423f76e0433212bac414c88" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "1b79ad4c5dc4a692c65b6f6d6f166f51cdcb5ce84423f76e0433212bac414c88" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "1b79ad4c5dc4a692c65b6f6d6f166f51cdcb5ce84423f76e0433212bac414c88" :a :exploration/source-session :v #blake3 "1f18c1501b1ea9f7b6c627effc07288d79453a7311de2e1056b649da0b55f43c" :op :assert}
+ ]}

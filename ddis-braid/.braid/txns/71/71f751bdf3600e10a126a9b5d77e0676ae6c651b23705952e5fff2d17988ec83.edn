@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774481352/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b9f9a7a4"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/close-reason :v "DOGFOOD-2 Session 3 (retry): 3.48/10. VERDICT: Hash embedder concept collapse. The CCE architecture is sound (concepts form, multi-membership works, frontier steering produces output) but the embedding quality is the bottleneck. Next step: model2vec integration or threshold calibration." :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/closed-at :v 1774481351 :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "ba9dbe7acb669ac5184100e0ca97e59042c42d7abe7eeb0cfedb1f8fa8f01a93" :a :task/status :v :task.status/closed :op :assert}
+ ]}

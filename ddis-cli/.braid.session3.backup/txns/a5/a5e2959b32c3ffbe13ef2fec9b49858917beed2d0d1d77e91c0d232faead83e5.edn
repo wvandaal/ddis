@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774479104/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The materialize package is the key transformation boundary: it converts raw event streams into queryable state. The materialization invariants (idempotent application, monotonic version numbers, deterministic output from same input sequence) are the strongest formal properties in the codebase. If materialize is correct, downstream consumers (search, triage, drift) inherit its guarantees. If materialize has a bug, all downstream views are corrupted. This makes materialize the load-bearing module for system correctness."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5b23ecba264fdee91b7cfebf25bafcba821f3982994333711e8819f29ea36772" :a :db/doc :v "The materialize package is the key transformation boundary: it converts raw event streams into queryable state. The materialization invariants (idempotent application, monotonic version numbers, deterministic output from same input sequence) are the strongest formal properties in the codebase. If materialize is correct, downstream consumers (search, triage, drift) inherit its guarantees. If materialize has a bug, all downstream views are corrupted. This makes materialize the load-bearing module for system correctness." :op :assert}
+   {:e #blake3 "5b23ecba264fdee91b7cfebf25bafcba821f3982994333711e8819f29ea36772" :a :db/ident :v :observation/the-materialize-package-is-the-key-transformation-boundary :op :assert}
+   {:e #blake3 "5b23ecba264fdee91b7cfebf25bafcba821f3982994333711e8819f29ea36772" :a :exploration/body :v "The materialize package is the key transformation boundary: it converts raw event streams into queryable state. The materialization invariants (idempotent application, monotonic version numbers, deterministic output from same input sequence) are the strongest formal properties in the codebase. If materialize is correct, downstream consumers (search, triage, drift) inherit its guarantees. If materialize has a bug, all downstream views are corrupted. This makes materialize the load-bearing module for system correctness." :op :assert}
+   {:e #blake3 "5b23ecba264fdee91b7cfebf25bafcba821f3982994333711e8819f29ea36772" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "5b23ecba264fdee91b7cfebf25bafcba821f3982994333711e8819f29ea36772" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "5b23ecba264fdee91b7cfebf25bafcba821f3982994333711e8819f29ea36772" :a :exploration/content-hash :v #bytes "b59e4d2990cd6514f1942bfe57f8569c21ced975435168aebdd7f1637dca7486" :op :assert}
+   {:e #blake3 "5b23ecba264fdee91b7cfebf25bafcba821f3982994333711e8819f29ea36772" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "5b23ecba264fdee91b7cfebf25bafcba821f3982994333711e8819f29ea36772" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "5b23ecba264fdee91b7cfebf25bafcba821f3982994333711e8819f29ea36772" :a :exploration/source-session :v #blake3 "1f18c1501b1ea9f7b6c627effc07288d79453a7311de2e1056b649da0b55f43c" :op :assert}
+ ]}

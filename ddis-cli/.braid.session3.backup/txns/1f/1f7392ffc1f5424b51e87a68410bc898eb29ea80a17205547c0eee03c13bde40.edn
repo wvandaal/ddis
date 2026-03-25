@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774401054/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Event sourcing pipeline uses three JSONL streams: Stream 1 (Discovery - ideas, questions, decisions), Stream 2 (Specification - parse, validate, drift), Stream 3 (Implementation - issues, status, findings). Events have envelope: {id, type, timestamp, spec_hash, stream, payload, causes[], version}. Content-addressed by SHA-256 of payload. Append-only via O_APPEND file mode. Cross-stream correlation by artifact_ref."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3087aeb821d0f3858397dfb42559f0be5708b51f742bdba8db7343538c399ddc" :a :db/doc :v "Event sourcing pipeline uses three JSONL streams: Stream 1 (Discovery - ideas, questions, decisions), Stream 2 (Specification - parse, validate, drift), Stream 3 (Implementation - issues, status, findings). Events have envelope: {id, type, timestamp, spec_hash, stream, payload, causes[], version}. Content-addressed by SHA-256 of payload. Append-only via O_APPEND file mode. Cross-stream correlation by artifact_ref." :op :assert}
+   {:e #blake3 "3087aeb821d0f3858397dfb42559f0be5708b51f742bdba8db7343538c399ddc" :a :db/ident :v :observation/event-sourcing-pipeline-uses-three-jsonl-streams-stream-1 :op :assert}
+   {:e #blake3 "3087aeb821d0f3858397dfb42559f0be5708b51f742bdba8db7343538c399ddc" :a :exploration/body :v "Event sourcing pipeline uses three JSONL streams: Stream 1 (Discovery - ideas, questions, decisions), Stream 2 (Specification - parse, validate, drift), Stream 3 (Implementation - issues, status, findings). Events have envelope: {id, type, timestamp, spec_hash, stream, payload, causes[], version}. Content-addressed by SHA-256 of payload. Append-only via O_APPEND file mode. Cross-stream correlation by artifact_ref." :op :assert}
+   {:e #blake3 "3087aeb821d0f3858397dfb42559f0be5708b51f742bdba8db7343538c399ddc" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "3087aeb821d0f3858397dfb42559f0be5708b51f742bdba8db7343538c399ddc" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "3087aeb821d0f3858397dfb42559f0be5708b51f742bdba8db7343538c399ddc" :a :exploration/content-hash :v #bytes "fbeaf343f47e59e4f8fa1ce4766ca8f0f2e7b6174f5f331359860be9db185950" :op :assert}
+   {:e #blake3 "3087aeb821d0f3858397dfb42559f0be5708b51f742bdba8db7343538c399ddc" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "3087aeb821d0f3858397dfb42559f0be5708b51f742bdba8db7343538c399ddc" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "3087aeb821d0f3858397dfb42559f0be5708b51f742bdba8db7343538c399ddc" :a :exploration/source-session :v #blake3 "7ddde8aedeb4a752380d365ac6626c28d930d9ae864f0bbda9bd66587b1153da" :op :assert}
+ ]}

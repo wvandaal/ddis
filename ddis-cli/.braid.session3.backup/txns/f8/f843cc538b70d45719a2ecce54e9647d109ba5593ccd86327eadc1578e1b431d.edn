@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774479066/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The storage package (internal/storage) manages 30 SQLite tables with event-sourcing semantics. Each crystallize operation produces an event stream that feeds the materializer. The consistency engine validates referential integrity across tables. Key concern: the 5-tier contradiction engine in storage relies on sequential event ordering that may not survive concurrent agent writes."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2dae6f91c7a142af127987cc3c19a3c75a6a997ab506b9d8998b4660bb42c8d3" :a :db/doc :v "The storage package (internal/storage) manages 30 SQLite tables with event-sourcing semantics. Each crystallize operation produces an event stream that feeds the materializer. The consistency engine validates referential integrity across tables. Key concern: the 5-tier contradiction engine in storage relies on sequential event ordering that may not survive concurrent agent writes." :op :assert}
+   {:e #blake3 "2dae6f91c7a142af127987cc3c19a3c75a6a997ab506b9d8998b4660bb42c8d3" :a :db/ident :v :observation/the-storage-package-internalstorage-manages-30-sqlite-tab :op :assert}
+   {:e #blake3 "2dae6f91c7a142af127987cc3c19a3c75a6a997ab506b9d8998b4660bb42c8d3" :a :exploration/body :v "The storage package (internal/storage) manages 30 SQLite tables with event-sourcing semantics. Each crystallize operation produces an event stream that feeds the materializer. The consistency engine validates referential integrity across tables. Key concern: the 5-tier contradiction engine in storage relies on sequential event ordering that may not survive concurrent agent writes." :op :assert}
+   {:e #blake3 "2dae6f91c7a142af127987cc3c19a3c75a6a997ab506b9d8998b4660bb42c8d3" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "2dae6f91c7a142af127987cc3c19a3c75a6a997ab506b9d8998b4660bb42c8d3" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "2dae6f91c7a142af127987cc3c19a3c75a6a997ab506b9d8998b4660bb42c8d3" :a :exploration/content-hash :v #bytes "118b8de54e22dad33e80027b85b3dfcde18e5a8c70e131b96b8f1b0cef95041d" :op :assert}
+   {:e #blake3 "2dae6f91c7a142af127987cc3c19a3c75a6a997ab506b9d8998b4660bb42c8d3" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2dae6f91c7a142af127987cc3c19a3c75a6a997ab506b9d8998b4660bb42c8d3" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2dae6f91c7a142af127987cc3c19a3c75a6a997ab506b9d8998b4660bb42c8d3" :a :exploration/source-session :v #blake3 "1f18c1501b1ea9f7b6c627effc07288d79453a7311de2e1056b649da0b55f43c" :op :assert}
+ ]}

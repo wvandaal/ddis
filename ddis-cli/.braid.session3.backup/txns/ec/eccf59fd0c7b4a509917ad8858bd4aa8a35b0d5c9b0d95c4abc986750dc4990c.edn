@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774368834/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Audit consistency engine against braid contradiction detection"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7f54be94b383b0d5b7bc54984a84f103b45fbc48ef5fe077622111e3ac286500" :a :db/ident :v :task/t-16ae82d7 :op :assert}
+   {:e #blake3 "7f54be94b383b0d5b7bc54984a84f103b45fbc48ef5fe077622111e3ac286500" :a :task/created-at :v 1774368826 :op :assert}
+   {:e #blake3 "7f54be94b383b0d5b7bc54984a84f103b45fbc48ef5fe077622111e3ac286500" :a :task/id :v "t-16ae82d7" :op :assert}
+   {:e #blake3 "7f54be94b383b0d5b7bc54984a84f103b45fbc48ef5fe077622111e3ac286500" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7f54be94b383b0d5b7bc54984a84f103b45fbc48ef5fe077622111e3ac286500" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7f54be94b383b0d5b7bc54984a84f103b45fbc48ef5fe077622111e3ac286500" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7f54be94b383b0d5b7bc54984a84f103b45fbc48ef5fe077622111e3ac286500" :a :task/title :v "Audit consistency engine against braid contradiction detection" :op :assert}
+   {:e #blake3 "7f54be94b383b0d5b7bc54984a84f103b45fbc48ef5fe077622111e3ac286500" :a :task/title-l0 :v "Audit consistency engine" :op :assert}
+   {:e #blake3 "7f54be94b383b0d5b7bc54984a84f103b45fbc48ef5fe077622111e3ac286500" :a :task/title-l1 :v "Audit consistency engine against braid contradiction detection" :op :assert}
+   {:e #blake3 "7f54be94b383b0d5b7bc54984a84f103b45fbc48ef5fe077622111e3ac286500" :a :task/type :v :task.type/task :op :assert}
+ ]}

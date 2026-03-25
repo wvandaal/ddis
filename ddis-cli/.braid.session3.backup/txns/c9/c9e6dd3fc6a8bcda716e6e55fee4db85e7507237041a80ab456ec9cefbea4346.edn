@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774479077/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The witness package (internal/witness) implements the challenge-response protocol for spec element verification. Witnesses carry L1 (assertion) through L3 (formal proof) evidence levels. The witness_validation_score computes alignment between a witness and its target invariant. Stale witnesses accumulate when spec elements change without re-verification — the detect_stale_witnesses function uses content hashing to find these."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b9f663d25de0980f38d7fb831e118dc5ad66d81e04ef7a6de52e33d52ad7e62a" :a :db/doc :v "The witness package (internal/witness) implements the challenge-response protocol for spec element verification. Witnesses carry L1 (assertion) through L3 (formal proof) evidence levels. The witness_validation_score computes alignment between a witness and its target invariant. Stale witnesses accumulate when spec elements change without re-verification — the detect_stale_witnesses function uses content hashing to find these." :op :assert}
+   {:e #blake3 "b9f663d25de0980f38d7fb831e118dc5ad66d81e04ef7a6de52e33d52ad7e62a" :a :db/ident :v :observation/the-witness-package-internalwitness-implements-the-challe :op :assert}
+   {:e #blake3 "b9f663d25de0980f38d7fb831e118dc5ad66d81e04ef7a6de52e33d52ad7e62a" :a :exploration/body :v "The witness package (internal/witness) implements the challenge-response protocol for spec element verification. Witnesses carry L1 (assertion) through L3 (formal proof) evidence levels. The witness_validation_score computes alignment between a witness and its target invariant. Stale witnesses accumulate when spec elements change without re-verification — the detect_stale_witnesses function uses content hashing to find these." :op :assert}
+   {:e #blake3 "b9f663d25de0980f38d7fb831e118dc5ad66d81e04ef7a6de52e33d52ad7e62a" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "b9f663d25de0980f38d7fb831e118dc5ad66d81e04ef7a6de52e33d52ad7e62a" :a :exploration/confidence :v 0.75 :op :assert}
+   {:e #blake3 "b9f663d25de0980f38d7fb831e118dc5ad66d81e04ef7a6de52e33d52ad7e62a" :a :exploration/content-hash :v #bytes "94c52f9d241707c7a256a0e36723ec370ea29fccafa3f7e6414f9218efc098ac" :op :assert}
+   {:e #blake3 "b9f663d25de0980f38d7fb831e118dc5ad66d81e04ef7a6de52e33d52ad7e62a" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b9f663d25de0980f38d7fb831e118dc5ad66d81e04ef7a6de52e33d52ad7e62a" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b9f663d25de0980f38d7fb831e118dc5ad66d81e04ef7a6de52e33d52ad7e62a" :a :exploration/source-session :v #blake3 "1f18c1501b1ea9f7b6c627effc07288d79453a7311de2e1056b649da0b55f43c" :op :assert}
+ ]}
