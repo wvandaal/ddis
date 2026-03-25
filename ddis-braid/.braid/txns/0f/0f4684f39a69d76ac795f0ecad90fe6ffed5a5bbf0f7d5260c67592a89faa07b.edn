@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774408452/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-de340d95"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "827bc111b5dfb6dd2c4a8dae6d57f5bfd6b16626dc10e73475139076753bb55d" :a :task/close-reason :v "Implementer notes captured as observation, not a separate task" :op :assert}
+   {:e #blake3 "827bc111b5dfb6dd2c4a8dae6d57f5bfd6b16626dc10e73475139076753bb55d" :a :task/closed-at :v 1774408451 :op :assert}
+   {:e #blake3 "827bc111b5dfb6dd2c4a8dae6d57f5bfd6b16626dc10e73475139076753bb55d" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "827bc111b5dfb6dd2c4a8dae6d57f5bfd6b16626dc10e73475139076753bb55d" :a :task/status :v :task.status/closed :op :assert}
+ ]}
