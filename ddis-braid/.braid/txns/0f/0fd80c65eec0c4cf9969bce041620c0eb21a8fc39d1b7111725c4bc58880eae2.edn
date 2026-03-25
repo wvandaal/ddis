@@ -1,0 +1,52 @@
+{:tx/id #hlc "1774454389/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 8 candidates from task 'unsessioned harvest (6 txns since last harvest)'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "22cf4a7d5c95270fdc31bdb49eaede1854345b5ef77d96f1b984718141acf31e" :a :hypothesis/action :v #blake3 "11146360f74be633495a6342dd8200186db3c8cf4a9c36a3c12288606c58cf62" :op :assert}
+   {:e #blake3 "22cf4a7d5c95270fdc31bdb49eaede1854345b5ef77d96f1b984718141acf31e" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "22cf4a7d5c95270fdc31bdb49eaede1854345b5ef77d96f1b984718141acf31e" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "22cf4a7d5c95270fdc31bdb49eaede1854345b5ef77d96f1b984718141acf31e" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "22cf4a7d5c95270fdc31bdb49eaede1854345b5ef77d96f1b984718141acf31e" :a :hypothesis/predicted :v 0.9023370311604301 :op :assert}
+   {:e #blake3 "22cf4a7d5c95270fdc31bdb49eaede1854345b5ef77d96f1b984718141acf31e" :a :hypothesis/timestamp :v #inst 1774454390 :op :assert}
+   {:e #blake3 "7fcfff6d8c433988d889e8b323b2eaba5831cf9d941523d0a88ef5ffc295e308" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :db/doc :v "Harvest session for task: unsessioned harvest (6 txns since last harvest)" :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :db/ident :v :harvest/session-braid-user-1774454389 :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/accomplishments :v "Session entity: :task/t-492739d8; Parameter Substrate Independence (C9)\nC9 PROPOSAL: Parameter Substrate Independence — if two projects using the same kernel would want different values for a constant, that constant is policy, not kernel. C8 says 'don't hardcode domain-specific logic.' C9 says 'don't hardcode domain-specific values.' Same principle, different abstraction level. C8 catches functions that assume Go/Rust/React. C9 catches constants that assume a specific project size, domain vocabulary, or observation density. THE LITMUS TEST: 'Would a React project, a research lab, and a compliance team all want this exact value?' If no, it's a policy datom. If yes (like f32 epsilon or max u64), it's a kernel constant. EXAMPLES: JOIN_THRESHOLD (0.20) — fails C9 (different embedding models, different domains). MIN_CLUSTER_SIZE (3) — fails C9 (a solo researcher might want 2, a large team might want 5). DEFAULT_DIM (256) — passes C9 (model-specific, not domain-specific, and the model IS fixed). l2_normalize epsilon (1e-10) — passes C9 (numerical stability, universal). This completes the constraint hierarchy: C1-C7 (data invariants), C8 (logic substrate independence), C9 (parameter substrate independence)." :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/candidate-count :v 8 :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/codebase-snapshot :v "Codebase: 0 LOC across 0 source files\nTests: 1992 passing" :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/context-metrics :v "{\"candidates\":8,\"k_eff_estimated\":\"0.94\",\"observations\":1,\"output_tokens_est\":1027,\"tasks_closed\":0,\"tx_count\":6,\"wall_elapsed_s\":90}" :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/delta-summary :v "+112 datoms, +13 entities" :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/git-summary :v "branch=main, 1 commits, 11 files (+320/-0)\n  44cc9ef0 Session 043: ADR-FOUNDATION-031 — Policy Completeness Principle\nHot files:\n  ddis-braid/.braid/txns/a2/a28af16dc36a62ec5ae28a0fe8ff82858e058cb705ac23e01a1ae17666228576.edn (113 lines changed)\n  ddis-braid/.braid/txns/36/3642fe2ff2727acbc472f70a949d9781da815e94e57b59c2eba457ac38705a8a.edn (62 lines changed)\n  ddis-braid/.braid/txns/9e/9e1f787c9eab1f91303b06f210d68162eb70abfe2b85c626788f0eb27006bd7e.edn (24 lines changed)\n  ddis-braid/.braid/txns/66/660fc9bd0bd48672fc1581451e26b39af841a7f1775db7b5964c2fe5287558d3.edn (23 lines changed)\n  ddis-braid/.braid/txns/cd/cde8834f5c6859dbd9ed1ed09370a6c4d33d52570d96fe1ba6a5bfd124459856.edn (22 lines changed)\n  ddis-braid/.braid/txns/d5/d524036c29e755692c1c8a9bcd370541bedff191d9c1be40ac26f15c89d89426.edn (19 lines changed)\n  ddis-braid/.braid/txns/5e/5e16c9486b9eb3e557f65f32f797d4b621072eed017ca6af176617f998ef35eb.edn (12 lines changed)\n  ddis-braid/.braid/txns/ed/ed97ec4bef466b2a440a5f2da0b5f309bee96a66b408357278b5e237d6fd22a7.edn (12 lines changed)" :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/observation-count :v 1 :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/recommended-tasks :v "t-655e3cf2,t-d9536d87,t-56b8f57e" :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/store-datom-count :v 91941 :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/store-entity-count :v 9208 :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: unsessioned harvest (6 txns since last harvest)\nRun: `braid seed --task \"continue: unsessioned harvest (6 txns since last harvest)\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/task :v "unsessioned harvest (6 txns since last harvest)" :op :assert}
+   {:e #blake3 "9dab9f7a7bc527a5bc76601bd608ae6b447e9c85ff9bf80610de03ac8d36c0a9" :a :harvest/tx-since-last :v 6 :op :assert}
+   {:e #blake3 "b1ada05c54f057cdedb75d9354e903f019fac44c02613b44e6a3630f541c1d35" :a :db/ident :v :session/s-1774454390863 :op :assert}
+   {:e #blake3 "b1ada05c54f057cdedb75d9354e903f019fac44c02613b44e6a3630f541c1d35" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "b1ada05c54f057cdedb75d9354e903f019fac44c02613b44e6a3630f541c1d35" :a :session/current :v #blake3 "b1ada05c54f057cdedb75d9354e903f019fac44c02613b44e6a3630f541c1d35" :op :assert}
+   {:e #blake3 "b1ada05c54f057cdedb75d9354e903f019fac44c02613b44e6a3630f541c1d35" :a :session/start-datom-count :v 91977 :op :assert}
+   {:e #blake3 "b1ada05c54f057cdedb75d9354e903f019fac44c02613b44e6a3630f541c1d35" :a :session/start-fitness :v 0.616071289668406 :op :assert}
+   {:e #blake3 "b1ada05c54f057cdedb75d9354e903f019fac44c02613b44e6a3630f541c1d35" :a :session/start-time :v "2026-03-25T15:59:50Z" :op :assert}
+   {:e #blake3 "b1ada05c54f057cdedb75d9354e903f019fac44c02613b44e6a3630f541c1d35" :a :session/started-at :v 1774454390 :op :assert}
+   {:e #blake3 "b1ada05c54f057cdedb75d9354e903f019fac44c02613b44e6a3630f541c1d35" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "b1ada05c54f057cdedb75d9354e903f019fac44c02613b44e6a3630f541c1d35" :a :session/task :v "## Session Synthesis Directive\n\n**Next session task**: continue: unsessioned harvest (6 txns since last harvest)\nRun: `braid seed --task \"continue: unsessioned harvest (6 txns since last harvest)\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "c2118b45904bab82d9477ff918d43e6e0328cc2d4e3061e4bcfaa0c27693cb84" :a :hypothesis/action :v #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :op :assert}
+   {:e #blake3 "c2118b45904bab82d9477ff918d43e6e0328cc2d4e3061e4bcfaa0c27693cb84" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "c2118b45904bab82d9477ff918d43e6e0328cc2d4e3061e4bcfaa0c27693cb84" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "c2118b45904bab82d9477ff918d43e6e0328cc2d4e3061e4bcfaa0c27693cb84" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "c2118b45904bab82d9477ff918d43e6e0328cc2d4e3061e4bcfaa0c27693cb84" :a :hypothesis/predicted :v 0.37614940471252684 :op :assert}
+   {:e #blake3 "c2118b45904bab82d9477ff918d43e6e0328cc2d4e3061e4bcfaa0c27693cb84" :a :hypothesis/timestamp :v #inst 1774454390 :op :assert}
+   {:e #blake3 "f6451c3dd31b055b5b5d5511c1d21bd60193ce8c66cf8afd7c1d7ac45285f9a4" :a :hypothesis/action :v #blake3 "eaade17023f6224061de39130967f6a6e804cbd8dc07fb82bcd37b182bf556b1" :op :assert}
+   {:e #blake3 "f6451c3dd31b055b5b5d5511c1d21bd60193ce8c66cf8afd7c1d7ac45285f9a4" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "f6451c3dd31b055b5b5d5511c1d21bd60193ce8c66cf8afd7c1d7ac45285f9a4" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "f6451c3dd31b055b5b5d5511c1d21bd60193ce8c66cf8afd7c1d7ac45285f9a4" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "f6451c3dd31b055b5b5d5511c1d21bd60193ce8c66cf8afd7c1d7ac45285f9a4" :a :hypothesis/predicted :v 1.0 :op :assert}
+   {:e #blake3 "f6451c3dd31b055b5b5d5511c1d21bd60193ce8c66cf8afd7c1d7ac45285f9a4" :a :hypothesis/timestamp :v #inst 1774454390 :op :assert}
+ ]}

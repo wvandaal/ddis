@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774454376/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-FOUNDATION-015 \"Parameter Substrate Independence (C9)\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d301283ad92435f1f18718c52cb90cc59dc00eeae3f338618359452eeda09dbc" :a :db/ident :v :task/t-492739d8 :op :assert}
+   {:e #blake3 "d301283ad92435f1f18718c52cb90cc59dc00eeae3f338618359452eeda09dbc" :a :task/created-at :v 1774454375 :op :assert}
+   {:e #blake3 "d301283ad92435f1f18718c52cb90cc59dc00eeae3f338618359452eeda09dbc" :a :task/id :v "t-492739d8" :op :assert}
+   {:e #blake3 "d301283ad92435f1f18718c52cb90cc59dc00eeae3f338618359452eeda09dbc" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "d301283ad92435f1f18718c52cb90cc59dc00eeae3f338618359452eeda09dbc" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d301283ad92435f1f18718c52cb90cc59dc00eeae3f338618359452eeda09dbc" :a :task/title :v "Implement INV-FOUNDATION-015: Parameter Substrate Independence (C9)" :op :assert}
+   {:e #blake3 "d301283ad92435f1f18718c52cb90cc59dc00eeae3f338618359452eeda09dbc" :a :task/traces-to :v #blake3 "f4808bee74ba849d5a0e2bfd610e02748121e92e6ad90ee53c3c0181bc391d26" :op :assert}
+   {:e #blake3 "d301283ad92435f1f18718c52cb90cc59dc00eeae3f338618359452eeda09dbc" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "f4808bee74ba849d5a0e2bfd610e02748121e92e6ad90ee53c3c0181bc391d26" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "f4808bee74ba849d5a0e2bfd610e02748121e92e6ad90ee53c3c0181bc391d26" :a :db/doc :v "Parameter Substrate Independence (C9)" :op :assert}
+   {:e #blake3 "f4808bee74ba849d5a0e2bfd610e02748121e92e6ad90ee53c3c0181bc391d26" :a :db/ident :v :spec/inv-foundation-015 :op :assert}
+   {:e #blake3 "f4808bee74ba849d5a0e2bfd610e02748121e92e6ad90ee53c3c0181bc391d26" :a :element/traces-to :v "C8" :op :assert}
+   {:e #blake3 "f4808bee74ba849d5a0e2bfd610e02748121e92e6ad90ee53c3c0181bc391d26" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "f4808bee74ba849d5a0e2bfd610e02748121e92e6ad90ee53c3c0181bc391d26" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "f4808bee74ba849d5a0e2bfd610e02748121e92e6ad90ee53c3c0181bc391d26" :a :spec/id :v "INV-FOUNDATION-015" :op :assert}
+   {:e #blake3 "f4808bee74ba849d5a0e2bfd610e02748121e92e6ad90ee53c3c0181bc391d26" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "f4808bee74ba849d5a0e2bfd610e02748121e92e6ad90ee53c3c0181bc391d26" :a :spec/statement :v "If two projects using the same kernel would want different values for a constant, that constant is policy, not kernel. Hard-coded domain-specific values violate substrate independence at the parameter level. Litmus test: would a React project, a research lab, and a compliance team all want this exact value?" :op :assert}
+ ]}
