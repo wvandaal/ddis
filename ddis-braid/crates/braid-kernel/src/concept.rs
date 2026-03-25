@@ -101,24 +101,30 @@ pub struct NewConcept {
 
 /// Find the nearest concept to the given embedding vector.
 ///
-/// Scans all concept entities in the store, computes cosine similarity
-/// against their centroids, and returns the best match.
+/// Collects the latest embedding per concept entity (handles centroid updates
+/// in append-only store where multiple assertions may exist for the same entity).
 /// Returns `None` if no concepts exist in the store.
 pub fn find_nearest_concept(store: &Store, embedding: &[f32]) -> Option<(EntityId, f32)> {
     let concept_attr = Attribute::from_keyword(":concept/embedding");
-    let mut best: Option<(EntityId, f32)> = None;
 
+    // Phase 1: Collect latest embedding per entity.
+    // In EAVT-ordered iteration, later assertions overwrite earlier ones.
+    let mut latest: BTreeMap<EntityId, Vec<f32>> = BTreeMap::new();
     for d in store.datoms() {
-        if d.op != Op::Assert || d.attribute != concept_attr {
-            continue;
+        if d.op == Op::Assert && d.attribute == concept_attr {
+            if let Value::Bytes(ref bytes) = d.value {
+                latest.insert(d.entity, bytes_to_embedding(bytes));
+            }
         }
-        if let Value::Bytes(ref bytes) = d.value {
-            let concept_emb = bytes_to_embedding(bytes);
-            if concept_emb.len() == embedding.len() {
-                let sim = cosine_similarity(&concept_emb, embedding);
-                if best.is_none() || sim > best.unwrap().1 {
-                    best = Some((d.entity, sim));
-                }
+    }
+
+    // Phase 2: Find best match.
+    let mut best: Option<(EntityId, f32)> = None;
+    for (entity, concept_emb) in &latest {
+        if concept_emb.len() == embedding.len() {
+            let sim = cosine_similarity(concept_emb, embedding);
+            if best.map_or(true, |(_, s)| sim > s) {
+                best = Some((*entity, sim));
             }
         }
     }
@@ -198,10 +204,11 @@ pub fn crystallize_concepts(
         let n_j = cluster_j.len() as f32;
         let total = n_i + n_j;
 
-        // Update centroid: weighted average.
+        // Update centroid: weighted average, then L2-normalize (INV-EMBEDDING-002).
         for (k, v) in centroids[best_i].iter_mut().enumerate() {
             *v = (*v * n_i + centroid_j[k] * n_j) / total;
         }
+        crate::embedding::l2_normalize(&mut centroids[best_i]);
         clusters[best_i].extend(cluster_j);
     }
 
@@ -468,14 +475,15 @@ pub const INNATE_CONCEPTS: &[(&str, &str)] = &[
 
 /// Generate datoms for all innate concepts at `braid init` time.
 ///
-/// Uses [`HashEmbedder`] for embeddings (no model file required).
+/// The caller provides the embedder (C8: kernel doesn't choose embedder).
 /// Returns datoms ready for transaction. Each concept gets `:concept/innate = true`.
 ///
+/// INV-EMBEDDING-004: All concept embeddings must use the same embedder as observations.
 /// The `timestamp` parameter is the genesis time (typically `braid init` invocation).
-pub fn innate_concept_datoms(timestamp: i64) -> Vec<(EntityId, Attribute, Value)> {
-    use crate::embedding::{HashEmbedder, TextEmbedder, DEFAULT_DIM};
-
-    let embedder = HashEmbedder::new(DEFAULT_DIM);
+pub fn innate_concept_datoms(
+    timestamp: i64,
+    embedder: &dyn crate::embedding::TextEmbedder,
+) -> Vec<(EntityId, Attribute, Value)> {
     let innate_attr = Attribute::from_keyword(":concept/innate");
     let mut datoms = Vec::new();
 
@@ -761,6 +769,42 @@ pub fn format_concept_status(store: &Store) -> Vec<String> {
             "coverage: {}/{} packages explored",
             mentioned_entities, total_packages
         ));
+    }
+
+    // LIFECYCLE-STATUS: Split/merge recommendations.
+    // Check concepts with high variance (should_split) or high mutual cosine (should_merge).
+    let concepts_with_embeddings: Vec<&ConceptSummary> = display_concepts
+        .iter()
+        .filter(|c| c.embedding.is_some() && c.member_count >= 2)
+        .copied()
+        .collect();
+
+    for c in &concepts_with_embeddings {
+        if should_split(c.variance) {
+            lines.push(format!(
+                "concept:{} may be too broad (variance={:.2}, consider splitting)",
+                c.name, c.variance
+            ));
+        }
+    }
+
+    for i in 0..concepts_with_embeddings.len() {
+        for j in (i + 1)..concepts_with_embeddings.len() {
+            if let (Some(ref a), Some(ref b)) = (
+                &concepts_with_embeddings[i].embedding,
+                &concepts_with_embeddings[j].embedding,
+            ) {
+                if should_merge(a, b) {
+                    let sim = cosine_similarity(a, b);
+                    lines.push(format!(
+                        "concepts {} and {} are converging (cosine={:.2}, consider merging)",
+                        concepts_with_embeddings[i].name,
+                        concepts_with_embeddings[j].name,
+                        sim
+                    ));
+                }
+            }
+        }
     }
 
     lines
@@ -1284,7 +1328,7 @@ mod tests {
     // (A) innate_concept_datoms produces 5 concepts.
     #[test]
     fn innate_concepts_count() {
-        let datoms = innate_concept_datoms(1000);
+        let datoms = innate_concept_datoms(1000, &make_embedder());
         // Each concept: 7 schema attrs + 1 innate flag = 8 datoms.
         assert_eq!(
             datoms.len(),
@@ -1296,7 +1340,7 @@ mod tests {
     // (B) Each innate concept has :concept/innate = true.
     #[test]
     fn innate_concepts_flagged() {
-        let datoms = innate_concept_datoms(1000);
+        let datoms = innate_concept_datoms(1000, &make_embedder());
         let innate_count = datoms
             .iter()
             .filter(|(_, a, v)| a.as_str() == ":concept/innate" && *v == Value::Boolean(true))
@@ -1307,7 +1351,7 @@ mod tests {
     // (C) Innate concepts have non-zero embeddings.
     #[test]
     fn innate_concepts_have_embeddings() {
-        let datoms = innate_concept_datoms(1000);
+        let datoms = innate_concept_datoms(1000, &make_embedder());
         let emb_count = datoms
             .iter()
             .filter(|(_, a, v)| {
@@ -1330,7 +1374,7 @@ mod tests {
         let mut store = store_with_schema();
         let agent = AgentId::from_name("test");
 
-        let innate_datoms = innate_concept_datoms(1000);
+        let innate_datoms = innate_concept_datoms(1000, &make_embedder());
         let mut tx =
             crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "innate");
         for (e, a, v) in innate_datoms {
@@ -1361,7 +1405,7 @@ mod tests {
         let mut store = store_with_schema();
         let agent = AgentId::from_name("test");
 
-        let innate_datoms = innate_concept_datoms(1000);
+        let innate_datoms = innate_concept_datoms(1000, &make_embedder());
         let mut tx =
             crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "innate");
         for (e, a, v) in innate_datoms {
@@ -1998,7 +2042,7 @@ mod tests {
         let agent = AgentId::from_name("test");
 
         // Add innate concepts.
-        let innate_datoms = innate_concept_datoms(1000);
+        let innate_datoms = innate_concept_datoms(1000, &make_embedder());
         let mut tx =
             crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "innate");
         for (e, a, v) in innate_datoms {

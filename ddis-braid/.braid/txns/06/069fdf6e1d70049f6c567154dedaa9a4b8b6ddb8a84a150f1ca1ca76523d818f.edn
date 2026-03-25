@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774437768/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-dd839eea"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/close-reason :v "Fixed: observe.rs line 601 'let _ = live.write_tx' replaced with 'live.write_tx()?'. CCE write errors now propagate. 302 CLI tests pass." :op :assert}
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/closed-at :v 1774437763 :op :assert}
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/status :v :task.status/closed :op :assert}
+ ]}

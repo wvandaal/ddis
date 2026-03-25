@@ -557,7 +557,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         tx_id,
         Op::Assert,
     ));
-    // Concept assignment datoms.
+    // Concept assignment datoms + concept lifecycle update (LIFECYCLE-OBSERVE).
     if let braid_kernel::concept::ConceptAssignment::Joined {
         concept,
         surprise,
@@ -578,6 +578,61 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             tx_id,
             Op::Assert,
         ));
+
+        // --- LIFECYCLE-OBSERVE: Update the concept entity itself ---
+        // Read current concept state from store.
+        let emb_attr = Attribute::from_keyword(":concept/embedding");
+        let count_attr = Attribute::from_keyword(":concept/member-count");
+        let weight_attr = Attribute::from_keyword(":concept/total-weight");
+
+        let old_count = store
+            .live_value(*concept, &count_attr)
+            .and_then(|v| if let Value::Long(n) = v { Some(*n as usize) } else { None })
+            .unwrap_or(0);
+
+        let old_total_weight = store
+            .live_value(*concept, &weight_attr)
+            .and_then(|v| if let Value::Double(w) = v { Some(w.into_inner()) } else { None })
+            .unwrap_or(0.0);
+
+        let old_centroid = store
+            .live_value(*concept, &emb_attr)
+            .and_then(|v| if let Value::Bytes(b) = v { Some(braid_kernel::embedding::bytes_to_embedding(b)) } else { None });
+
+        // Compute surprise weight and updated centroid.
+        let sw = braid_kernel::concept::surprise_weight(*surprise, braid_kernel::concept::DEFAULT_ALPHA);
+
+        if let Some(old_cent) = old_centroid {
+            let (mut new_centroid, new_total_weight) =
+                braid_kernel::concept::update_centroid_weighted(&old_cent, old_total_weight, &obs_embedding, sw);
+            // Normalize the updated centroid (INV-EMBEDDING-002).
+            braid_kernel::embedding::l2_normalize(&mut new_centroid);
+
+            let new_count = old_count + 1;
+
+            // Write updated concept datoms (new assertions — C1 append-only).
+            cce_datoms.push(Datom::new(
+                *concept,
+                Attribute::from_keyword(":concept/member-count"),
+                Value::Long(new_count as i64),
+                tx_id,
+                Op::Assert,
+            ));
+            cce_datoms.push(Datom::new(
+                *concept,
+                Attribute::from_keyword(":concept/total-weight"),
+                Value::Double(ordered_float::OrderedFloat(new_total_weight)),
+                tx_id,
+                Op::Assert,
+            ));
+            cce_datoms.push(Datom::new(
+                *concept,
+                Attribute::from_keyword(":concept/embedding"),
+                Value::Bytes(braid_kernel::embedding::embedding_to_bytes(&new_centroid)),
+                tx_id,
+                Op::Assert,
+            ));
+        }
     }
     // Entity auto-link datoms.
     for m in &entity_matches {
@@ -598,7 +653,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             causal_predecessors: vec![],
             datoms: cce_datoms,
         };
-        let _ = live.write_tx(&cce_tx);
+        live.write_tx(&cce_tx)?;
         // Refresh store after CCE write.
         let _ = live.store();
     }

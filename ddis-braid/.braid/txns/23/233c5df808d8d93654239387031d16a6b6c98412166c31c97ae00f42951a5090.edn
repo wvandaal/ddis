@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774437760/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-567d61da"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/close-reason :v "Fixed: l2_normalize(&mut centroids[best_i]) added after line 205 in crystallize_concepts. l2_normalize visibility changed to pub(crate). All concept centroids now normalized per INV-EMBEDDING-002. 47 tests pass." :op :assert}
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/closed-at :v 1774437758 :op :assert}
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/status :v :task.status/closed :op :assert}
+ ]}

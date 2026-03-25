@@ -275,11 +275,14 @@ impl TextEmbedder for HashEmbedder {
 /// Cosine similarity between two vectors.
 ///
 /// Returns 1.0 for identical directions, 0.0 for orthogonal, -1.0 for opposite.
-/// Returns 0.0 if either vector is zero.
+/// Returns 0.0 if either vector is zero or if dimensions mismatch.
 ///
-/// Precondition: `a.len() == b.len()`.
+/// INV-EMBEDDING-003: Never panics. Returns 0.0 for degenerate inputs.
 pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     debug_assert_eq!(a.len(), b.len(), "cosine_similarity: dimension mismatch");
+    if a.len() != b.len() {
+        return 0.0;
+    }
 
     let mut dot = 0.0f32;
     let mut norm_a = 0.0f32;
@@ -368,7 +371,10 @@ pub fn bytes_to_embedding(bytes: &[u8]) -> Vec<f32> {
 // ===================================================================
 
 /// L2-normalize a vector in place. Zero vectors remain zero.
-fn l2_normalize(v: &mut [f32]) {
+///
+/// Used by embedders, by `crystallize_concepts` to normalize merged centroids,
+/// and by the CLI to normalize updated centroids on concept join.
+pub fn l2_normalize(v: &mut [f32]) {
     let norm: f32 = v.iter().map(|x| x * x).sum::<f32>().sqrt();
     if norm > 1e-10 {
         let inv = 1.0 / norm;

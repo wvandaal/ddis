@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774437763/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "81f37300a9fe6bfe77f21fe81e0242d4b87af5b2f94d56abe483d1151bc9c635" :a :db/ident :v :recon/trace-13922c2df5945657 :op :assert}
+   {:e #blake3 "81f37300a9fe6bfe77f21fe81e0242d4b87af5b2f94d56abe483d1151bc9c635" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "81f37300a9fe6bfe77f21fe81e0242d4b87af5b2f94d56abe483d1151bc9c635" :a :recon/trace-neighborhood :v "EMBEDDING" :op :assert}
+   {:e #blake3 "81f37300a9fe6bfe77f21fe81e0242d4b87af5b2f94d56abe483d1151bc9c635" :a :recon/trace-refs :v "INV-EMBEDDING-002" :op :assert}
+ ]}

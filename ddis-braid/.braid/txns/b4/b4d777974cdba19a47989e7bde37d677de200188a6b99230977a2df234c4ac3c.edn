@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774438644/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-290097c8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aac89d2216bd7263c2ec2975fa57ae58768927797d3aaecf0a1ac6760fb90422" :a :task/close-reason :v "Implemented: harvest.rs now crystallizes uncategorized observations into emergent concepts. Finds observations with :exploration/embedding but without :exploration/concept, runs crystallize_concepts on them, writes concept_to_datoms + membership_datoms into the harvest transaction. Reports 'crystallized: N new concepts'. 302 CLI tests pass." :op :assert}
+   {:e #blake3 "aac89d2216bd7263c2ec2975fa57ae58768927797d3aaecf0a1ac6760fb90422" :a :task/closed-at :v 1774438643 :op :assert}
+   {:e #blake3 "aac89d2216bd7263c2ec2975fa57ae58768927797d3aaecf0a1ac6760fb90422" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "aac89d2216bd7263c2ec2975fa57ae58768927797d3aaecf0a1ac6760fb90422" :a :task/status :v :task.status/closed :op :assert}
+ ]}

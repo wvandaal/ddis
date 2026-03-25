@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774438896/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-6e606e1e"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/close-reason :v "Implemented: format_concept_status now checks should_split (variance > 0.5) and should_merge (cosine > 0.85) for displayed concepts. Surfaces recommendations in braid status output. O(C^2) pair check acceptable for C < 50. 47 concept tests pass." :op :assert}
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/closed-at :v 1774438895 :op :assert}
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "b7cf953bf00fe71f4884d157190a5215274511ab58d866ef445c0ddae72637dd" :a :task/status :v :task.status/closed :op :assert}
+ ]}

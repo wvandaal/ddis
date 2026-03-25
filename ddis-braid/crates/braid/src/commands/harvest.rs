@@ -853,6 +853,99 @@ pub fn run(
             ),
         ]);
 
+        // --- LIFECYCLE-HARVEST: Crystallize uncategorized observations into emergent concepts ---
+        // Find observations with embeddings but no concept assignment.
+        let concept_attr = Attribute::from_keyword(":exploration/concept");
+        let embed_attr = Attribute::from_keyword(":exploration/embedding");
+        let body_attr = Attribute::from_keyword(":exploration/body");
+
+        // Collect entities that have embeddings.
+        let entities_with_embedding: std::collections::HashSet<EntityId> = store
+            .datoms()
+            .filter(|d| d.op == Op::Assert && d.attribute == embed_attr)
+            .map(|d| d.entity)
+            .collect();
+
+        // Collect entities that have concept assignments.
+        let entities_with_concept: std::collections::HashSet<EntityId> = store
+            .datoms()
+            .filter(|d| d.op == Op::Assert && d.attribute == concept_attr)
+            .map(|d| d.entity)
+            .collect();
+
+        // Uncategorized = has embedding but no concept.
+        let uncategorized_entities: Vec<EntityId> = entities_with_embedding
+            .difference(&entities_with_concept)
+            .copied()
+            .collect();
+
+        if uncategorized_entities.len() >= braid_kernel::concept::MIN_CLUSTER_SIZE {
+            // Load embeddings and body text for uncategorized observations.
+            let mut observations = Vec::new();
+            for &eid in &uncategorized_entities {
+                let emb = store
+                    .live_value(eid, &embed_attr)
+                    .and_then(|v| {
+                        if let Value::Bytes(b) = v {
+                            Some(braid_kernel::embedding::bytes_to_embedding(b))
+                        } else {
+                            None
+                        }
+                    });
+                let body = store
+                    .live_value(eid, &body_attr)
+                    .and_then(|v| {
+                        if let Value::String(s) = v {
+                            Some(s.clone())
+                        } else {
+                            None
+                        }
+                    })
+                    .unwrap_or_default();
+                if let Some(embedding) = emb {
+                    observations.push((eid, embedding, body));
+                }
+            }
+
+            let new_concepts = braid_kernel::concept::crystallize_concepts(
+                &observations,
+                braid_kernel::concept::JOIN_THRESHOLD,
+                braid_kernel::concept::MIN_CLUSTER_SIZE,
+            );
+
+            if !new_concepts.is_empty() {
+                let now = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_secs() as i64)
+                    .unwrap_or(0);
+
+                let mut crystallized_names = Vec::new();
+                for concept in &new_concepts {
+                    let concept_datoms =
+                        braid_kernel::concept::concept_to_datoms(concept, now);
+                    for (e, a, v) in concept_datoms {
+                        all_datoms.push(Datom::new(e, a, v, harvest_tx_id, Op::Assert));
+                    }
+                    let member_datoms =
+                        braid_kernel::concept::membership_datoms(concept.entity, &concept.members);
+                    for (e, a, v) in member_datoms {
+                        all_datoms.push(Datom::new(e, a, v, harvest_tx_id, Op::Assert));
+                    }
+                    crystallized_names.push(format!(
+                        "{} ({} members)",
+                        concept.name,
+                        concept.members.len()
+                    ));
+                }
+
+                out.push_str(&format!(
+                    "\ncrystallized: {} new concepts: {}\n",
+                    new_concepts.len(),
+                    crystallized_names.join(", ")
+                ));
+            }
+        }
+
         let tx_file = TxFile {
             tx_id: harvest_tx_id,
             agent,

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774437764/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-64e6797a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/close-reason :v "Fixed: cosine_similarity now returns 0.0 on dimension mismatch in release builds (line 283-284). debug_assert retained for development. INV-EMBEDDING-003 satisfied. 29 embedding tests pass." :op :assert}
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/closed-at :v 1774437760 :op :assert}
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/status :v :task.status/closed :op :assert}
+ ]}

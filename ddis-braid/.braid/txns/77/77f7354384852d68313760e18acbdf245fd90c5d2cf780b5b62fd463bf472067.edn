@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774438494/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c792bc33"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "88476b94cf5d2270b9ebd038f9872be6b19158c4a5572f30b98113dfd78f3622" :a :task/close-reason :v "Implemented: observe.rs now updates concept entities on join. Writes :concept/member-count (increment), :concept/total-weight (accumulate via surprise_weight), :concept/embedding (surprise-weighted centroid via update_centroid_weighted + l2_normalize). E2E verified: anomalies concept went from 0 obs to 2 obs after matched observations. 302 CLI tests pass, 47 kernel tests pass." :op :assert}
+   {:e #blake3 "88476b94cf5d2270b9ebd038f9872be6b19158c4a5572f30b98113dfd78f3622" :a :task/closed-at :v 1774438493 :op :assert}
+   {:e #blake3 "88476b94cf5d2270b9ebd038f9872be6b19158c4a5572f30b98113dfd78f3622" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "88476b94cf5d2270b9ebd038f9872be6b19158c4a5572f30b98113dfd78f3622" :a :task/status :v :task.status/closed :op :assert}
+ ]}
