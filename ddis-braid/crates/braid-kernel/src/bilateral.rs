@@ -2525,6 +2525,79 @@ impl BoundaryCheck for SpecImplBoundary {
     }
 }
 
+/// Compute spec-impl boundary from observation text signals.
+///
+/// Scans session observations (`:exploration/body` datoms after the last harvest)
+/// for alignment/divergence keywords co-occurring with spec references (INV-*, ADR-*, NEG-*).
+///
+/// Returns `Some((aligned_count, divergent_count, boundary_score))` where
+/// `boundary_score = aligned / (aligned + divergent)`, or `None` if no
+/// alignment-relevant observations exist in the current session.
+///
+/// This allows the boundary display to reflect observation-driven measurement data
+/// instead of showing "not measured" when an agent is actively auditing spec-impl
+/// alignment through observations.
+///
+/// CE-BOUNDARY: Observation-driven boundary measurement for external projects.
+pub fn observation_boundary(store: &Store) -> Option<(usize, usize, f64)> {
+    let boundary = crate::methodology::last_harvest_wall_time(store);
+
+    let positive_keywords: &[&str] = &[
+        "aligned", "passes", "correct", "verified", "matches", "works", "valid", "confirmed",
+    ];
+    let negative_keywords: &[&str] = &[
+        "divergent", "broken", "missing", "incorrect", "fails", "wrong", "invalid", "violated",
+    ];
+
+    let mut aligned = 0usize;
+    let mut divergent = 0usize;
+
+    let body_attr = Attribute::from_keyword(":exploration/body");
+
+    for d in store.datoms() {
+        if d.tx.wall_time() <= boundary {
+            continue;
+        }
+        if d.attribute != body_attr {
+            continue;
+        }
+        if d.op != Op::Assert {
+            continue;
+        }
+
+        if let Value::String(body) = &d.value {
+            let lower = body.to_lowercase();
+
+            // Check for spec-ref patterns (INV-*, ADR-*, APP-INV-*, NEG-*)
+            let has_spec_ref =
+                lower.contains("inv-") || lower.contains("adr-") || lower.contains("neg-");
+
+            if has_spec_ref {
+                // Observation references a spec element — check alignment signal
+                let is_positive = positive_keywords.iter().any(|kw| lower.contains(kw));
+                let is_negative = negative_keywords.iter().any(|kw| lower.contains(kw));
+
+                if is_positive {
+                    aligned += 1;
+                }
+                if is_negative {
+                    divergent += 1;
+                }
+                // If both (e.g., "APP-INV-001 aligned but APP-INV-002 divergent"),
+                // count both — one observation can carry both signals.
+            }
+        }
+    }
+
+    let total = aligned + divergent;
+    if total == 0 {
+        None // No alignment observations found
+    } else {
+        let score = aligned as f64 / total as f64;
+        Some((aligned, divergent, score))
+    }
+}
+
 /// Create the default boundary registry with the standard boundaries.
 ///
 /// Currently includes:
@@ -4501,5 +4574,196 @@ mod tests {
                 );
             }
         }
+    }
+
+    // =======================================================================
+    // observation_boundary tests (CE-BOUNDARY)
+    // =======================================================================
+
+    /// Helper: create an observation datom with the given body text and tx.
+    fn observation_datom(body: &str, tx: TxId) -> Datom {
+        let entity = EntityId::from_ident(&format!(":obs/{}-{}", body.len(), tx.wall_time()));
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":exploration/body"),
+            Value::String(body.to_string()),
+            tx,
+            Op::Assert,
+        )
+    }
+
+    /// Helper: create a harvest marker datom at the given tx (defines session boundary).
+    fn harvest_marker_datom(tx: TxId) -> Datom {
+        let entity = EntityId::from_ident(":harvest/marker");
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test-agent".to_string()),
+            tx,
+            Op::Assert,
+        )
+    }
+
+    /// CE-BOUNDARY: 3 aligned observations → score 1.0.
+    #[test]
+    fn test_observation_boundary_aligned_only() {
+        let agent = AgentId::from_name("test");
+        // Harvest at wall_time=100
+        let harvest_tx = TxId::new(100, 0, agent);
+        // Observations after harvest
+        let obs_tx = TxId::new(200, 0, agent);
+
+        let mut datoms: BTreeSet<Datom> = BTreeSet::new();
+        for d in crate::schema::genesis_datoms(harvest_tx) {
+            datoms.insert(d);
+        }
+        for d in crate::schema::full_schema_datoms(harvest_tx) {
+            datoms.insert(d);
+        }
+        datoms.insert(harvest_marker_datom(harvest_tx));
+        datoms.insert(observation_datom("APP-INV-001 is ALIGNED with implementation", obs_tx));
+        datoms.insert(observation_datom(
+            "INV-STORE-002 verified and passes all checks",
+            TxId::new(201, 0, agent),
+        ));
+        datoms.insert(observation_datom(
+            "ADR-FOUNDATION-003 confirmed correct in codebase",
+            TxId::new(202, 0, agent),
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let result = observation_boundary(&store);
+        assert!(result.is_some(), "Should find alignment signals");
+        let (aligned, divergent, score) = result.unwrap();
+        assert_eq!(aligned, 3, "All 3 observations are positive");
+        assert_eq!(divergent, 0, "No negative signals");
+        assert!((score - 1.0).abs() < 1e-10, "Score should be 1.0");
+    }
+
+    /// CE-BOUNDARY: 3 aligned + 1 divergent → score 0.75.
+    #[test]
+    fn test_observation_boundary_mixed() {
+        let agent = AgentId::from_name("test");
+        let harvest_tx = TxId::new(100, 0, agent);
+        let obs_tx = TxId::new(200, 0, agent);
+
+        let mut datoms: BTreeSet<Datom> = BTreeSet::new();
+        for d in crate::schema::genesis_datoms(harvest_tx) {
+            datoms.insert(d);
+        }
+        for d in crate::schema::full_schema_datoms(harvest_tx) {
+            datoms.insert(d);
+        }
+        datoms.insert(harvest_marker_datom(harvest_tx));
+        datoms.insert(observation_datom("APP-INV-071 is ALIGNED", obs_tx));
+        datoms.insert(observation_datom(
+            "INV-STORE-001 verified correct",
+            TxId::new(201, 0, agent),
+        ));
+        datoms.insert(observation_datom(
+            "ADR-BILATERAL-005 matches implementation",
+            TxId::new(202, 0, agent),
+        ));
+        datoms.insert(observation_datom(
+            "APP-INV-042 is DIVERGENT from implementation",
+            TxId::new(203, 0, agent),
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let result = observation_boundary(&store);
+        assert!(result.is_some());
+        let (aligned, divergent, score) = result.unwrap();
+        assert_eq!(aligned, 3);
+        assert_eq!(divergent, 1);
+        assert!((score - 0.75).abs() < 1e-10, "Score should be 0.75");
+    }
+
+    /// CE-BOUNDARY: Observations without spec refs → None.
+    #[test]
+    fn test_observation_boundary_no_spec_refs() {
+        let agent = AgentId::from_name("test");
+        let harvest_tx = TxId::new(100, 0, agent);
+        let obs_tx = TxId::new(200, 0, agent);
+
+        let mut datoms: BTreeSet<Datom> = BTreeSet::new();
+        for d in crate::schema::genesis_datoms(harvest_tx) {
+            datoms.insert(d);
+        }
+        for d in crate::schema::full_schema_datoms(harvest_tx) {
+            datoms.insert(d);
+        }
+        datoms.insert(harvest_marker_datom(harvest_tx));
+        // Observations that mention "aligned" but have no spec refs
+        datoms.insert(observation_datom("The implementation is aligned with expectations", obs_tx));
+        datoms.insert(observation_datom(
+            "Code passes all tests and works correctly",
+            TxId::new(201, 0, agent),
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let result = observation_boundary(&store);
+        assert!(
+            result.is_none(),
+            "No spec refs means no boundary measurement"
+        );
+    }
+
+    /// CE-BOUNDARY: Observations before harvest boundary are excluded.
+    #[test]
+    fn test_observation_boundary_pre_harvest_ignored() {
+        let agent = AgentId::from_name("test");
+        // Observations at wall_time=50 (before harvest)
+        let pre_tx = TxId::new(50, 0, agent);
+        // Harvest at wall_time=100
+        let harvest_tx = TxId::new(100, 0, agent);
+
+        let mut datoms: BTreeSet<Datom> = BTreeSet::new();
+        for d in crate::schema::genesis_datoms(pre_tx) {
+            datoms.insert(d);
+        }
+        for d in crate::schema::full_schema_datoms(pre_tx) {
+            datoms.insert(d);
+        }
+        // Pre-harvest observation (should be ignored)
+        datoms.insert(observation_datom("APP-INV-001 is ALIGNED", pre_tx));
+        // Harvest boundary
+        datoms.insert(harvest_marker_datom(harvest_tx));
+
+        let store = Store::from_datoms(datoms);
+        let result = observation_boundary(&store);
+        assert!(
+            result.is_none(),
+            "Pre-harvest observations should be excluded"
+        );
+    }
+
+    /// CE-BOUNDARY: Both positive and negative in same observation → counts both.
+    #[test]
+    fn test_observation_boundary_both_signals_in_one() {
+        let agent = AgentId::from_name("test");
+        let harvest_tx = TxId::new(100, 0, agent);
+        let obs_tx = TxId::new(200, 0, agent);
+
+        let mut datoms: BTreeSet<Datom> = BTreeSet::new();
+        for d in crate::schema::genesis_datoms(harvest_tx) {
+            datoms.insert(d);
+        }
+        for d in crate::schema::full_schema_datoms(harvest_tx) {
+            datoms.insert(d);
+        }
+        datoms.insert(harvest_marker_datom(harvest_tx));
+        // One observation with both aligned and divergent signals
+        datoms.insert(observation_datom(
+            "INV-STORE-001 aligned but INV-STORE-002 is broken",
+            obs_tx,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let result = observation_boundary(&store);
+        assert!(result.is_some());
+        let (aligned, divergent, score) = result.unwrap();
+        assert_eq!(aligned, 1, "Contains 'aligned'");
+        assert_eq!(divergent, 1, "Contains 'broken'");
+        assert!((score - 0.5).abs() < 1e-10, "Score should be 0.5");
     }
 }

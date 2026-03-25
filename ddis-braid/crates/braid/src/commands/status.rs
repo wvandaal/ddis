@@ -15,7 +15,7 @@ use std::path::Path;
 
 use braid_kernel::bilateral::{
     cycle_to_datoms, format_terse as bilateral_format_terse,
-    format_verbose as bilateral_format_verbose, load_trajectory, run_cycle,
+    format_verbose as bilateral_format_verbose, load_trajectory, observation_boundary, run_cycle,
 };
 use braid_kernel::datom::{AgentId, Attribute, Op, ProvenanceType, Value};
 use braid_kernel::guidance::{
@@ -317,14 +317,28 @@ pub fn run(
         let registry = braid_kernel::default_boundaries();
         let store = live.store();
         let evals = registry.evaluate_all(store);
+        // CE-BOUNDARY: observation-driven boundary measurement
+        let obs_boundary = observation_boundary(store);
         let boundaries_json: Vec<serde_json::Value> = evals
             .iter()
             .map(|e| {
-                serde_json::json!({
+                let mut entry = serde_json::json!({
                     "name": e.name,
                     "coverage": e.relation.coverage,
                     "gaps": e.divergences.len(),
-                })
+                });
+                // CE-BOUNDARY: enrich with observation-based measurement when available
+                if e.relation.source_total == 0
+                    && e.relation.target_total == 0
+                    && (e.name.contains("spec") || e.name.contains("impl"))
+                {
+                    if let Some((aligned, divergent, score)) = obs_boundary {
+                        entry["observation_score"] = serde_json::json!(score);
+                        entry["observation_aligned"] = serde_json::json!(aligned);
+                        entry["observation_divergent"] = serde_json::json!(divergent);
+                    }
+                }
+                entry
             })
             .collect();
         let actions = derive_actions_with_precomputed(
@@ -651,12 +665,23 @@ pub fn build_status_projection(
     // 3. Boundary coverage (Methodology)
     let registry = braid_kernel::default_boundaries();
     let evals = registry.evaluate_all(store);
+    // CE-BOUNDARY: observation-driven boundary measurement
+    let obs_boundary = observation_boundary(store);
     if !evals.is_empty() {
         let boundary_parts: Vec<String> = evals
             .iter()
             .map(|e| {
                 // FIX-VACUOUS: empty boundaries show "not measured" instead of vacuous 1.00
                 if e.relation.source_total == 0 && e.relation.target_total == 0 {
+                    // CE-BOUNDARY: if observations contain alignment signals, use those
+                    if e.name.contains("spec") || e.name.contains("impl") {
+                        if let Some((aligned, divergent, score)) = obs_boundary {
+                            return format!(
+                                "{} {:.2} ({} aligned, {} divergent)",
+                                e.name, score, aligned, divergent
+                            );
+                        }
+                    }
                     format!("{} (not measured)", e.name)
                 } else {
                     let gap_count = e.divergences.len();
@@ -955,12 +980,23 @@ fn build_terse(
     // Per-boundary coverage display (INTEGRATION-1, INV-BILATERAL-009)
     let registry = braid_kernel::default_boundaries();
     let evals = registry.evaluate_all(store);
+    // CE-BOUNDARY: observation-driven boundary measurement
+    let obs_boundary = observation_boundary(store);
     if !evals.is_empty() {
         let boundary_parts: Vec<String> = evals
             .iter()
             .map(|e| {
                 // FIX-VACUOUS: empty boundaries show "not measured" instead of vacuous 1.00
                 if e.relation.source_total == 0 && e.relation.target_total == 0 {
+                    // CE-BOUNDARY: if observations contain alignment signals, use those
+                    if e.name.contains("spec") || e.name.contains("impl") {
+                        if let Some((aligned, divergent, score)) = obs_boundary {
+                            return format!(
+                                "{} {:.2} ({} aligned, {} divergent)",
+                                e.name, score, aligned, divergent
+                            );
+                        }
+                    }
                     format!("{} (not measured)", e.name)
                 } else {
                     let gap_count = e.divergences.len();

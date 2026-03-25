@@ -347,6 +347,8 @@ mod tests {
             spec_language_turns: 10,
             query_type_count: 4,
             harvest_quality: 1.0,
+            session_observation_count: 10,
+            session_task_count: 0,
             ..Default::default()
         };
         let score = compute_methodology_score(&perfect);
@@ -2581,6 +2583,7 @@ mod tests {
             spec_language_ratio: 0.6,
             query_diversity: 0.5,
             harvest_quality: 0.0,
+            session_activity: 0.5,
         };
         let cmd = worst_metric_command(&components, None);
         assert!(
@@ -2596,6 +2599,7 @@ mod tests {
             spec_language_ratio: 0.5,
             query_diversity: 0.5,
             harvest_quality: 0.5,
+            session_activity: 0.5,
         };
         let cmd = worst_metric_command(&components, None);
         assert!(
@@ -2611,6 +2615,7 @@ mod tests {
             spec_language_ratio: 0.0,
             query_diversity: 0.5,
             harvest_quality: 0.5,
+            session_activity: 0.5,
         };
         let cmd = worst_metric_command(&components, None);
         assert!(
@@ -2626,6 +2631,7 @@ mod tests {
             spec_language_ratio: 0.5,
             query_diversity: 0.0,
             harvest_quality: 0.5,
+            session_activity: 0.5,
         };
         let cmd = worst_metric_command(&components, None);
         assert!(
@@ -2870,6 +2876,7 @@ mod tests {
                         spec_language_ratio: score,
                         query_diversity: score.min(1.0),
                         harvest_quality: score,
+                        session_activity: score,
                     };
                     GuidanceFooter {
                         methodology: MethodologyScore {
@@ -3037,6 +3044,7 @@ mod tests {
                     spec_language_ratio: score,
                     query_diversity: score.min(1.0),
                     harvest_quality: score,
+                    session_activity: score,
                 };
                 let footer = GuidanceFooter {
                     methodology: MethodologyScore {
@@ -5890,9 +5898,11 @@ mod tests {
         );
 
         let score = compute_methodology_score(&telemetry);
+        // CE-MT weight redistribution: transact_frequency 0.30→0.10, session_activity new at 0.25.
+        // This store has 0 :exploration/body datoms so session_activity=0, lowering baseline.
         assert!(
-            score.score >= 0.5,
-            "M(t) with 10 session txns and 5 spec entities should be >= 0.5, got {}",
+            score.score >= 0.3,
+            "M(t) with 10 session txns and 5 spec entities should be >= 0.3, got {}",
             score.score,
         );
     }

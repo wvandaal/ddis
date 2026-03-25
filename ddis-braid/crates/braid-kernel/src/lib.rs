@@ -32,6 +32,7 @@ pub mod budget;
 pub mod census;
 pub mod coherence;
 pub mod compiler;
+pub mod connections;
 pub mod config;
 pub mod context;
 pub mod datom;
@@ -71,7 +72,8 @@ pub use bilateral::{
     analyze_convergence, backward_scan, composite_evidence_weight, compute_fitness,
     compute_fitness_from_policy, compute_fitness_with_registry, cycle_to_datoms,
     comonadic_depth, default_boundaries, depth_weight, set_depth_datom,
-    evaluate_conditions, format_terse, format_verbose, forward_scan, load_trajectory, run_cycle,
+    evaluate_conditions, format_terse, format_verbose, forward_scan, load_trajectory,
+    observation_boundary, run_cycle,
     spectral_certificate, BilateralScan, BilateralState, Boundary, BoundaryCheck,
     BoundaryDivergence, BoundaryEvaluation, BoundaryRegistry, CoherenceConditions, ConditionResult,
     ConvergenceAnalysis, DivergenceDirection, EntropyDecomposition, FitnessComponents, FitnessScore,
@@ -99,6 +101,10 @@ pub use compiler::{
 };
 pub use config::{
     all_config, defaults as config_defaults, get_config, get_config_or, set_config_datoms,
+};
+pub use connections::{
+    connection_summary, detect_topological_events, jaccard_similarity, propose_connections,
+    shared_keywords, tokenize, ConnectionSummary, ProposedConnection,
 };
 pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 pub use deliberation::{

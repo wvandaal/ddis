@@ -140,13 +140,20 @@ pub(crate) const STALENESS_DECAY_RATE: f64 = 0.95;
 // M(t) — Methodology Adherence Score (INV-GUIDANCE-008)
 // ---------------------------------------------------------------------------
 
-/// Stage 0 methodology adherence weights (renormalized without m₅).
+/// Stage 0 methodology adherence weights.
 ///
-/// m₁ = transact_frequency (0.30)
-/// m₂ = spec_language_ratio (0.23)
-/// m₃ = query_diversity (0.17)
+/// m₁ = transact_frequency (0.10) — reduced from 0.30; noisy for external projects
+/// m₂ = spec_language_ratio (0.20) — reduced from 0.23
+/// m₃ = query_diversity (0.15) — reduced from 0.17
 /// m₄ = harvest_quality (0.30)
-pub(crate) const STAGE0_WEIGHTS: [f64; 4] = [0.30, 0.23, 0.17, 0.30];
+/// m₅ = session_activity (0.25) — CE-MT: observations + tasks since harvest
+///
+/// CE-MT: session_activity measures actual agent work (observations, task creation)
+/// during the session. Previously M(t) stayed flat at 0.78 across DOGFOOD-2 agents
+/// despite 21+ observations because no component measured process activity.
+/// Weight redistributed primarily from transact_frequency (was 0.30 → 0.10),
+/// which is noise for external projects that don't use braid transact directly.
+pub(crate) const STAGE0_WEIGHTS: [f64; 5] = [0.10, 0.20, 0.15, 0.30, 0.25];
 
 /// Session telemetry used to compute M(t).
 #[derive(Clone, Debug, Default)]
@@ -167,6 +174,14 @@ pub struct SessionTelemetry {
     /// When true, M(t) is clamped to a floor of 0.50 to prevent
     /// false DRIFT warnings between active sessions (A3 fix).
     pub harvest_is_recent: bool,
+    /// Session observation count (`:exploration/body` datoms since last harvest).
+    /// Each observation is evidence of active methodology engagement.
+    /// CE-MT: M(t) session activity signal.
+    pub session_observation_count: u32,
+    /// Session task creation count (`:task/title` datoms since last harvest).
+    /// Creating tasks = organizing work = methodology engagement.
+    /// CE-MT: M(t) session activity signal.
+    pub session_task_count: u32,
 }
 
 /// Activity mode detected from session transaction patterns (INV-GUIDANCE-008).
@@ -221,7 +236,7 @@ pub struct MethodologyScore {
 }
 
 /// Individual M(t) sub-metrics.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct MethodologyComponents {
     /// m₁: transact_frequency — fraction of turns with transact.
     pub transact_frequency: f64,
@@ -231,6 +246,9 @@ pub struct MethodologyComponents {
     pub query_diversity: f64,
     /// m₄: harvest_quality — latest harvest quality score.
     pub harvest_quality: f64,
+    /// m₅: session_activity — (observations + tasks) / 10, capped at 1.0.
+    /// CE-MT: Measures actual agent work during the session.
+    pub session_activity: f64,
 }
 
 /// Trend direction over recent M(t) history.
@@ -246,8 +264,13 @@ pub enum Trend {
 
 /// Compute M(t) from session telemetry (INV-GUIDANCE-008).
 ///
-/// Stage 0 uses 4 components with weights (0.30, 0.23, 0.17, 0.30).
+/// Stage 0 uses 5 components with weights (0.10, 0.20, 0.15, 0.30, 0.25).
 /// M(t) = Σᵢ wᵢ × mᵢ(t).
+///
+/// CE-MT: m₅ (session_activity) measures actual agent work — observations and
+/// task creation since the last harvest. This fixes the DOGFOOD-2 problem where
+/// M(t) stayed flat at 0.78 despite 21+ observations because no component
+/// responded to process activity.
 pub fn compute_methodology_score(telemetry: &SessionTelemetry) -> MethodologyScore {
     let total = telemetry.total_turns.max(1) as f64;
 
@@ -255,8 +278,13 @@ pub fn compute_methodology_score(telemetry: &SessionTelemetry) -> MethodologySco
     let m2 = (telemetry.spec_language_turns as f64 / total).min(1.0);
     let m3 = (telemetry.query_type_count as f64 / 4.0).min(1.0);
     let m4 = telemetry.harvest_quality;
+    // CE-MT: Activity ratio — (observations + tasks) / 10, capped at 1.0.
+    // 10 observations+tasks in a session = full credit. Even 3-4 gives 0.3-0.4.
+    let m5 = ((telemetry.session_observation_count + telemetry.session_task_count) as f64
+        / 10.0)
+        .min(1.0);
 
-    let metrics = [m1, m2, m3, m4];
+    let metrics = [m1, m2, m3, m4, m5];
     let raw_score: f64 = STAGE0_WEIGHTS
         .iter()
         .zip(metrics.iter())
@@ -294,6 +322,7 @@ pub fn compute_methodology_score(telemetry: &SessionTelemetry) -> MethodologySco
             spec_language_ratio: m2,
             query_diversity: m3,
             harvest_quality: m4,
+            session_activity: m5,
         },
         trend,
         drift_signal: score < 0.5,
@@ -434,6 +463,26 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
     // warnings (CC-5 failure in bilateral scan).
     let harvest_is_recent = has_recent_harvest && txns_since < 10;
 
+    // CE-MT: Count session observations (`:exploration/body` since last harvest).
+    let session_observation_count = store
+        .datoms()
+        .filter(|d| {
+            d.tx.wall_time() > boundary
+                && d.attribute.as_str() == ":exploration/body"
+                && d.op == Op::Assert
+        })
+        .count() as u32;
+
+    // CE-MT: Count session task creations (`:task/title` since last harvest).
+    let session_task_count = store
+        .datoms()
+        .filter(|d| {
+            d.tx.wall_time() > boundary
+                && d.attribute.as_str() == ":task/title"
+                && d.op == Op::Assert
+        })
+        .count() as u32;
+
     SessionTelemetry {
         // max(1) prevents division by zero when 0 transactions since harvest
         total_turns: session_turn_count.max(1),
@@ -448,6 +497,8 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
         },
         history: vec![],
         harvest_is_recent,
+        session_observation_count,
+        session_task_count,
     }
 }
 
@@ -1395,5 +1446,270 @@ pub fn capability_scan(store: &Store) -> Vec<Capability> {
                 }
             })
             .collect()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tests — CE-MT: Session Activity Signal
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// CE-MT acceptance criterion (A): After 5 observations, M(t) measurably
+    /// increases from baseline.
+    #[test]
+    fn test_mt_session_activity_increases_with_observations() {
+        // Baseline: 0 observations, 0 tasks
+        let baseline = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 3,
+            spec_language_turns: 3,
+            query_type_count: 1,
+            harvest_quality: 0.7,
+            ..Default::default()
+        };
+        let baseline_score = compute_methodology_score(&baseline);
+
+        // 5 observations
+        let with_5_obs = SessionTelemetry {
+            session_observation_count: 5,
+            ..baseline.clone()
+        };
+        let score_5 = compute_methodology_score(&with_5_obs);
+
+        assert!(
+            score_5.score > baseline_score.score,
+            "5 observations should increase M(t): baseline={}, with_5_obs={}",
+            baseline_score.score,
+            score_5.score
+        );
+
+        // 10 observations should score even higher
+        let with_10_obs = SessionTelemetry {
+            session_observation_count: 10,
+            ..baseline.clone()
+        };
+        let score_10 = compute_methodology_score(&with_10_obs);
+
+        assert!(
+            score_10.score > score_5.score,
+            "10 observations should score higher than 5: score_5={}, score_10={}",
+            score_5.score,
+            score_10.score
+        );
+    }
+
+    /// CE-MT acceptance criterion (F): SessionTelemetry has the new fields and
+    /// task creation also contributes to M(t).
+    #[test]
+    fn test_mt_session_activity_from_task_creation() {
+        let baseline = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 3,
+            spec_language_turns: 3,
+            query_type_count: 1,
+            harvest_quality: 0.7,
+            ..Default::default()
+        };
+        let baseline_score = compute_methodology_score(&baseline);
+
+        // 3 task creations → activity ratio = 3/10 = 0.3
+        let with_tasks = SessionTelemetry {
+            session_task_count: 3,
+            ..baseline.clone()
+        };
+        let score = compute_methodology_score(&with_tasks);
+
+        assert!(
+            score.score > baseline_score.score,
+            "3 task creations should increase M(t): baseline={}, with_tasks={}",
+            baseline_score.score,
+            score.score
+        );
+
+        // Verify the activity component directly
+        let expected_activity = 3.0 / 10.0; // 0.3
+        assert!(
+            (score.components.session_activity - expected_activity).abs() < 1e-10,
+            "activity component should be 0.3, got {}",
+            score.components.session_activity
+        );
+    }
+
+    /// CE-MT acceptance criterion (B): After 10+ observations/tasks, activity
+    /// component is at 1.0 (capped).
+    #[test]
+    fn test_mt_session_activity_caps_at_ten() {
+        let with_10 = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 3,
+            spec_language_turns: 3,
+            query_type_count: 1,
+            harvest_quality: 0.7,
+            session_observation_count: 10,
+            ..Default::default()
+        };
+        let score_10 = compute_methodology_score(&with_10);
+
+        let with_20 = SessionTelemetry {
+            session_observation_count: 20,
+            ..with_10.clone()
+        };
+        let score_20 = compute_methodology_score(&with_20);
+
+        // Both should have activity = 1.0
+        assert!(
+            (score_10.components.session_activity - 1.0).abs() < 1e-10,
+            "10 observations should cap activity at 1.0, got {}",
+            score_10.components.session_activity
+        );
+        assert!(
+            (score_20.components.session_activity - 1.0).abs() < 1e-10,
+            "20 observations should cap activity at 1.0, got {}",
+            score_20.components.session_activity
+        );
+
+        // M(t) scores should be identical (both capped)
+        assert!(
+            (score_10.score - score_20.score).abs() < 1e-10,
+            "M(t) should be identical at 10 and 20 obs: score_10={}, score_20={}",
+            score_10.score,
+            score_20.score
+        );
+    }
+
+    /// CE-MT acceptance criterion (C): Zero observations → activity component
+    /// is 0.0 (no regression from baseline behavior).
+    #[test]
+    fn test_mt_session_activity_zero_is_zero() {
+        let telemetry = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 5,
+            spec_language_turns: 5,
+            query_type_count: 2,
+            harvest_quality: 0.7,
+            session_observation_count: 0,
+            session_task_count: 0,
+            ..Default::default()
+        };
+        let score = compute_methodology_score(&telemetry);
+
+        assert!(
+            score.components.session_activity.abs() < 1e-10,
+            "zero observations and tasks should give activity = 0.0, got {}",
+            score.components.session_activity
+        );
+    }
+
+    /// CE-MT acceptance criterion (D): Weight redistribution maintains total = 1.0.
+    #[test]
+    fn test_mt_weights_sum_to_one() {
+        let sum: f64 = STAGE0_WEIGHTS.iter().sum();
+        assert!(
+            (sum - 1.0).abs() < 1e-10,
+            "STAGE0_WEIGHTS must sum to 1.0, got {}",
+            sum
+        );
+    }
+
+    /// CE-MT: Perfect session with all activity should score 1.0.
+    #[test]
+    fn test_mt_perfect_session_with_activity() {
+        let perfect = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 10,
+            spec_language_turns: 10,
+            query_type_count: 4,
+            harvest_quality: 1.0,
+            session_observation_count: 10,
+            session_task_count: 0,
+            ..Default::default()
+        };
+        let score = compute_methodology_score(&perfect);
+        assert!(
+            (score.score - 1.0).abs() < 1e-10,
+            "perfect session with activity should score 1.0, got {}",
+            score.score
+        );
+    }
+
+    /// CE-MT: Mixed observations and tasks combine additively.
+    #[test]
+    fn test_mt_observations_and_tasks_combine() {
+        let obs_only = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 3,
+            spec_language_turns: 3,
+            query_type_count: 1,
+            harvest_quality: 0.7,
+            session_observation_count: 3,
+            session_task_count: 0,
+            ..Default::default()
+        };
+        let tasks_only = SessionTelemetry {
+            session_observation_count: 0,
+            session_task_count: 3,
+            ..obs_only.clone()
+        };
+        let combined = SessionTelemetry {
+            session_observation_count: 3,
+            session_task_count: 3,
+            ..obs_only.clone()
+        };
+
+        let score_obs = compute_methodology_score(&obs_only);
+        let score_tasks = compute_methodology_score(&tasks_only);
+        let score_combined = compute_methodology_score(&combined);
+
+        // obs_only and tasks_only should have same activity (3/10 = 0.3)
+        assert!(
+            (score_obs.components.session_activity - score_tasks.components.session_activity).abs()
+                < 1e-10,
+            "3 obs and 3 tasks should give same activity"
+        );
+
+        // combined should have higher activity (6/10 = 0.6 vs 3/10 = 0.3)
+        assert!(
+            score_combined.components.session_activity > score_obs.components.session_activity,
+            "combined 3+3 should have higher activity than 3 alone"
+        );
+        assert!(
+            (score_combined.components.session_activity - 0.6).abs() < 1e-10,
+            "combined activity should be 0.6, got {}",
+            score_combined.components.session_activity
+        );
+    }
+
+    /// CE-MT: Default SessionTelemetry has zero activity fields.
+    #[test]
+    fn test_session_telemetry_default_has_zero_activity() {
+        let t = SessionTelemetry::default();
+        assert_eq!(t.session_observation_count, 0);
+        assert_eq!(t.session_task_count, 0);
+    }
+
+    /// CE-MT: Existing floor clamp (A3) still works with session_activity.
+    #[test]
+    fn test_mt_floor_clamp_still_works_with_activity() {
+        // Low-activity session with recent harvest — should be clamped to 0.50
+        let telemetry = SessionTelemetry {
+            total_turns: 5,
+            transact_turns: 1,
+            spec_language_turns: 1,
+            query_type_count: 0,
+            harvest_quality: 0.3,
+            harvest_is_recent: true,
+            session_observation_count: 0,
+            session_task_count: 0,
+            ..Default::default()
+        };
+        let score = compute_methodology_score(&telemetry);
+        assert!(
+            score.score >= 0.50,
+            "M(t) should be >= 0.50 when harvest is recent, got {}",
+            score.score
+        );
     }
 }

@@ -1651,6 +1651,7 @@ fn prove_guidance_mt_bounded() {
         harvest_quality,
         history: vec![], // Empty history: trend = Stable.
         harvest_is_recent,
+        ..Default::default()
     };
 
     let result = crate::guidance::compute_methodology_score(&telemetry);
