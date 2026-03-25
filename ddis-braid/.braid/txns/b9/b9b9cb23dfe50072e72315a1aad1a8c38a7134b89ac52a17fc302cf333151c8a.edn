@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774462868/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-40e6f577"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/close-reason :v "Implemented: 5 unit tests (naming_error_handling, naming_event_sourcing, naming_no_function_words, naming_single_member, hash_join_threshold) + 9-check E2E script (e2e_steering_loop.sh). All 65 concept tests pass. E2E: 9/9 with model2vec on natural text. Concept assignment fires correctly, near-miss feedback works, noise eliminated, member counts increment." :op :assert}
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/closed-at :v 1774462867 :op :assert}
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/status :v :task.status/closed :op :assert}
+ ]}

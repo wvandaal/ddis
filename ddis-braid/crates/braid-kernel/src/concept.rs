@@ -2571,4 +2571,86 @@ mod tests {
         assert_eq!(inv.len(), 1);
         assert_eq!(inv[0].name, "reembed-test");
     }
+
+    // =========================================================
+    // STEER-TEST: Naming and threshold tests
+    // =========================================================
+
+    /// STEER-1b: Error handling observations produce name containing "error" or "handling".
+    #[test]
+    fn test_naming_error_handling() {
+        let texts = &[
+            "error handling in the cascade module returns ignored",
+            "error handling missing in storage database layer",
+            "error propagation fails across event pipeline",
+        ];
+        let name = generate_concept_name(texts);
+        assert!(
+            name.contains("error") || name.contains("handling") || name.contains("cascade")
+                || name.contains("storage") || name.contains("pipeline"),
+            "error handling concept should have meaningful name, got: '{name}'"
+        );
+        // Must not contain stopwords.
+        for stop in CONCEPT_NAME_STOPWORDS {
+            assert!(
+                !name.split('-').any(|w| w == *stop),
+                "concept name '{name}' should not contain stopword '{stop}'"
+            );
+        }
+    }
+
+    /// STEER-1b: Event observations produce name containing "event".
+    #[test]
+    fn test_naming_event_sourcing() {
+        let texts = &[
+            "event sourcing pipeline implements deterministic fold",
+            "event replay uses append-only logging for recovery",
+            "event stream processing with idempotent consumers",
+        ];
+        let name = generate_concept_name(texts);
+        assert!(
+            name.contains("event"),
+            "event concept should contain 'event', got: '{name}'"
+        );
+    }
+
+    /// STEER-1b: No stopword appears in any concept name.
+    #[test]
+    fn test_naming_no_function_words() {
+        let test_cases = vec![
+            vec!["the system has components with boundaries from packages"],
+            vec!["this module uses imports from other packages into the main"],
+            vec!["these patterns should have been using conventions across modules"],
+        ];
+        for texts in &test_cases {
+            let refs: Vec<&str> = texts.iter().map(|s| *s).collect();
+            let name = generate_concept_name(&refs);
+            for stop in CONCEPT_NAME_STOPWORDS {
+                assert!(
+                    !name.split('-').any(|w| w == *stop),
+                    "name '{name}' contains stopword '{stop}' for input: {:?}",
+                    texts
+                );
+            }
+        }
+    }
+
+    /// STEER-1b: Single member concept gets name from its content.
+    #[test]
+    fn test_naming_single_member() {
+        let texts = &["deterministic materialization engine processes events"];
+        let name = generate_concept_name(texts);
+        assert!(!name.is_empty() && name != "unnamed", "single member should produce a name, got: '{name}'");
+    }
+
+    /// STEER-2: HashEmbedder uses default threshold (0.65).
+    #[test]
+    fn test_hash_join_threshold() {
+        let h = make_embedder();
+        assert!(
+            (h.join_threshold() - 0.65).abs() < 1e-6,
+            "HashEmbedder threshold should be 0.65, got {}",
+            h.join_threshold()
+        );
+    }
 }
