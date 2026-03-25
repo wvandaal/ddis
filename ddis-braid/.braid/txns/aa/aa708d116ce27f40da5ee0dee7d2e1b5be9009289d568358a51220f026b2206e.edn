@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774456084/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: STEERING-LOOP EPIC: Fix the observe-respond-steer feedback loop — 5 interventions for DOGFOOD 7+/10"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "16574a72c8b7f2fbd53cadff9153f311ad52b83d60aab0661393ef50fd3e67b6" :a :db/ident :v :task/t-947817a0 :op :assert}
+   {:e #blake3 "16574a72c8b7f2fbd53cadff9153f311ad52b83d60aab0661393ef50fd3e67b6" :a :task/created-at :v 1774456083 :op :assert}
+   {:e #blake3 "16574a72c8b7f2fbd53cadff9153f311ad52b83d60aab0661393ef50fd3e67b6" :a :task/description :v "CONTEXT: DOGFOOD-3 scored 5.3/10. Model2vec now activates and concept assignment fires, but agents never SEE the results because -q suppresses them, concept names are garbage, and the threshold breaks when switching embedders. THE UNIFIED ROOT CAUSE: Braid is a functor from observations to steering actions. The functor is well-defined on objects (observations map to datoms correctly) but poorly defined on morphisms (responses don't steer effectively). FIVE INTERVENTIONS: (1) Fix concept naming — majority-keyword replaces TF-IDF. (2) Embedder-aware threshold — trait method, not global constant. (3) Observe response tiers — primary 3 lines always visible, secondary on --verbose. (4) Model download command. (5) Task archival. DEPENDENCY: Items 1-3 must precede DOGFOOD-4. Items 4-5 are independent. PREDICTED OUTCOME: DOGFOOD score 7+/10 after items 1-3." :op :assert}
+   {:e #blake3 "16574a72c8b7f2fbd53cadff9153f311ad52b83d60aab0661393ef50fd3e67b6" :a :task/id :v "t-947817a0" :op :assert}
+   {:e #blake3 "16574a72c8b7f2fbd53cadff9153f311ad52b83d60aab0661393ef50fd3e67b6" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "16574a72c8b7f2fbd53cadff9153f311ad52b83d60aab0661393ef50fd3e67b6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "16574a72c8b7f2fbd53cadff9153f311ad52b83d60aab0661393ef50fd3e67b6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "16574a72c8b7f2fbd53cadff9153f311ad52b83d60aab0661393ef50fd3e67b6" :a :task/title :v "STEERING-LOOP EPIC: Fix the observe-respond-steer feedback loop — 5 interventions for DOGFOOD 7+/10" :op :assert}
+   {:e #blake3 "16574a72c8b7f2fbd53cadff9153f311ad52b83d60aab0661393ef50fd3e67b6" :a :task/title-l0 :v "STEERING-LOOP EPIC" :op :assert}
+   {:e #blake3 "16574a72c8b7f2fbd53cadff9153f311ad52b83d60aab0661393ef50fd3e67b6" :a :task/title-l1 :v "STEERING-LOOP EPIC: Fix the observe-respond-steer feedback loop — 5 interve..." :op :assert}
+   {:e #blake3 "16574a72c8b7f2fbd53cadff9153f311ad52b83d60aab0661393ef50fd3e67b6" :a :task/traces-to :v #blake3 "589fdb406fb3444b1b798e294be1f59d8dca47e38465cb71b61f9c40f82899d2" :op :assert}
+   {:e #blake3 "16574a72c8b7f2fbd53cadff9153f311ad52b83d60aab0661393ef50fd3e67b6" :a :task/type :v :task.type/epic :op :assert}
+ ]}

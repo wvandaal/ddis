@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774456168/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: STEER-4: braid model download command with ureq HTTP client"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "24215d5dedde3e273ffb0a8d99f19a6a66ea9dfef123e65ffd79d84b73e61e01" :a :db/ident :v :task/t-0e3f5222 :op :assert}
+   {:e #blake3 "24215d5dedde3e273ffb0a8d99f19a6a66ea9dfef123e65ffd79d84b73e61e01" :a :task/created-at :v 1774456167 :op :assert}
+   {:e #blake3 "24215d5dedde3e273ffb0a8d99f19a6a66ea9dfef123e65ffd79d84b73e61e01" :a :task/description :v "CONTEXT: No download command exists. Users must manually curl from HuggingFace, know the path format, create directories. Violates zero-config onboarding principle. APPROACH: (1) Add ureq dependency to crates/braid/Cargo.toml (minimal HTTP client, ~200KB, no async runtime). (2) Add ModelAction::Download { model: String, path: PathBuf } variant. (3) Implementation: create ~/.braid/models/potion-base-8M/, download model.safetensors (~30MB) and tokenizer.json (~670KB) from HuggingFace URLs. Show progress (bytes downloaded / total). Verify: model > 1MB, tokenizer > 1KB. (4) URLs: https://huggingface.co/minishlab/potion-base-8M/resolve/main/model.safetensors and tokenizer.json. (5) Respect HTTPS_PROXY environment variable (ureq supports this). (6) Idempotent: re-download overwrites existing files. ACCEPTANCE: (A) braid model download creates files at expected path. (B) braid model status shows model2vec after download. (C) braid observe uses model2vec automatically after download. (D) Download works behind proxy. (E) Clear error message on network failure. DEPENDS-ON: nothing. FILE: crates/braid/Cargo.toml (ureq dep), crates/braid/src/commands/model.rs (Download variant + impl)" :op :assert}
+   {:e #blake3 "24215d5dedde3e273ffb0a8d99f19a6a66ea9dfef123e65ffd79d84b73e61e01" :a :task/id :v "t-0e3f5222" :op :assert}
+   {:e #blake3 "24215d5dedde3e273ffb0a8d99f19a6a66ea9dfef123e65ffd79d84b73e61e01" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "24215d5dedde3e273ffb0a8d99f19a6a66ea9dfef123e65ffd79d84b73e61e01" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "24215d5dedde3e273ffb0a8d99f19a6a66ea9dfef123e65ffd79d84b73e61e01" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "24215d5dedde3e273ffb0a8d99f19a6a66ea9dfef123e65ffd79d84b73e61e01" :a :task/title :v "STEER-4: braid model download command with ureq HTTP client" :op :assert}
+   {:e #blake3 "24215d5dedde3e273ffb0a8d99f19a6a66ea9dfef123e65ffd79d84b73e61e01" :a :task/title-l0 :v "STEER-4" :op :assert}
+   {:e #blake3 "24215d5dedde3e273ffb0a8d99f19a6a66ea9dfef123e65ffd79d84b73e61e01" :a :task/title-l1 :v "STEER-4: braid model download command with ureq HTTP client" :op :assert}
+   {:e #blake3 "24215d5dedde3e273ffb0a8d99f19a6a66ea9dfef123e65ffd79d84b73e61e01" :a :task/traces-to :v #blake3 "a6403572a61f6fccdc0a2acb15e36bed9d552cddc958920ba28ce5151b5c5b3c" :op :assert}
+   {:e #blake3 "24215d5dedde3e273ffb0a8d99f19a6a66ea9dfef123e65ffd79d84b73e61e01" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774456107/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: STEER-1: Replace TF-IDF concept naming with majority-keyword algorithm"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :db/ident :v :task/t-7d229ccc :op :assert}
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/created-at :v 1774456106 :op :assert}
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/description :v "CONTEXT: generate_concept_name produces 'concept-with-from', 'different-threshold-this' — function words that carry zero semantic information. Agents can't adopt braid's vocabulary if it's nonsense. This blocks the entire CCE steering loop. ROOT CAUSE: TF-IDF on small corpora (3-5 members) is degenerate. MIN_KEYWORD_LEN=4 in connections::tokenize admits 'with', 'from', 'this'. TF dominates over IDF for small N, selecting high-frequency function words. APPROACH: Replace generate_concept_name (concept.rs:966) with majority-keyword algorithm: (1) Filter candidates to words >= 6 chars (kills all function words). (2) Rank by document frequency within cluster — words appearing in the MOST member texts (not TF-IDF). (3) Take top 2 words appearing in >50% of members. Join with hyphen. (4) Fallback if no word qualifies: use the FIRST qualifying word from the longest member text. (5) Fallback if nothing: 'cluster-N' where N is based on entity count. WHY MAJORITY-KEYWORD > TF-IDF: Majority-keyword selects words that CHARACTERIZE the cluster (appear in most members). TF-IDF selects words that DISTINGUISH the cluster (rare globally but common locally). For naming, characterization is better — the name should say what the concept IS, not how it differs from other concepts. ACCEPTANCE: (A) For 5 observations about error handling patterns, name contains 'error' or 'handling'. (B) For 5 observations about event sourcing, name contains 'event' or 'sourcing'. (C) No function words (with, from, this, that, must, have, been) in any concept name. (D) All existing concept tests pass. FILE: crates/braid-kernel/src/concept.rs:966-1006" :op :assert}
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/id :v "t-7d229ccc" :op :assert}
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/title :v "STEER-1: Replace TF-IDF concept naming with majority-keyword algorithm" :op :assert}
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/title-l0 :v "STEER-1" :op :assert}
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/title-l1 :v "STEER-1: Replace TF-IDF concept naming with majority-keyword algorithm" :op :assert}
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/traces-to :v #blake3 "589fdb406fb3444b1b798e294be1f59d8dca47e38465cb71b61f9c40f82899d2" :op :assert}
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/type :v :task.type/task :op :assert}
+ ]}

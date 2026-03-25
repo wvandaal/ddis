@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774456185/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: STEER-5: Task archival command for backlog management"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6a5bc05c4564ea3c35cc6a5b5a020ab6687ce6185b0071831e997ac392356b04" :a :db/ident :v :task/t-601c4300 :op :assert}
+   {:e #blake3 "6a5bc05c4564ea3c35cc6a5b5a020ab6687ce6185b0071831e997ac392356b04" :a :task/created-at :v 1774456184 :op :assert}
+   {:e #blake3 "6a5bc05c4564ea3c35cc6a5b5a020ab6687ce6185b0071831e997ac392356b04" :a :task/description :v "CONTEXT: 317 ready tasks is unmanageable. R(t) ranking helps but volume obscures signal. Tasks accumulate from observe-crystallize-task and auto-task generation but are rarely pruned. APPROACH: (1) Add braid task archive command. Tasks older than N sessions (default 10) without any status change are moved to :task.status/archived. (2) Archived status is a new keyword value, not a deletion (C1 compliant). (3) braid task ready excludes archived tasks. braid task search includes them (with --archived flag). (4) braid task restore <id> moves archived tasks back to open. (5) braid task archive --dry-run shows what would be archived without acting. (6) The session count is determined by counting :harvest/session entities since the task's last :task/status change. ACCEPTANCE: (A) After archival, braid task ready shows <= 50 tasks. (B) Archived tasks findable via braid task search --archived. (C) braid task restore brings tasks back. (D) --dry-run shows preview. (E) No datoms deleted (C1). DEPENDS-ON: nothing. FILE: crates/braid/src/commands/task.rs, crates/braid-kernel/src/task.rs" :op :assert}
+   {:e #blake3 "6a5bc05c4564ea3c35cc6a5b5a020ab6687ce6185b0071831e997ac392356b04" :a :task/id :v "t-601c4300" :op :assert}
+   {:e #blake3 "6a5bc05c4564ea3c35cc6a5b5a020ab6687ce6185b0071831e997ac392356b04" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "6a5bc05c4564ea3c35cc6a5b5a020ab6687ce6185b0071831e997ac392356b04" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6a5bc05c4564ea3c35cc6a5b5a020ab6687ce6185b0071831e997ac392356b04" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6a5bc05c4564ea3c35cc6a5b5a020ab6687ce6185b0071831e997ac392356b04" :a :task/title :v "STEER-5: Task archival command for backlog management" :op :assert}
+   {:e #blake3 "6a5bc05c4564ea3c35cc6a5b5a020ab6687ce6185b0071831e997ac392356b04" :a :task/title-l0 :v "STEER-5" :op :assert}
+   {:e #blake3 "6a5bc05c4564ea3c35cc6a5b5a020ab6687ce6185b0071831e997ac392356b04" :a :task/title-l1 :v "STEER-5: Task archival command for backlog management" :op :assert}
+   {:e #blake3 "6a5bc05c4564ea3c35cc6a5b5a020ab6687ce6185b0071831e997ac392356b04" :a :task/traces-to :v #blake3 "e9e052cfbf85e1beb34a7bc3f1810b0631e66d42739db7dac011c53de1d20768" :op :assert}
+   {:e #blake3 "6a5bc05c4564ea3c35cc6a5b5a020ab6687ce6185b0071831e997ac392356b04" :a :task/type :v :task.type/task :op :assert}
+ ]}

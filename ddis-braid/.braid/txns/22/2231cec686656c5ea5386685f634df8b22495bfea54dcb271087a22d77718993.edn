@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774456042/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "STEERING-LOOP ITEM 4 — MODEL DOWNLOAD COMMAND: No braid model download command exists. Users must manually curl from HuggingFace, know the exact path format, and create directories. FIX: Add ModelAction::Download variant. Use ureq crate (minimal HTTP, no async runtime). Download model.safetensors + tokenizer.json from HuggingFace to ~/.braid/models/potion-base-8M/. Show progress. Verify file sizes. VERIFICATION: braid model download && braid model status shows model2vec active. INTERACTION: Independent of other items. Quality of life for onboarding."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6d171adc2716e318ee2378c4e45de58d94c6ccb200ea2ade4aacd23938ed71d4" :a :db/doc :v "STEERING-LOOP ITEM 4 — MODEL DOWNLOAD COMMAND: No braid model download command exists. Users must manually curl from HuggingFace, know the exact path format, and create directories. FIX: Add ModelAction::Download variant. Use ureq crate (minimal HTTP, no async runtime). Download model.safetensors + tokenizer.json from HuggingFace to ~/.braid/models/potion-base-8M/. Show progress. Verify file sizes. VERIFICATION: braid model download && braid model status shows model2vec active. INTERACTION: Independent of other items. Quality of life for onboarding." :op :assert}
+   {:e #blake3 "6d171adc2716e318ee2378c4e45de58d94c6ccb200ea2ade4aacd23938ed71d4" :a :db/ident :v :observation/steering-loop-item-4-model-download-command-no-braid-mode :op :assert}
+   {:e #blake3 "6d171adc2716e318ee2378c4e45de58d94c6ccb200ea2ade4aacd23938ed71d4" :a :exploration/body :v "STEERING-LOOP ITEM 4 — MODEL DOWNLOAD COMMAND: No braid model download command exists. Users must manually curl from HuggingFace, know the exact path format, and create directories. FIX: Add ModelAction::Download variant. Use ureq crate (minimal HTTP, no async runtime). Download model.safetensors + tokenizer.json from HuggingFace to ~/.braid/models/potion-base-8M/. Show progress. Verify file sizes. VERIFICATION: braid model download && braid model status shows model2vec active. INTERACTION: Independent of other items. Quality of life for onboarding." :op :assert}
+   {:e #blake3 "6d171adc2716e318ee2378c4e45de58d94c6ccb200ea2ade4aacd23938ed71d4" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "6d171adc2716e318ee2378c4e45de58d94c6ccb200ea2ade4aacd23938ed71d4" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "6d171adc2716e318ee2378c4e45de58d94c6ccb200ea2ade4aacd23938ed71d4" :a :exploration/content-hash :v #bytes "1f6c60837b50cf78868881ec4cb6575498d90b5833a502274615752e10bf040a" :op :assert}
+   {:e #blake3 "6d171adc2716e318ee2378c4e45de58d94c6ccb200ea2ade4aacd23938ed71d4" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "6d171adc2716e318ee2378c4e45de58d94c6ccb200ea2ade4aacd23938ed71d4" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "6d171adc2716e318ee2378c4e45de58d94c6ccb200ea2ade4aacd23938ed71d4" :a :exploration/source-session :v #blake3 "1fd704f31dfe995f81ddbf3250139e88153a2a510b0d4bffe294abddf858ff5e" :op :assert}
+   {:e #blake3 "bc58e9ac5bee6e5f6b7e7709353bb03c5007276c5557b9ce6a999ac530a890e7" :a :db/ident :v :task/t-4d155319 :op :assert}
+   {:e #blake3 "bc58e9ac5bee6e5f6b7e7709353bb03c5007276c5557b9ce6a999ac530a890e7" :a :task/body :v "STEERING-LOOP ITEM 4 — MODEL DOWNLOAD COMMAND: No braid model download command exists. Users must manually curl from HuggingFace, know the exact path format, and create directories. FIX: Add ModelAction::Download variant. Use ureq crate (minimal HTTP, no async runtime). Download model.safetensors + tokenizer.json from HuggingFace to ~/.braid/models/potion-base-8M/. Show progress. Verify file sizes. VERIFICATION: braid model download && braid model status shows model2vec active. INTERACTION: Independent of other items. Quality of life for onboarding." :op :assert}
+   {:e #blake3 "bc58e9ac5bee6e5f6b7e7709353bb03c5007276c5557b9ce6a999ac530a890e7" :a :task/created-at :v 1774456041 :op :assert}
+   {:e #blake3 "bc58e9ac5bee6e5f6b7e7709353bb03c5007276c5557b9ce6a999ac530a890e7" :a :task/id :v "t-4d155319" :op :assert}
+   {:e #blake3 "bc58e9ac5bee6e5f6b7e7709353bb03c5007276c5557b9ce6a999ac530a890e7" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "bc58e9ac5bee6e5f6b7e7709353bb03c5007276c5557b9ce6a999ac530a890e7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bc58e9ac5bee6e5f6b7e7709353bb03c5007276c5557b9ce6a999ac530a890e7" :a :task/title :v "STEERING-LOOP ITEM 4 — MODEL DOWNLOAD COMMAND: No braid model download" :op :assert}
+   {:e #blake3 "bc58e9ac5bee6e5f6b7e7709353bb03c5007276c5557b9ce6a999ac530a890e7" :a :task/type :v :task.type/task :op :assert}
+ ]}

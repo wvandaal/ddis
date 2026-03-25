@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774456145/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: STEER-3: Two-tier observe response — primary always visible, secondary on --verbose"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :db/ident :v :task/t-317725ba :op :assert}
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/created-at :v 1774456144 :op :assert}
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/description :v "CONTEXT: Agents use -q to suppress noise, which accidentally hides concept membership and steering questions. The entire CCE steering mechanism is invisible to agents who use -q. This is the highest-leverage single fix. ROOT CAUSE: The observe command pushes 10+ context blocks into responsive_parts. The -q flag was designed to suppress the methodology footer, but the primary response (concept + steering) is buried in the middle of output that gets suppressed. APPROACH: (1) Split responsive_parts into two tiers in observe.rs: PRIMARY (always emitted, even with -q): line 1 = 'observed: :observation/slug (+N datoms)', line 2 = concept membership (from steering.concept_line), line 3 = steering question (from steering.question). SECONDARY (only with --verbose or without -q): connections, topological events, crystallization feedback, spec-connection, reconciliation, hypothesis. (2) The -q flag behavior change: currently suppresses the guidance footer (methodology, harvest urgency, divergence). After this change: -q still suppresses the footer AND the secondary tier, but NEVER suppresses the primary tier. (3) The primary tier is always emitted as part of the main response content, not as a context block. ACCEPTANCE: (A) braid observe '...' -q shows exactly: observed line + concept line + steering question (3 lines max). (B) braid observe '...' without flags shows full output (current behavior preserved). (C) braid observe '...' --verbose shows everything including secondary. (D) All 302 CLI tests pass. (E) DOGFOOD agent using -q can see and respond to concept assignments. FILE: crates/braid/src/commands/observe.rs (restructure responsive_parts into tiers)" :op :assert}
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/id :v "t-317725ba" :op :assert}
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/title :v "STEER-3: Two-tier observe response — primary always visible, secondary on --verbose" :op :assert}
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/title-l0 :v "STEER-3" :op :assert}
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/title-l1 :v "STEER-3: Two-tier observe response — primary always visible, secondary on -..." :op :assert}
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/type :v :task.type/task :op :assert}
+ ]}

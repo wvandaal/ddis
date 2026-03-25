@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774456208/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: STEER-TEST: Paired tests for steering loop improvements + E2E natural-text validation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :db/ident :v :task/t-40e6f577 :op :assert}
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/created-at :v 1774456207 :op :assert}
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/description :v "CONTEXT: Tests for all STEER items plus a natural-text E2E that validates the complete steering loop with model2vec. UNIT TESTS (concept.rs): (1) test_naming_error_handling — 5 observations about error handling → name contains 'error' or 'handling', no function words. (2) test_naming_event_sourcing — 5 observations about events → name contains 'event'. (3) test_naming_no_function_words — for any concept name, none of [with, from, this, that, must, have, been, into, also, when] appear. (4) test_naming_single_member — 1 observation → name derived from longest word. (5) test_naming_empty — empty texts → 'unnamed'. UNIT TESTS (embedding.rs): (6) test_hash_join_threshold — HashEmbedder.join_threshold() == 0.65. (7) test_trait_default_threshold — default TextEmbedder::join_threshold() == 0.65. INTEGRATION (observe.rs): (8) test_observe_quiet_shows_concept — with -q flag, output still contains concept membership line. (9) test_observe_quiet_hides_connections — with -q flag, connection details not in output. E2E (scripts/e2e_steering_loop.sh — NEW): (10) Fresh init WITH model2vec → braid model status shows model2vec. (11) 5 natural-text observations about error handling → concept forms with intelligible name. (12) braid observe -q shows concept line in output (not suppressed). (13) braid status shows concept with member_count > 0 and meaningful name. (14) Steering question references concept name, not generic template. (15) After 10 diverse observations → 2+ emergent concepts with distinct names. (16) braid harvest → crystallized concepts reported. FAILURE DIAGNOSTICS: Log concept names, member counts, cosine values, steering question text, and full observe output for each assertion. DEPENDS-ON: STEER-1, STEER-2, STEER-3. FILE: concept.rs tests, embedding.rs tests, scripts/e2e_steering_loop.sh" :op :assert}
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/id :v "t-40e6f577" :op :assert}
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/title :v "STEER-TEST: Paired tests for steering loop improvements + E2E natural-text validation" :op :assert}
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/title-l0 :v "STEER-TEST" :op :assert}
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/title-l1 :v "STEER-TEST: Paired tests for steering loop improvements + E2E natural-text va..." :op :assert}
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/traces-to :v #blake3 "32f8bc2c2dd810119edd7aeb240621f4c1afb3bde2eafbb1f7fe814122bb4b35" :op :assert}
+   {:e #blake3 "3d5b8c29ba53f48dba433a6b651df15648eecc61c93b8bd54f393f7229621441" :a :task/type :v :task.type/task :op :assert}
+ ]}
