@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774454284/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-COMPLETENESS EPIC: Audit and migrate behavioral constants to learnable policy datoms (ADR-FOUNDATION-031)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "53246441669b830865b5b91103c91b49fe575ee515f37ce7a4e8bbe373a14716" :a :db/ident :v :task/t-03cc1d52 :op :assert}
+   {:e #blake3 "53246441669b830865b5b91103c91b49fe575ee515f37ce7a4e8bbe373a14716" :a :task/created-at :v 1774454283 :op :assert}
+   {:e #blake3 "53246441669b830865b5b91103c91b49fe575ee515f37ce7a4e8bbe373a14716" :a :task/description :v "CONTEXT: ADR-FOUNDATION-031 establishes that hard-coded behavioral constants violate C8 (substrate independence). The BoundaryRegistry weights prove the pattern works: datoms + calibration + CRDT merge. SCOPE: Full audit of all constants across braid-kernel and braid CLI. Classify into 3 categories: (1) Behavioral thresholds — SHOULD be datoms (harvest confidence floor 0.3, task reconciliation 0.7, harvest urgency 8, alert suppression, connection hub degree, budget limits). (2) Structural parameters — MAYBE datoms, lower priority (MIN_KEYWORD_LEN, max display counts, fade thresholds). (3) Algorithmic weights — SHOULD be datoms with calibration (routing coefficients, evidence weights, surprise alpha). PHASES: Phase 1 (audit): grep for const/static across codebase, classify each. Phase 2 (wire): add get_config reads with constant fallback for Category 1+3. Phase 3 (calibrate): wire feedback from hypothesis ledger to Category 3 weights. ESTIMATED: 2-3 sessions. NOT URGENT but architecturally important — the difference between a configurable tool and a self-tuning system. DEPENDS-ON: CALIBRATABLE-PARAMS (t-d72764a7) is the CCE-specific subset of this work." :op :assert}
+   {:e #blake3 "53246441669b830865b5b91103c91b49fe575ee515f37ce7a4e8bbe373a14716" :a :task/id :v "t-03cc1d52" :op :assert}
+   {:e #blake3 "53246441669b830865b5b91103c91b49fe575ee515f37ce7a4e8bbe373a14716" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "53246441669b830865b5b91103c91b49fe575ee515f37ce7a4e8bbe373a14716" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "53246441669b830865b5b91103c91b49fe575ee515f37ce7a4e8bbe373a14716" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "53246441669b830865b5b91103c91b49fe575ee515f37ce7a4e8bbe373a14716" :a :task/title :v "POLICY-COMPLETENESS EPIC: Audit and migrate behavioral constants to learnable policy datoms (ADR-FOUNDATION-031)" :op :assert}
+   {:e #blake3 "53246441669b830865b5b91103c91b49fe575ee515f37ce7a4e8bbe373a14716" :a :task/title-l0 :v "POLICY-COMPLETENESS EPIC" :op :assert}
+   {:e #blake3 "53246441669b830865b5b91103c91b49fe575ee515f37ce7a4e8bbe373a14716" :a :task/title-l1 :v "POLICY-COMPLETENESS EPIC: Audit and migrate behavioral constants to learnable..." :op :assert}
+   {:e #blake3 "53246441669b830865b5b91103c91b49fe575ee515f37ce7a4e8bbe373a14716" :a :task/traces-to :v #blake3 "5ee8f32d89f3ab426040c00c49df650205e9c498a13759b72b17fb01b167a80e" :op :assert}
+   {:e #blake3 "53246441669b830865b5b91103c91b49fe575ee515f37ce7a4e8bbe373a14716" :a :task/type :v :task.type/epic :op :assert}
+ ]}

@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774454267/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-031 \"Policy Completeness Principle\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "07392b68e12b96f8ad60cff3d8f2416e222b7d418eef43389d258d629d22ea69" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "07392b68e12b96f8ad60cff3d8f2416e222b7d418eef43389d258d629d22ea69" :a :db/doc :v "Policy Completeness Principle" :op :assert}
+   {:e #blake3 "07392b68e12b96f8ad60cff3d8f2416e222b7d418eef43389d258d629d22ea69" :a :db/ident :v :spec/adr-foundation-031 :op :assert}
+   {:e #blake3 "07392b68e12b96f8ad60cff3d8f2416e222b7d418eef43389d258d629d22ea69" :a :element/traces-to :v "C8" :op :assert}
+   {:e #blake3 "07392b68e12b96f8ad60cff3d8f2416e222b7d418eef43389d258d629d22ea69" :a :spec/confidence :v 0.85 :op :assert}
+   {:e #blake3 "07392b68e12b96f8ad60cff3d8f2416e222b7d418eef43389d258d629d22ea69" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "07392b68e12b96f8ad60cff3d8f2416e222b7d418eef43389d258d629d22ea69" :a :spec/id :v "ADR-FOUNDATION-031" :op :assert}
+   {:e #blake3 "07392b68e12b96f8ad60cff3d8f2416e222b7d418eef43389d258d629d22ea69" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "07392b68e12b96f8ad60cff3d8f2416e222b7d418eef43389d258d629d22ea69" :a :spec/statement :v "Every behavioral constant that governs system behavior is an implicit policy decision. Hard-coded constants that encode domain assumptions violate C8. Behavioral thresholds and algorithmic weights should be policy datoms with constant fallbacks, calibratable through the hypothesis ledger, transferable via CRDT merge." :op :assert}
+   {:e #blake3 "086f5dc01b175a1025f5314ade554281b7adc5abf3ac7b8ba0e534920104cf4f" :a :db/ident :v :task/t-9df08f11 :op :assert}
+   {:e #blake3 "086f5dc01b175a1025f5314ade554281b7adc5abf3ac7b8ba0e534920104cf4f" :a :task/created-at :v 1774454266 :op :assert}
+   {:e #blake3 "086f5dc01b175a1025f5314ade554281b7adc5abf3ac7b8ba0e534920104cf4f" :a :task/id :v "t-9df08f11" :op :assert}
+   {:e #blake3 "086f5dc01b175a1025f5314ade554281b7adc5abf3ac7b8ba0e534920104cf4f" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "086f5dc01b175a1025f5314ade554281b7adc5abf3ac7b8ba0e534920104cf4f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "086f5dc01b175a1025f5314ade554281b7adc5abf3ac7b8ba0e534920104cf4f" :a :task/title :v "Implement ADR-FOUNDATION-031: Policy Completeness Principle" :op :assert}
+   {:e #blake3 "086f5dc01b175a1025f5314ade554281b7adc5abf3ac7b8ba0e534920104cf4f" :a :task/traces-to :v #blake3 "07392b68e12b96f8ad60cff3d8f2416e222b7d418eef43389d258d629d22ea69" :op :assert}
+   {:e #blake3 "086f5dc01b175a1025f5314ade554281b7adc5abf3ac7b8ba0e534920104cf4f" :a :task/type :v :task.type/task :op :assert}
+ ]}
