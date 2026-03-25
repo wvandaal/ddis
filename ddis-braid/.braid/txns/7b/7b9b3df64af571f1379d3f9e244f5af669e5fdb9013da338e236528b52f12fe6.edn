@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774457421/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7d229ccc"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/close-reason :v "REVISED: >= 6 char filter too aggressive (kills 'error', 'event', 'model'). Replaced by STEER-1b with stopword approach." :op :assert}
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/closed-at :v 1774457420 :op :assert}
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "22f3be1e83305f735242997b1a7fea8bda7a94cccf96fb572ae2fe3e51081f3e" :a :task/status :v :task.status/closed :op :assert}
+ ]}

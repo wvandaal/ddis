@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774457327/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-317725ba"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/close-reason :v "WITHDRAWN: The original diagnosis was wrong. -q does NOT suppress concept/steering lines — they are visible. Replaced by revised STEER-3b with correct diagnosis: header confusion, noise lines, stale member count display." :op :assert}
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/closed-at :v 1774457326 :op :assert}
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "aebeaf5ecb4c7636f36f55641a392b65c72cdaf9878ffb75d994af24cb30ee2f" :a :task/status :v :task.status/closed :op :assert}
+ ]}

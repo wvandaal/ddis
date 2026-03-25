@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774457446/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: STEER-1b: Majority-keyword concept naming with stopword filter"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :db/ident :v :task/t-ee9ed3da :op :assert}
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/created-at :v 1774457445 :op :assert}
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/description :v "CONTEXT: generate_concept_name produces garbage names ('concept-with-from', 'different-threshold-this') because TF-IDF on small corpora selects function words. This blocks CCE steering — agents can't adopt nonsense vocabulary. APPROACH: Replace TF-IDF with majority-keyword + stopword filter: (1) Add CONCEPT_NAME_STOPWORDS const array to concept.rs: ['from', 'with', 'this', 'that', 'must', 'have', 'been', 'into', 'also', 'when', 'what', 'were', 'does', 'more', 'some', 'about', 'which', 'their', 'would', 'could', 'should', 'these', 'those', 'there', 'being', 'where', 'after', 'other', 'using', 'every', 'still', 'concept']. (2) In generate_concept_name, after tokenizing each member text, filter out stopwords. (3) Rank remaining words by DOCUMENT FREQUENCY within the cluster (how many members contain the word), not by TF-IDF. Words appearing in the most member texts are the most characteristic. (4) Take top 2 words with DF > 50% of members. Join with hyphen. (5) If only 1 word qualifies, use just that word. (6) Fallback if no word has DF > 50%: take the single highest-DF word regardless of threshold. (7) Fallback if no words at all: 'unnamed'. WHY DF > TF-IDF: TF-IDF selects DISTINCTIVE words (rare globally, common locally). DF selects CHARACTERISTIC words (common within the cluster). For naming, characterization beats distinction — the name should say what the concept IS. ACCEPTANCE: (A) 3 observations about 'error handling in cascade/storage/events' → name contains 'error' or 'handling'. (B) 3 observations about 'event sourcing pipeline fold replay' → name contains 'event' or 'sourcing' or 'pipeline'. (C) No stopword appears in any concept name. (D) Single-member concept gets name from its longest non-stopword. (E) All 60 existing concept tests pass. (F) New test: 10 pairs of (input texts, expected name keyword). FILE: crates/braid-kernel/src/concept.rs:966-1006" :op :assert}
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/id :v "t-ee9ed3da" :op :assert}
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/title :v "STEER-1b: Majority-keyword concept naming with stopword filter" :op :assert}
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/title-l0 :v "STEER-1b" :op :assert}
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/title-l1 :v "STEER-1b: Majority-keyword concept naming with stopword filter" :op :assert}
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/traces-to :v #blake3 "589fdb406fb3444b1b798e294be1f59d8dca47e38465cb71b61f9c40f82899d2" :op :assert}
+   {:e #blake3 "41ccfc58eec6b99f55594bdec4b2960e31b1796f788020a754b87b5e0afe105e" :a :task/type :v :task.type/task :op :assert}
+ ]}

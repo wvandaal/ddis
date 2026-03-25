@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774457363/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: STEER-3b: Clean observe response — remove noise lines, fix header, show accurate member count"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :db/ident :v :task/t-a9ba17df :op :assert}
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/created-at :v 1774457362 :op :assert}
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/description :v "CONTEXT: STEER-3 was based on a wrong diagnosis (-q doesn't suppress concept lines). The REAL observe response problems are: (1) HEADER says 'braid status — check store state after observation' when user ran 'braid observe'. This is confusing — it implies status is running, not observe. The header should say 'observed: ...' directly. (2) NOISE LINE: 'Δ-cryst: -0.1 (unanchored — no spec connection)' appears on EVERY observation and is never actionable. Most observations don't reference spec elements. This line should only appear when crystallization score is notably positive (>0.5) or on --verbose. (3) NOISE LINE: 'details: braid query --entity :observation/...' is a hint for power users but adds a line of clutter to every response. Move to --verbose. (4) STALE MEMBER COUNT: The concept line says 'concept:X (0 members)' even immediately after LIFECYCLE-OBSERVE writes the updated count, because the observe response reads the count BEFORE the CCE follow-up transaction is committed. FIX: Read the member count AFTER the CCE transaction, or compute it as old_count+1 for display. APPROACH: (1) Change the observe command's header line from the generic 'braid status — check store state after observation' to just the observed entity line. (2) Suppress Δ-cryst line when score <= 0 (which is the common case for non-spec observations). (3) Move 'details:' line to --verbose only. (4) In the concept membership line, use the post-update member count: if we just joined, display old_count+1 rather than old_count. ACCEPTANCE: (A) Observe output for a concept-matching observation is 3-4 lines: observed line, concept line with correct count, steering question, optional connection. (B) No 'braid status' in header. (C) No Δ-cryst for non-spec observations. (D) No 'details:' line in default mode. (E) All existing tests pass. FILE: crates/braid/src/commands/observe.rs" :op :assert}
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/id :v "t-a9ba17df" :op :assert}
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/title :v "STEER-3b: Clean observe response — remove noise lines, fix header, show accurate member count" :op :assert}
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/title-l0 :v "STEER-3b" :op :assert}
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/title-l1 :v "STEER-3b: Clean observe response — remove noise lines, fix header, show acc..." :op :assert}
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "1b81458d686ae39058ac10d906396e152b60f948039706e80ae6dc1bdd908f4a" :a :task/type :v :task.type/task :op :assert}
+ ]}
