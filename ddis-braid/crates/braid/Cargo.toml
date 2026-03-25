@@ -10,6 +10,7 @@ stage0 = ["braid-kernel/stage0"]
 stage1 = ["stage0", "braid-kernel/stage1"]
 stage2 = ["stage1", "braid-kernel/stage2"]
 stage3 = ["stage2", "braid-kernel/stage3"]
+embeddings = ["braid-kernel/embeddings"]
 
 [dependencies]
 braid-kernel = { path = "../braid-kernel" }

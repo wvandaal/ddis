@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774414950/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f9dfbcdc"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "75767c1a40dfadf695086bbf0fb995483f9241a7643ccdc82cd53485bb6d5cf5" :a :task/close-reason :v "Implemented: concept.rs (ConceptSummary, agglomerative clustering, TF-IDF names, centroid update, concept_to_datoms, membership_datoms), 7 schema attrs, 13 tests, all acceptance criteria met" :op :assert}
+   {:e #blake3 "75767c1a40dfadf695086bbf0fb995483f9241a7643ccdc82cd53485bb6d5cf5" :a :task/closed-at :v 1774414949 :op :assert}
+   {:e #blake3 "75767c1a40dfadf695086bbf0fb995483f9241a7643ccdc82cd53485bb6d5cf5" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "75767c1a40dfadf695086bbf0fb995483f9241a7643ccdc82cd53485bb6d5cf5" :a :task/status :v :task.status/closed :op :assert}
+ ]}

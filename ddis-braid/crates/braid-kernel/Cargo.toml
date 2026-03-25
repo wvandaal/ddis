@@ -13,12 +13,15 @@ stage0 = []
 stage1 = ["stage0"]
 stage2 = ["stage1"]
 stage3 = ["stage2"]
+embeddings = ["dep:safetensors", "dep:tokenizers"]
 
 [dependencies]
 blake3 = { workspace = true }
 ordered-float = { workspace = true, features = ["serde"] }
+safetensors = { version = "0.7", optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+tokenizers = { version = "0.22", default-features = false, features = ["fancy-regex"], optional = true }
 
 [dev-dependencies]
 proptest = { workspace = true }

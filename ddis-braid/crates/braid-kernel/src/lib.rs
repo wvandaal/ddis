@@ -32,11 +32,13 @@ pub mod budget;
 pub mod census;
 pub mod coherence;
 pub mod compiler;
+pub mod concept;
 pub mod connections;
 pub mod config;
 pub mod context;
 pub mod datom;
 pub mod deliberation;
+pub mod embedding;
 pub mod error;
 pub mod guidance;
 pub mod harvest;
@@ -99,6 +101,14 @@ pub use compiler::{
     extract_test_property, summarize_patterns, InvariantPattern, PatternMatch, PatternSummary,
     TestProperty,
 };
+pub use concept::{
+    assign_to_concept, concept_inventory, concept_to_datoms, crystallize_concepts,
+    entity_auto_link, find_nearest_concept, innate_concept_datoms, is_innate, membership_datoms,
+    mention_datoms, should_merge, should_split, surprise_weight, update_centroid,
+    update_centroid_weighted, ConceptAssignment, ConceptSummary, EntityMatch, NewConcept,
+    DEFAULT_ALPHA, INNATE_CONCEPTS, JOIN_THRESHOLD, MERGE_THRESHOLD, MIN_CLUSTER_SIZE,
+    SPLIT_THRESHOLD,
+};
 pub use config::{
     all_config, defaults as config_defaults, get_config, get_config_or, set_config_datoms,
 };
@@ -107,6 +117,12 @@ pub use connections::{
     shared_keywords, tokenize, ConnectionSummary, ProposedConnection,
 };
 pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
+#[cfg(feature = "embeddings")]
+pub use embedding::Embedder;
+pub use embedding::{
+    bytes_to_embedding, centroid, cosine_similarity, embedding_to_bytes, variance,
+    EmbeddingError, HashEmbedder, TextEmbedder, DEFAULT_DIM,
+};
 pub use deliberation::{
     add_position, check_stability, coherence_violation_to_deliberation, decide, find_precedent,
     open_deliberation, DecisionMethod, DeliberationStatus, StabilityScore,

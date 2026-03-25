@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774415514/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-59f58258"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aad348857305aefe5618a79ee7e1d26fbfd9c30ad13ae652507080a6d85ba4ab" :a :task/close-reason :v "Implemented: surprise_weight(), update_centroid_weighted(), :exploration/surprise + :concept/total-weight schema, ConceptAssignment.surprise field, 4 new tests (17 total concept tests)" :op :assert}
+   {:e #blake3 "aad348857305aefe5618a79ee7e1d26fbfd9c30ad13ae652507080a6d85ba4ab" :a :task/closed-at :v 1774415513 :op :assert}
+   {:e #blake3 "aad348857305aefe5618a79ee7e1d26fbfd9c30ad13ae652507080a6d85ba4ab" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "aad348857305aefe5618a79ee7e1d26fbfd9c30ad13ae652507080a6d85ba4ab" :a :task/status :v :task.status/closed :op :assert}
+ ]}

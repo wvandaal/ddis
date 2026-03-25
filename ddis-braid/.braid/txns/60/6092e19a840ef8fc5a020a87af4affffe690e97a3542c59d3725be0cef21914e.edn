@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774416041/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-73d4a210"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7866b48b42c44c4b1421f763dd2b64f0a1fdfeb6c890a66cc8d8cdb3c3053537" :a :task/close-reason :v "Implemented: INNATE_CONCEPTS (5 universal schemas), innate_concept_datoms(), is_innate(), :concept/innate schema attr, 6 new tests (23 total)" :op :assert}
+   {:e #blake3 "7866b48b42c44c4b1421f763dd2b64f0a1fdfeb6c890a66cc8d8cdb3c3053537" :a :task/closed-at :v 1774416040 :op :assert}
+   {:e #blake3 "7866b48b42c44c4b1421f763dd2b64f0a1fdfeb6c890a66cc8d8cdb3c3053537" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "7866b48b42c44c4b1421f763dd2b64f0a1fdfeb6c890a66cc8d8cdb3c3053537" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1754,7 +1754,7 @@ pub fn layer_3_count() -> usize {
     layer_3_attributes().len()
 }
 
-/// The 36 Layer 3 (Discovery/Exploration/Proposal/Branch) attributes.
+/// The 48 Layer 3 (Discovery/Exploration/Concept/Proposal/Branch) attributes.
 ///
 /// These capture the lifecycle of exploratory knowledge — from initial
 /// discovery through promotion to formal specification elements. They enable
@@ -1773,7 +1773,7 @@ pub fn layer_3_count() -> usize {
 pub fn layer_3_attributes() -> Vec<AttributeSpec> {
     vec![
         // =================================================================
-        // Exploration Identity Attributes (8) — where knowledge came from
+        // Exploration Identity Attributes (9) — where knowledge came from
         // =================================================================
         attr_unique(
             ":exploration/id",
@@ -1829,6 +1829,12 @@ pub fn layer_3_attributes() -> Vec<AttributeSpec> {
             ValueType::Bytes,
             Cardinality::One,
             "BLAKE3 hash of :exploration/body for cross-session dedup (INV-HARVEST-006)",
+        ),
+        attr(
+            ":exploration/embedding",
+            ValueType::Bytes,
+            Cardinality::One,
+            "Semantic embedding vector (256 f32 = 1024 bytes, little-endian). Produced by model2vec or hash embedder (OBSERVER-6, CCE-1).",
         ),
         // =================================================================
         // Promotion Lifecycle Attributes (7) — store-first pipeline
@@ -1907,6 +1913,75 @@ pub fn layer_3_attributes() -> Vec<AttributeSpec> {
             ValueType::String,
             Cardinality::One,
             "Evidence supporting this exploration entity (proof sketch, test results, etc.)",
+        ),
+        attr_multi(
+            ":exploration/concept",
+            ValueType::Ref,
+            Cardinality::Many,
+            "Reference to concept entity this observation belongs to (OBSERVER-6, CCE-2).",
+        ),
+        attr(
+            ":exploration/surprise",
+            ValueType::Double,
+            Cardinality::One,
+            "Cosine distance to concept centroid at join time: 1.0 - similarity. Range [0.0, 1.0] (CCE-2b).",
+        ),
+        attr_multi(
+            ":exploration/mentions-entity",
+            ValueType::Ref,
+            Cardinality::Many,
+            "Auto-linked entity references detected in observation text (CCE-4). Word-boundary matching against known :pkg/*, :spec/*, :concept/* entities.",
+        ),
+        // =================================================================
+        // Concept Attributes (7) — emergent ontology entities (CCE-2, CCE-2b)
+        // =================================================================
+        attr(
+            ":concept/name",
+            ValueType::String,
+            Cardinality::One,
+            "Human-readable concept name (top TF-IDF keywords from member observations).",
+        ),
+        attr(
+            ":concept/description",
+            ValueType::String,
+            Cardinality::One,
+            "Concept description: '{N} observations about {keywords} across {entities}'.",
+        ),
+        attr(
+            ":concept/embedding",
+            ValueType::Bytes,
+            Cardinality::One,
+            "Concept centroid embedding (256 f32 = 1024 bytes, little-endian). Updated on membership change.",
+        ),
+        attr(
+            ":concept/member-count",
+            ValueType::Long,
+            Cardinality::One,
+            "Number of observations assigned to this concept.",
+        ),
+        attr(
+            ":concept/created-at",
+            ValueType::Long,
+            Cardinality::One,
+            "Unix timestamp when this concept was first crystallized.",
+        ),
+        attr(
+            ":concept/variance",
+            ValueType::Bytes,
+            Cardinality::One,
+            "Intra-cluster variance as f64 bytes (8 bytes). Measures concept coherence.",
+        ),
+        attr(
+            ":concept/total-weight",
+            ValueType::Double,
+            Cardinality::One,
+            "Sum of surprise-weighted member weights: sum(1.0 + ALPHA * surprise_i) (CCE-2b).",
+        ),
+        attr(
+            ":concept/innate",
+            ValueType::Boolean,
+            Cardinality::One,
+            "True for innate (Piagetian) concepts seeded at init. Used to filter display after emergent concepts form (CCE-3).",
         ),
         // =================================================================
         // Proposal Lifecycle Attributes (10) — spec proposal review workflow
@@ -3743,6 +3818,7 @@ mod tests {
             (":exploration/title", ValueType::String),
             (":exploration/tags", ValueType::Keyword),
             (":exploration/content-hash", ValueType::Bytes),
+            (":exploration/embedding", ValueType::Bytes),
             (":promotion/status", ValueType::Keyword),
             (":promotion/target-element", ValueType::String),
             (":promotion/target-namespace", ValueType::Keyword),
@@ -3755,6 +3831,17 @@ mod tests {
             (":exploration/related-spec", ValueType::Ref),
             (":exploration/source-session", ValueType::Ref),
             (":exploration/evidence", ValueType::String),
+            (":exploration/concept", ValueType::Ref),
+            (":exploration/surprise", ValueType::Double),
+            (":exploration/mentions-entity", ValueType::Ref),
+            (":concept/name", ValueType::String),
+            (":concept/description", ValueType::String),
+            (":concept/embedding", ValueType::Bytes),
+            (":concept/member-count", ValueType::Long),
+            (":concept/created-at", ValueType::Long),
+            (":concept/variance", ValueType::Bytes),
+            (":concept/total-weight", ValueType::Double),
+            (":concept/innate", ValueType::Boolean),
         ];
 
         for (ident_str, expected_type) in cases {

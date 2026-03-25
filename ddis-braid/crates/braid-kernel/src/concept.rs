@@ -1,0 +1,1268 @@
+//! Concept crystallization engine (OBSERVER-6: ontology discovery).
+//!
+//! Concepts are first-class entities representing emergent clusters of meaning.
+//! They solve the synonym problem (two tags for the same pattern detected via
+//! embedding proximity), improve connection quality (shared concept = connection),
+//! and enable agent handoff (seed transmits concepts, not raw observations).
+//!
+//! # Algorithm
+//!
+//! 1. Each observation gets an embedding (from [`crate::embedding`]).
+//! 2. `assign_to_concept` finds the nearest existing concept by cosine similarity.
+//!    If similarity > `JOIN_THRESHOLD`, the observation joins that concept.
+//! 3. Uncategorized observations accumulate. At harvest time, `crystallize_concepts`
+//!    runs agglomerative clustering on the uncategorized set to form new concepts
+//!    (minimum 3 members).
+//! 4. Concept centroids update incrementally: O(dim) per observation join.
+//! 5. `should_split` / `should_merge` detect when concepts need restructuring.
+//!
+//! # Design Decisions
+//!
+//! - ADR-FOUNDATION-014: Convergence Thesis — concepts close the ontology loop.
+//! - C8: Substrate-independent — works for any domain, not just software.
+//! - Pure computation: takes `&Store` and embeddings, returns datom instructions.
+
+use std::collections::{BTreeMap, HashMap, HashSet};
+
+use crate::datom::{Attribute, EntityId, Op, Value};
+use crate::embedding::{bytes_to_embedding, cosine_similarity, embedding_to_bytes};
+use crate::store::Store;
+
+/// Default cosine similarity threshold for joining an existing concept.
+/// Tunable via policy manifest `:policy/concept-join-threshold`.
+pub const JOIN_THRESHOLD: f32 = 0.65;
+
+/// Minimum number of uncategorized observations to form a new concept.
+pub const MIN_CLUSTER_SIZE: usize = 3;
+
+/// Variance threshold above which a concept should be split.
+pub const SPLIT_THRESHOLD: f64 = 0.5;
+
+/// Cosine threshold above which two concepts should be merged.
+pub const MERGE_THRESHOLD: f32 = 0.85;
+
+/// Default surprise amplification factor.
+/// weight_i = 1.0 + ALPHA * surprise_i. Tunable via `:policy/surprise-alpha`.
+pub const DEFAULT_ALPHA: f32 = 2.0;
+
+/// Summary of a concept entity read from the store.
+#[derive(Debug, Clone)]
+pub struct ConceptSummary {
+    /// The concept's entity ID.
+    pub entity: EntityId,
+    /// Human-readable name (top TF-IDF keywords).
+    pub name: String,
+    /// Description template.
+    pub description: String,
+    /// Number of member observations.
+    pub member_count: usize,
+    /// Centroid embedding vector (if present).
+    pub embedding: Option<Vec<f32>>,
+    /// Intra-cluster variance.
+    pub variance: f64,
+    /// Sum of surprise-weighted member weights (CCE-2b).
+    pub total_weight: f64,
+}
+
+/// Result of assigning an observation to a concept.
+#[derive(Debug, Clone)]
+pub enum ConceptAssignment {
+    /// Observation joined an existing concept with this similarity.
+    Joined {
+        /// The concept entity.
+        concept: EntityId,
+        /// Cosine similarity to the concept centroid.
+        similarity: f32,
+        /// Surprise = 1.0 - similarity. Range [0.0, 1.0].
+        surprise: f32,
+    },
+    /// Observation did not match any existing concept.
+    Uncategorized,
+}
+
+/// A new concept produced by crystallization.
+#[derive(Debug, Clone)]
+pub struct NewConcept {
+    /// Entity ID for the new concept.
+    pub entity: EntityId,
+    /// Human-readable name.
+    pub name: String,
+    /// Description.
+    pub description: String,
+    /// Centroid embedding.
+    pub centroid: Vec<f32>,
+    /// Member observation entity IDs.
+    pub members: Vec<EntityId>,
+    /// Intra-cluster variance.
+    pub variance: f64,
+    /// Sum of surprise-weighted member weights (CCE-2b).
+    pub total_weight: f64,
+}
+
+/// Find the nearest concept to the given embedding vector.
+///
+/// Scans all concept entities in the store, computes cosine similarity
+/// against their centroids, and returns the best match.
+/// Returns `None` if no concepts exist in the store.
+pub fn find_nearest_concept(store: &Store, embedding: &[f32]) -> Option<(EntityId, f32)> {
+    let concept_attr = Attribute::from_keyword(":concept/embedding");
+    let mut best: Option<(EntityId, f32)> = None;
+
+    for d in store.datoms() {
+        if d.op != Op::Assert || d.attribute != concept_attr {
+            continue;
+        }
+        if let Value::Bytes(ref bytes) = d.value {
+            let concept_emb = bytes_to_embedding(bytes);
+            if concept_emb.len() == embedding.len() {
+                let sim = cosine_similarity(&concept_emb, embedding);
+                if best.is_none() || sim > best.unwrap().1 {
+                    best = Some((d.entity, sim));
+                }
+            }
+        }
+    }
+
+    best
+}
+
+/// Assign an observation to the nearest concept or mark as uncategorized.
+///
+/// If the nearest concept has cosine similarity >= `threshold`, the observation
+/// joins that concept. Otherwise returns `Uncategorized`.
+pub fn assign_to_concept(
+    store: &Store,
+    observation_embedding: &[f32],
+    threshold: f32,
+) -> ConceptAssignment {
+    match find_nearest_concept(store, observation_embedding) {
+        Some((concept, similarity)) if similarity >= threshold => ConceptAssignment::Joined {
+            concept,
+            similarity,
+            surprise: 1.0 - similarity,
+        },
+        _ => ConceptAssignment::Uncategorized,
+    }
+}
+
+/// Crystallize new concepts from uncategorized observations.
+///
+/// Uses agglomerative clustering: repeatedly merge the two closest observations
+/// until no pair has cosine similarity above `JOIN_THRESHOLD`. Clusters with
+/// at least `MIN_CLUSTER_SIZE` members become new concepts.
+///
+/// Each observation is represented as `(EntityId, embedding, body_text)`.
+pub fn crystallize_concepts(
+    observations: &[(EntityId, Vec<f32>, String)],
+    threshold: f32,
+    min_size: usize,
+) -> Vec<NewConcept> {
+    if observations.len() < min_size {
+        return Vec::new();
+    }
+
+    // Initialize: each observation is its own cluster.
+    let mut clusters: Vec<Vec<usize>> = (0..observations.len()).map(|i| vec![i]).collect();
+    let mut centroids: Vec<Vec<f32>> = observations.iter().map(|(_, e, _)| e.clone()).collect();
+
+    // Agglomerative merge loop.
+    loop {
+        if clusters.len() < 2 {
+            break;
+        }
+
+        // Find the closest pair of clusters.
+        let mut best_sim = f32::NEG_INFINITY;
+        let mut best_i = 0;
+        let mut best_j = 1;
+
+        for i in 0..clusters.len() {
+            for j in (i + 1)..clusters.len() {
+                let sim = cosine_similarity(&centroids[i], &centroids[j]);
+                if sim > best_sim {
+                    best_sim = sim;
+                    best_i = i;
+                    best_j = j;
+                }
+            }
+        }
+
+        if best_sim < threshold {
+            break;
+        }
+
+        // Merge cluster j into cluster i.
+        let cluster_j = clusters.remove(best_j);
+        let centroid_j = centroids.remove(best_j);
+        let n_i = clusters[best_i].len() as f32;
+        let n_j = cluster_j.len() as f32;
+        let total = n_i + n_j;
+
+        // Update centroid: weighted average.
+        for (k, v) in centroids[best_i].iter_mut().enumerate() {
+            *v = (*v * n_i + centroid_j[k] * n_j) / total;
+        }
+        clusters[best_i].extend(cluster_j);
+    }
+
+    // Convert qualifying clusters to NewConcept.
+    clusters
+        .into_iter()
+        .zip(centroids)
+        .filter(|(cluster, _)| cluster.len() >= min_size)
+        .map(|(cluster, cent)| {
+            let members: Vec<EntityId> = cluster.iter().map(|&i| observations[i].0).collect();
+            let member_texts: Vec<&str> = cluster
+                .iter()
+                .map(|&i| observations[i].2.as_str())
+                .collect();
+            let member_embeddings: Vec<&[f32]> = cluster
+                .iter()
+                .map(|&i| observations[i].1.as_slice())
+                .collect();
+
+            let name = generate_concept_name(&member_texts);
+            let description = format!("{} observations about {}", members.len(), name);
+
+            let var = crate::embedding::variance(&member_embeddings, &cent);
+
+            // Entity ID from concept name content.
+            let entity = EntityId::from_content(format!("concept:{name}").as_bytes());
+
+            // Initial cluster: all members get weight 1.0 (no surprise data yet).
+            let total_weight = members.len() as f64;
+
+            NewConcept {
+                entity,
+                name,
+                description,
+                centroid: cent,
+                members,
+                variance: var as f64,
+                total_weight,
+            }
+        })
+        .collect()
+}
+
+/// List all concepts in the store, sorted by member count descending.
+pub fn concept_inventory(store: &Store) -> Vec<ConceptSummary> {
+    let name_attr = Attribute::from_keyword(":concept/name");
+    let desc_attr = Attribute::from_keyword(":concept/description");
+    let emb_attr = Attribute::from_keyword(":concept/embedding");
+    let count_attr = Attribute::from_keyword(":concept/member-count");
+    let var_attr = Attribute::from_keyword(":concept/variance");
+    let weight_attr = Attribute::from_keyword(":concept/total-weight");
+
+    // Collect concept entities: any entity with :concept/name.
+    let mut concepts: BTreeMap<EntityId, ConceptSummary> = BTreeMap::new();
+
+    for d in store.datoms() {
+        if d.op != Op::Assert {
+            continue;
+        }
+        if d.attribute == name_attr {
+            if let Value::String(ref s) = d.value {
+                concepts
+                    .entry(d.entity)
+                    .or_insert_with(|| ConceptSummary {
+                        entity: d.entity,
+                        name: String::new(),
+                        description: String::new(),
+                        member_count: 0,
+                        embedding: None,
+                        variance: 0.0,
+                        total_weight: 0.0,
+                    })
+                    .name = s.clone();
+            }
+        }
+    }
+
+    // Fill in remaining attributes.
+    for d in store.datoms() {
+        if d.op != Op::Assert {
+            continue;
+        }
+        if let Some(cs) = concepts.get_mut(&d.entity) {
+            if d.attribute == desc_attr {
+                if let Value::String(ref s) = d.value {
+                    cs.description = s.clone();
+                }
+            } else if d.attribute == emb_attr {
+                if let Value::Bytes(ref b) = d.value {
+                    cs.embedding = Some(bytes_to_embedding(b));
+                }
+            } else if d.attribute == count_attr {
+                if let Value::Long(n) = d.value {
+                    cs.member_count = n as usize;
+                }
+            } else if d.attribute == var_attr {
+                if let Value::Bytes(ref b) = d.value {
+                    if b.len() == 8 {
+                        cs.variance =
+                            f64::from_le_bytes([b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]]);
+                    }
+                }
+            } else if d.attribute == weight_attr {
+                if let Value::Double(w) = d.value {
+                    cs.total_weight = w.into_inner();
+                }
+            }
+        }
+    }
+
+    let mut result: Vec<ConceptSummary> = concepts.into_values().collect();
+    result.sort_by_key(|c| std::cmp::Reverse(c.member_count));
+    result
+}
+
+/// Check if a concept should be split (high internal variance).
+pub fn should_split(variance: f64) -> bool {
+    variance > SPLIT_THRESHOLD
+}
+
+/// Check if two concepts should be merged (highly similar centroids).
+pub fn should_merge(centroid_a: &[f32], centroid_b: &[f32]) -> bool {
+    cosine_similarity(centroid_a, centroid_b) > MERGE_THRESHOLD
+}
+
+/// Generate datoms for a new concept entity.
+///
+/// Returns datoms that the caller should transact into the store.
+pub fn concept_to_datoms(
+    concept: &NewConcept,
+    timestamp: i64,
+) -> Vec<(EntityId, Attribute, Value)> {
+    let e = concept.entity;
+    vec![
+        (
+            e,
+            Attribute::from_keyword(":concept/name"),
+            Value::String(concept.name.clone()),
+        ),
+        (
+            e,
+            Attribute::from_keyword(":concept/description"),
+            Value::String(concept.description.clone()),
+        ),
+        (
+            e,
+            Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(embedding_to_bytes(&concept.centroid)),
+        ),
+        (
+            e,
+            Attribute::from_keyword(":concept/member-count"),
+            Value::Long(concept.members.len() as i64),
+        ),
+        (
+            e,
+            Attribute::from_keyword(":concept/created-at"),
+            Value::Long(timestamp),
+        ),
+        (
+            e,
+            Attribute::from_keyword(":concept/variance"),
+            Value::Bytes(concept.variance.to_le_bytes().to_vec()),
+        ),
+        (
+            e,
+            Attribute::from_keyword(":concept/total-weight"),
+            Value::Double(ordered_float::OrderedFloat(concept.total_weight)),
+        ),
+    ]
+}
+
+/// Generate datoms linking observations to their concept.
+///
+/// Returns `(:exploration/concept, Ref)` datoms for each member.
+pub fn membership_datoms(
+    concept_entity: EntityId,
+    members: &[EntityId],
+) -> Vec<(EntityId, Attribute, Value)> {
+    let attr = Attribute::from_keyword(":exploration/concept");
+    members
+        .iter()
+        .map(|&member| (member, attr.clone(), Value::Ref(concept_entity)))
+        .collect()
+}
+
+/// Update a concept's centroid after a new observation joins.
+///
+/// new_centroid = (old_centroid * (n-1) + new_embedding) / n
+/// Returns the new centroid vector.
+pub fn update_centroid(old_centroid: &[f32], old_count: usize, new_embedding: &[f32]) -> Vec<f32> {
+    let n = old_count as f32;
+    let total = n + 1.0;
+    old_centroid
+        .iter()
+        .zip(new_embedding.iter())
+        .map(|(&old, &new)| (old * n + new) / total)
+        .collect()
+}
+
+/// Compute surprise weight for an observation.
+///
+/// weight = 1.0 + alpha * surprise, where surprise = 1.0 - cosine_similarity.
+/// With `alpha=2.0`: confirming (cosine=0.95, surprise=0.05) → weight=1.1,
+/// surprising (cosine=0.65, surprise=0.35) → weight=1.7.
+pub fn surprise_weight(surprise: f32, alpha: f32) -> f32 {
+    1.0 + alpha * surprise
+}
+
+/// Surprise-weighted centroid update (CCE-2b).
+///
+/// new_centroid = (old_centroid * old_total_weight + new_embedding * new_weight) / new_total_weight
+///
+/// Returns `(new_centroid, new_total_weight)`.
+pub fn update_centroid_weighted(
+    old_centroid: &[f32],
+    old_total_weight: f64,
+    new_embedding: &[f32],
+    new_weight: f32,
+) -> (Vec<f32>, f64) {
+    let w_old = old_total_weight as f32;
+    let w_new = new_weight;
+    let w_total = w_old + w_new;
+
+    let centroid = old_centroid
+        .iter()
+        .zip(new_embedding.iter())
+        .map(|(&old, &new)| (old * w_old + new * w_new) / w_total)
+        .collect();
+
+    (centroid, w_total as f64)
+}
+
+// ===================================================================
+// Innate Concept Schemas (CCE-3)
+// ===================================================================
+
+/// The 5 universal innate concept definitions (Piagetian sensorimotor reflexes).
+///
+/// These provide scaffolding for exploration before domain-specific concepts emerge.
+/// Different policy manifests can define different innate schemas (C8 compliant).
+pub const INNATE_CONCEPTS: &[(&str, &str)] = &[
+    (
+        "components",
+        "Parts of the system and their boundaries — packages, modules, crates, files, services",
+    ),
+    (
+        "dependencies",
+        "How parts relate to each other — imports, calls, data flow, coupling, interfaces",
+    ),
+    (
+        "invariants",
+        "What should hold true — rules, constraints, assertions, contracts, specifications",
+    ),
+    (
+        "patterns",
+        "Recurring regularities — idioms, conventions, architectures, protocols, templates",
+    ),
+    (
+        "anomalies",
+        "Deviations from expectations — bugs, inconsistencies, violations, surprises, gaps",
+    ),
+];
+
+/// Generate datoms for all innate concepts at `braid init` time.
+///
+/// Uses [`HashEmbedder`] for embeddings (no model file required).
+/// Returns datoms ready for transaction. Each concept gets `:concept/innate = true`.
+///
+/// The `timestamp` parameter is the genesis time (typically `braid init` invocation).
+pub fn innate_concept_datoms(timestamp: i64) -> Vec<(EntityId, Attribute, Value)> {
+    use crate::embedding::{HashEmbedder, TextEmbedder, DEFAULT_DIM};
+
+    let embedder = HashEmbedder::new(DEFAULT_DIM);
+    let innate_attr = Attribute::from_keyword(":concept/innate");
+    let mut datoms = Vec::new();
+
+    for (name, description) in INNATE_CONCEPTS {
+        let entity = EntityId::from_content(format!("concept:innate:{name}").as_bytes());
+        let emb = embedder.embed(description);
+
+        let concept = NewConcept {
+            entity,
+            name: name.to_string(),
+            description: description.to_string(),
+            centroid: emb,
+            members: Vec::new(),
+            variance: 0.0,
+            total_weight: 0.0,
+        };
+
+        datoms.extend(concept_to_datoms(&concept, timestamp));
+        datoms.push((entity, innate_attr.clone(), Value::Boolean(true)));
+    }
+
+    datoms
+}
+
+/// Check whether a concept entity is innate (vs emergent).
+///
+/// Reads `:concept/innate` from the store for the given entity.
+pub fn is_innate(store: &Store, entity: EntityId) -> bool {
+    let attr = Attribute::from_keyword(":concept/innate");
+    store.datoms().any(|d| {
+        d.entity == entity
+            && d.attribute == attr
+            && d.op == Op::Assert
+            && d.value == Value::Boolean(true)
+    })
+}
+
+// ===================================================================
+// Entity Auto-Linking (CCE-4)
+// ===================================================================
+
+/// Minimum entity name length for bare-word matching.
+/// Shorter names require the full namespaced ident to match.
+const MIN_MATCH_LEN: usize = 5;
+
+/// Entity namespaces to scan for auto-linking.
+const LINK_NAMESPACES: &[&str] = &[":pkg/", ":spec/", ":concept/"];
+
+/// An auto-linked entity match.
+#[derive(Debug, Clone)]
+pub struct EntityMatch {
+    /// The matched entity.
+    pub entity: EntityId,
+    /// The match name (what was found in the text).
+    pub match_name: String,
+}
+
+/// Scan observation text for mentions of known entities in the store.
+///
+/// Checks `:db/ident` values for entities in `:pkg/*`, `:spec/*`, `:concept/*`
+/// namespaces. For names >= 5 chars, bare-word matching (case-insensitive,
+/// word-boundary). For shorter names, requires the full namespaced ident.
+///
+/// Returns matched entities (may be empty for text mentioning no known entities).
+pub fn entity_auto_link(store: &Store, text: &str) -> Vec<EntityMatch> {
+    let ident_attr = Attribute::from_keyword(":db/ident");
+    let text_lower = text.to_lowercase();
+    let mut matches = Vec::new();
+
+    for d in store.datoms() {
+        if d.op != Op::Assert || d.attribute != ident_attr {
+            continue;
+        }
+        let ident = match &d.value {
+            Value::Keyword(s) => s.as_str(),
+            _ => continue,
+        };
+
+        // Only check known namespaces.
+        let ns = LINK_NAMESPACES.iter().find(|ns| ident.starts_with(**ns));
+        let ns = match ns {
+            Some(ns) => *ns,
+            None => continue,
+        };
+
+        // Extract the name part after the namespace prefix.
+        let name = &ident[ns.len()..];
+        if name.is_empty() {
+            continue;
+        }
+
+        // Collect candidate match names:
+        // - The full name (e.g., "internal-materialize")
+        // - Each hyphen-separated segment (e.g., "internal", "materialize")
+        // This handles `:pkg/internal-materialize` matching "materialize" in text.
+        let mut candidates: Vec<&str> = vec![name];
+        for seg in name.split('-') {
+            if !seg.is_empty() && seg != name {
+                candidates.push(seg);
+            }
+        }
+
+        let mut matched = false;
+        for candidate in &candidates {
+            if matched {
+                break;
+            }
+            let match_lower = candidate.to_lowercase();
+
+            if match_lower.len() < MIN_MATCH_LEN {
+                // Short names: require full ident match (e.g., ":pkg/cli").
+                if text_lower.contains(&ident.to_lowercase()) {
+                    matches.push(EntityMatch {
+                        entity: d.entity,
+                        match_name: ident.to_string(),
+                    });
+                    matched = true;
+                }
+            } else if word_boundary_match(&text_lower, &match_lower) {
+                matches.push(EntityMatch {
+                    entity: d.entity,
+                    match_name: candidate.to_string(),
+                });
+                matched = true;
+            }
+        }
+    }
+
+    matches
+}
+
+/// Generate `:exploration/mentions-entity` datoms for auto-linked entities.
+pub fn mention_datoms(
+    observation: EntityId,
+    matched: &[EntityMatch],
+) -> Vec<(EntityId, Attribute, Value)> {
+    let attr = Attribute::from_keyword(":exploration/mentions-entity");
+    matched
+        .iter()
+        .map(|m| (observation, attr.clone(), Value::Ref(m.entity)))
+        .collect()
+}
+
+/// Check if `needle` appears in `haystack` at a word boundary.
+fn word_boundary_match(haystack: &str, needle: &str) -> bool {
+    let bytes = haystack.as_bytes();
+    let needle_bytes = needle.as_bytes();
+    let nlen = needle_bytes.len();
+
+    for i in 0..=(bytes.len().saturating_sub(nlen)) {
+        if &bytes[i..i + nlen] == needle_bytes {
+            let before_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
+            let after_ok = i + nlen >= bytes.len() || !bytes[i + nlen].is_ascii_alphanumeric();
+            if before_ok && after_ok {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+// ===================================================================
+// Internal helpers
+// ===================================================================
+
+/// Generate a human-readable concept name from member texts using TF-IDF.
+///
+/// Returns the top 3 most distinctive keywords across the member texts.
+fn generate_concept_name(texts: &[&str]) -> String {
+    if texts.is_empty() {
+        return "unnamed".to_string();
+    }
+
+    // Term frequency across all member texts.
+    let mut tf: HashMap<String, usize> = HashMap::new();
+    // Document frequency: how many texts contain each term.
+    let mut df: HashMap<String, usize> = HashMap::new();
+    let n_docs = texts.len();
+
+    for text in texts {
+        let words = crate::connections::tokenize(text);
+        for word in &words {
+            *tf.entry(word.clone()).or_insert(0) += 1;
+        }
+        // DF: count each word once per document.
+        let unique: HashSet<String> = crate::connections::tokenize(text);
+        for word in unique {
+            *df.entry(word).or_insert(0) += 1;
+        }
+    }
+
+    // Compute TF-IDF scores.
+    let mut scores: Vec<(String, f64)> = tf
+        .iter()
+        .map(|(word, &count)| {
+            let doc_freq = df.get(word).copied().unwrap_or(1) as f64;
+            let idf = ((n_docs as f64 + 1.0) / (doc_freq + 1.0)).ln() + 1.0;
+            (word.clone(), count as f64 * idf)
+        })
+        .collect();
+
+    scores.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+
+    // Take top 3 keywords, join with hyphens.
+    let top: Vec<&str> = scores.iter().take(3).map(|(w, _)| w.as_str()).collect();
+    if top.is_empty() {
+        "unnamed".to_string()
+    } else {
+        top.join("-")
+    }
+}
+
+// ===================================================================
+// Tests
+// ===================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::datom::{AgentId, Datom, TxId};
+    use crate::embedding::HashEmbedder;
+    use crate::embedding::TextEmbedder;
+    use crate::schema::{domain_schema_datoms, genesis_datoms, layer_3_datoms};
+    use std::collections::BTreeSet;
+
+    fn make_embedder() -> HashEmbedder {
+        HashEmbedder::new(crate::embedding::DEFAULT_DIM)
+    }
+
+    /// Build a store with L0-L3 schema installed so concept attributes are known.
+    fn store_with_schema() -> Store {
+        let agent = AgentId::from_name("braid:system");
+        let g_tx = TxId::new(0, 0, agent);
+        let d_tx = TxId::new(1, 0, agent);
+        let l3_tx = TxId::new(2, 0, agent);
+        let mut datoms: BTreeSet<Datom> = genesis_datoms(g_tx).into_iter().collect();
+        for d in domain_schema_datoms(d_tx) {
+            datoms.insert(d);
+        }
+        for d in layer_3_datoms(l3_tx) {
+            datoms.insert(d);
+        }
+        Store::from_datoms(datoms)
+    }
+
+    // (A) find_nearest_concept returns None on empty store.
+    #[test]
+    fn find_nearest_concept_empty_store() {
+        let store = Store::genesis();
+        let emb = make_embedder();
+        let v = emb.embed("test");
+        assert!(
+            find_nearest_concept(&store, &v).is_none(),
+            "empty store should have no concepts"
+        );
+    }
+
+    // (B) After 3 similar observations, crystallize_concepts produces 1 concept.
+    #[test]
+    fn crystallize_three_similar_observations() {
+        let emb = make_embedder();
+        // High word overlap (4/5 shared) → hash embedder cosine ≈ 0.8.
+        let observations = vec![
+            (
+                EntityId::from_content(b"obs1"),
+                emb.embed("error handling cascade module returns"),
+                "error handling cascade module returns".to_string(),
+            ),
+            (
+                EntityId::from_content(b"obs2"),
+                emb.embed("error handling storage module returns"),
+                "error handling storage module returns".to_string(),
+            ),
+            (
+                EntityId::from_content(b"obs3"),
+                emb.embed("error handling events module returns"),
+                "error handling events module returns".to_string(),
+            ),
+        ];
+
+        let concepts = crystallize_concepts(&observations, JOIN_THRESHOLD, MIN_CLUSTER_SIZE);
+        assert!(
+            !concepts.is_empty(),
+            "3 similar observations should crystallize at least 1 concept"
+        );
+        assert_eq!(concepts[0].members.len(), 3);
+    }
+
+    // (C) Concept entity has all required attributes via concept_to_datoms.
+    #[test]
+    fn concept_datoms_complete() {
+        let emb = make_embedder();
+        let concept = NewConcept {
+            entity: EntityId::from_content(b"test-concept"),
+            name: "event-processing".to_string(),
+            description: "3 observations about event processing".to_string(),
+            centroid: emb.embed("event processing"),
+            members: vec![
+                EntityId::from_content(b"o1"),
+                EntityId::from_content(b"o2"),
+                EntityId::from_content(b"o3"),
+            ],
+            variance: 0.1,
+            total_weight: 3.0,
+        };
+
+        let datoms = concept_to_datoms(&concept, 1000);
+        assert_eq!(datoms.len(), 7, "concept should have 7 schema attributes");
+
+        let attrs: Vec<&str> = datoms.iter().map(|(_, a, _)| a.as_str()).collect();
+        assert!(attrs.contains(&":concept/name"));
+        assert!(attrs.contains(&":concept/description"));
+        assert!(attrs.contains(&":concept/embedding"));
+        assert!(attrs.contains(&":concept/member-count"));
+        assert!(attrs.contains(&":concept/created-at"));
+        assert!(attrs.contains(&":concept/variance"));
+        assert!(attrs.contains(&":concept/total-weight"));
+    }
+
+    // (D) Observation entities get :exploration/concept Ref via membership_datoms.
+    #[test]
+    fn membership_datoms_correct() {
+        let concept_entity = EntityId::from_content(b"concept");
+        let members = vec![
+            EntityId::from_content(b"obs1"),
+            EntityId::from_content(b"obs2"),
+        ];
+
+        let datoms = membership_datoms(concept_entity, &members);
+        assert_eq!(datoms.len(), 2);
+        for (_, attr, val) in &datoms {
+            assert_eq!(attr.as_str(), ":exploration/concept");
+            assert!(matches!(val, Value::Ref(e) if *e == concept_entity));
+        }
+    }
+
+    // (E) should_split detects high variance.
+    #[test]
+    fn should_split_high_variance() {
+        assert!(!should_split(0.1));
+        assert!(!should_split(SPLIT_THRESHOLD - 0.01));
+        assert!(should_split(SPLIT_THRESHOLD + 0.01));
+        assert!(should_split(1.0));
+    }
+
+    // (F) concept_inventory lists concepts sorted by member count descending.
+    #[test]
+    fn concept_inventory_sorted() {
+        let mut store = store_with_schema();
+        let agent = crate::datom::AgentId::from_name("test");
+
+        // Create two concepts with different member counts.
+        let c1 = EntityId::from_content(b"concept-big");
+        let c2 = EntityId::from_content(b"concept-small");
+
+        let tx =
+            crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "test")
+                .assert(
+                    c1,
+                    Attribute::from_keyword(":concept/name"),
+                    Value::String("big-concept".into()),
+                )
+                .assert(
+                    c1,
+                    Attribute::from_keyword(":concept/member-count"),
+                    Value::Long(10),
+                )
+                .assert(
+                    c2,
+                    Attribute::from_keyword(":concept/name"),
+                    Value::String("small-concept".into()),
+                )
+                .assert(
+                    c2,
+                    Attribute::from_keyword(":concept/member-count"),
+                    Value::Long(3),
+                );
+
+        let committed = tx.commit(&store).expect("commit");
+        store.transact(committed).expect("transact");
+
+        let inv = concept_inventory(&store);
+        assert_eq!(inv.len(), 2);
+        assert_eq!(inv[0].name, "big-concept");
+        assert_eq!(inv[0].member_count, 10);
+        assert_eq!(inv[1].name, "small-concept");
+        assert_eq!(inv[1].member_count, 3);
+    }
+
+    // (G) Concept names are human-readable.
+    #[test]
+    fn concept_names_are_keywords() {
+        let texts = &[
+            "error handling in cascade module",
+            "error returns ignored in storage",
+            "error propagation missing in events",
+        ];
+        let name = generate_concept_name(texts);
+        assert!(
+            name.contains("error"),
+            "concept name should contain dominant keyword 'error', got '{name}'"
+        );
+        assert!(!name.is_empty());
+        assert!(
+            !name.contains(' '),
+            "concept name should use hyphens not spaces"
+        );
+    }
+
+    #[test]
+    fn update_centroid_correct() {
+        let old = [1.0f32, 0.0, 0.0];
+        let new_obs = [0.0f32, 1.0, 0.0];
+        let updated = update_centroid(&old, 1, &new_obs);
+        // (1*[1,0,0] + [0,1,0]) / 2 = [0.5, 0.5, 0]
+        assert!((updated[0] - 0.5).abs() < 1e-6);
+        assert!((updated[1] - 0.5).abs() < 1e-6);
+        assert!((updated[2] - 0.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn crystallize_too_few_observations() {
+        let emb = make_embedder();
+        let observations = vec![
+            (
+                EntityId::from_content(b"o1"),
+                emb.embed("test"),
+                "test".into(),
+            ),
+            (
+                EntityId::from_content(b"o2"),
+                emb.embed("test two"),
+                "test two".into(),
+            ),
+        ];
+        let concepts = crystallize_concepts(&observations, JOIN_THRESHOLD, MIN_CLUSTER_SIZE);
+        assert!(
+            concepts.is_empty(),
+            "2 observations < MIN_CLUSTER_SIZE should produce no concepts"
+        );
+    }
+
+    #[test]
+    fn crystallize_dissimilar_observations() {
+        let emb = make_embedder();
+        let observations = vec![
+            (
+                EntityId::from_content(b"o1"),
+                emb.embed("event sourcing pipeline"),
+                "event sourcing pipeline".into(),
+            ),
+            (
+                EntityId::from_content(b"o2"),
+                emb.embed("SQL injection vulnerability"),
+                "SQL injection vulnerability".into(),
+            ),
+            (
+                EntityId::from_content(b"o3"),
+                emb.embed("kubernetes deployment manifest"),
+                "kubernetes deployment manifest".into(),
+            ),
+        ];
+        // All dissimilar — should NOT form a cluster (with hash embedder, no shared words).
+        let concepts = crystallize_concepts(&observations, JOIN_THRESHOLD, MIN_CLUSTER_SIZE);
+        assert!(
+            concepts.is_empty(),
+            "3 dissimilar observations should not cluster"
+        );
+    }
+
+    #[test]
+    fn should_merge_similar_centroids() {
+        let a = [1.0f32, 0.0, 0.0];
+        let b = [0.99, 0.01, 0.0];
+        assert!(should_merge(&a, &b));
+    }
+
+    #[test]
+    fn should_not_merge_different_centroids() {
+        let a = [1.0f32, 0.0, 0.0];
+        let b = [0.0, 1.0, 0.0];
+        assert!(!should_merge(&a, &b));
+    }
+
+    #[test]
+    fn generate_concept_name_empty() {
+        assert_eq!(generate_concept_name(&[]), "unnamed");
+    }
+
+    // -- CCE-2b surprise-weighted centroid tests --
+
+    // (C) Surprise weight computation.
+    #[test]
+    fn surprise_weight_values() {
+        // Confirming observation: cosine=0.95, surprise=0.05.
+        let w_confirm = surprise_weight(0.05, DEFAULT_ALPHA);
+        assert!(
+            (w_confirm - 1.1).abs() < 1e-6,
+            "confirming weight should be ~1.1, got {w_confirm}"
+        );
+
+        // Surprising observation: cosine=0.65, surprise=0.35.
+        let w_surprise = surprise_weight(0.35, DEFAULT_ALPHA);
+        assert!(
+            (w_surprise - 1.7).abs() < 1e-6,
+            "surprising weight should be ~1.7, got {w_surprise}"
+        );
+
+        // Very confirming: cosine=1.0, surprise=0.0.
+        let w_exact = surprise_weight(0.0, DEFAULT_ALPHA);
+        assert!((w_exact - 1.0).abs() < 1e-6);
+    }
+
+    // (D) Surprise-weighted centroid shifts more toward surprising observation.
+    #[test]
+    fn weighted_centroid_shifts_toward_surprise() {
+        // Start with centroid at [1,0,0] from 3 confirming observations.
+        let centroid = [1.0f32, 0.0, 0.0];
+        let old_total_weight = 3.0; // 3 confirming observations, weight 1.0 each.
+
+        // Surprising observation at [0,1,0] with high surprise.
+        let surprising_obs = [0.0f32, 1.0, 0.0];
+        let surprise = 0.35;
+        let weight = surprise_weight(surprise, DEFAULT_ALPHA); // 1.7
+
+        let (weighted_cent, _) =
+            update_centroid_weighted(&centroid, old_total_weight, &surprising_obs, weight);
+
+        // Equal-weight centroid for comparison.
+        let equal_cent = update_centroid(&centroid, 3, &surprising_obs);
+
+        // The weighted centroid should be closer to the surprising observation
+        // (i.e., have a higher y-component) than the equal-weight centroid.
+        assert!(
+            weighted_cent[1] > equal_cent[1],
+            "weighted centroid y={} should exceed equal-weight y={}",
+            weighted_cent[1],
+            equal_cent[1]
+        );
+    }
+
+    // (E) Total weight maintained correctly.
+    #[test]
+    fn total_weight_accumulates() {
+        let centroid = [1.0f32, 0.0];
+        let (_, w1) = update_centroid_weighted(&centroid, 0.0, &[0.5, 0.5], 1.1);
+        assert!((w1 - 1.1).abs() < 1e-6);
+
+        let (_, w2) = update_centroid_weighted(&centroid, w1, &[0.0, 1.0], 1.7);
+        assert!(
+            (w2 - 2.8).abs() < 1e-6,
+            "total weight should be 1.1 + 1.7 = 2.8, got {w2}"
+        );
+    }
+
+    // (H) Total weight >= member count (minimum weight per member is 1.0).
+    #[test]
+    fn total_weight_gte_member_count() {
+        // 5 members with various surprise values.
+        let mut total = 0.0f64;
+        for surprise in [0.0, 0.1, 0.2, 0.3, 0.4] {
+            let w = surprise_weight(surprise, DEFAULT_ALPHA);
+            total += w as f64;
+        }
+        assert!(
+            total >= 5.0,
+            "total_weight {total} should be >= member_count 5"
+        );
+    }
+
+    // -- CCE-3 innate concept tests --
+
+    // (A) innate_concept_datoms produces 5 concepts.
+    #[test]
+    fn innate_concepts_count() {
+        let datoms = innate_concept_datoms(1000);
+        // Each concept: 7 schema attrs + 1 innate flag = 8 datoms.
+        assert_eq!(
+            datoms.len(),
+            5 * 8,
+            "5 innate concepts × 8 datoms each = 40"
+        );
+    }
+
+    // (B) Each innate concept has :concept/innate = true.
+    #[test]
+    fn innate_concepts_flagged() {
+        let datoms = innate_concept_datoms(1000);
+        let innate_count = datoms
+            .iter()
+            .filter(|(_, a, v)| a.as_str() == ":concept/innate" && *v == Value::Boolean(true))
+            .count();
+        assert_eq!(innate_count, 5);
+    }
+
+    // (C) Innate concepts have non-zero embeddings.
+    #[test]
+    fn innate_concepts_have_embeddings() {
+        let datoms = innate_concept_datoms(1000);
+        let emb_count = datoms
+            .iter()
+            .filter(|(_, a, v)| {
+                a.as_str() == ":concept/embedding"
+                    && matches!(v, Value::Bytes(b) if !b.is_empty() && b.iter().any(|&x| x != 0))
+            })
+            .count();
+        assert_eq!(
+            emb_count, 5,
+            "all 5 innate concepts should have non-zero embeddings"
+        );
+    }
+
+    // (D) First observe auto-matches against innate concepts.
+    #[test]
+    fn innate_concepts_matchable() {
+        let emb = make_embedder();
+
+        // Build a store with innate concepts.
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+
+        let innate_datoms = innate_concept_datoms(1000);
+        let mut tx =
+            crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "innate");
+        for (e, a, v) in innate_datoms {
+            tx = tx.assert(e, a, v);
+        }
+        let committed = tx.commit(&store).expect("commit");
+        store.transact(committed).expect("transact");
+
+        // An observation about "package structure and module boundaries" should match "components".
+        let obs_emb = emb.embed("Parts of the system and their boundaries packages modules crates");
+        let result = find_nearest_concept(&store, &obs_emb);
+        assert!(result.is_some(), "should find a matching innate concept");
+    }
+
+    // (E) INNATE_CONCEPTS is configurable (the array is const, not hardcoded in transaction logic).
+    #[test]
+    fn innate_concepts_are_five() {
+        assert_eq!(INNATE_CONCEPTS.len(), 5);
+        for (name, desc) in INNATE_CONCEPTS {
+            assert!(!name.is_empty());
+            assert!(!desc.is_empty());
+        }
+    }
+
+    // (F) Innate concepts participate in crystallization (no special-casing).
+    #[test]
+    fn innate_concept_is_detectable() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+
+        let innate_datoms = innate_concept_datoms(1000);
+        let mut tx =
+            crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "innate");
+        for (e, a, v) in innate_datoms {
+            tx = tx.assert(e, a, v);
+        }
+        let committed = tx.commit(&store).expect("commit");
+        store.transact(committed).expect("transact");
+
+        // concept_inventory should list all 5.
+        let inv = concept_inventory(&store);
+        assert_eq!(inv.len(), 5);
+
+        // is_innate should return true for each.
+        for concept in &inv {
+            assert!(
+                is_innate(&store, concept.entity),
+                "concept '{}' should be innate",
+                concept.name
+            );
+        }
+    }
+
+    // -- CCE-4 entity auto-linking tests --
+
+    fn store_with_entities() -> Store {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+
+        let pkg1 = EntityId::from_content(b"pkg-materialize");
+        let pkg2 = EntityId::from_content(b"pkg-cli");
+        let spec1 = EntityId::from_content(b"spec-inv-019");
+
+        let tx = crate::store::Transaction::new(
+            agent,
+            crate::datom::ProvenanceType::Observed,
+            "bootstrap",
+        )
+        .assert(
+            pkg1,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":pkg/internal-materialize".into()),
+        )
+        .assert(
+            pkg2,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":pkg/cli".into()),
+        )
+        .assert(
+            spec1,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":spec/app-inv-019".into()),
+        );
+
+        let committed = tx.commit(&store).expect("commit");
+        store.transact(committed).expect("transact");
+        store
+    }
+
+    // (A) Observation mentioning 'materialize' auto-links to the package.
+    #[test]
+    fn auto_link_package_name() {
+        let store = store_with_entities();
+        let matches = entity_auto_link(&store, "the materialize engine processes events");
+        assert!(
+            matches.iter().any(|m| m.match_name == "materialize"),
+            "should match 'materialize' in text, got: {:?}",
+            matches
+        );
+    }
+
+    // (B) Observation mentioning 'app-inv-019' auto-links to the spec.
+    #[test]
+    fn auto_link_spec_id() {
+        let store = store_with_entities();
+        let matches = entity_auto_link(&store, "check APP-INV-019 for consistency rules");
+        assert!(
+            matches.iter().any(|m| m.match_name == "app-inv-019"),
+            "should match spec ID, got: {:?}",
+            matches
+        );
+    }
+
+    // (C) Text mentioning no known entities creates no links.
+    #[test]
+    fn auto_link_no_false_positives() {
+        let store = store_with_entities();
+        let matches = entity_auto_link(&store, "unrelated text about weather patterns");
+        assert!(matches.is_empty(), "should produce no matches");
+    }
+
+    // (D) mention_datoms produces correct Ref datoms.
+    #[test]
+    fn mention_datoms_correct() {
+        let obs = EntityId::from_content(b"obs-1");
+        let matched = vec![EntityMatch {
+            entity: EntityId::from_content(b"pkg-materialize"),
+            match_name: "materialize".into(),
+        }];
+        let datoms = mention_datoms(obs, &matched);
+        assert_eq!(datoms.len(), 1);
+        assert_eq!(datoms[0].1.as_str(), ":exploration/mentions-entity");
+    }
+
+    // (E) Short names require full path match.
+    #[test]
+    fn auto_link_short_name_no_false_match() {
+        let store = store_with_entities();
+        // "cli" is only 3 chars — should NOT match bare word "cli" in text.
+        let matches = entity_auto_link(&store, "the cli tool handles user input");
+        let cli_bare = matches.iter().any(|m| m.match_name == "cli");
+        assert!(
+            !cli_bare,
+            "short name 'cli' should not match without full ident"
+        );
+    }
+
+    #[test]
+    fn auto_link_short_name_full_ident_match() {
+        let store = store_with_entities();
+        // Full ident ":pkg/cli" should match.
+        let matches = entity_auto_link(&store, "check :pkg/cli for command structure");
+        assert!(!matches.is_empty(), "full ident ':pkg/cli' should match");
+    }
+
+    // (F) Word boundary prevents substring matches.
+    #[test]
+    fn auto_link_word_boundary() {
+        let store = store_with_entities();
+        // "dematerialized" contains "materialize" but not at word boundary.
+        let matches = entity_auto_link(&store, "the dematerialized view is cached");
+        let materialize_match = matches.iter().any(|m| m.match_name == "materialize");
+        assert!(
+            !materialize_match,
+            "should not match 'materialize' inside 'dematerialized'"
+        );
+    }
+}

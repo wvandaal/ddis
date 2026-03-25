@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774414040/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-23ec839a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ee11e8cac5c40973a252b6f02342fd517c43a4a8e57efe49d8f9a8dc0c393200" :a :task/close-reason :v "Implemented: embedding.rs (Embedder + HashEmbedder + TextEmbedder trait), 24 tests, schema attr :exploration/embedding, feature-gated embeddings (safetensors 0.7 + tokenizers 0.22)" :op :assert}
+   {:e #blake3 "ee11e8cac5c40973a252b6f02342fd517c43a4a8e57efe49d8f9a8dc0c393200" :a :task/closed-at :v 1774414039 :op :assert}
+   {:e #blake3 "ee11e8cac5c40973a252b6f02342fd517c43a4a8e57efe49d8f9a8dc0c393200" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "ee11e8cac5c40973a252b6f02342fd517c43a4a8e57efe49d8f9a8dc0c393200" :a :task/status :v :task.status/closed :op :assert}
+ ]}
