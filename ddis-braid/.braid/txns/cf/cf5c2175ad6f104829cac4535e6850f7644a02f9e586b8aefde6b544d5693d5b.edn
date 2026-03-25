@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774450085/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1ea761a8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/close-reason :v "Implemented: model.rs with discover_model() (project-local then global paths), resolve_embedder() (model2vec with hash fallback), format_status(). braid model status command wired. dirs crate added for home directory. Model download deferred to manual install (following ADR-EMBEDDING-001 explicit download principle). 302 CLI tests pass." :op :assert}
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/closed-at :v 1774450084 :op :assert}
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "64b4dc60a102b54cf4fc2f9b74a59053f0c6e744bc0073a201f0916e0b4a219a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

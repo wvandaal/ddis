@@ -27,6 +27,7 @@ mod verify;
 mod witness;
 mod challenge;
 mod extract;
+pub(crate) mod model;
 mod wrap;
 pub(crate) mod write;
 
@@ -775,6 +776,15 @@ When running, CLI commands auto-route through the daemon socket.")]
         #[command(subcommand)]
         action: DaemonAction,
     },
+
+    // ── MODEL MANAGEMENT (ADR-EMBEDDING-001) ─────────────────────────
+    /// Manage embedding model files.
+    ///
+    /// `braid model status` → show which embedder is active.
+    #[command(subcommand, after_long_help = "\
+Examples:
+  braid model status                # show model status and embedder type")]
+    Model(ModelAction),
 
     // ── SHORTCUTS (WP6) ──────────────────────────────────────────────
     /// Top unblocked task + claim command.
@@ -1666,6 +1676,19 @@ pub enum DaemonAction {
     },
 }
 
+/// Model management subcommands (ADR-EMBEDDING-001).
+#[derive(Subcommand)]
+pub enum ModelAction {
+    /// Show embedding model status.
+    ///
+    /// Reports which embedder is active (model2vec or hash), model path, and size.
+    Status {
+        /// Path to the .braid directory.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+    },
+}
+
 /// Session lifecycle subcommands.
 #[derive(Subcommand)]
 pub enum SessionAction {
@@ -1738,7 +1761,7 @@ pub enum SessionAction {
 /// Extract the store path from a command variant (if the command uses a store).
 pub fn store_path(cmd: &Command) -> Option<&Path> {
     match cmd {
-        Command::Mcp { .. } | Command::Daemon { .. } => None,
+        Command::Mcp { .. } | Command::Daemon { .. } | Command::Model(_) => None,
         Command::Init { path, .. }
         | Command::Status { path, .. }
         | Command::Bilateral { path, .. }
@@ -1866,6 +1889,7 @@ pub fn command_name_for(cmd: &Command) -> &'static str {
         Command::Config { .. } => "config",
         Command::Mcp { .. } => "mcp",
         Command::Daemon { .. } => "daemon",
+        Command::Model(_) => "model",
         Command::Next { .. } => "next",
         Command::Done { .. } => "done",
         Command::Note { .. } => "note",
@@ -2148,7 +2172,7 @@ fn resolve_store_path(path: PathBuf) -> PathBuf {
 /// Rewrite all `path` fields in a Command to resolved paths.
 fn resolve_command_paths(mut cmd: Command) -> Command {
     match &mut cmd {
-        Command::Mcp { .. } | Command::Daemon { .. } => {}
+        Command::Mcp { .. } | Command::Daemon { .. } | Command::Model(_) => {}
         Command::Init { path, .. }
         | Command::Status { path, .. }
         | Command::Bilateral { path, .. }
@@ -2854,6 +2878,14 @@ pub fn run(
             McpAction::Serve { path } => {
                 mcp::serve(&path)?;
                 Ok(String::new())
+            }
+        },
+        Command::Model(action) => {
+            match action {
+                ModelAction::Status { path } => {
+                    let output = model::format_status(&path);
+                    return Ok(crate::output::CommandOutput::from_human(output));
+                }
             }
         },
         Command::Daemon { action } => {

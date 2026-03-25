@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774449203/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-52a64fdf"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/close-reason :v "Implemented 5 of 7 items (skipped 009 MIN_MATCH_LEN and 011 E2E assertion per design scope). (008) double-tokenization eliminated. (010) partial_cmp replaced with total_cmp. (012) misleading test renamed. (013) variance storage changed from Bytes to Double with legacy fallback. (014) Error impl added to EmbeddingError. 1590+302 tests pass." :op :assert}
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/closed-at :v 1774449202 :op :assert}
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/status :v :task.status/closed :op :assert}
+ ]}

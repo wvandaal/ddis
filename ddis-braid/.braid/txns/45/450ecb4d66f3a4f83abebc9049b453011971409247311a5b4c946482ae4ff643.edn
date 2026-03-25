@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774448276/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-EMBEDDING-004 \"Vector Space Consistency\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "010e74a54f1baf2f067ba9c161b3fd0419af9e3b04aa1ec1305e9628d62d58e2" :a :db/ident :v :task/t-378b7136 :op :assert}
+   {:e #blake3 "010e74a54f1baf2f067ba9c161b3fd0419af9e3b04aa1ec1305e9628d62d58e2" :a :task/created-at :v 1774448275 :op :assert}
+   {:e #blake3 "010e74a54f1baf2f067ba9c161b3fd0419af9e3b04aa1ec1305e9628d62d58e2" :a :task/id :v "t-378b7136" :op :assert}
+   {:e #blake3 "010e74a54f1baf2f067ba9c161b3fd0419af9e3b04aa1ec1305e9628d62d58e2" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "010e74a54f1baf2f067ba9c161b3fd0419af9e3b04aa1ec1305e9628d62d58e2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "010e74a54f1baf2f067ba9c161b3fd0419af9e3b04aa1ec1305e9628d62d58e2" :a :task/title :v "Implement INV-EMBEDDING-004: Vector Space Consistency" :op :assert}
+   {:e #blake3 "010e74a54f1baf2f067ba9c161b3fd0419af9e3b04aa1ec1305e9628d62d58e2" :a :task/traces-to :v #blake3 "8fa3085a391f8c6c3be9f66b19d8c5d69321e5f52f800bf9d0ec128a21e1e8f3" :op :assert}
+   {:e #blake3 "010e74a54f1baf2f067ba9c161b3fd0419af9e3b04aa1ec1305e9628d62d58e2" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "8fa3085a391f8c6c3be9f66b19d8c5d69321e5f52f800bf9d0ec128a21e1e8f3" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "8fa3085a391f8c6c3be9f66b19d8c5d69321e5f52f800bf9d0ec128a21e1e8f3" :a :db/doc :v "Vector Space Consistency" :op :assert}
+   {:e #blake3 "8fa3085a391f8c6c3be9f66b19d8c5d69321e5f52f800bf9d0ec128a21e1e8f3" :a :db/ident :v :spec/inv-embedding-004 :op :assert}
+   {:e #blake3 "8fa3085a391f8c6c3be9f66b19d8c5d69321e5f52f800bf9d0ec128a21e1e8f3" :a :element/traces-to :v "SEED.md S4" :op :assert}
+   {:e #blake3 "8fa3085a391f8c6c3be9f66b19d8c5d69321e5f52f800bf9d0ec128a21e1e8f3" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "8fa3085a391f8c6c3be9f66b19d8c5d69321e5f52f800bf9d0ec128a21e1e8f3" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "8fa3085a391f8c6c3be9f66b19d8c5d69321e5f52f800bf9d0ec128a21e1e8f3" :a :spec/id :v "INV-EMBEDDING-004" :op :assert}
+   {:e #blake3 "8fa3085a391f8c6c3be9f66b19d8c5d69321e5f52f800bf9d0ec128a21e1e8f3" :a :spec/namespace :v :spec.ns/EMBEDDING :op :assert}
+   {:e #blake3 "8fa3085a391f8c6c3be9f66b19d8c5d69321e5f52f800bf9d0ec128a21e1e8f3" :a :spec/statement :v "All embedding datoms in a store MUST be produced by the same embedder type. Mixed vector spaces produce meaningless cosine similarity." :op :assert}
+ ]}

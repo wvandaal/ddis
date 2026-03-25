@@ -17,6 +17,7 @@ braid-kernel = { path = "../braid-kernel" }
 bincode = "1"
 blake3 = { workspace = true }
 clap = { version = "4", features = ["derive"] }
+dirs = "5"
 libc = "0.2"
 ordered-float = { workspace = true }
 serde = { workspace = true }

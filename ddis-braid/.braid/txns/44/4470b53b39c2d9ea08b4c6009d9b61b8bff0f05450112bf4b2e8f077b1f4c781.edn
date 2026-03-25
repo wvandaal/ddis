@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774448290/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-EMBEDDING-001 \"Model Management\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3b608a60b940031861e8bf0ae9354277aa9fabe0a34a8dcbceb1bda23433d828" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "3b608a60b940031861e8bf0ae9354277aa9fabe0a34a8dcbceb1bda23433d828" :a :db/doc :v "Model Management" :op :assert}
+   {:e #blake3 "3b608a60b940031861e8bf0ae9354277aa9fabe0a34a8dcbceb1bda23433d828" :a :db/ident :v :spec/adr-embedding-001 :op :assert}
+   {:e #blake3 "3b608a60b940031861e8bf0ae9354277aa9fabe0a34a8dcbceb1bda23433d828" :a :element/traces-to :v "C8" :op :assert}
+   {:e #blake3 "3b608a60b940031861e8bf0ae9354277aa9fabe0a34a8dcbceb1bda23433d828" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "3b608a60b940031861e8bf0ae9354277aa9fabe0a34a8dcbceb1bda23433d828" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "3b608a60b940031861e8bf0ae9354277aa9fabe0a34a8dcbceb1bda23433d828" :a :spec/id :v "ADR-EMBEDDING-001" :op :assert}
+   {:e #blake3 "3b608a60b940031861e8bf0ae9354277aa9fabe0a34a8dcbceb1bda23433d828" :a :spec/namespace :v :spec.ns/EMBEDDING :op :assert}
+   {:e #blake3 "3b608a60b940031861e8bf0ae9354277aa9fabe0a34a8dcbceb1bda23433d828" :a :spec/statement :v "Model files stored at ~/.braid/models/<model-name>/ with project-local override. Explicit download command, no auto-download. Kernel never performs IO (C8). CLI loads bytes and passes to Embedder::from_bytes()." :op :assert}
+   {:e #blake3 "cdfb42216f6b4a4468c9958ab738e4dd6b176ac3c1ded4231d338a0d268993d6" :a :db/ident :v :task/t-44e834d1 :op :assert}
+   {:e #blake3 "cdfb42216f6b4a4468c9958ab738e4dd6b176ac3c1ded4231d338a0d268993d6" :a :task/created-at :v 1774448289 :op :assert}
+   {:e #blake3 "cdfb42216f6b4a4468c9958ab738e4dd6b176ac3c1ded4231d338a0d268993d6" :a :task/id :v "t-44e834d1" :op :assert}
+   {:e #blake3 "cdfb42216f6b4a4468c9958ab738e4dd6b176ac3c1ded4231d338a0d268993d6" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "cdfb42216f6b4a4468c9958ab738e4dd6b176ac3c1ded4231d338a0d268993d6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cdfb42216f6b4a4468c9958ab738e4dd6b176ac3c1ded4231d338a0d268993d6" :a :task/title :v "Implement ADR-EMBEDDING-001: Model Management" :op :assert}
+   {:e #blake3 "cdfb42216f6b4a4468c9958ab738e4dd6b176ac3c1ded4231d338a0d268993d6" :a :task/traces-to :v #blake3 "3b608a60b940031861e8bf0ae9354277aa9fabe0a34a8dcbceb1bda23433d828" :op :assert}
+   {:e #blake3 "cdfb42216f6b4a4468c9958ab738e4dd6b176ac3c1ded4231d338a0d268993d6" :a :task/type :v :task.type/task :op :assert}
+ ]}

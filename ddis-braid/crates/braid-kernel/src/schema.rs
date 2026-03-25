@@ -1967,9 +1967,9 @@ pub fn layer_3_attributes() -> Vec<AttributeSpec> {
         ),
         attr(
             ":concept/variance",
-            ValueType::Bytes,
+            ValueType::Double,
             Cardinality::One,
-            "Intra-cluster variance as f64 bytes (8 bytes). Measures concept coherence.",
+            "Intra-cluster variance (f64). Measures concept coherence.",
         ),
         attr(
             ":concept/total-weight",
@@ -3839,7 +3839,7 @@ mod tests {
             (":concept/embedding", ValueType::Bytes),
             (":concept/member-count", ValueType::Long),
             (":concept/created-at", ValueType::Long),
-            (":concept/variance", ValueType::Bytes),
+            (":concept/variance", ValueType::Double),
             (":concept/total-weight", ValueType::Double),
             (":concept/innate", ValueType::Boolean),
         ];

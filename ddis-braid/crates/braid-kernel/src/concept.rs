@@ -326,7 +326,10 @@ pub fn concept_inventory_with_innate(store: &Store) -> (Vec<ConceptSummary>, Has
                     cs.member_count = n as usize;
                 }
             } else if d.attribute == var_attr {
-                if let Value::Bytes(ref b) = d.value {
+                if let Value::Double(v) = d.value {
+                    cs.variance = v.into_inner();
+                } else if let Value::Bytes(ref b) = d.value {
+                    // Legacy: older stores wrote variance as raw f64 LE bytes.
                     if b.len() == 8 {
                         cs.variance = f64::from_le_bytes([
                             b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7],
@@ -393,7 +396,7 @@ pub fn concept_to_datoms(
         (
             e,
             Attribute::from_keyword(":concept/variance"),
-            Value::Bytes(concept.variance.to_le_bytes().to_vec()),
+            Value::Double(ordered_float::OrderedFloat(concept.variance)),
         ),
         (
             e,
@@ -960,9 +963,9 @@ fn generate_concept_name(texts: &[&str]) -> String {
             *tf.entry(word.clone()).or_insert(0) += 1;
         }
         // DF: count each word once per document.
-        let unique: HashSet<String> = crate::connections::tokenize(text);
+        let unique: HashSet<&String> = words.iter().collect();
         for word in unique {
-            *df.entry(word).or_insert(0) += 1;
+            *df.entry(word.clone()).or_insert(0) += 1;
         }
     }
 
@@ -976,7 +979,7 @@ fn generate_concept_name(texts: &[&str]) -> String {
         })
         .collect();
 
-    scores.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    scores.sort_by(|a, b| b.1.total_cmp(&a.1));
 
     // Take top 3 keywords, join with hyphens.
     let top: Vec<&str> = scores.iter().take(3).map(|(w, _)| w.as_str()).collect();
@@ -2380,7 +2383,7 @@ mod tests {
         .assert(
             ce,
             Attribute::from_keyword(":concept/variance"),
-            Value::Bytes(0.8f64.to_le_bytes().to_vec()),
+            Value::Double(ordered_float::OrderedFloat(0.8)),
         )
         .assert(
             ce,

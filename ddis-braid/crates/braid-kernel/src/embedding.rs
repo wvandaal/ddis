@@ -42,6 +42,8 @@ impl fmt::Display for EmbeddingError {
     }
 }
 
+impl std::error::Error for EmbeddingError {}
+
 /// Trait for text embedding implementations (INV-EMBEDDING-001).
 ///
 /// Both [`Embedder`] and [`HashEmbedder`] implement this trait so the CCE
@@ -638,9 +640,9 @@ mod tests {
         );
     }
 
-    /// (18) Centroid of a single vector is itself.
+    /// (18) Serialization roundtrip preserves embedding values.
     #[test]
-    fn centroid_of_one_is_itself() {
+    fn embedding_roundtrip_preserves_values() {
         let v = [0.3f32, 0.5, 0.7, 0.1];
         // update_centroid with old_count=0 means: (old * 0 + new) / 1 = new.
         let centroid = super::embedding_to_bytes(&v);
