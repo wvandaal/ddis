@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774398576/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ec691cbb"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3bcbec48f4dfad80b19b34ed9b8780c073d869d19849dcb75643ec526e41fb29" :a :task/close-reason :v "observation_boundary() scans session observations for alignment/divergence keywords co-occurring with spec refs. Returns (aligned, divergent, score). Wired into status display in 3 modes (terse, verbose, JSON). 5 new tests." :op :assert}
+   {:e #blake3 "3bcbec48f4dfad80b19b34ed9b8780c073d869d19849dcb75643ec526e41fb29" :a :task/closed-at :v 1774398574 :op :assert}
+   {:e #blake3 "3bcbec48f4dfad80b19b34ed9b8780c073d869d19849dcb75643ec526e41fb29" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "3bcbec48f4dfad80b19b34ed9b8780c073d869d19849dcb75643ec526e41fb29" :a :task/status :v :task.status/closed :op :assert}
+ ]}

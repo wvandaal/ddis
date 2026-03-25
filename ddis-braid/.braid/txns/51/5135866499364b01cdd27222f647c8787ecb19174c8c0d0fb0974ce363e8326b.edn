@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774396063/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e5ac04b2"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "db24b6ba9acf7fef98918be07a03fdde37a1ee7cc184043d102cc2287d37ad3e" :a :task/close-reason :v "Three bugs fixed: BUG-1 UTF-8 safe_truncate_bytes replaces raw byte slicing in spec.rs and observe.rs. BUG-2 divergence footer compressed to 1 line when >5 types. BUG-3 confidence display fixed from {:.1} to {:.2} (was banker's rounding display issue, not actual capping). All tests pass." :op :assert}
+   {:e #blake3 "db24b6ba9acf7fef98918be07a03fdde37a1ee7cc184043d102cc2287d37ad3e" :a :task/closed-at :v 1774396062 :op :assert}
+   {:e #blake3 "db24b6ba9acf7fef98918be07a03fdde37a1ee7cc184043d102cc2287d37ad3e" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "db24b6ba9acf7fef98918be07a03fdde37a1ee7cc184043d102cc2287d37ad3e" :a :task/status :v :task.status/closed :op :assert}
+ ]}

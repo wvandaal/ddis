@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774394713/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7714a430"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5b60dd769e204e5e64ed895759524c1dbe7d5a61eb1a08b27191f956067a5a75" :a :task/close-reason :v "Superseded by upgraded SOUND-LIVE-v2 with corrective fix + INV-COHERENCE-002" :op :assert}
+   {:e #blake3 "5b60dd769e204e5e64ed895759524c1dbe7d5a61eb1a08b27191f956067a5a75" :a :task/closed-at :v 1774394712 :op :assert}
+   {:e #blake3 "5b60dd769e204e5e64ed895759524c1dbe7d5a61eb1a08b27191f956067a5a75" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "5b60dd769e204e5e64ed895759524c1dbe7d5a61eb1a08b27191f956067a5a75" :a :task/status :v :task.status/closed :op :assert}
+ ]}

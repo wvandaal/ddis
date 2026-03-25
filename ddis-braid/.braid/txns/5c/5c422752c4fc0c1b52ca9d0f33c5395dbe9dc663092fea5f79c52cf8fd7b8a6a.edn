@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774397147/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-87422e5b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "77033d11ed0ad3e2fcd58a7bc87b965f2df7716321cd7bee104e83269d638709" :a :task/close-reason :v "bootstrap_hypotheses.rs created (~310 LOC). Detects project type, directory structure, scale, test infrastructure. 8 tests. Graceful degradation on all filesystem errors. Go CLI produces 5+ hypotheses." :op :assert}
+   {:e #blake3 "77033d11ed0ad3e2fcd58a7bc87b965f2df7716321cd7bee104e83269d638709" :a :task/closed-at :v 1774397146 :op :assert}
+   {:e #blake3 "77033d11ed0ad3e2fcd58a7bc87b965f2df7716321cd7bee104e83269d638709" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "77033d11ed0ad3e2fcd58a7bc87b965f2df7716321cd7bee104e83269d638709" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774398573/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1e135143"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e166a089719951548dc0e5a54f1ff3e07a48e3c9f66042c78b6c3c32afe47115" :a :task/close-reason :v "M(t) session activity signal wired. session_observation_count + session_task_count → activity ratio capped at 1.0. Weight: 0.25 (from reduced transact_frequency 0.30→0.10). 8 new tests. 1506 total pass." :op :assert}
+   {:e #blake3 "e166a089719951548dc0e5a54f1ff3e07a48e3c9f66042c78b6c3c32afe47115" :a :task/closed-at :v 1774398572 :op :assert}
+   {:e #blake3 "e166a089719951548dc0e5a54f1ff3e07a48e3c9f66042c78b6c3c32afe47115" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "e166a089719951548dc0e5a54f1ff3e07a48e3c9f66042c78b6c3c32afe47115" :a :task/status :v :task.status/closed :op :assert}
+ ]}

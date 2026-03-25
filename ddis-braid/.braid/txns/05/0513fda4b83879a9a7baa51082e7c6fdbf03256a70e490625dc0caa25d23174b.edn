@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774394786/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-49a8f2d5"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a9c6dfe7304095b079361008f451ff66fb3df72d04a2e44d7f77c9f5811f18c2" :a :task/close-reason :v "Superseded by upgraded SOUND-NAN-v2 with FiniteF64 newtype" :op :assert}
+   {:e #blake3 "a9c6dfe7304095b079361008f451ff66fb3df72d04a2e44d7f77c9f5811f18c2" :a :task/closed-at :v 1774394785 :op :assert}
+   {:e #blake3 "a9c6dfe7304095b079361008f451ff66fb3df72d04a2e44d7f77c9f5811f18c2" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "a9c6dfe7304095b079361008f451ff66fb3df72d04a2e44d7f77c9f5811f18c2" :a :task/status :v :task.status/closed :op :assert}
+ ]}

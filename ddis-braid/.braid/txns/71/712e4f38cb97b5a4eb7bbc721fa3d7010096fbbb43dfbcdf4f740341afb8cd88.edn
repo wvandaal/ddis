@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774399501/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ab64153c"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d25651d4ef5a05c42ba5a057effaba152728c22838ed3a5137fc1f360e1811ff" :a :task/close-reason :v "Domain-aware seed: observations lead (not braid self-description). External projects get EXTERNAL_ACTIVATION (compressed 1 line). Domain observations section with top 10 by recency. Bootstrap hypotheses with confidence. Status line uses domain language." :op :assert}
+   {:e #blake3 "d25651d4ef5a05c42ba5a057effaba152728c22838ed3a5137fc1f360e1811ff" :a :task/closed-at :v 1774399499 :op :assert}
+   {:e #blake3 "d25651d4ef5a05c42ba5a057effaba152728c22838ed3a5137fc1f360e1811ff" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "d25651d4ef5a05c42ba5a057effaba152728c22838ed3a5137fc1f360e1811ff" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774397242/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Update t-ec691cbb → in-progress"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3bcbec48f4dfad80b19b34ed9b8780c073d869d19849dcb75643ec526e41fb29" :a :task/status :v :task.status/in-progress :op :assert}
+ ]}

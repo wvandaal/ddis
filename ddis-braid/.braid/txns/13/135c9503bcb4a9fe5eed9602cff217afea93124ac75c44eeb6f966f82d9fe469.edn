@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774394775/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1d83231f"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7a81325f7c03898bacc8bc749ab8f8de5e28fae7b163ede3d82a55bc5d40c5fc" :a :task/close-reason :v "Captured in SOUND-*-v2 upgraded tasks" :op :assert}
+   {:e #blake3 "7a81325f7c03898bacc8bc749ab8f8de5e28fae7b163ede3d82a55bc5d40c5fc" :a :task/closed-at :v 1774394774 :op :assert}
+   {:e #blake3 "7a81325f7c03898bacc8bc749ab8f8de5e28fae7b163ede3d82a55bc5d40c5fc" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "7a81325f7c03898bacc8bc749ab8f8de5e28fae7b163ede3d82a55bc5d40c5fc" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774393730/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f1f6b436e504153fc5bed43d0bfa64054607fd4473972178f893cfac7fad2513" :a :db/ident :v :recon/trace-456ad636638b12f7 :op :assert}
+   {:e #blake3 "f1f6b436e504153fc5bed43d0bfa64054607fd4473972178f893cfac7fad2513" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "f1f6b436e504153fc5bed43d0bfa64054607fd4473972178f893cfac7fad2513" :a :recon/trace-neighborhood :v "GUIDANCE" :op :assert}
+   {:e #blake3 "f1f6b436e504153fc5bed43d0bfa64054607fd4473972178f893cfac7fad2513" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.guidance.inv-guidance-008" :op :assert}
+   {:e #blake3 "f1f6b436e504153fc5bed43d0bfa64054607fd4473972178f893cfac7fad2513" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.kani_proofs.inv-guidance-008" :op :assert}
+   {:e #blake3 "f1f6b436e504153fc5bed43d0bfa64054607fd4473972178f893cfac7fad2513" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.methodology.inv-guidance-008" :op :assert}
+   {:e #blake3 "f1f6b436e504153fc5bed43d0bfa64054607fd4473972178f893cfac7fad2513" :a :recon/trace-neighbors :v ":impl/braid.src.commands.status.inv-guidance-008" :op :assert}
+   {:e #blake3 "f1f6b436e504153fc5bed43d0bfa64054607fd4473972178f893cfac7fad2513" :a :recon/trace-neighbors :v ":task/t-7c8fdc8f" :op :assert}
+   {:e #blake3 "f1f6b436e504153fc5bed43d0bfa64054607fd4473972178f893cfac7fad2513" :a :recon/trace-neighbors :v ":task/t-891d2acd" :op :assert}
+   {:e #blake3 "f1f6b436e504153fc5bed43d0bfa64054607fd4473972178f893cfac7fad2513" :a :recon/trace-neighbors :v ":task/t-b394164e" :op :assert}
+   {:e #blake3 "f1f6b436e504153fc5bed43d0bfa64054607fd4473972178f893cfac7fad2513" :a :recon/trace-refs :v "INV-GUIDANCE-008" :op :assert}
+ ]}

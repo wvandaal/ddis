@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774393821/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a67feaaa027e18a6927a3f4c37f49cebc023f6081906789ec931c93b6bd1d516" :a :db/ident :v :recon/trace-4b54d94480d44df4 :op :assert}
+   {:e #blake3 "a67feaaa027e18a6927a3f4c37f49cebc023f6081906789ec931c93b6bd1d516" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "a67feaaa027e18a6927a3f4c37f49cebc023f6081906789ec931c93b6bd1d516" :a :recon/trace-neighborhood :v "RESOLUTION" :op :assert}
+   {:e #blake3 "a67feaaa027e18a6927a3f4c37f49cebc023f6081906789ec931c93b6bd1d516" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.kani_proofs.inv-resolution-006" :op :assert}
+   {:e #blake3 "a67feaaa027e18a6927a3f4c37f49cebc023f6081906789ec931c93b6bd1d516" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-resolution-006" :op :assert}
+   {:e #blake3 "a67feaaa027e18a6927a3f4c37f49cebc023f6081906789ec931c93b6bd1d516" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-resolution-008" :op :assert}
+   {:e #blake3 "a67feaaa027e18a6927a3f4c37f49cebc023f6081906789ec931c93b6bd1d516" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.schema.inv-resolution-006" :op :assert}
+   {:e #blake3 "a67feaaa027e18a6927a3f4c37f49cebc023f6081906789ec931c93b6bd1d516" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.schema.inv-resolution-008" :op :assert}
+   {:e #blake3 "a67feaaa027e18a6927a3f4c37f49cebc023f6081906789ec931c93b6bd1d516" :a :recon/trace-neighbors :v ":task/t-52527d7b" :op :assert}
+   {:e #blake3 "a67feaaa027e18a6927a3f4c37f49cebc023f6081906789ec931c93b6bd1d516" :a :recon/trace-neighbors :v ":task/t-9cb083b5" :op :assert}
+   {:e #blake3 "a67feaaa027e18a6927a3f4c37f49cebc023f6081906789ec931c93b6bd1d516" :a :recon/trace-refs :v "INV-RESOLUTION-006" :op :assert}
+   {:e #blake3 "a67feaaa027e18a6927a3f4c37f49cebc023f6081906789ec931c93b6bd1d516" :a :recon/trace-refs :v "INV-RESOLUTION-008" :op :assert}
+ ]}

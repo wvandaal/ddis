@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774393785/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "92b2e469a26ec6d0dfe769c31a91f83dc32021e092a450e336bfcd80569020af" :a :db/ident :v :recon/trace-796d167bb6f44c59 :op :assert}
+   {:e #blake3 "92b2e469a26ec6d0dfe769c31a91f83dc32021e092a450e336bfcd80569020af" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "92b2e469a26ec6d0dfe769c31a91f83dc32021e092a450e336bfcd80569020af" :a :recon/trace-neighborhood :v "COHERENCE" :op :assert}
+   {:e #blake3 "92b2e469a26ec6d0dfe769c31a91f83dc32021e092a450e336bfcd80569020af" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.coherence.adr-coherence-001" :op :assert}
+   {:e #blake3 "92b2e469a26ec6d0dfe769c31a91f83dc32021e092a450e336bfcd80569020af" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.deliberation.adr-coherence-001" :op :assert}
+   {:e #blake3 "92b2e469a26ec6d0dfe769c31a91f83dc32021e092a450e336bfcd80569020af" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.proposal.adr-coherence-001" :op :assert}
+   {:e #blake3 "92b2e469a26ec6d0dfe769c31a91f83dc32021e092a450e336bfcd80569020af" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.query.evaluator.inv-store-012" :op :assert}
+   {:e #blake3 "92b2e469a26ec6d0dfe769c31a91f83dc32021e092a450e336bfcd80569020af" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-store-012" :op :assert}
+   {:e #blake3 "92b2e469a26ec6d0dfe769c31a91f83dc32021e092a450e336bfcd80569020af" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.store.inv-store-012" :op :assert}
+   {:e #blake3 "92b2e469a26ec6d0dfe769c31a91f83dc32021e092a450e336bfcd80569020af" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.task.inv-store-012" :op :assert}
+   {:e #blake3 "92b2e469a26ec6d0dfe769c31a91f83dc32021e092a450e336bfcd80569020af" :a :recon/trace-neighbors :v ":task/t-7714a430" :op :assert}
+   {:e #blake3 "92b2e469a26ec6d0dfe769c31a91f83dc32021e092a450e336bfcd80569020af" :a :recon/trace-neighbors :v ":task/t-c2bbcda9" :op :assert}
+   {:e #blake3 "92b2e469a26ec6d0dfe769c31a91f83dc32021e092a450e336bfcd80569020af" :a :recon/trace-refs :v "ADR-COHERENCE-001" :op :assert}
+   {:e #blake3 "92b2e469a26ec6d0dfe769c31a91f83dc32021e092a450e336bfcd80569020af" :a :recon/trace-refs :v "INV-STORE-012" :op :assert}
+ ]}

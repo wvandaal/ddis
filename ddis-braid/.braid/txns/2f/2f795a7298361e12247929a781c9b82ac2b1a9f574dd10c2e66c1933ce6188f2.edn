@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774396056/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-d53d9f98"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dff140f5aab28f203a0f621a09c107a7b18aeaca1363efc3ea29e7bf700b8eff" :a :task/close-reason :v "All 4 failing tests fixed. Root cause: C8-FIX-5 detection hardened with :db/ident :spec/ prefix secondary indicator. Tests updated with :spec/element-type datoms. 1446/1446 pass." :op :assert}
+   {:e #blake3 "dff140f5aab28f203a0f621a09c107a7b18aeaca1363efc3ea29e7bf700b8eff" :a :task/closed-at :v 1774396055 :op :assert}
+   {:e #blake3 "dff140f5aab28f203a0f621a09c107a7b18aeaca1363efc3ea29e7bf700b8eff" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "dff140f5aab28f203a0f621a09c107a7b18aeaca1363efc3ea29e7bf700b8eff" :a :task/status :v :task.status/closed :op :assert}
+ ]}

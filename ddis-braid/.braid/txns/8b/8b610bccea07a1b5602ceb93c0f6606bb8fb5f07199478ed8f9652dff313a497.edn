@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774397141/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-0ce58460"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "09863b47e8511695c974eb68aa0041194529839dde9e0a19e5ccbf94f7bc89dc" :a :task/close-reason :v "5 isomorphism tests added verifying LIVE view, frontier, datom count, entity count, and MaterializedViews between incremental and batch paths. 106/106 store tests pass." :op :assert}
+   {:e #blake3 "09863b47e8511695c974eb68aa0041194529839dde9e0a19e5ccbf94f7bc89dc" :a :task/closed-at :v 1774397140 :op :assert}
+   {:e #blake3 "09863b47e8511695c974eb68aa0041194529839dde9e0a19e5ccbf94f7bc89dc" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "09863b47e8511695c974eb68aa0041194529839dde9e0a19e5ccbf94f7bc89dc" :a :task/status :v :task.status/closed :op :assert}
+ ]}

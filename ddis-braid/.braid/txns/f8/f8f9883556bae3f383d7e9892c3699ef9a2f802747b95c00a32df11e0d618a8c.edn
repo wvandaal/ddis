@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774394630/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7c8fdc8f"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2281604a9b3bd34b3b1863f870cbc26ad8ef82c4b9f43d38548a640c48ed6709" :a :task/close-reason :v "Superseded by upgraded SOUND-RED-v2 with root cause diagnosis" :op :assert}
+   {:e #blake3 "2281604a9b3bd34b3b1863f870cbc26ad8ef82c4b9f43d38548a640c48ed6709" :a :task/closed-at :v 1774394629 :op :assert}
+   {:e #blake3 "2281604a9b3bd34b3b1863f870cbc26ad8ef82c4b9f43d38548a640c48ed6709" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "2281604a9b3bd34b3b1863f870cbc26ad8ef82c4b9f43d38548a640c48ed6709" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774394115/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-4e574001"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ec46849cedb6bda19eecc84bab3dda7c77efa13ae4148355931f69449128cf6e" :a :task/close-reason :v "Superseded by SOUND-* task in Foundation Soundness EPIC t-274cd1e2" :op :assert}
+   {:e #blake3 "ec46849cedb6bda19eecc84bab3dda7c77efa13ae4148355931f69449128cf6e" :a :task/closed-at :v 1774394114 :op :assert}
+   {:e #blake3 "ec46849cedb6bda19eecc84bab3dda7c77efa13ae4148355931f69449128cf6e" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "ec46849cedb6bda19eecc84bab3dda7c77efa13ae4148355931f69449128cf6e" :a :task/status :v :task.status/closed :op :assert}
+ ]}

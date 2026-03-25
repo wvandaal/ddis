@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774397144/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-2b2506c8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f997c22114a8569877b14b045cf99f948bdc4f6d1133e589288af1590929ce6f" :a :task/close-reason :v "OAR implemented: observation_coverage() counts session obs per namespace, observation_dampening() applies 1/(1+0.3*N) formula, wired into compute_routing_from_store_inner. 7 new tests. Explored areas dampen, unexplored boost 1.2x." :op :assert}
+   {:e #blake3 "f997c22114a8569877b14b045cf99f948bdc4f6d1133e589288af1590929ce6f" :a :task/closed-at :v 1774397143 :op :assert}
+   {:e #blake3 "f997c22114a8569877b14b045cf99f948bdc4f6d1133e589288af1590929ce6f" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "f997c22114a8569877b14b045cf99f948bdc4f6d1133e589288af1590929ce6f" :a :task/status :v :task.status/closed :op :assert}
+ ]}

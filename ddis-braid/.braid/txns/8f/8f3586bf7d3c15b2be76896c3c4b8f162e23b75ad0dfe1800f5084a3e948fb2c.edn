@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774396060/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-2dc2e39d"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8719d2ce1150480345e0416544b44370baef930f877211a657184e6a3768569a" :a :task/close-reason :v "LIVE view retraction handling fixed in 4 locations (from_datoms, apply_datoms, transact, merge). 7 new tests added. Bare retraction removes entry. Retract-then-assert works. from_datoms matches transact. 101/101 store tests pass." :op :assert}
+   {:e #blake3 "8719d2ce1150480345e0416544b44370baef930f877211a657184e6a3768569a" :a :task/closed-at :v 1774396058 :op :assert}
+   {:e #blake3 "8719d2ce1150480345e0416544b44370baef930f877211a657184e6a3768569a" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "8719d2ce1150480345e0416544b44370baef930f877211a657184e6a3768569a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774394716/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "593038dc1d63a33cab13e8ca8edea4b9b97f815e1556de9bcea41bafc088e412" :a :db/ident :v :recon/trace-40703dbbff735168 :op :assert}
+   {:e #blake3 "593038dc1d63a33cab13e8ca8edea4b9b97f815e1556de9bcea41bafc088e412" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "593038dc1d63a33cab13e8ca8edea4b9b97f815e1556de9bcea41bafc088e412" :a :recon/trace-neighborhood :v "COHERENCE" :op :assert}
+   {:e #blake3 "593038dc1d63a33cab13e8ca8edea4b9b97f815e1556de9bcea41bafc088e412" :a :recon/trace-refs :v "INV-COHERENCE-002" :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774399498/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3cf81ce2"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3b0994bf717ebb648a12bce12274dcc77674d0adba66a547c482296647563bc9" :a :task/close-reason :v "Responsive observation implemented. After observe: propose_connections called, topological events surfaced, micro-hypothesis generated. Connection info + follow-up question in agent/human/JSON output modes. Uses safe_truncate_bytes for all truncation." :op :assert}
+   {:e #blake3 "3b0994bf717ebb648a12bce12274dcc77674d0adba66a547c482296647563bc9" :a :task/closed-at :v 1774399497 :op :assert}
+   {:e #blake3 "3b0994bf717ebb648a12bce12274dcc77674d0adba66a547c482296647563bc9" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "3b0994bf717ebb648a12bce12274dcc77674d0adba66a547c482296647563bc9" :a :task/status :v :task.status/closed :op :assert}
+ ]}

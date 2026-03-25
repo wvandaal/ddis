@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774393947/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "818f3527ff4f923059d6e212795443e9337b4c22c681d390a6642fa0fb2f1a0b" :a :db/ident :v :recon/trace-c0f812c2690b24d7 :op :assert}
+   {:e #blake3 "818f3527ff4f923059d6e212795443e9337b4c22c681d390a6642fa0fb2f1a0b" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "818f3527ff4f923059d6e212795443e9337b4c22c681d390a6642fa0fb2f1a0b" :a :recon/trace-neighborhood :v "STORE" :op :assert}
+   {:e #blake3 "818f3527ff4f923059d6e212795443e9337b4c22c681d390a6642fa0fb2f1a0b" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.query.evaluator.inv-store-012" :op :assert}
+   {:e #blake3 "818f3527ff4f923059d6e212795443e9337b4c22c681d390a6642fa0fb2f1a0b" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-store-012" :op :assert}
+   {:e #blake3 "818f3527ff4f923059d6e212795443e9337b4c22c681d390a6642fa0fb2f1a0b" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.store.inv-store-012" :op :assert}
+   {:e #blake3 "818f3527ff4f923059d6e212795443e9337b4c22c681d390a6642fa0fb2f1a0b" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.task.inv-store-012" :op :assert}
+   {:e #blake3 "818f3527ff4f923059d6e212795443e9337b4c22c681d390a6642fa0fb2f1a0b" :a :recon/trace-neighbors :v ":task/t-28e0b1aa" :op :assert}
+   {:e #blake3 "818f3527ff4f923059d6e212795443e9337b4c22c681d390a6642fa0fb2f1a0b" :a :recon/trace-neighbors :v ":task/t-7714a430" :op :assert}
+   {:e #blake3 "818f3527ff4f923059d6e212795443e9337b4c22c681d390a6642fa0fb2f1a0b" :a :recon/trace-neighbors :v ":task/t-c2bbcda9" :op :assert}
+   {:e #blake3 "818f3527ff4f923059d6e212795443e9337b4c22c681d390a6642fa0fb2f1a0b" :a :recon/trace-refs :v "INV-STORE-012" :op :assert}
+ ]}

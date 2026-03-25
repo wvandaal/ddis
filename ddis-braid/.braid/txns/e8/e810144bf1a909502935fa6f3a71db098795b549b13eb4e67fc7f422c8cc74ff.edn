@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774394666/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-72a60f30"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "31012b0b1ecca55bdba577e802c42ef35b5f0cb042e700d29fdb44ae21fd60ca" :a :task/close-reason :v "Superseded by upgraded SOUND-ISO-v2 with cross-cutting INV-STORE-IDX-005" :op :assert}
+   {:e #blake3 "31012b0b1ecca55bdba577e802c42ef35b5f0cb042e700d29fdb44ae21fd60ca" :a :task/closed-at :v 1774394665 :op :assert}
+   {:e #blake3 "31012b0b1ecca55bdba577e802c42ef35b5f0cb042e700d29fdb44ae21fd60ca" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "31012b0b1ecca55bdba577e802c42ef35b5f0cb042e700d29fdb44ae21fd60ca" :a :task/status :v :task.status/closed :op :assert}
+ ]}
