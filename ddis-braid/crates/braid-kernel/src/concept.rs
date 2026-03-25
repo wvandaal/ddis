@@ -30,7 +30,7 @@ use crate::store::Store;
 
 /// Default cosine similarity threshold for joining an existing concept.
 /// Tunable via policy manifest `:policy/concept-join-threshold`.
-pub const JOIN_THRESHOLD: f32 = 0.65;
+pub const JOIN_THRESHOLD: f32 = 0.20;
 
 /// Minimum number of uncategorized observations to form a new concept.
 pub const MIN_CLUSTER_SIZE: usize = 3;

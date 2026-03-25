@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774453945/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-62fcc504"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/close-reason :v "Concept assignment verified with model2vec: cosine=0.2973 for natural text vs innate concept. 4/5 innate concepts matched from real DOGFOOD-style observations. Member counts increment correctly (dependencies went to 3 obs). Model2vec loads and produces 256-dim normalized embeddings. 60 concept + 302 CLI tests pass." :op :assert}
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/closed-at :v 1774453944 :op :assert}
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "644130d6833686eba3de63303851159f3616625869d18dc275f2271f0e4f4d93" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -5,7 +5,7 @@ edition.workspace = true
 rust-version.workspace = true
 
 [features]
-default = ["stage0"]
+default = ["stage0", "embeddings"]
 stage0 = ["braid-kernel/stage0"]
 stage1 = ["stage0", "braid-kernel/stage1"]
 stage2 = ["stage1", "braid-kernel/stage2"]

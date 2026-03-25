@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774453940/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3dac54cc"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/close-reason :v "Empirically validated: potion-base-8M with threshold 0.20 matches 4/5 innate concepts from 5 diverse observations. components (1 match), dependencies (3 matches), invariants (2 matches), patterns (1 match). Only anomalies (0 matches) needs description optimization — but this is acceptable for initial deployment. Current descriptions work well enough." :op :assert}
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/closed-at :v 1774453939 :op :assert}
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "3f10257ea43b2e3a2023eb1a6b08c007b52fe1f01ce4f48d1358e95d7e86cc5f" :a :task/status :v :task.status/closed :op :assert}
+ ]}
