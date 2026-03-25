@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774433793/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIX-INNATE-SIG: Accept embedder parameter in innate_concept_datoms (DEFECT-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3282f1fb2867fdfd2c783fb6ef2c90110232acddc5209a63106bf777f6695666" :a :db/ident :v :task/t-906a704a :op :assert}
+   {:e #blake3 "3282f1fb2867fdfd2c783fb6ef2c90110232acddc5209a63106bf777f6695666" :a :task/created-at :v 1774433792 :op :assert}
+   {:e #blake3 "3282f1fb2867fdfd2c783fb6ef2c90110232acddc5209a63106bf777f6695666" :a :task/description :v "CONTEXT: innate_concept_datoms() at concept.rs:475 hard-codes HashEmbedder::new(DEFAULT_DIM) instead of accepting an embedder parameter. The kernel function makes a policy decision (which embedder to use) that should be the caller's choice. When model2vec is available, innate concepts must be embedded with the same model — cross-vector-space cosine is meaningless. APPROACH: (1) Change signature: pub fn innate_concept_datoms(timestamp: i64, embedder: &dyn TextEmbedder) -> Vec<...>. (2) Remove line 478 (internal HashEmbedder construction). (3) Use the parameter: let emb = embedder.embed(description). (4) Update init.rs:292 to construct and pass the resolved embedder (HashEmbedder for now, model embedder when SEMANTIC-EMBED ships). (5) Update all test callers to pass HashEmbedder::new(DEFAULT_DIM) explicitly. ACCEPTANCE: (A) innate_concept_datoms no longer imports or constructs HashEmbedder. (B) All 47 concept tests pass with explicit embedder parameter. (C) braid init still produces 5 innate concepts (E2E). (D) The function signature enforces that callers choose the embedder. CONSIDERATIONS: This is a public API change. All callers (init.rs + tests) must update. Medium regression risk from missed callers. Enables EMBED-CONSISTENCY (t-40843017) to be much simpler — just pass the right embedder at init time. DEPENDS-ON: nothing. BLOCKS: EMBED-CONSISTENCY (t-40843017). FILE: crates/braid-kernel/src/concept.rs:475, crates/braid/src/commands/init.rs:292, test callsites" :op :assert}
+   {:e #blake3 "3282f1fb2867fdfd2c783fb6ef2c90110232acddc5209a63106bf777f6695666" :a :task/id :v "t-906a704a" :op :assert}
+   {:e #blake3 "3282f1fb2867fdfd2c783fb6ef2c90110232acddc5209a63106bf777f6695666" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "3282f1fb2867fdfd2c783fb6ef2c90110232acddc5209a63106bf777f6695666" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3282f1fb2867fdfd2c783fb6ef2c90110232acddc5209a63106bf777f6695666" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3282f1fb2867fdfd2c783fb6ef2c90110232acddc5209a63106bf777f6695666" :a :task/title :v "FIX-INNATE-SIG: Accept embedder parameter in innate_concept_datoms (DEFECT-001)" :op :assert}
+   {:e #blake3 "3282f1fb2867fdfd2c783fb6ef2c90110232acddc5209a63106bf777f6695666" :a :task/title-l0 :v "FIX-INNATE-SIG" :op :assert}
+   {:e #blake3 "3282f1fb2867fdfd2c783fb6ef2c90110232acddc5209a63106bf777f6695666" :a :task/title-l1 :v "FIX-INNATE-SIG: Accept embedder parameter in innate_concept_datoms (DEFECT-001)" :op :assert}
+   {:e #blake3 "3282f1fb2867fdfd2c783fb6ef2c90110232acddc5209a63106bf777f6695666" :a :task/traces-to :v #blake3 "32f8bc2c2dd810119edd7aeb240621f4c1afb3bde2eafbb1f7fe814122bb4b35" :op :assert}
+   {:e #blake3 "3282f1fb2867fdfd2c783fb6ef2c90110232acddc5209a63106bf777f6695666" :a :task/type :v :task.type/task :op :assert}
+ ]}

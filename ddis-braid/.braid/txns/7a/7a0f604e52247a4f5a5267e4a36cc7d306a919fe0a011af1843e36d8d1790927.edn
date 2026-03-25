@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774433814/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CCE-PERF: Single-pass concept_inventory + innate set caching (DEFECT-007 + DEFECT-015)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :db/ident :v :task/t-19d93e09 :op :assert}
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/created-at :v 1774433813 :op :assert}
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/description :v "CONTEXT: Two related performance defects in concept.rs. DEFECT-007: concept_inventory scans all datoms TWICE — once for :concept/name, once for remaining attributes. DEFECT-015: format_concept_status calls is_innate() per concept, and is_innate does a full datom scan. With 25 concepts and 88K datoms: 2*88K + 25*88K = 2.4M iterations on every braid status. APPROACH: (1) Rewrite concept_inventory as single-pass: one loop over store.datoms(), check attribute against all concept-related attributes. Insert-or-update in the BTreeMap. Also collect :concept/innate into a HashSet<EntityId> during the same pass. (2) Change format_concept_status to accept the innate set as parameter (or return it from concept_inventory). Replace is_innate(store, entity) calls with innate_set.contains(&entity). (3) This changes concept_inventory return type or adds a companion function. ACCEPTANCE: (A) concept_inventory makes exactly 1 pass over store.datoms() (verify by counting iterations or by code inspection). (B) format_concept_status makes 0 additional datom scans beyond calling concept_inventory. (C) All existing concept tests pass. (D) New benchmark: format_concept_status with 100K datoms and 20 concepts completes in < 10ms. DEPENDS-ON: nothing (orthogonal to correctness fixes). FILE: crates/braid-kernel/src/concept.rs:249-318, 719-767" :op :assert}
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/id :v "t-19d93e09" :op :assert}
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/title :v "CCE-PERF: Single-pass concept_inventory + innate set caching (DEFECT-007 + DEFECT-015)" :op :assert}
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/title-l0 :v "CCE-PERF" :op :assert}
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/title-l1 :v "CCE-PERF: Single-pass concept_inventory + innate set caching (DEFECT-007 + DE..." :op :assert}
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/traces-to :v #blake3 "32f8bc2c2dd810119edd7aeb240621f4c1afb3bde2eafbb1f7fe814122bb4b35" :op :assert}
+   {:e #blake3 "1dc9483a7ef8df7041bfacf8bfc23d81723a1942b689f247b9c3f452f86972bb" :a :task/type :v :task.type/task :op :assert}
+ ]}

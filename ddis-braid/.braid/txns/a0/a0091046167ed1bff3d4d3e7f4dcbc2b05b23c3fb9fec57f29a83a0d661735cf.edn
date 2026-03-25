@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774433532/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "AUDIT DEFECT-002 (CRITICAL): unwrap() in production code at concept.rs:119. find_nearest_concept uses 'if best.is_none() || sim > best.unwrap().1' — the unwrap is unreachable due to short-circuit evaluation, but fragile under refactoring. Any future edit adding an OR condition could trigger a panic. Violates INV-EMBEDDING-003 (no panics on invalid input). FIX: Replace with 'if best.map_or(true, |(_, s)| sim > s)'. Semantically identical, panic-proof. No new tests needed — existing tests cover both None and Some paths. Zero regression risk."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aed715ed22b4af2fcb7983fba60bef81a9af0660082b968b1f0749a7d0020308" :a :db/doc :v "AUDIT DEFECT-002 (CRITICAL): unwrap() in production code at concept.rs:119. find_nearest_concept uses 'if best.is_none() || sim > best.unwrap().1' — the unwrap is unreachable due to short-circuit evaluation, but fragile under refactoring. Any future edit adding an OR condition could trigger a panic. Violates INV-EMBEDDING-003 (no panics on invalid input). FIX: Replace with 'if best.map_or(true, |(_, s)| sim > s)'. Semantically identical, panic-proof. No new tests needed — existing tests cover both None and Some paths. Zero regression risk." :op :assert}
+   {:e #blake3 "aed715ed22b4af2fcb7983fba60bef81a9af0660082b968b1f0749a7d0020308" :a :db/ident :v :observation/audit-defect-002-critical-unwrap-in-production-code-at :op :assert}
+   {:e #blake3 "aed715ed22b4af2fcb7983fba60bef81a9af0660082b968b1f0749a7d0020308" :a :exploration/body :v "AUDIT DEFECT-002 (CRITICAL): unwrap() in production code at concept.rs:119. find_nearest_concept uses 'if best.is_none() || sim > best.unwrap().1' — the unwrap is unreachable due to short-circuit evaluation, but fragile under refactoring. Any future edit adding an OR condition could trigger a panic. Violates INV-EMBEDDING-003 (no panics on invalid input). FIX: Replace with 'if best.map_or(true, |(_, s)| sim > s)'. Semantically identical, panic-proof. No new tests needed — existing tests cover both None and Some paths. Zero regression risk." :op :assert}
+   {:e #blake3 "aed715ed22b4af2fcb7983fba60bef81a9af0660082b968b1f0749a7d0020308" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "aed715ed22b4af2fcb7983fba60bef81a9af0660082b968b1f0749a7d0020308" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "aed715ed22b4af2fcb7983fba60bef81a9af0660082b968b1f0749a7d0020308" :a :exploration/content-hash :v #bytes "681e2b70b61ebdb74ca06dc82ae5c5af49ee5d63c43314cc2028947116cc4bee" :op :assert}
+   {:e #blake3 "aed715ed22b4af2fcb7983fba60bef81a9af0660082b968b1f0749a7d0020308" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "aed715ed22b4af2fcb7983fba60bef81a9af0660082b968b1f0749a7d0020308" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "aed715ed22b4af2fcb7983fba60bef81a9af0660082b968b1f0749a7d0020308" :a :exploration/source-session :v #blake3 "32ed8d461d28b914f80ecdc5db1e546f2b1fa5bee2049b0895a77644b094f75c" :op :assert}
+ ]}

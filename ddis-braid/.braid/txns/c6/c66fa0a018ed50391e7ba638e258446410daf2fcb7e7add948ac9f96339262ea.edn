@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774433743/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIX-STALE: Collect latest embedding per entity in find_nearest_concept (DEFECT-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "152169c0b70badc791cf8519f2ecab1d2f2a63b2b1cb8b1d143561707fd24c66" :a :db/ident :v :task/t-7b63c9c9 :op :assert}
+   {:e #blake3 "152169c0b70badc791cf8519f2ecab1d2f2a63b2b1cb8b1d143561707fd24c66" :a :task/created-at :v 1774433742 :op :assert}
+   {:e #blake3 "152169c0b70badc791cf8519f2ecab1d2f2a63b2b1cb8b1d143561707fd24c66" :a :task/description :v "CONTEXT: find_nearest_concept at concept.rs:107-127 scans ALL datoms. In C1 append-only stores, if a concept embedding is updated (new Assert for same entity+attribute), both old and new assertion datoms exist. The function takes whichever the iterator yields — in practice the last one due to BTreeSet ordering, but this is an implementation detail, not a guarantee. When EMBED-CONSISTENCY re-embeds innate concepts (hash->model), both embedding datoms coexist. The function MUST use the latest. APPROACH: Replace the linear scan with a two-phase approach: (1) Collect embeddings into BTreeMap<EntityId, Vec<f32>>, where later assertions overwrite earlier ones (BTreeSet iteration is EAVT-ordered, so later tx = later in iteration). (2) Search the map for best match. This also naturally incorporates the FIX-UNWRAP pattern (map_or). ACCEPTANCE: (A) Two embeddings for same concept entity — function uses the latest (verified by test). (B) All existing concept tests pass. (C) New test: store two different embeddings for same concept, verify nearest uses second. (D) Performance: still O(D) scan, but with O(C) map storage. No regression for typical stores. DEPENDS-ON: FIX-UNWRAP (same function, avoid merge conflict). FILE: crates/braid-kernel/src/concept.rs:107-127" :op :assert}
+   {:e #blake3 "152169c0b70badc791cf8519f2ecab1d2f2a63b2b1cb8b1d143561707fd24c66" :a :task/id :v "t-7b63c9c9" :op :assert}
+   {:e #blake3 "152169c0b70badc791cf8519f2ecab1d2f2a63b2b1cb8b1d143561707fd24c66" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "152169c0b70badc791cf8519f2ecab1d2f2a63b2b1cb8b1d143561707fd24c66" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "152169c0b70badc791cf8519f2ecab1d2f2a63b2b1cb8b1d143561707fd24c66" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "152169c0b70badc791cf8519f2ecab1d2f2a63b2b1cb8b1d143561707fd24c66" :a :task/title :v "FIX-STALE: Collect latest embedding per entity in find_nearest_concept (DEFECT-005)" :op :assert}
+   {:e #blake3 "152169c0b70badc791cf8519f2ecab1d2f2a63b2b1cb8b1d143561707fd24c66" :a :task/title-l0 :v "FIX-STALE" :op :assert}
+   {:e #blake3 "152169c0b70badc791cf8519f2ecab1d2f2a63b2b1cb8b1d143561707fd24c66" :a :task/title-l1 :v "FIX-STALE: Collect latest embedding per entity in find_nearest_concept (DEFEC..." :op :assert}
+   {:e #blake3 "152169c0b70badc791cf8519f2ecab1d2f2a63b2b1cb8b1d143561707fd24c66" :a :task/traces-to :v #blake3 "32f8bc2c2dd810119edd7aeb240621f4c1afb3bde2eafbb1f7fe814122bb4b35" :op :assert}
+   {:e #blake3 "152169c0b70badc791cf8519f2ecab1d2f2a63b2b1cb8b1d143561707fd24c66" :a :task/type :v :task.type/bug :op :assert}
+ ]}

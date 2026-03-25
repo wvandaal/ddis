@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774433773/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIX-WRITE-ERR: Propagate CCE transaction write error in observe (DEFECT-006)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :db/ident :v :task/t-dd839eea :op :assert}
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/created-at :v 1774433772 :op :assert}
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/description :v "CONTEXT: observe.rs:601 uses 'let _ = live.write_tx(&cce_tx)' — silently discards write failures for embedding, concept assignment, and entity link datoms. The main observation datoms are written with proper error propagation, but the CCE follow-up transaction is fire-and-forget. On disk-full or permission errors, the observation appears to succeed but loses all CCE metadata. APPROACH: Replace 'let _ = live.write_tx(&cce_tx);' with 'live.write_tx(&cce_tx)?;'. One-character fix. ACCEPTANCE: (A) No 'let _ = ' on any write_tx call in observe.rs. (B) All existing tests pass. (C) If write_tx fails, the observe command returns an error to the caller. CONSIDERATIONS: This surfaces errors that were previously silent. Users may see new errors on disk-full scenarios. This is correct behavior — silent data loss is worse than a visible error. DEPENDS-ON: nothing. FILE: crates/braid/src/commands/observe.rs:601" :op :assert}
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/id :v "t-dd839eea" :op :assert}
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/title :v "FIX-WRITE-ERR: Propagate CCE transaction write error in observe (DEFECT-006)" :op :assert}
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/title-l0 :v "FIX-WRITE-ERR" :op :assert}
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/title-l1 :v "FIX-WRITE-ERR: Propagate CCE transaction write error in observe (DEFECT-006)" :op :assert}
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/traces-to :v #blake3 "e9e052cfbf85e1beb34a7bc3f1810b0631e66d42739db7dac011c53de1d20768" :op :assert}
+   {:e #blake3 "7ceee7a0a7fe29c82f3bc9a133a72bda4a4a4ff3cf5c51a27718ca8b33dd3379" :a :task/type :v :task.type/bug :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774433689/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CCE-SOUND EPIC: Correctness fixes for Concept Crystallization Engine (3 CRITICAL, 2 MAJOR)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2c4cb66d5b00f61f9da0aeb363b40f35fa73dba7bb6733a80d6d93a0f4f3b83e" :a :db/ident :v :task/t-07936f49 :op :assert}
+   {:e #blake3 "2c4cb66d5b00f61f9da0aeb363b40f35fa73dba7bb6733a80d6d93a0f4f3b83e" :a :task/created-at :v 1774433688 :op :assert}
+   {:e #blake3 "2c4cb66d5b00f61f9da0aeb363b40f35fa73dba7bb6733a80d6d93a0f4f3b83e" :a :task/description :v "CONTEXT: Cleanroom audit of CCE implementation found 3 CRITICAL and 2 MAJOR correctness defects. The CCE pipeline (embedding, concept assignment, crystallization, steering) is architecturally sound and well-tested (76 tests), but has: (1) unwrap() in production hot path (DEFECT-002), (2) unnormalized centroids from clustering violating INV-EMBEDDING-002 (DEFECT-003), (3) stale concept embeddings from datom scan order (DEFECT-005), (4) cosine_similarity dimension mismatch silent in release (DEFECT-004), (5) silently swallowed CCE write error (DEFECT-006). RATIONALE: These are correctness issues, not features. They should be fixed before SEMANTIC-EMBED work to avoid building on a flawed foundation. DEPENDENCY CHAIN: FIX-UNWRAP (independent) | FIX-NORMALIZE (independent) | FIX-STALE (depends on FIX-UNWRAP) | FIX-COSINE (independent) | FIX-WRITE-ERR (independent) | FIX-INNATE-SIG (depends on nothing, enables EMBED-CONSISTENCY) → CCE-SOUND-TEST. TRACES-TO: INV-EMBEDDING-001, INV-EMBEDDING-002, INV-EMBEDDING-003." :op :assert}
+   {:e #blake3 "2c4cb66d5b00f61f9da0aeb363b40f35fa73dba7bb6733a80d6d93a0f4f3b83e" :a :task/id :v "t-07936f49" :op :assert}
+   {:e #blake3 "2c4cb66d5b00f61f9da0aeb363b40f35fa73dba7bb6733a80d6d93a0f4f3b83e" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "2c4cb66d5b00f61f9da0aeb363b40f35fa73dba7bb6733a80d6d93a0f4f3b83e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2c4cb66d5b00f61f9da0aeb363b40f35fa73dba7bb6733a80d6d93a0f4f3b83e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2c4cb66d5b00f61f9da0aeb363b40f35fa73dba7bb6733a80d6d93a0f4f3b83e" :a :task/title :v "CCE-SOUND EPIC: Correctness fixes for Concept Crystallization Engine (3 CRITICAL, 2 MAJOR)" :op :assert}
+   {:e #blake3 "2c4cb66d5b00f61f9da0aeb363b40f35fa73dba7bb6733a80d6d93a0f4f3b83e" :a :task/title-l0 :v "CCE-SOUND EPIC" :op :assert}
+   {:e #blake3 "2c4cb66d5b00f61f9da0aeb363b40f35fa73dba7bb6733a80d6d93a0f4f3b83e" :a :task/title-l1 :v "CCE-SOUND EPIC: Correctness fixes for Concept Crystallization Engine (3 CRITI..." :op :assert}
+   {:e #blake3 "2c4cb66d5b00f61f9da0aeb363b40f35fa73dba7bb6733a80d6d93a0f4f3b83e" :a :task/traces-to :v #blake3 "9124231288977ed0bffe3327ae7317730768f7616be896d95494a020b7f696cf" :op :assert}
+   {:e #blake3 "2c4cb66d5b00f61f9da0aeb363b40f35fa73dba7bb6733a80d6d93a0f4f3b83e" :a :task/type :v :task.type/epic :op :assert}
+ ]}

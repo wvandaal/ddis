@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774433725/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIX-NORMALIZE: L2-normalize centroids after agglomerative merge (DEFECT-003)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :db/ident :v :task/t-567d61da :op :assert}
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/created-at :v 1774433724 :op :assert}
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/description :v "CONTEXT: crystallize_concepts at concept.rs:202-204 computes weighted-average centroid when merging clusters but never normalizes. The centroid vector shrinks toward zero as clusters grow. Both HashEmbedder::embed and Embedder::embed produce L2-normalized output (INV-EMBEDDING-002), but crystallized concept centroids violate this invariant. Consequence: stored :concept/embedding values have norms < 1.0, making surprise calculations (1.0 - cosine) systematically biased for crystallized vs innate concepts. APPROACH: (1) Make l2_normalize pub(crate) in embedding.rs (currently fn — private). (2) Add 'crate::embedding::l2_normalize(&mut centroids[best_i]);' after line 205 in crystallize_concepts. (3) The final centroid at line 239 (stored in NewConcept) will now be normalized. ACCEPTANCE: (A) For any output of crystallize_concepts, each NewConcept.centroid has L2 norm within 1e-5 of 1.0. (B) All 47 existing concept tests pass. (C) New test: crystallize 5 similar observations, verify centroid norm. CONSIDERATIONS: Changes centroid values slightly. Existing tests that compare centroid values may need epsilon adjustment. The normalized centroids are strictly more correct — they match what the spec requires. DEPENDS-ON: nothing. FILE: crates/braid-kernel/src/embedding.rs (visibility change), crates/braid-kernel/src/concept.rs:205" :op :assert}
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/id :v "t-567d61da" :op :assert}
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/title :v "FIX-NORMALIZE: L2-normalize centroids after agglomerative merge (DEFECT-003)" :op :assert}
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/title-l0 :v "FIX-NORMALIZE" :op :assert}
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/title-l1 :v "FIX-NORMALIZE: L2-normalize centroids after agglomerative merge (DEFECT-003)" :op :assert}
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/traces-to :v #blake3 "9124231288977ed0bffe3327ae7317730768f7616be896d95494a020b7f696cf" :op :assert}
+   {:e #blake3 "c639530ab3b40adfae3b78d115dd0fab2c3fe3eb3beb151447a3fe1667fe2cd4" :a :task/type :v :task.type/bug :op :assert}
+ ]}

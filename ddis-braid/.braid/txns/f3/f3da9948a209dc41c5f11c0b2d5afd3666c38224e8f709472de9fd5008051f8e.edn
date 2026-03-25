@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774433708/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIX-UNWRAP: Replace unwrap() with map_or in find_nearest_concept (DEFECT-002)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9a6309451e6bc72be8d079fcb49726c8b424a8ca01b4a1e5831da05b50e9e0b6" :a :db/ident :v :task/t-4d58a2c3 :op :assert}
+   {:e #blake3 "9a6309451e6bc72be8d079fcb49726c8b424a8ca01b4a1e5831da05b50e9e0b6" :a :task/created-at :v 1774433707 :op :assert}
+   {:e #blake3 "9a6309451e6bc72be8d079fcb49726c8b424a8ca01b4a1e5831da05b50e9e0b6" :a :task/description :v "CONTEXT: concept.rs:119 uses 'if best.is_none() || sim > best.unwrap().1' in find_nearest_concept. The unwrap is unreachable due to short-circuit evaluation, but fragile — any refactoring that adds an OR condition or restructures the if-expression could trigger a panic in production. Violates INV-EMBEDDING-003 (no panics). APPROACH: Replace line 119 with: if best.map_or(true, |(_, s)| sim > s) { — semantically identical, provably panic-free. Single line change. ACCEPTANCE: (A) No unwrap() or expect() in concept.rs non-test code (grep verification). (B) All 47 existing concept tests pass unchanged. (C) find_nearest_concept returns correct best match with 3+ concepts in store. CONSIDERATIONS: Zero regression risk. The map_or pattern is idiomatic Rust for this exact case. No new tests needed — the existing test_find_nearest_concept_empty_store covers the None path, and concept_inventory_sorted exercises the comparison path. DEPENDS-ON: nothing. BLOCKS: FIX-STALE (which rewrites the same function). FILE: crates/braid-kernel/src/concept.rs:119" :op :assert}
+   {:e #blake3 "9a6309451e6bc72be8d079fcb49726c8b424a8ca01b4a1e5831da05b50e9e0b6" :a :task/id :v "t-4d58a2c3" :op :assert}
+   {:e #blake3 "9a6309451e6bc72be8d079fcb49726c8b424a8ca01b4a1e5831da05b50e9e0b6" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "9a6309451e6bc72be8d079fcb49726c8b424a8ca01b4a1e5831da05b50e9e0b6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9a6309451e6bc72be8d079fcb49726c8b424a8ca01b4a1e5831da05b50e9e0b6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9a6309451e6bc72be8d079fcb49726c8b424a8ca01b4a1e5831da05b50e9e0b6" :a :task/title :v "FIX-UNWRAP: Replace unwrap() with map_or in find_nearest_concept (DEFECT-002)" :op :assert}
+   {:e #blake3 "9a6309451e6bc72be8d079fcb49726c8b424a8ca01b4a1e5831da05b50e9e0b6" :a :task/title-l0 :v "FIX-UNWRAP" :op :assert}
+   {:e #blake3 "9a6309451e6bc72be8d079fcb49726c8b424a8ca01b4a1e5831da05b50e9e0b6" :a :task/title-l1 :v "FIX-UNWRAP: Replace unwrap() with map_or in find_nearest_concept (DEFECT-002)" :op :assert}
+   {:e #blake3 "9a6309451e6bc72be8d079fcb49726c8b424a8ca01b4a1e5831da05b50e9e0b6" :a :task/traces-to :v #blake3 "e9e052cfbf85e1beb34a7bc3f1810b0631e66d42739db7dac011c53de1d20768" :op :assert}
+   {:e #blake3 "9a6309451e6bc72be8d079fcb49726c8b424a8ca01b4a1e5831da05b50e9e0b6" :a :task/type :v :task.type/bug :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774433758/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIX-COSINE: Harden cosine_similarity for dimension mismatch in release (DEFECT-004)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :db/ident :v :task/t-64e6797a :op :assert}
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/created-at :v 1774433757 :op :assert}
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/description :v "CONTEXT: cosine_similarity at embedding.rs:282 uses debug_assert for dimension check — disabled in release. If caller passes mismatched vectors, zip silently truncates, producing mathematically wrong similarity. All internal call sites check dimensions, but the function is pub — external callers can misuse it. APPROACH: Keep debug_assert for performance-critical inner loops. Add a release-mode guard that returns 0.0 on mismatch: 'if a.len() \\!= b.len() { return 0.0; }'. This is branch-predicted-away on the hot path (always same length) so performance impact is negligible. Document the behavior: returns 0.0 for mismatched dimensions (not an error, just defensive). ACCEPTANCE: (A) cosine_similarity([1,0], [1,0,0]) returns 0.0 in release build, not a truncated value. (B) cosine_similarity([1,0], [1,0]) still returns 1.0 (no performance regression). (C) All existing tests pass. DEPENDS-ON: nothing. FILE: crates/braid-kernel/src/embedding.rs:282" :op :assert}
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/id :v "t-64e6797a" :op :assert}
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/title :v "FIX-COSINE: Harden cosine_similarity for dimension mismatch in release (DEFECT-004)" :op :assert}
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/title-l0 :v "FIX-COSINE" :op :assert}
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/title-l1 :v "FIX-COSINE: Harden cosine_similarity for dimension mismatch in release (DEFEC..." :op :assert}
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/traces-to :v #blake3 "e9e052cfbf85e1beb34a7bc3f1810b0631e66d42739db7dac011c53de1d20768" :op :assert}
+   {:e #blake3 "f23e3a7a04899eef1a42db502c15091b11a18d73639e3d692de546dddb9199b6" :a :task/type :v :task.type/bug :op :assert}
+ ]}

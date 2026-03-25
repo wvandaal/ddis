@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774433833/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CCE-POLISH: Minor code quality fixes (DEFECT-008, 009, 010, 011, 012, 013, 014)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :db/ident :v :task/t-52a64fdf :op :assert}
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/created-at :v 1774433832 :op :assert}
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/description :v "CONTEXT: Seven minor/style issues found during cleanroom audit. None affect correctness or safety; all improve code quality. ITEMS: (008) generate_concept_name double-tokenization: concept.rs:892-900 calls connections::tokenize twice per document. FIX: compute unique from words (let unique: HashSet<&String> = words.iter().collect()). (009) MIN_MATCH_LEN=5 false positive risk: common words like 'error', 'state', 'model' are 5+ chars. FIX: raise to 7 or add stopword filter. NOTE: uncertain severity — depends on project naming conventions. (010) TF-IDF sort uses partial_cmp: concept.rs:913. FIX: use f64::total_cmp(). (011) E2E test 9 weak assertion: e2e_concept_crystallization.sh:119 matches 'connected' which fires from keyword system, not CCE. FIX: split assertions, mark concept match as expected-fail until model2vec. (012) Misleading test name: embedding.rs:636 centroid_of_one_is_itself tests serialization. FIX: rename. (013) Inconsistent variance storage: concept.rs:300-304 uses Value::Bytes for f64 while total_weight uses Value::Double. FIX: use Value::Double for variance. NOTE: schema migration needed for existing stores. (014) EmbeddingError missing Error impl: embedding.rs:34. FIX: add impl std::error::Error for EmbeddingError {}. ACCEPTANCE: All 7 items fixed, all tests pass. DEPENDS-ON: nothing. FILE: concept.rs, embedding.rs, e2e_concept_crystallization.sh" :op :assert}
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/id :v "t-52a64fdf" :op :assert}
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/title :v "CCE-POLISH: Minor code quality fixes (DEFECT-008, 009, 010, 011, 012, 013, 014)" :op :assert}
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/title-l0 :v "CCE-POLISH" :op :assert}
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/title-l1 :v "CCE-POLISH: Minor code quality fixes (DEFECT-008, 009, 010, 011, 012, 013, 014)" :op :assert}
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/traces-to :v #blake3 "9124231288977ed0bffe3327ae7317730768f7616be896d95494a020b7f696cf" :op :assert}
+   {:e #blake3 "060d898cecb60184917bea88f8eeb7e7d0722312e618280889e1a5754abdc458" :a :task/type :v :task.type/task :op :assert}
+ ]}
