@@ -353,6 +353,16 @@ with Jest tests and Jira tickets?" If no, it belongs in an application-layer plu
 the kernel. Falsification: any kernel function that imports, parses, or assumes a specific
 language ecosystem or methodology violates this constraint.
 
+**C9: Parameter substrate independence.** (INV-FOUNDATION-015) The braid kernel must not
+hardcode domain-specific *values* — thresholds, weights, sizes, intervals — as constants.
+C8 says don't hardcode logic; C9 says don't hardcode the numbers that parameterize that
+logic. The test: "would a React project, a research lab, and a compliance team all want
+this exact value?" If no, it's a policy datom, not a kernel constant. Every parameter
+follows the ADR-FOUNDATION-031 lifecycle: bootstrap default (compile-time fallback) →
+config override (`:config/*` datom, readable via `get_config`) → self-calibration
+(OBSERVER-4 learning loop adjusts the value from the system's own data). Falsification:
+any kernel constant that fails the litmus test and lacks a `get_config` override path.
+
 </constraints>
 
 <negative_cases>
