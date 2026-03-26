@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774498893/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FUTURE: Coherence-based crystallization confidence (replace MIN_CLUSTER_SIZE with f(count, variance))"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :db/ident :v :task/t-254f718b :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/created-at :v 1774498892 :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/description :v "CONTEXT: MIN_CLUSTER_SIZE is a confidence threshold in disguise. The count alone does not capture cluster quality. Two nearly-identical observations (variance=0.01) should crystallize; five loosely-related ones (variance=0.4) should wait.\n\nAPPROACH: Replace count-based crystallization threshold with coherence-based:\n\nconfidence = (1 - variance) * (1 - 1/count)\n\nThis is monotonically increasing in both coherence and count:\n  count=2, var=0.01 -> confidence = 0.99 * 0.50 = 0.495\n  count=5, var=0.01 -> confidence = 0.99 * 0.80 = 0.792\n  count=5, var=0.40 -> confidence = 0.60 * 0.80 = 0.480\n\nCrystallize when confidence > concept.crystallization-confidence (default 0.5, config-backed per ADR-031).\n\nKeep count=2 as absolute minimum floor (need at least 2 points to compute variance).\n\nModify crystallize_concepts to:\n1. Compute variance for each candidate cluster\n2. Compute confidence = (1 - variance) * (1 - 1/count)  \n3. Filter: only emit clusters where confidence > threshold\n4. The threshold is read from store config, default 0.5\n\nAlso modify auto-crystallization trigger in observe.rs: instead of count >= MIN_CLUSTER_SIZE, check if any potential cluster among uncategorized observations would exceed the confidence threshold.\n\nALGEBRAIC PROPERTY: confidence is a commutative function of two inputs (count, coherence) in [0, 1]. It forms a partial order over candidate clusters. The crystallization decision is a threshold on this partial order.\n\nBAYESIAN INTERPRETATION: The cluster's posterior confidence grows with both evidence (count) and agreement (coherence). The threshold is the prior belief about how much evidence is needed. Under ADR-031, this threshold is itself calibratable.\n\nNOT BLOCKING for Session 045 — the config override of MIN_CLUSTER_SIZE in INQ-1-REV is the immediate C9 fix. This task is the convergence target." :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/id :v "t-254f718b" :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/labels :v :label/FUTURE :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/labels :v :label/INQUIRY-ENGINE :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/title :v "FUTURE: Coherence-based crystallization confidence (replace MIN_CLUSTER_SIZE with f(count, variance))" :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/title-l0 :v "FUTURE" :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/title-l1 :v "FUTURE: Coherence-based crystallization confidence (replace MIN_CLUSTER_SIZE..." :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/traces-to :v #blake3 "2c76d75fd8b371d9bc9603abfc40d6ac0049a8d75bb643ed7ca4334f41c23e45" :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/traces-to :v #blake3 "5ee8f32d89f3ab426040c00c49df650205e9c498a13759b72b17fb01b167a80e" :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/traces-to :v #blake3 "fc36cfaec45b26060556261b430b5ee322374981b8189fc490a27467b1c51439" :op :assert}
+   {:e #blake3 "e0711c7bc26b11cb44d740479f18a14f91e6e36b497b26bcf509878c8783410e" :a :task/type :v :task.type/task :op :assert}
+ ]}
