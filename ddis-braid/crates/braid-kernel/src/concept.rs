@@ -964,6 +964,125 @@ pub fn update_centroid_weighted(
     (centroid, w_total as f64)
 }
 
+/// Calibrate the concept join threshold from observed cosine similarities (OBSERVER-4).
+///
+/// Uses Otsu's method: find threshold T that minimizes weighted intra-class variance
+/// of the two groups (above-T = members, below-T = non-members). This produces the
+/// natural decision boundary for THIS project's embedding space.
+///
+/// Also computes the optimal sigmoid temperature as stddev(all_similarities) / 2.
+///
+/// Returns `None` if fewer than 5 observations have concept assignments (insufficient data).
+///
+/// ADR-FOUNDATION-031: Parameters are first-class knowledge. The bootstrap default
+/// (embedder.join_threshold()) is the prior. This function computes the posterior.
+///
+/// INV-EMBEDDING-004: All comparisons use the same embedding space.
+pub fn calibrate_join_threshold(store: &Store) -> Option<(f32, f32)> {
+    let concept_attr = Attribute::from_keyword(":exploration/concept");
+    let emb_attr = Attribute::from_keyword(":concept/embedding");
+    let obs_emb_attr = Attribute::from_keyword(":exploration/embedding");
+
+    // Phase 1: Collect observation -> primary concept mapping.
+    // For each observation entity, find its :exploration/concept Ref (primary = first assigned).
+    let mut obs_concepts: BTreeMap<EntityId, EntityId> = BTreeMap::new();
+    for d in store.datoms() {
+        if d.op == Op::Assert && d.attribute == concept_attr {
+            if let Value::Ref(concept_entity) = d.value {
+                // First concept ref wins (primary assignment).
+                obs_concepts.entry(d.entity).or_insert(concept_entity);
+            }
+        }
+    }
+
+    if obs_concepts.len() < 5 {
+        return None; // Insufficient data for calibration.
+    }
+
+    // Phase 2: Collect latest concept embeddings.
+    let mut concept_embeddings: BTreeMap<EntityId, Vec<f32>> = BTreeMap::new();
+    for d in store.datoms() {
+        if d.op == Op::Assert && d.attribute == emb_attr {
+            if let Value::Bytes(ref bytes) = d.value {
+                concept_embeddings.insert(d.entity, bytes_to_embedding(bytes));
+            }
+        }
+    }
+
+    // Phase 3: Collect observation embeddings.
+    let mut obs_embeddings: BTreeMap<EntityId, Vec<f32>> = BTreeMap::new();
+    for d in store.datoms() {
+        if d.op == Op::Assert && d.attribute == obs_emb_attr {
+            if let Value::Bytes(ref bytes) = d.value {
+                obs_embeddings.insert(d.entity, bytes_to_embedding(bytes));
+            }
+        }
+    }
+
+    // Phase 4: Compute cosine similarities between observations and their primary concepts.
+    let mut similarities: Vec<f32> = Vec::new();
+    for (obs_entity, concept_entity) in &obs_concepts {
+        if let (Some(obs_emb), Some(concept_emb)) = (
+            obs_embeddings.get(obs_entity),
+            concept_embeddings.get(concept_entity),
+        ) {
+            if obs_emb.len() == concept_emb.len() {
+                let sim = cosine_similarity(obs_emb, concept_emb);
+                similarities.push(sim);
+            }
+        }
+    }
+
+    if similarities.len() < 5 {
+        return None; // Insufficient paired data.
+    }
+
+    // Phase 5: Otsu's method — find T minimizing weighted intra-class variance.
+    let mut best_threshold = 0.5_f32;
+    let mut best_variance = f32::MAX;
+    let n = similarities.len() as f32;
+
+    for t_int in 10..=90 {
+        let t = t_int as f32 / 100.0;
+        let below: Vec<f32> = similarities.iter().copied().filter(|&s| s < t).collect();
+        let above: Vec<f32> = similarities.iter().copied().filter(|&s| s >= t).collect();
+
+        if below.is_empty() || above.is_empty() {
+            continue;
+        }
+
+        let w_below = below.len() as f32 / n;
+        let w_above = above.len() as f32 / n;
+
+        let var_below = variance_1d(&below);
+        let var_above = variance_1d(&above);
+
+        let intra_class = w_below * var_below + w_above * var_above;
+        if intra_class < best_variance {
+            best_variance = intra_class;
+            best_threshold = t;
+        }
+    }
+
+    // Phase 6: Compute temperature as stddev / 2.
+    let mean: f32 = similarities.iter().sum::<f32>() / n;
+    let var: f32 = similarities.iter().map(|s| (s - mean).powi(2)).sum::<f32>() / n;
+    let stddev = var.sqrt();
+    let temperature = (stddev / 2.0).max(0.01); // Floor at 0.01 to prevent infinitely sharp sigmoid.
+
+    Some((best_threshold, temperature))
+}
+
+/// 1D variance helper for Otsu's method.
+fn variance_1d(values: &[f32]) -> f32 {
+    if values.len() <= 1 {
+        return 0.0;
+    }
+    let n = values.len() as f32;
+    let mean = values.iter().sum::<f32>() / n;
+    values.iter().map(|v| (v - mean).powi(2)).sum::<f32>() / n
+}
+
 // ===================================================================
 // Innate Concept Schemas (CCE-3)
 // ===================================================================

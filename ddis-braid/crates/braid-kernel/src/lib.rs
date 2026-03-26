@@ -102,7 +102,8 @@ pub use compiler::{
     TestProperty,
 };
 pub use concept::{
-    assign_to_concept, assign_to_concepts, assign_to_concepts_soft, co_occurrence_matrix,
+    assign_to_concept, assign_to_concepts, assign_to_concepts_soft, calibrate_join_threshold,
+    co_occurrence_matrix,
     compute_observe_steering, compute_observe_steering_multi, concept_inventory,
     concept_to_datoms, crystallize_concepts, entity_auto_link, find_nearest_concept,
     format_concept_status, frontier_recommendation, innate_concept_datoms, is_innate,

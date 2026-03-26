@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774487098/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ec29636f"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "73f4788ad988acabe93c780bc29432e5f8510a36cc584e8ce3c687654bda3bbd" :a :task/close-reason :v "Implemented: calibrate_join_threshold with Otsu method + temperature computation. Wired into harvest.rs after RFL-6 weight refit. Writes :config/concept.join-threshold and :config/concept.sigmoid-temperature datoms. 2024 tests pass (1 flaky daemon test unrelated)." :op :assert}
+   {:e #blake3 "73f4788ad988acabe93c780bc29432e5f8510a36cc584e8ce3c687654bda3bbd" :a :task/closed-at :v 1774487097 :op :assert}
+   {:e #blake3 "73f4788ad988acabe93c780bc29432e5f8510a36cc584e8ce3c687654bda3bbd" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "73f4788ad988acabe93c780bc29432e5f8510a36cc584e8ce3c687654bda3bbd" :a :task/status :v :task.status/closed :op :assert}
+ ]}

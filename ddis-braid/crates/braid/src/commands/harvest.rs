@@ -1032,6 +1032,48 @@ pub fn run(
             }
         }
 
+        // CAL-3: Otsu auto-calibration of concept join threshold (OBSERVER-4).
+        // After harvest completes and concepts are crystallized, calibrate the
+        // join threshold from observed observation-to-concept similarities.
+        // This is the OBSERVER-4 calibration loop for concept parameters.
+        if let Some((threshold, temperature)) =
+            braid_kernel::concept::calibrate_join_threshold(live.store())
+        {
+            let cal_agent = AgentId::from_name("braid:cal");
+            let cal_tx = super::write::next_tx_id(live.store(), cal_agent);
+            let cal_datoms = vec![
+                Datom::new(
+                    EntityId::from_ident(":config/concept.join-threshold"),
+                    Attribute::from_keyword(":config/value"),
+                    Value::String(format!("{threshold:.4}")),
+                    cal_tx,
+                    Op::Assert,
+                ),
+                Datom::new(
+                    EntityId::from_ident(":config/concept.sigmoid-temperature"),
+                    Attribute::from_keyword(":config/value"),
+                    Value::String(format!("{temperature:.4}")),
+                    cal_tx,
+                    Op::Assert,
+                ),
+            ];
+            let cal_tx_file = TxFile {
+                tx_id: cal_tx,
+                agent: cal_agent,
+                provenance: ProvenanceType::Derived,
+                rationale: format!(
+                    "CAL-3: calibrated concept threshold={threshold:.4}, temperature={temperature:.4}"
+                ),
+                causal_predecessors: vec![],
+                datoms: cal_datoms,
+            };
+            if live.write_tx(&cal_tx_file).is_ok() {
+                out.push_str(&format!(
+                    "  calibration: threshold={threshold:.4}, temperature={temperature:.4}\n"
+                ));
+            }
+        }
+
         out.push_str("next session: braid seed\n");
     } else if commit && result.candidates.is_empty() {
         out.push_str("\nnothing to commit (no candidates)\n");
