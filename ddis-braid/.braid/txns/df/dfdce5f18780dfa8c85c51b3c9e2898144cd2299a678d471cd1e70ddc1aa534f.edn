@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774564133/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXT-1: Set up external project test environment. Choose React or Go project with moderate complexity (50+ files, tests, multiple modules). Run braid init with custom policy manifest. Configure boundaries for test coverage, module health, documentation. ACCEPTANCE: braid init succeeds, braid status shows F(S) > 0. TRACES: C8."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e1a310e425ceca55d43f21f431cbb1a0771c86db0a1c9f5a6dd2ecd8d8ae2120" :a :db/ident :v :task/t-2bd59586 :op :assert}
+   {:e #blake3 "e1a310e425ceca55d43f21f431cbb1a0771c86db0a1c9f5a6dd2ecd8d8ae2120" :a :task/acceptance :v "braid init succeeds, braid status shows F(S) > 0. TRACES: C8." :op :assert}
+   {:e #blake3 "e1a310e425ceca55d43f21f431cbb1a0771c86db0a1c9f5a6dd2ecd8d8ae2120" :a :task/body :v "ACCEPTANCE: braid init succeeds, braid status shows F(S) > 0. TRACES: C8." :op :assert}
+   {:e #blake3 "e1a310e425ceca55d43f21f431cbb1a0771c86db0a1c9f5a6dd2ecd8d8ae2120" :a :task/created-at :v 1774564132 :op :assert}
+   {:e #blake3 "e1a310e425ceca55d43f21f431cbb1a0771c86db0a1c9f5a6dd2ecd8d8ae2120" :a :task/id :v "t-2bd59586" :op :assert}
+   {:e #blake3 "e1a310e425ceca55d43f21f431cbb1a0771c86db0a1c9f5a6dd2ecd8d8ae2120" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e1a310e425ceca55d43f21f431cbb1a0771c86db0a1c9f5a6dd2ecd8d8ae2120" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e1a310e425ceca55d43f21f431cbb1a0771c86db0a1c9f5a6dd2ecd8d8ae2120" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e1a310e425ceca55d43f21f431cbb1a0771c86db0a1c9f5a6dd2ecd8d8ae2120" :a :task/title :v "EXT-1: Set up external project test environment. Choose React or Go project with moderate complexity (50+ files, tests, multiple modules). Run braid init with custom policy manifest. Configure boundaries for test coverage, module health, documentation" :op :assert}
+   {:e #blake3 "e1a310e425ceca55d43f21f431cbb1a0771c86db0a1c9f5a6dd2ecd8d8ae2120" :a :task/title-l0 :v "EXT-1" :op :assert}
+   {:e #blake3 "e1a310e425ceca55d43f21f431cbb1a0771c86db0a1c9f5a6dd2ecd8d8ae2120" :a :task/title-l1 :v "EXT-1: Set up external project test environment" :op :assert}
+   {:e #blake3 "e1a310e425ceca55d43f21f431cbb1a0771c86db0a1c9f5a6dd2ecd8d8ae2120" :a :task/type :v :task.type/task :op :assert}
+ ]}

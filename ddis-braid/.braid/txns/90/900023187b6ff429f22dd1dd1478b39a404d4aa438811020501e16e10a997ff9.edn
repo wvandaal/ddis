@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774560602/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-46a977c8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/close-reason :v "Duplicate of t-6090a2ed (created during stale cache episode)" :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/closed-at :v 1774560601 :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/status :v :task.status/closed :op :assert}
+ ]}

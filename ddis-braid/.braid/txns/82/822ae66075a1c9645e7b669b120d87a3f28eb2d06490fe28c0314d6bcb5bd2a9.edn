@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774563990/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WRITER-4: Restrict session detection to pre_opened commands only. Main.rs session auto-detect must NOT mark the LiveStore dirty for commands that open their own store. Only commands using pre_opened (status + all WRITER-1/2/3 migrated commands) get session detection. ACCEPTANCE: (A) For non-pre_opened commands, main's LiveStore stays clean (dirty=false). (B) Session start datom still written for pre_opened commands. TRACES: INV-CACHE-002, INV-STORE-022. FILE: crates/braid/src/main.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4484ba56edf858cee64d16582ef3828b70fffb5de151487175e18444890e699d" :a :db/ident :v :task/t-8900f57b :op :assert}
+   {:e #blake3 "4484ba56edf858cee64d16582ef3828b70fffb5de151487175e18444890e699d" :a :task/acceptance :v "(A) For non-pre_opened commands, main's LiveStore stays clean (dirty=false). (B) Session start datom still written for pre_opened commands. TRACES: INV-CACHE-002, INV-STORE-022." :op :assert}
+   {:e #blake3 "4484ba56edf858cee64d16582ef3828b70fffb5de151487175e18444890e699d" :a :task/body :v "ACCEPTANCE: (A) For non-pre_opened commands, main's LiveStore stays clean (dirty=false). (B) Session start datom still written for pre_opened commands. TRACES: INV-CACHE-002, INV-STORE-022. FILE: crates/braid/src/main.rs" :op :assert}
+   {:e #blake3 "4484ba56edf858cee64d16582ef3828b70fffb5de151487175e18444890e699d" :a :task/created-at :v 1774563989 :op :assert}
+   {:e #blake3 "4484ba56edf858cee64d16582ef3828b70fffb5de151487175e18444890e699d" :a :task/files :v "crates/braid/src/main.rs" :op :assert}
+   {:e #blake3 "4484ba56edf858cee64d16582ef3828b70fffb5de151487175e18444890e699d" :a :task/id :v "t-8900f57b" :op :assert}
+   {:e #blake3 "4484ba56edf858cee64d16582ef3828b70fffb5de151487175e18444890e699d" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "4484ba56edf858cee64d16582ef3828b70fffb5de151487175e18444890e699d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4484ba56edf858cee64d16582ef3828b70fffb5de151487175e18444890e699d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4484ba56edf858cee64d16582ef3828b70fffb5de151487175e18444890e699d" :a :task/title :v "WRITER-4: Restrict session detection to pre_opened commands only. Main.rs session auto-detect must NOT mark the LiveStore dirty for commands that open their own store. Only commands using pre_opened (status + all WRITER-1/2/3 migrated commands) get session detection" :op :assert}
+   {:e #blake3 "4484ba56edf858cee64d16582ef3828b70fffb5de151487175e18444890e699d" :a :task/title-l0 :v "WRITER-4" :op :assert}
+   {:e #blake3 "4484ba56edf858cee64d16582ef3828b70fffb5de151487175e18444890e699d" :a :task/title-l1 :v "WRITER-4: Restrict session detection to pre_opened commands only" :op :assert}
+   {:e #blake3 "4484ba56edf858cee64d16582ef3828b70fffb5de151487175e18444890e699d" :a :task/type :v :task.type/task :op :assert}
+ ]}

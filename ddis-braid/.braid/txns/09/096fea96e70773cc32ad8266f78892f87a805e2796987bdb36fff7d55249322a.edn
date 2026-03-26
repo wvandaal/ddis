@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774564130/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: EXTERNAL-VALIDATION — S0-CLOSE Substrate Independence Proof (C8, ADR-FOUNDATION-014). Run braid on a real non-DDIS project (React/Go). Execute 3 harvest/seed cycles. Measure seed quality, guidance utility, F(S) trajectory. Combined with verification sprint on braid itself. DEPENDS-ON: C8-CLEANUP. FALSIFICATION: external seed quality < 5/10 or F(S) flat after verification sprint."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8aa550a9a4526bd0a118dbba2ff8cba9904ce0c8a2a5a3027257cde5b85ef111" :a :db/ident :v :task/t-dba6eb9f :op :assert}
+   {:e #blake3 "8aa550a9a4526bd0a118dbba2ff8cba9904ce0c8a2a5a3027257cde5b85ef111" :a :task/created-at :v 1774564129 :op :assert}
+   {:e #blake3 "8aa550a9a4526bd0a118dbba2ff8cba9904ce0c8a2a5a3027257cde5b85ef111" :a :task/id :v "t-dba6eb9f" :op :assert}
+   {:e #blake3 "8aa550a9a4526bd0a118dbba2ff8cba9904ce0c8a2a5a3027257cde5b85ef111" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8aa550a9a4526bd0a118dbba2ff8cba9904ce0c8a2a5a3027257cde5b85ef111" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8aa550a9a4526bd0a118dbba2ff8cba9904ce0c8a2a5a3027257cde5b85ef111" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8aa550a9a4526bd0a118dbba2ff8cba9904ce0c8a2a5a3027257cde5b85ef111" :a :task/title :v "EPIC: EXTERNAL-VALIDATION — S0-CLOSE Substrate Independence Proof (C8, ADR-FOUNDATION-014). Run braid on a real non-DDIS project (React/Go). Execute 3 harvest/seed cycles. Measure seed quality, guidance utility, F(S) trajectory. Combined with verification sprint on braid itself. DEPENDS-ON: C8-CLEANUP. FALSIFICATION: external seed quality < 5/10 or F(S) flat after verification sprint." :op :assert}
+   {:e #blake3 "8aa550a9a4526bd0a118dbba2ff8cba9904ce0c8a2a5a3027257cde5b85ef111" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "8aa550a9a4526bd0a118dbba2ff8cba9904ce0c8a2a5a3027257cde5b85ef111" :a :task/title-l1 :v "EPIC: EXTERNAL-VALIDATION — S0-CLOSE Substrate Independence Proof (C8, ADR-..." :op :assert}
+   {:e #blake3 "8aa550a9a4526bd0a118dbba2ff8cba9904ce0c8a2a5a3027257cde5b85ef111" :a :task/type :v :task.type/epic :op :assert}
+ ]}

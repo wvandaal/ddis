@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774563959/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CACHE-002 \"Single-Writer Cache Linearity\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "709325cc084a8ef36ad4b6c1222d2bf2f47c523222f4e9a0f1ad1a99f4c29fc5" :a :db/ident :v :task/t-68b4cb97 :op :assert}
+   {:e #blake3 "709325cc084a8ef36ad4b6c1222d2bf2f47c523222f4e9a0f1ad1a99f4c29fc5" :a :task/created-at :v 1774563958 :op :assert}
+   {:e #blake3 "709325cc084a8ef36ad4b6c1222d2bf2f47c523222f4e9a0f1ad1a99f4c29fc5" :a :task/id :v "t-68b4cb97" :op :assert}
+   {:e #blake3 "709325cc084a8ef36ad4b6c1222d2bf2f47c523222f4e9a0f1ad1a99f4c29fc5" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "709325cc084a8ef36ad4b6c1222d2bf2f47c523222f4e9a0f1ad1a99f4c29fc5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "709325cc084a8ef36ad4b6c1222d2bf2f47c523222f4e9a0f1ad1a99f4c29fc5" :a :task/title :v "Implement INV-CACHE-002: Single-Writer Cache Linearity" :op :assert}
+   {:e #blake3 "709325cc084a8ef36ad4b6c1222d2bf2f47c523222f4e9a0f1ad1a99f4c29fc5" :a :task/traces-to :v #blake3 "880286d84703075edab411da4dd5dc5ee95980c2d1c007453df0f53b866b4bea" :op :assert}
+   {:e #blake3 "709325cc084a8ef36ad4b6c1222d2bf2f47c523222f4e9a0f1ad1a99f4c29fc5" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "880286d84703075edab411da4dd5dc5ee95980c2d1c007453df0f53b866b4bea" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "880286d84703075edab411da4dd5dc5ee95980c2d1c007453df0f53b866b4bea" :a :comonad/falsification :v #blake3 "cce8210ff73d4c4ad2406df01a6cc45357ad83fc8c6123315c850c96044965be" :op :assert}
+   {:e #blake3 "880286d84703075edab411da4dd5dc5ee95980c2d1c007453df0f53b866b4bea" :a :db/doc :v "Single-Writer Cache Linearity" :op :assert}
+   {:e #blake3 "880286d84703075edab411da4dd5dc5ee95980c2d1c007453df0f53b866b4bea" :a :db/ident :v :spec/inv-cache-002 :op :assert}
+   {:e #blake3 "880286d84703075edab411da4dd5dc5ee95980c2d1c007453df0f53b866b4bea" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "880286d84703075edab411da4dd5dc5ee95980c2d1c007453df0f53b866b4bea" :a :spec/falsification :v "Two dirty LiveStore instances targeting the same store.bin path coexist in one process, and the last Drop overwrites the other's newer state" :op :assert}
+   {:e #blake3 "880286d84703075edab411da4dd5dc5ee95980c2d1c007453df0f53b866b4bea" :a :spec/id :v "INV-CACHE-002" :op :assert}
+   {:e #blake3 "880286d84703075edab411da4dd5dc5ee95980c2d1c007453df0f53b866b4bea" :a :spec/namespace :v :spec.ns/CACHE :op :assert}
+   {:e #blake3 "880286d84703075edab411da4dd5dc5ee95980c2d1c007453df0f53b866b4bea" :a :spec/statement :v "For all processes: at most one LiveStore instance with dirty=true exists per store.bin path. store.bin is a linear resource with exactly one authoritative writer." :op :assert}
+   {:e #blake3 "cce8210ff73d4c4ad2406df01a6cc45357ad83fc8c6123315c850c96044965be" :a :db/doc :v "Two dirty LiveStore instances targeting the same store.bin path coexist in one process, and the last Drop overwrites the other's newer state" :op :assert}
+ ]}

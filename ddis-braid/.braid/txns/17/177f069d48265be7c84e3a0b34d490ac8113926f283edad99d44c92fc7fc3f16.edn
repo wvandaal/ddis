@@ -1,0 +1,13 @@
+{:tx/id #hlc "1774563735/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1b70f51b81eab58e5b466e29c85873b2c7a0b011c761e83f0f6a8ace59f8f3c2" :a :db/ident :v :recon/trace-08c6fb9601bb6c1c :op :assert}
+   {:e #blake3 "1b70f51b81eab58e5b466e29c85873b2c7a0b011c761e83f0f6a8ace59f8f3c2" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "1b70f51b81eab58e5b466e29c85873b2c7a0b011c761e83f0f6a8ace59f8f3c2" :a :recon/trace-neighborhood :v "STORE" :op :assert}
+   {:e #blake3 "1b70f51b81eab58e5b466e29c85873b2c7a0b011c761e83f0f6a8ace59f8f3c2" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.store.adr-store-005" :op :assert}
+   {:e #blake3 "1b70f51b81eab58e5b466e29c85873b2c7a0b011c761e83f0f6a8ace59f8f3c2" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.stateright_model.adr-store-005" :op :assert}
+   {:e #blake3 "1b70f51b81eab58e5b466e29c85873b2c7a0b011c761e83f0f6a8ace59f8f3c2" :a :recon/trace-refs :v "ADR-STORE-005" :op :assert}
+ ]}

@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774563828/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-CACHE-001 \"Slim Cache with Compression\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7ef4e31d8ca30597cdecef0a0d68e7337acb6ca7a60adad81d3e2ac018b1bc36" :a :adr/decision :v "Serialize only primary state (datoms+frontier+schema+clock+views) with zstd compression. Rebuild indexes on load via Store::from_primary(). Rejected: full-index cache (current, 110MB), mmap (complex, platform-dependent), daemon-only (requires architectural change)" :op :assert}
+   {:e #blake3 "7ef4e31d8ca30597cdecef0a0d68e7337acb6ca7a60adad81d3e2ac018b1bc36" :a :adr/problem :v "store.bin serializes P union D (110MB) where D is fully derivable from P. Deserialization dominates latency at 2000ms. Index duplication is 37% of cache size." :op :assert}
+   {:e #blake3 "7ef4e31d8ca30597cdecef0a0d68e7337acb6ca7a60adad81d3e2ac018b1bc36" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "7ef4e31d8ca30597cdecef0a0d68e7337acb6ca7a60adad81d3e2ac018b1bc36" :a :db/doc :v "Slim Cache with Compression" :op :assert}
+   {:e #blake3 "7ef4e31d8ca30597cdecef0a0d68e7337acb6ca7a60adad81d3e2ac018b1bc36" :a :db/ident :v :spec/adr-cache-001 :op :assert}
+   {:e #blake3 "7ef4e31d8ca30597cdecef0a0d68e7337acb6ca7a60adad81d3e2ac018b1bc36" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "7ef4e31d8ca30597cdecef0a0d68e7337acb6ca7a60adad81d3e2ac018b1bc36" :a :spec/id :v "ADR-CACHE-001" :op :assert}
+   {:e #blake3 "7ef4e31d8ca30597cdecef0a0d68e7337acb6ca7a60adad81d3e2ac018b1bc36" :a :spec/namespace :v :spec.ns/CACHE :op :assert}
+   {:e #blake3 "e7e48fa9146fe08adfc500dd65efac056a26e31cf251ac08642efb9cba87289d" :a :db/ident :v :task/t-82dc0ee6 :op :assert}
+   {:e #blake3 "e7e48fa9146fe08adfc500dd65efac056a26e31cf251ac08642efb9cba87289d" :a :task/created-at :v 1774563827 :op :assert}
+   {:e #blake3 "e7e48fa9146fe08adfc500dd65efac056a26e31cf251ac08642efb9cba87289d" :a :task/id :v "t-82dc0ee6" :op :assert}
+   {:e #blake3 "e7e48fa9146fe08adfc500dd65efac056a26e31cf251ac08642efb9cba87289d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e7e48fa9146fe08adfc500dd65efac056a26e31cf251ac08642efb9cba87289d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e7e48fa9146fe08adfc500dd65efac056a26e31cf251ac08642efb9cba87289d" :a :task/title :v "Implement ADR-CACHE-001: Slim Cache with Compression" :op :assert}
+   {:e #blake3 "e7e48fa9146fe08adfc500dd65efac056a26e31cf251ac08642efb9cba87289d" :a :task/traces-to :v #blake3 "7ef4e31d8ca30597cdecef0a0d68e7337acb6ca7a60adad81d3e2ac018b1bc36" :op :assert}
+   {:e #blake3 "e7e48fa9146fe08adfc500dd65efac056a26e31cf251ac08642efb9cba87289d" :a :task/type :v :task.type/task :op :assert}
+ ]}

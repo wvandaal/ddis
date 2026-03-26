@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774564042/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIT-3: Recalibrate hypothesis ledger for policy-driven F(S). Currently predicts delta-F(S) using routing heuristics calibrated to the old 7-component formula. With policy-driven F(S), predictions should target per-boundary alignment deltas, not global F(S). ACCEPTANCE: (A) Hypothesis predictions express expected boundary alignment change. (B) Mean error < 0.30 after 10 tasks (down from 0.521). (C) Predictions are falsifiable against actual boundary score changes. TRACES: ADR-FITNESS-001, ADR-FOUNDATION-030. FILE: crates/braid-kernel/src/methodology.rs, crates/braid-kernel/src/routing.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :db/ident :v :task/t-12efbe03 :op :assert}
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :task/acceptance :v "(A) Hypothesis predictions express expected boundary alignment change. (B) Mean error < 0.30 after 10 tasks (down from 0.521). (C) Predictions are falsifiable against actual boundary score changes. TRACES: ADR-FITNESS-001, ADR-FOUNDATION-030." :op :assert}
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :task/body :v "ACCEPTANCE: (A) Hypothesis predictions express expected boundary alignment change. (B) Mean error < 0.30 after 10 tasks (down from 0.521). (C) Predictions are falsifiable against actual boundary score changes. TRACES: ADR-FITNESS-001, ADR-FOUNDATION-030. FILE: crates/braid-kernel/src/methodology.rs, crates/braid-kernel/src/routing.rs" :op :assert}
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :task/created-at :v 1774564041 :op :assert}
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :task/files :v "crates/braid-kernel/src/methodology.rs" :op :assert}
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :task/files :v "crates/braid-kernel/src/routing.rs" :op :assert}
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :task/id :v "t-12efbe03" :op :assert}
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :task/title :v "FIT-3: Recalibrate hypothesis ledger for policy-driven F(S). Currently predicts delta-F(S) using routing heuristics calibrated to the old 7-component formula. With policy-driven F(S), predictions should target per-boundary alignment deltas, not global F(S)" :op :assert}
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :task/title-l0 :v "FIT-3" :op :assert}
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :task/title-l1 :v "FIT-3: Recalibrate hypothesis ledger for policy-driven F(S)" :op :assert}
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :task/traces-to :v #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :op :assert}
+   {:e #blake3 "8965d3da1f95ecff3c3c60c9f72740d95e6d25c0c688d0dc55150e806a05bf62" :a :task/type :v :task.type/task :op :assert}
+ ]}

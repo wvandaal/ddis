@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774563592/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d8fd7e3404e7f336490f3ef1e53b58a069649a5d21d8e47254f06a31822a32d5" :a :db/ident :v :recon/trace-419c4413b1d7d3d8 :op :assert}
+   {:e #blake3 "d8fd7e3404e7f336490f3ef1e53b58a069649a5d21d8e47254f06a31822a32d5" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "d8fd7e3404e7f336490f3ef1e53b58a069649a5d21d8e47254f06a31822a32d5" :a :recon/trace-neighborhood :v "FOUNDATION" :op :assert}
+   {:e #blake3 "d8fd7e3404e7f336490f3ef1e53b58a069649a5d21d8e47254f06a31822a32d5" :a :recon/trace-neighbors :v ":task/t-0a1ef40a" :op :assert}
+   {:e #blake3 "d8fd7e3404e7f336490f3ef1e53b58a069649a5d21d8e47254f06a31822a32d5" :a :recon/trace-neighbors :v ":task/t-1250a47c" :op :assert}
+   {:e #blake3 "d8fd7e3404e7f336490f3ef1e53b58a069649a5d21d8e47254f06a31822a32d5" :a :recon/trace-neighbors :v ":task/t-9a671f5a" :op :assert}
+   {:e #blake3 "d8fd7e3404e7f336490f3ef1e53b58a069649a5d21d8e47254f06a31822a32d5" :a :recon/trace-neighbors :v ":task/t-a9768fdd" :op :assert}
+   {:e #blake3 "d8fd7e3404e7f336490f3ef1e53b58a069649a5d21d8e47254f06a31822a32d5" :a :recon/trace-neighbors :v ":task/t-ab65c62c" :op :assert}
+   {:e #blake3 "d8fd7e3404e7f336490f3ef1e53b58a069649a5d21d8e47254f06a31822a32d5" :a :recon/trace-neighbors :v ":task/t-b22fcbcb" :op :assert}
+   {:e #blake3 "d8fd7e3404e7f336490f3ef1e53b58a069649a5d21d8e47254f06a31822a32d5" :a :recon/trace-neighbors :v ":task/t-bbd407e0" :op :assert}
+   {:e #blake3 "d8fd7e3404e7f336490f3ef1e53b58a069649a5d21d8e47254f06a31822a32d5" :a :recon/trace-neighbors :v ":task/t-d500e691" :op :assert}
+   {:e #blake3 "d8fd7e3404e7f336490f3ef1e53b58a069649a5d21d8e47254f06a31822a32d5" :a :recon/trace-neighbors :v ":task/t-d73f32f0" :op :assert}
+   {:e #blake3 "d8fd7e3404e7f336490f3ef1e53b58a069649a5d21d8e47254f06a31822a32d5" :a :recon/trace-refs :v "ADR-FOUNDATION-034" :op :assert}
+ ]}

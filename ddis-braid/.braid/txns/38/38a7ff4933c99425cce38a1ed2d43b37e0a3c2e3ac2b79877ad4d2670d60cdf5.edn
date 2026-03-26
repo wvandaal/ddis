@@ -1,0 +1,14 @@
+{:tx/id #hlc "1774564477/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ea4e9b44d090d96d28a854c68ff79f6b6a6e4abfa750ae53216cf6b7d0c12eb9" :a :db/ident :v :recon/trace-5defea6163f8bd87 :op :assert}
+   {:e #blake3 "ea4e9b44d090d96d28a854c68ff79f6b6a6e4abfa750ae53216cf6b7d0c12eb9" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "ea4e9b44d090d96d28a854c68ff79f6b6a6e4abfa750ae53216cf6b7d0c12eb9" :a :recon/trace-neighborhood :v "CACHE" :op :assert}
+   {:e #blake3 "ea4e9b44d090d96d28a854c68ff79f6b6a6e4abfa750ae53216cf6b7d0c12eb9" :a :recon/trace-neighbors :v ":task/t-9f0aedd9" :op :assert}
+   {:e #blake3 "ea4e9b44d090d96d28a854c68ff79f6b6a6e4abfa750ae53216cf6b7d0c12eb9" :a :recon/trace-neighbors :v ":task/t-d0b042d7" :op :assert}
+   {:e #blake3 "ea4e9b44d090d96d28a854c68ff79f6b6a6e4abfa750ae53216cf6b7d0c12eb9" :a :recon/trace-refs :v "INV-CACHE-001" :op :assert}
+   {:e #blake3 "ea4e9b44d090d96d28a854c68ff79f6b6a6e4abfa750ae53216cf6b7d0c12eb9" :a :recon/trace-refs :v "INV-CACHE-004" :op :assert}
+ ]}

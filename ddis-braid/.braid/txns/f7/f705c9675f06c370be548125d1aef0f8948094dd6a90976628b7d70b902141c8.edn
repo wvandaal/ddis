@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774562300/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CACHE-BUG-VERIFY: Test that task creation is visible on next invocation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "23666ed94670eae521febbe7c3136d21929b1b03b6331ca68bb68b948ad3e397" :a :db/ident :v :task/t-4cce48e4 :op :assert}
+   {:e #blake3 "23666ed94670eae521febbe7c3136d21929b1b03b6331ca68bb68b948ad3e397" :a :task/created-at :v 1774562299 :op :assert}
+   {:e #blake3 "23666ed94670eae521febbe7c3136d21929b1b03b6331ca68bb68b948ad3e397" :a :task/id :v "t-4cce48e4" :op :assert}
+   {:e #blake3 "23666ed94670eae521febbe7c3136d21929b1b03b6331ca68bb68b948ad3e397" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "23666ed94670eae521febbe7c3136d21929b1b03b6331ca68bb68b948ad3e397" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "23666ed94670eae521febbe7c3136d21929b1b03b6331ca68bb68b948ad3e397" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "23666ed94670eae521febbe7c3136d21929b1b03b6331ca68bb68b948ad3e397" :a :task/title :v "CACHE-BUG-VERIFY: Test that task creation is visible on next invocation" :op :assert}
+   {:e #blake3 "23666ed94670eae521febbe7c3136d21929b1b03b6331ca68bb68b948ad3e397" :a :task/title-l0 :v "CACHE-BUG-VERIFY" :op :assert}
+   {:e #blake3 "23666ed94670eae521febbe7c3136d21929b1b03b6331ca68bb68b948ad3e397" :a :task/title-l1 :v "CACHE-BUG-VERIFY: Test that task creation is visible on next invocation" :op :assert}
+   {:e #blake3 "23666ed94670eae521febbe7c3136d21929b1b03b6331ca68bb68b948ad3e397" :a :task/type :v :task.type/task :op :assert}
+ ]}

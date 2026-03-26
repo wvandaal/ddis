@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774563868/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: PERF-ZERO-CACHE — Slim compressed cache format (ADR-CACHE-001, INV-CACHE-001/003/004/005). Serialize primary state only (datoms+frontier+schema+clock+views) with zstd compression. Rebuild indexes on load. Reduces store.bin from 110MB to ~18MB. Load time from ~2000ms to ~485ms. Four invariants: primary sufficiency, compression round-trip, rebuild isomorphism, latency bound. DEPENDS-ON: none (Phase 1). BLOCKS: EPIC PERF-ZERO-WRITER, F(S) redesign, C8 cleanup, external validation."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "384a66d8c1fc3501943bbdb4054308f8afe311ce9b415fc57a6d3853b30e79e7" :a :db/ident :v :task/t-c8588779 :op :assert}
+   {:e #blake3 "384a66d8c1fc3501943bbdb4054308f8afe311ce9b415fc57a6d3853b30e79e7" :a :task/created-at :v 1774563867 :op :assert}
+   {:e #blake3 "384a66d8c1fc3501943bbdb4054308f8afe311ce9b415fc57a6d3853b30e79e7" :a :task/id :v "t-c8588779" :op :assert}
+   {:e #blake3 "384a66d8c1fc3501943bbdb4054308f8afe311ce9b415fc57a6d3853b30e79e7" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "384a66d8c1fc3501943bbdb4054308f8afe311ce9b415fc57a6d3853b30e79e7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "384a66d8c1fc3501943bbdb4054308f8afe311ce9b415fc57a6d3853b30e79e7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "384a66d8c1fc3501943bbdb4054308f8afe311ce9b415fc57a6d3853b30e79e7" :a :task/title :v "EPIC: PERF-ZERO-CACHE — Slim compressed cache format (ADR-CACHE-001, INV-CACHE-001/003/004/005). Serialize primary state only (datoms+frontier+schema+clock+views) with zstd compression. Rebuild indexes on load. Reduces store.bin from 110MB to ~18MB. Load time from ~2000ms to ~485ms. Four invariants: primary sufficiency, compression round-trip, rebuild isomorphism, latency bound. DEPENDS-ON: none (Phase 1). BLOCKS: EPIC PERF-ZERO-WRITER, F(S) redesign, C8 cleanup, external validation." :op :assert}
+   {:e #blake3 "384a66d8c1fc3501943bbdb4054308f8afe311ce9b415fc57a6d3853b30e79e7" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "384a66d8c1fc3501943bbdb4054308f8afe311ce9b415fc57a6d3853b30e79e7" :a :task/title-l1 :v "EPIC: PERF-ZERO-CACHE — Slim compressed cache format (ADR-CACHE-001, INV-CA..." :op :assert}
+   {:e #blake3 "384a66d8c1fc3501943bbdb4054308f8afe311ce9b415fc57a6d3853b30e79e7" :a :task/type :v :task.type/epic :op :assert}
+ ]}

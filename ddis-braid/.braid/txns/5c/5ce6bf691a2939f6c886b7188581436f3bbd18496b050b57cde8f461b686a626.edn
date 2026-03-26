@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774560511/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "79006e9e61d0c550e4ace81e0c5046c6afa90147e8b07b40e9a0f0ac8388dae9" :a :db/ident :v :recon/trace-0ee93d67971d4296 :op :assert}
+   {:e #blake3 "79006e9e61d0c550e4ace81e0c5046c6afa90147e8b07b40e9a0f0ac8388dae9" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "79006e9e61d0c550e4ace81e0c5046c6afa90147e8b07b40e9a0f0ac8388dae9" :a :recon/trace-neighborhood :v "SEED" :op :assert}
+   {:e #blake3 "79006e9e61d0c550e4ace81e0c5046c6afa90147e8b07b40e9a0f0ac8388dae9" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.seed.inv-seed-001" :op :assert}
+   {:e #blake3 "79006e9e61d0c550e4ace81e0c5046c6afa90147e8b07b40e9a0f0ac8388dae9" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-seed-001" :op :assert}
+   {:e #blake3 "79006e9e61d0c550e4ace81e0c5046c6afa90147e8b07b40e9a0f0ac8388dae9" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.harvest_seed_cycle.inv-seed-001" :op :assert}
+   {:e #blake3 "79006e9e61d0c550e4ace81e0c5046c6afa90147e8b07b40e9a0f0ac8388dae9" :a :recon/trace-neighbors :v ":task/t-2961e2a9" :op :assert}
+   {:e #blake3 "79006e9e61d0c550e4ace81e0c5046c6afa90147e8b07b40e9a0f0ac8388dae9" :a :recon/trace-neighbors :v ":task/t-3f0f3ef1" :op :assert}
+   {:e #blake3 "79006e9e61d0c550e4ace81e0c5046c6afa90147e8b07b40e9a0f0ac8388dae9" :a :recon/trace-neighbors :v ":task/t-4a5853fb" :op :assert}
+   {:e #blake3 "79006e9e61d0c550e4ace81e0c5046c6afa90147e8b07b40e9a0f0ac8388dae9" :a :recon/trace-neighbors :v ":task/t-b027b6df" :op :assert}
+   {:e #blake3 "79006e9e61d0c550e4ace81e0c5046c6afa90147e8b07b40e9a0f0ac8388dae9" :a :recon/trace-neighbors :v ":task/t-b4f019e6" :op :assert}
+   {:e #blake3 "79006e9e61d0c550e4ace81e0c5046c6afa90147e8b07b40e9a0f0ac8388dae9" :a :recon/trace-neighbors :v ":task/t-c8f7f66a" :op :assert}
+   {:e #blake3 "79006e9e61d0c550e4ace81e0c5046c6afa90147e8b07b40e9a0f0ac8388dae9" :a :recon/trace-neighbors :v ":task/t-f5300190" :op :assert}
+   {:e #blake3 "79006e9e61d0c550e4ace81e0c5046c6afa90147e8b07b40e9a0f0ac8388dae9" :a :recon/trace-refs :v "INV-SEED-001" :op :assert}
+ ]}

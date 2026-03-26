@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774564127/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C8-TEST: External project E2E test for C8 compliance. Set up a synthetic React project store with custom policy manifest. Run: (1) braid init with react-policy.edn. (2) braid observe 5 React-domain observations. (3) braid spec create BUG-REACT-001 (custom type). (4) braid task create with custom task type. (5) braid harvest --commit. (6) braid seed --inject AGENTS.md. Verify: (A) All commands succeed without error. (B) Seed includes constraints section (not empty). (C) methodology_gaps detects gaps using policy patterns. (D) F(S) > 0.0 and responds to observations. (E) No :spec/ or INV/ADR/NEG assumptions in output. DEPENDS-ON: C8-1, C8-2, C8-3, C8-4. TRACES: C8, INV-FOUNDATION-006."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "28ff543b4ae26d36868229706c0fffd134ea8540a213cc17294e765c4b3a5d52" :a :db/ident :v :task/t-08b2089b :op :assert}
+   {:e #blake3 "28ff543b4ae26d36868229706c0fffd134ea8540a213cc17294e765c4b3a5d52" :a :task/created-at :v 1774564126 :op :assert}
+   {:e #blake3 "28ff543b4ae26d36868229706c0fffd134ea8540a213cc17294e765c4b3a5d52" :a :task/id :v "t-08b2089b" :op :assert}
+   {:e #blake3 "28ff543b4ae26d36868229706c0fffd134ea8540a213cc17294e765c4b3a5d52" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "28ff543b4ae26d36868229706c0fffd134ea8540a213cc17294e765c4b3a5d52" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "28ff543b4ae26d36868229706c0fffd134ea8540a213cc17294e765c4b3a5d52" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "28ff543b4ae26d36868229706c0fffd134ea8540a213cc17294e765c4b3a5d52" :a :task/title :v "C8-TEST: External project E2E test for C8 compliance. Set up a synthetic React project store with custom policy manifest. Run: (1) braid init with react-policy.edn. (2) braid observe 5 React-domain observations. (3) braid spec create BUG-REACT-001 (custom type). (4) braid task create with custom task type. (5) braid harvest --commit. (6) braid seed --inject AGENTS.md. Verify: (A) All commands succeed without error. (B) Seed includes constraints section (not empty). (C) methodology_gaps detects gaps using policy patterns. (D) F(S) > 0.0 and responds to observations. (E) No :spec/ or INV/ADR/NEG assumptions in output. DEPENDS-ON: C8-1, C8-2, C8-3, C8-4. TRACES: C8, INV-FOUNDATION-006." :op :assert}
+   {:e #blake3 "28ff543b4ae26d36868229706c0fffd134ea8540a213cc17294e765c4b3a5d52" :a :task/title-l0 :v "C8-TEST" :op :assert}
+   {:e #blake3 "28ff543b4ae26d36868229706c0fffd134ea8540a213cc17294e765c4b3a5d52" :a :task/title-l1 :v "C8-TEST: External project E2E test for C8 compliance" :op :assert}
+   {:e #blake3 "28ff543b4ae26d36868229706c0fffd134ea8540a213cc17294e765c4b3a5d52" :a :task/traces-to :v #blake3 "7acde41dbb27e9f3be835c10c3a870013f0855f97c7b597475f8921cbdc6de60" :op :assert}
+   {:e #blake3 "28ff543b4ae26d36868229706c0fffd134ea8540a213cc17294e765c4b3a5d52" :a :task/type :v :task.type/task :op :assert}
+ ]}

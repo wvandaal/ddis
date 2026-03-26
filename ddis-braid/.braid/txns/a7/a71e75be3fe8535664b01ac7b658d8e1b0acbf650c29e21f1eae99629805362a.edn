@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774560386/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C9-5: Reflexive F(S) stagnation detection — GoalDrift signal when fitness trajectory is flat"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :db/ident :v :task/t-1a20a2e9 :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/created-at :v 1774560385 :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/description :v "CONTEXT: F(S) has been at 0.62 for 13 sessions. The system displays this number but takes no automated action. The guidance routing doesn't detect the widening spec-impl gap. The harvest doesn't capture the anomaly. PROJECT_ASSESSMENT's deepest question: 'Is the system observing its own failure to converge?' Answer: no. RATIONALE: This is Type 9 divergence (Reflexive: system vs system's-model-of-itself, INV-REFLEXIVE-001). The detection is simple: track F(S) per session, compute delta, emit GoalDrift signal when stagnant. The routing response: boost verification tasks over feature tasks when GoalDrift is active. This closes the meta-level loop — the system detects its own stagnation and recommends corrective action. APPROACH: (1) Add :session/fitness-score (Double, One) datom, written at harvest time. (2) In methodology_gaps(), query last N sessions' fitness scores. If |F(S)_current - F(S)_N_ago| < 0.03 for N >= 5, emit GoalDrift signal with severity=High and recommendation='verification sprint: N untested INVs exist'. (3) R(t) routing applies a stagnation_boost to tasks tagged with INV-WITNESS-* or traces-to INV-WITNESS-* when GoalDrift is active. (4) braid status includes 'F(S) stagnant for N sessions — verification sprint recommended' when GoalDrift is active. (5) Seed assembly surfaces GoalDrift in the methodology section. ACCEPTANCE: (A) After 5 simulated sessions at F(S)=0.62, braid status shows stagnation warning. (B) R(t) top task is a verification task (not a feature task) when GoalDrift active. (C) braid seed --task 'next work' recommends verification work. (D) After F(S) moves to 0.70 (post-verification sprint), GoalDrift clears automatically. CONSIDERATIONS: The stagnation threshold (0.03) and window (5 sessions) should be policy datoms, not hardcoded constants (per ADR-FOUNDATION-031). Bootstrap with these defaults. DEPENDS-ON: t-7716255c (C9 EPIC). Independent of C9-1/2/3. FILE: crates/braid-kernel/src/methodology.rs, signal.rs, routing.rs." :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/id :v "t-1a20a2e9" :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/labels :v :label/C9 :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/title :v "C9-5: Reflexive F(S) stagnation detection — GoalDrift signal when fitness trajectory is flat" :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/title-l0 :v "C9-5" :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/title-l1 :v "C9-5: Reflexive F(S) stagnation detection — GoalDrift signal when fitness t..." :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/traces-to :v #blake3 "051ef1a777f4b604020245e5b5ab3747eb655bbf0cd8a6cadfb1167ac04d9a19" :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/traces-to :v #blake3 "455a5c89707dbccd9fce146a0101d00bea76e974ea56ce83d64a0bce7f1a36e1" :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/type :v :task.type/task :op :assert}
+ ]}

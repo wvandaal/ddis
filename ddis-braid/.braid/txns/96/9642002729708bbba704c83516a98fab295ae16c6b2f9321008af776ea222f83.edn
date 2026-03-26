@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774562316/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "CRITICAL BUG FIX: Stale cache overwrite race condition. When main.rs LiveStore (dirty from session detection) drops AFTER a command's own LiveStore, it overwrites store.bin with stale state. Command writes become invisible through cache. Root cause: L1-SINGLE created overlapping LiveStore lifetimes. Fix: (1) session detection only for commands using pre_opened store, (2) defensive flush guard in LiveStore::flush() — skip if has_new_external_txns(). Verified: task create + immediate search now works."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "336c4b8d8e0638574ceeaa9d1997de72936b7d81adfd97d9c93b173675e37db7" :a :db/doc :v "CRITICAL BUG FIX: Stale cache overwrite race condition. When main.rs LiveStore (dirty from session detection) drops AFTER a command's own LiveStore, it overwrites store.bin with stale state. Command writes become invisible through cache. Root cause: L1-SINGLE created overlapping LiveStore lifetimes. Fix: (1) session detection only for commands using pre_opened store, (2) defensive flush guard in LiveStore::flush() — skip if has_new_external_txns(). Verified: task create + immediate search now works." :op :assert}
+   {:e #blake3 "336c4b8d8e0638574ceeaa9d1997de72936b7d81adfd97d9c93b173675e37db7" :a :db/ident :v :observation/critical-bug-fix-stale-cache-overwrite-race-condition-when :op :assert}
+   {:e #blake3 "336c4b8d8e0638574ceeaa9d1997de72936b7d81adfd97d9c93b173675e37db7" :a :exploration/body :v "CRITICAL BUG FIX: Stale cache overwrite race condition. When main.rs LiveStore (dirty from session detection) drops AFTER a command's own LiveStore, it overwrites store.bin with stale state. Command writes become invisible through cache. Root cause: L1-SINGLE created overlapping LiveStore lifetimes. Fix: (1) session detection only for commands using pre_opened store, (2) defensive flush guard in LiveStore::flush() — skip if has_new_external_txns(). Verified: task create + immediate search now works." :op :assert}
+   {:e #blake3 "336c4b8d8e0638574ceeaa9d1997de72936b7d81adfd97d9c93b173675e37db7" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "336c4b8d8e0638574ceeaa9d1997de72936b7d81adfd97d9c93b173675e37db7" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "336c4b8d8e0638574ceeaa9d1997de72936b7d81adfd97d9c93b173675e37db7" :a :exploration/content-hash :v #bytes "b00ff3e279e822f6ad7ed7cd52907926ed524b05140a46b355aada6997b469aa" :op :assert}
+   {:e #blake3 "336c4b8d8e0638574ceeaa9d1997de72936b7d81adfd97d9c93b173675e37db7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "336c4b8d8e0638574ceeaa9d1997de72936b7d81adfd97d9c93b173675e37db7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "336c4b8d8e0638574ceeaa9d1997de72936b7d81adfd97d9c93b173675e37db7" :a :exploration/source-session :v #blake3 "16cdc88940d832d2814577cb90f76e2fc85dece9c38c4bd489ccfaf658fb43e1" :op :assert}
+ ]}

@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774563947/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: PERF-ZERO-WRITER — Single-Writer Cache Safety (INV-CACHE-002, INV-STORE-022). Wire pre_opened LiveStore to ALL write commands. Eliminates stale-overwrite race condition by construction — one LiveStore per process, one writer to store.bin. DEPENDS-ON: PERF-ZERO-CACHE (slim format must be in place first so writes produce new format). BLOCKS: F(S) redesign, C8 cleanup, external validation."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "84a6b26a8ed23092eb65b457904348397bfb043bf2f66fb0411b9280f199190f" :a :db/ident :v :task/t-956fb386 :op :assert}
+   {:e #blake3 "84a6b26a8ed23092eb65b457904348397bfb043bf2f66fb0411b9280f199190f" :a :task/created-at :v 1774563946 :op :assert}
+   {:e #blake3 "84a6b26a8ed23092eb65b457904348397bfb043bf2f66fb0411b9280f199190f" :a :task/id :v "t-956fb386" :op :assert}
+   {:e #blake3 "84a6b26a8ed23092eb65b457904348397bfb043bf2f66fb0411b9280f199190f" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "84a6b26a8ed23092eb65b457904348397bfb043bf2f66fb0411b9280f199190f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "84a6b26a8ed23092eb65b457904348397bfb043bf2f66fb0411b9280f199190f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "84a6b26a8ed23092eb65b457904348397bfb043bf2f66fb0411b9280f199190f" :a :task/title :v "EPIC: PERF-ZERO-WRITER — Single-Writer Cache Safety (INV-CACHE-002, INV-STORE-022). Wire pre_opened LiveStore to ALL write commands. Eliminates stale-overwrite race condition by construction — one LiveStore per process, one writer to store.bin. DEPENDS-ON: PERF-ZERO-CACHE (slim format must be in place first so writes produce new format). BLOCKS: F(S) redesign, C8 cleanup, external validation." :op :assert}
+   {:e #blake3 "84a6b26a8ed23092eb65b457904348397bfb043bf2f66fb0411b9280f199190f" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "84a6b26a8ed23092eb65b457904348397bfb043bf2f66fb0411b9280f199190f" :a :task/title-l1 :v "EPIC: PERF-ZERO-WRITER — Single-Writer Cache Safety (INV-CACHE-002, INV-STO..." :op :assert}
+   {:e #blake3 "84a6b26a8ed23092eb65b457904348397bfb043bf2f66fb0411b9280f199190f" :a :task/type :v :task.type/epic :op :assert}
+ ]}

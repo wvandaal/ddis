@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774564088/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: C8-CLEANUP — Fix 7 Kernel Substrate Independence Violations. Parameterize SpecId types, replace :spec/ hardcoding with policy queries, make task types schema-driven. DEPENDS-ON: FITNESS-REDESIGN (policy-driven F(S) makes the kernel query the policy; C8 cleanup extends that pattern). BLOCKS: EXTERNAL-VALIDATION."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0238a4923a0a6ead32cff58b7fe373ae5728afcc48f43271c6dffdea18be284a" :a :db/ident :v :task/t-b19dbd53 :op :assert}
+   {:e #blake3 "0238a4923a0a6ead32cff58b7fe373ae5728afcc48f43271c6dffdea18be284a" :a :task/created-at :v 1774564087 :op :assert}
+   {:e #blake3 "0238a4923a0a6ead32cff58b7fe373ae5728afcc48f43271c6dffdea18be284a" :a :task/id :v "t-b19dbd53" :op :assert}
+   {:e #blake3 "0238a4923a0a6ead32cff58b7fe373ae5728afcc48f43271c6dffdea18be284a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "0238a4923a0a6ead32cff58b7fe373ae5728afcc48f43271c6dffdea18be284a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0238a4923a0a6ead32cff58b7fe373ae5728afcc48f43271c6dffdea18be284a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0238a4923a0a6ead32cff58b7fe373ae5728afcc48f43271c6dffdea18be284a" :a :task/title :v "EPIC: C8-CLEANUP — Fix 7 Kernel Substrate Independence Violations. Parameterize SpecId types, replace :spec/ hardcoding with policy queries, make task types schema-driven. DEPENDS-ON: FITNESS-REDESIGN (policy-driven F(S) makes the kernel query the policy; C8 cleanup extends that pattern). BLOCKS: EXTERNAL-VALIDATION." :op :assert}
+   {:e #blake3 "0238a4923a0a6ead32cff58b7fe373ae5728afcc48f43271c6dffdea18be284a" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "0238a4923a0a6ead32cff58b7fe373ae5728afcc48f43271c6dffdea18be284a" :a :task/title-l1 :v "EPIC: C8-CLEANUP — Fix 7 Kernel Substrate Independence Violations" :op :assert}
+   {:e #blake3 "0238a4923a0a6ead32cff58b7fe373ae5728afcc48f43271c6dffdea18be284a" :a :task/type :v :task.type/epic :op :assert}
+ ]}

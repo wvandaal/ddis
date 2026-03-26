@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774562347/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-4cce48e4"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "23666ed94670eae521febbe7c3136d21929b1b03b6331ca68bb68b948ad3e397" :a :task/close-reason :v "Verified: task create -> immediate search works correctly after cache safety fix" :op :assert}
+   {:e #blake3 "23666ed94670eae521febbe7c3136d21929b1b03b6331ca68bb68b948ad3e397" :a :task/closed-at :v 1774562346 :op :assert}
+   {:e #blake3 "23666ed94670eae521febbe7c3136d21929b1b03b6331ca68bb68b948ad3e397" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "23666ed94670eae521febbe7c3136d21929b1b03b6331ca68bb68b948ad3e397" :a :task/status :v :task.status/closed :op :assert}
+ ]}

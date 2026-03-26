@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774564033/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ce271d72d44be5dad7237eeaac07cf7e46bed63534d221f6487a0c6805fa6a21" :a :db/ident :v :recon/trace-ee6a42f5ed0bb0ce :op :assert}
+   {:e #blake3 "ce271d72d44be5dad7237eeaac07cf7e46bed63534d221f6487a0c6805fa6a21" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "ce271d72d44be5dad7237eeaac07cf7e46bed63534d221f6487a0c6805fa6a21" :a :recon/trace-neighborhood :v "FITNESS" :op :assert}
+   {:e #blake3 "ce271d72d44be5dad7237eeaac07cf7e46bed63534d221f6487a0c6805fa6a21" :a :recon/trace-refs :v "ADR-FITNESS-001" :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774563893/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SLIM-1: Implement Store::from_primary() in braid-kernel. Accepts pre-computed (datoms, frontier, schema, clock, views) and rebuilds ONLY the 5 derived indexes via single O(N) pass. Factored from existing from_datoms() (store.rs:1189) — identical index-building loop but skips schema rebuild and views accumulation (both passed in). ACCEPTANCE: (A) from_primary(primary(from_datoms(D))) == from_datoms(D) for all D (proptest). (B) No unwrap() in implementation. (C) O(N) single pass verified. TRACES: INV-CACHE-001, INV-CACHE-004. FILE: crates/braid-kernel/src/store.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :db/ident :v :task/t-cb855c27 :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/acceptance :v "(A) from_primary(primary(from_datoms(D))) == from_datoms(D) for all D (proptest). (B) No unwrap() in implementation. (C) O(N) single pass verified. TRACES: INV-CACHE-001, INV-CACHE-004." :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/body :v "ACCEPTANCE: (A) from_primary(primary(from_datoms(D))) == from_datoms(D) for all D (proptest). (B) No unwrap() in implementation. (C) O(N) single pass verified. TRACES: INV-CACHE-001, INV-CACHE-004. FILE: crates/braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/created-at :v 1774563892 :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/files :v "crates/braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/id :v "t-cb855c27" :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/title :v "SLIM-1: Implement Store::from_primary() in braid-kernel. Accepts pre-computed (datoms, frontier, schema, clock, views) and rebuilds ONLY the 5 derived indexes via single O(N) pass. Factored from existing from_datoms() (store.rs:1189) — identical index-building loop but skips schema rebuild and views accumulation (both passed in)" :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/title-l0 :v "SLIM-1" :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/title-l1 :v "SLIM-1: Implement Store::from_primary() in braid-kernel" :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774564139/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXT-3: Verification sprint on braid itself. 3 sessions with zero new spec elements, only verification work: add witnesses, close existing tasks, run tests. Measure F(S) before and after. PREDICTION: if policy-driven F(S) dissolved the ceiling, F(S) rises to 0.72+. If flat: structural issue persists, investigate. ACCEPTANCE: F(S) delta > +0.05 after sprint. TRACES: ADR-FITNESS-001, ADR-FOUNDATION-014."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9b4f589cd079714a0f357cc4452bef69d626e8293c58ccdf9a80328ff8a9f6d4" :a :db/ident :v :task/t-287b0711 :op :assert}
+   {:e #blake3 "9b4f589cd079714a0f357cc4452bef69d626e8293c58ccdf9a80328ff8a9f6d4" :a :task/acceptance :v "F(S) delta > +0.05 after sprint. TRACES: ADR-FITNESS-001, ADR-FOUNDATION-014." :op :assert}
+   {:e #blake3 "9b4f589cd079714a0f357cc4452bef69d626e8293c58ccdf9a80328ff8a9f6d4" :a :task/body :v "ACCEPTANCE: F(S) delta > +0.05 after sprint. TRACES: ADR-FITNESS-001, ADR-FOUNDATION-014." :op :assert}
+   {:e #blake3 "9b4f589cd079714a0f357cc4452bef69d626e8293c58ccdf9a80328ff8a9f6d4" :a :task/created-at :v 1774564138 :op :assert}
+   {:e #blake3 "9b4f589cd079714a0f357cc4452bef69d626e8293c58ccdf9a80328ff8a9f6d4" :a :task/id :v "t-287b0711" :op :assert}
+   {:e #blake3 "9b4f589cd079714a0f357cc4452bef69d626e8293c58ccdf9a80328ff8a9f6d4" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "9b4f589cd079714a0f357cc4452bef69d626e8293c58ccdf9a80328ff8a9f6d4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9b4f589cd079714a0f357cc4452bef69d626e8293c58ccdf9a80328ff8a9f6d4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9b4f589cd079714a0f357cc4452bef69d626e8293c58ccdf9a80328ff8a9f6d4" :a :task/title :v "EXT-3: Verification sprint on braid itself. 3 sessions with zero new spec elements, only verification work: add witnesses, close existing tasks, run tests. Measure F(S) before and after. PREDICTION: if policy-driven F(S) dissolved the ceiling, F(S) rises to 0.72+. If flat: structural issue persists, investigate" :op :assert}
+   {:e #blake3 "9b4f589cd079714a0f357cc4452bef69d626e8293c58ccdf9a80328ff8a9f6d4" :a :task/title-l0 :v "EXT-3" :op :assert}
+   {:e #blake3 "9b4f589cd079714a0f357cc4452bef69d626e8293c58ccdf9a80328ff8a9f6d4" :a :task/title-l1 :v "EXT-3: Verification sprint on braid itself" :op :assert}
+   {:e #blake3 "9b4f589cd079714a0f357cc4452bef69d626e8293c58ccdf9a80328ff8a9f6d4" :a :task/type :v :task.type/task :op :assert}
+ ]}

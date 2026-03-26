@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774564004/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WRITER-TEST: Verification suite for single-writer linearity. UNIT TESTS: (1) Create task -> immediate search finds it (regression test for stale-overwrite bug). (2) Observe -> immediate query finds observation. (3) Harvest -> seed sees harvested data. (4) Two sequential writes produce correct store state. E2E TESTS: (5) strace verification: braid observe shows exactly 1 store.bin O_RDONLY open. (6) strace: braid task create shows exactly 1 store.bin write. (7) Full lifecycle: init -> observe -> task create -> harvest -> seed -> status, each command sees prior writes. FAILURE DIAGNOSTICS: Log store.bin open count, dirty flag state at flush, known_hash_count before/after. DEPENDS-ON: WRITER-1, WRITER-2, WRITER-3, WRITER-4. TRACES: INV-CACHE-002, INV-STORE-022."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5a683ccdc5e6a584bd702fd52d8416775a5de0423a44c2a61107693c6482b355" :a :db/ident :v :task/t-075af7ae :op :assert}
+   {:e #blake3 "5a683ccdc5e6a584bd702fd52d8416775a5de0423a44c2a61107693c6482b355" :a :task/created-at :v 1774564003 :op :assert}
+   {:e #blake3 "5a683ccdc5e6a584bd702fd52d8416775a5de0423a44c2a61107693c6482b355" :a :task/id :v "t-075af7ae" :op :assert}
+   {:e #blake3 "5a683ccdc5e6a584bd702fd52d8416775a5de0423a44c2a61107693c6482b355" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "5a683ccdc5e6a584bd702fd52d8416775a5de0423a44c2a61107693c6482b355" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5a683ccdc5e6a584bd702fd52d8416775a5de0423a44c2a61107693c6482b355" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5a683ccdc5e6a584bd702fd52d8416775a5de0423a44c2a61107693c6482b355" :a :task/title :v "WRITER-TEST: Verification suite for single-writer linearity. UNIT TESTS: (1) Create task -> immediate search finds it (regression test for stale-overwrite bug). (2) Observe -> immediate query finds observation. (3) Harvest -> seed sees harvested data. (4) Two sequential writes produce correct store state. E2E TESTS: (5) strace verification: braid observe shows exactly 1 store.bin O_RDONLY open. (6) strace: braid task create shows exactly 1 store.bin write. (7) Full lifecycle: init -> observe -> task create -> harvest -> seed -> status, each command sees prior writes. FAILURE DIAGNOSTICS: Log store.bin open count, dirty flag state at flush, known_hash_count before/after. DEPENDS-ON: WRITER-1, WRITER-2, WRITER-3, WRITER-4. TRACES: INV-CACHE-002, INV-STORE-022." :op :assert}
+   {:e #blake3 "5a683ccdc5e6a584bd702fd52d8416775a5de0423a44c2a61107693c6482b355" :a :task/title-l0 :v "WRITER-TEST" :op :assert}
+   {:e #blake3 "5a683ccdc5e6a584bd702fd52d8416775a5de0423a44c2a61107693c6482b355" :a :task/title-l1 :v "WRITER-TEST: Verification suite for single-writer linearity" :op :assert}
+   {:e #blake3 "5a683ccdc5e6a584bd702fd52d8416775a5de0423a44c2a61107693c6482b355" :a :task/type :v :task.type/task :op :assert}
+ ]}

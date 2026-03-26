@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774563836/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FITNESS-001 \"Policy-Driven Fitness Function\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "de2223d239a3aed3d1244664d364726546e6bceebc4cbcdf8539641f920ece09" :a :adr/decision :v "Replace hardcoded 7-component sum with F(S) = weighted mean of BoundaryRegistry alignment scores. Each policy boundary contributes its own score. Weights come from policy manifest. Recovers current formula as special case (DDIS policy defines 7 boundaries). Eliminates structural ceiling AND C8 violation simultaneously. Rejected: component reweighting (masks problem), verification sprint alone (doesn't fix formulation)" :op :assert}
+   {:e #blake3 "de2223d239a3aed3d1244664d364726546e6bceebc4cbcdf8539641f920ece09" :a :adr/problem :v "F(S) has structural ceiling at 0.62 due to anti-correlated components (I floor at 0.15 dilutes mean, K+U always near max mask real gaps). Hypothesis ledger error degraded to 0.521. The 7-component weighted sum is DDIS-specific (violates C8)." :op :assert}
+   {:e #blake3 "de2223d239a3aed3d1244664d364726546e6bceebc4cbcdf8539641f920ece09" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "de2223d239a3aed3d1244664d364726546e6bceebc4cbcdf8539641f920ece09" :a :db/doc :v "Policy-Driven Fitness Function" :op :assert}
+   {:e #blake3 "de2223d239a3aed3d1244664d364726546e6bceebc4cbcdf8539641f920ece09" :a :db/ident :v :spec/adr-fitness-001 :op :assert}
+   {:e #blake3 "de2223d239a3aed3d1244664d364726546e6bceebc4cbcdf8539641f920ece09" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "de2223d239a3aed3d1244664d364726546e6bceebc4cbcdf8539641f920ece09" :a :spec/id :v "ADR-FITNESS-001" :op :assert}
+   {:e #blake3 "de2223d239a3aed3d1244664d364726546e6bceebc4cbcdf8539641f920ece09" :a :spec/namespace :v :spec.ns/FITNESS :op :assert}
+   {:e #blake3 "eb755ea942f8be05d8e4c41a5b701063e5c310307b23f46510311ae5eb67f781" :a :db/ident :v :task/t-290a46c3 :op :assert}
+   {:e #blake3 "eb755ea942f8be05d8e4c41a5b701063e5c310307b23f46510311ae5eb67f781" :a :task/created-at :v 1774563835 :op :assert}
+   {:e #blake3 "eb755ea942f8be05d8e4c41a5b701063e5c310307b23f46510311ae5eb67f781" :a :task/id :v "t-290a46c3" :op :assert}
+   {:e #blake3 "eb755ea942f8be05d8e4c41a5b701063e5c310307b23f46510311ae5eb67f781" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "eb755ea942f8be05d8e4c41a5b701063e5c310307b23f46510311ae5eb67f781" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "eb755ea942f8be05d8e4c41a5b701063e5c310307b23f46510311ae5eb67f781" :a :task/title :v "Implement ADR-FITNESS-001: Policy-Driven Fitness Function" :op :assert}
+   {:e #blake3 "eb755ea942f8be05d8e4c41a5b701063e5c310307b23f46510311ae5eb67f781" :a :task/traces-to :v #blake3 "de2223d239a3aed3d1244664d364726546e6bceebc4cbcdf8539641f920ece09" :op :assert}
+   {:e #blake3 "eb755ea942f8be05d8e4c41a5b701063e5c310307b23f46510311ae5eb67f781" :a :task/type :v :task.type/task :op :assert}
+ ]}

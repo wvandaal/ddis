@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774563987/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WRITER-3: Wire pre_opened to harvest, seed, spec, write, challenge, extract, bilateral, session commands. Same pattern: accept Option<&mut LiveStore>, use if Some, open own if None. ACCEPTANCE: (A) All write commands use single LiveStore. (B) strace shows exactly 1 store.bin read per process. TRACES: INV-CACHE-002. FILE: crates/braid/src/commands/{harvest,seed,spec,write,challenge,extract,bilateral,session}.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0c950a686276eba0a9ddf7b04185b584bc58f6b7e4369920832fd8148fde1fa0" :a :db/ident :v :task/t-1670b3b8 :op :assert}
+   {:e #blake3 "0c950a686276eba0a9ddf7b04185b584bc58f6b7e4369920832fd8148fde1fa0" :a :task/acceptance :v "(A) All write commands use single LiveStore. (B) strace shows exactly 1 store.bin read per process. TRACES: INV-CACHE-002." :op :assert}
+   {:e #blake3 "0c950a686276eba0a9ddf7b04185b584bc58f6b7e4369920832fd8148fde1fa0" :a :task/body :v "ACCEPTANCE: (A) All write commands use single LiveStore. (B) strace shows exactly 1 store.bin read per process. TRACES: INV-CACHE-002. FILE: crates/braid/src/commands/{harvest,seed,spec,write,challenge,extract,bilateral,session}.rs" :op :assert}
+   {:e #blake3 "0c950a686276eba0a9ddf7b04185b584bc58f6b7e4369920832fd8148fde1fa0" :a :task/created-at :v 1774563986 :op :assert}
+   {:e #blake3 "0c950a686276eba0a9ddf7b04185b584bc58f6b7e4369920832fd8148fde1fa0" :a :task/files :v "crates/braid/src/commands/{harvest" :op :assert}
+   {:e #blake3 "0c950a686276eba0a9ddf7b04185b584bc58f6b7e4369920832fd8148fde1fa0" :a :task/id :v "t-1670b3b8" :op :assert}
+   {:e #blake3 "0c950a686276eba0a9ddf7b04185b584bc58f6b7e4369920832fd8148fde1fa0" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "0c950a686276eba0a9ddf7b04185b584bc58f6b7e4369920832fd8148fde1fa0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0c950a686276eba0a9ddf7b04185b584bc58f6b7e4369920832fd8148fde1fa0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0c950a686276eba0a9ddf7b04185b584bc58f6b7e4369920832fd8148fde1fa0" :a :task/title :v "WRITER-3: Wire pre_opened to harvest, seed, spec, write, challenge, extract, bilateral, session commands. Same pattern: accept Option<&mut LiveStore>, use if Some, open own if None" :op :assert}
+   {:e #blake3 "0c950a686276eba0a9ddf7b04185b584bc58f6b7e4369920832fd8148fde1fa0" :a :task/title-l0 :v "WRITER-3" :op :assert}
+   {:e #blake3 "0c950a686276eba0a9ddf7b04185b584bc58f6b7e4369920832fd8148fde1fa0" :a :task/title-l1 :v "WRITER-3: Wire pre_opened to harvest, seed, spec, write, challenge, extract,..." :op :assert}
+   {:e #blake3 "0c950a686276eba0a9ddf7b04185b584bc58f6b7e4369920832fd8148fde1fa0" :a :task/type :v :task.type/task :op :assert}
+ ]}

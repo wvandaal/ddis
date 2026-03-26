@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774564136/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXT-2: Execute 3 harvest/seed cycles on external project. Session A: observe 10 domain insights, create 5 tasks, harvest. Session B: close 3 tasks, observe 5 more, harvest. Session C: seed from Session B, verify context quality. Measure: seed quality score (1-10), guidance relevance (1-10), concept clustering quality (1-10). ACCEPTANCE: seed quality >= 7/10, guidance relevance >= 5/10. TRACES: C8, ADR-FOUNDATION-014."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fe19db33e02526af55cde79735ea04f657d565f665a93a37f819028b84c47cd2" :a :db/ident :v :task/t-a395d458 :op :assert}
+   {:e #blake3 "fe19db33e02526af55cde79735ea04f657d565f665a93a37f819028b84c47cd2" :a :task/acceptance :v "seed quality >= 7/10, guidance relevance >= 5/10. TRACES: C8, ADR-FOUNDATION-014." :op :assert}
+   {:e #blake3 "fe19db33e02526af55cde79735ea04f657d565f665a93a37f819028b84c47cd2" :a :task/body :v "ACCEPTANCE: seed quality >= 7/10, guidance relevance >= 5/10. TRACES: C8, ADR-FOUNDATION-014." :op :assert}
+   {:e #blake3 "fe19db33e02526af55cde79735ea04f657d565f665a93a37f819028b84c47cd2" :a :task/created-at :v 1774564135 :op :assert}
+   {:e #blake3 "fe19db33e02526af55cde79735ea04f657d565f665a93a37f819028b84c47cd2" :a :task/id :v "t-a395d458" :op :assert}
+   {:e #blake3 "fe19db33e02526af55cde79735ea04f657d565f665a93a37f819028b84c47cd2" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "fe19db33e02526af55cde79735ea04f657d565f665a93a37f819028b84c47cd2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "fe19db33e02526af55cde79735ea04f657d565f665a93a37f819028b84c47cd2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "fe19db33e02526af55cde79735ea04f657d565f665a93a37f819028b84c47cd2" :a :task/title :v "EXT-2: Execute 3 harvest/seed cycles on external project. Session A: observe 10 domain insights, create 5 tasks, harvest. Session B: close 3 tasks, observe 5 more, harvest. Session C: seed from Session B, verify context quality. Measure: seed quality score (1-10), guidance relevance (1-10), concept clustering quality (1-10)" :op :assert}
+   {:e #blake3 "fe19db33e02526af55cde79735ea04f657d565f665a93a37f819028b84c47cd2" :a :task/title-l0 :v "EXT-2" :op :assert}
+   {:e #blake3 "fe19db33e02526af55cde79735ea04f657d565f665a93a37f819028b84c47cd2" :a :task/title-l1 :v "EXT-2: Execute 3 harvest/seed cycles on external project" :op :assert}
+   {:e #blake3 "fe19db33e02526af55cde79735ea04f657d565f665a93a37f819028b84c47cd2" :a :task/type :v :task.type/task :op :assert}
+ ]}

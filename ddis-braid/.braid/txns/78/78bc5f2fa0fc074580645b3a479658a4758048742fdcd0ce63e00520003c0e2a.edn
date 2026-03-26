@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774563981/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WRITER-1: Wire pre_opened to observe command. Add pre_opened: Option<&mut LiveStore> parameter to observe::run(). Use passed-in store for all writes; fall back to LiveStore::open if None. ACCEPTANCE: (A) braid observe writes through main's LiveStore. (B) No second store.bin read during observe. (C) Observation immediately visible on next command. TRACES: INV-CACHE-002. FILE: crates/braid/src/commands/observe.rs, crates/braid/src/commands/mod.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c678ef5c79fcd091ef7544d8d40e26c80dd58aca90883372cde144b96d283beb" :a :db/ident :v :task/t-e532c65c :op :assert}
+   {:e #blake3 "c678ef5c79fcd091ef7544d8d40e26c80dd58aca90883372cde144b96d283beb" :a :task/acceptance :v "(A) braid observe writes through main's LiveStore. (B) No second store.bin read during observe. (C) Observation immediately visible on next command. TRACES: INV-CACHE-002." :op :assert}
+   {:e #blake3 "c678ef5c79fcd091ef7544d8d40e26c80dd58aca90883372cde144b96d283beb" :a :task/body :v "ACCEPTANCE: (A) braid observe writes through main's LiveStore. (B) No second store.bin read during observe. (C) Observation immediately visible on next command. TRACES: INV-CACHE-002. FILE: crates/braid/src/commands/observe.rs, crates/braid/src/commands/mod.rs" :op :assert}
+   {:e #blake3 "c678ef5c79fcd091ef7544d8d40e26c80dd58aca90883372cde144b96d283beb" :a :task/created-at :v 1774563980 :op :assert}
+   {:e #blake3 "c678ef5c79fcd091ef7544d8d40e26c80dd58aca90883372cde144b96d283beb" :a :task/files :v "crates/braid/src/commands/mod.rs" :op :assert}
+   {:e #blake3 "c678ef5c79fcd091ef7544d8d40e26c80dd58aca90883372cde144b96d283beb" :a :task/files :v "crates/braid/src/commands/observe.rs" :op :assert}
+   {:e #blake3 "c678ef5c79fcd091ef7544d8d40e26c80dd58aca90883372cde144b96d283beb" :a :task/id :v "t-e532c65c" :op :assert}
+   {:e #blake3 "c678ef5c79fcd091ef7544d8d40e26c80dd58aca90883372cde144b96d283beb" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "c678ef5c79fcd091ef7544d8d40e26c80dd58aca90883372cde144b96d283beb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c678ef5c79fcd091ef7544d8d40e26c80dd58aca90883372cde144b96d283beb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c678ef5c79fcd091ef7544d8d40e26c80dd58aca90883372cde144b96d283beb" :a :task/title :v "WRITER-1: Wire pre_opened to observe command. Add pre_opened: Option<&mut LiveStore> parameter to observe::run(). Use passed-in store for all writes; fall back to LiveStore::open if None" :op :assert}
+   {:e #blake3 "c678ef5c79fcd091ef7544d8d40e26c80dd58aca90883372cde144b96d283beb" :a :task/title-l0 :v "WRITER-1" :op :assert}
+   {:e #blake3 "c678ef5c79fcd091ef7544d8d40e26c80dd58aca90883372cde144b96d283beb" :a :task/title-l1 :v "WRITER-1: Wire pre_opened to observe command" :op :assert}
+   {:e #blake3 "c678ef5c79fcd091ef7544d8d40e26c80dd58aca90883372cde144b96d283beb" :a :task/type :v :task.type/task :op :assert}
+ ]}

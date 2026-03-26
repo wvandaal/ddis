@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774564032/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: FITNESS-REDESIGN — Policy-Driven Fitness Function (ADR-FITNESS-001). Replace hardcoded 7-component weighted sum with F(S) = weighted mean of BoundaryRegistry alignment scores. Dissolves structural ceiling at 0.62. Makes F(S) substrate-independent (C8). Fixes hypothesis ledger calibration. DEPENDS-ON: PERF-ZERO-CACHE, PERF-ZERO-WRITER (need sub-1s iteration for rapid development). BLOCKS: C8-CLEANUP, EXTERNAL-VALIDATION."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2dae075bd415ca362b2cb7f735ac7989086a734c644b2abd491357289b59f2db" :a :db/ident :v :task/t-70f48a74 :op :assert}
+   {:e #blake3 "2dae075bd415ca362b2cb7f735ac7989086a734c644b2abd491357289b59f2db" :a :task/created-at :v 1774564031 :op :assert}
+   {:e #blake3 "2dae075bd415ca362b2cb7f735ac7989086a734c644b2abd491357289b59f2db" :a :task/id :v "t-70f48a74" :op :assert}
+   {:e #blake3 "2dae075bd415ca362b2cb7f735ac7989086a734c644b2abd491357289b59f2db" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2dae075bd415ca362b2cb7f735ac7989086a734c644b2abd491357289b59f2db" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2dae075bd415ca362b2cb7f735ac7989086a734c644b2abd491357289b59f2db" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2dae075bd415ca362b2cb7f735ac7989086a734c644b2abd491357289b59f2db" :a :task/title :v "EPIC: FITNESS-REDESIGN — Policy-Driven Fitness Function (ADR-FITNESS-001). Replace hardcoded 7-component weighted sum with F(S) = weighted mean of BoundaryRegistry alignment scores. Dissolves structural ceiling at 0.62. Makes F(S) substrate-independent (C8). Fixes hypothesis ledger calibration. DEPENDS-ON: PERF-ZERO-CACHE, PERF-ZERO-WRITER (need sub-1s iteration for rapid development). BLOCKS: C8-CLEANUP, EXTERNAL-VALIDATION." :op :assert}
+   {:e #blake3 "2dae075bd415ca362b2cb7f735ac7989086a734c644b2abd491357289b59f2db" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "2dae075bd415ca362b2cb7f735ac7989086a734c644b2abd491357289b59f2db" :a :task/title-l1 :v "EPIC: FITNESS-REDESIGN — Policy-Driven Fitness Function (ADR-FITNESS-001)" :op :assert}
+   {:e #blake3 "2dae075bd415ca362b2cb7f735ac7989086a734c644b2abd491357289b59f2db" :a :task/type :v :task.type/epic :op :assert}
+ ]}

@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774560361/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C9-4: Contradiction detection across observations — surface agent disagreements as Aleatory divergence signals"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0534187e3fa05684d28fdc6aaa6e8dd69f2501406e3a5cb08155544e7562124f" :a :db/ident :v :task/t-b569197c :op :assert}
+   {:e #blake3 "0534187e3fa05684d28fdc6aaa6e8dd69f2501406e3a5cb08155544e7562124f" :a :task/created-at :v 1774560360 :op :assert}
+   {:e #blake3 "0534187e3fa05684d28fdc6aaa6e8dd69f2501406e3a5cb08155544e7562124f" :a :task/description :v "CONTEXT: Independent audit agents may disagree. FULL_AUDIT rated PROJECT_ASSESSMENT's C8 assessment as 'too generous' (it said 'MAINTAINED with minor tension' while 3 other audits found systemic violations). The store has no mechanism to detect when observations contradict each other. RATIONALE: The coherence engine (coherence.rs) already implements Tier 1 (exact value conflicts) and Tier 2 (logical contradictions) for spec elements. Applying the same pattern to observations surfaces Aleatory divergence (agent vs agent from the reconciliation taxonomy). Two agents contradicting each other is a high-value signal requiring deliberation. APPROACH: (1) After clustering (C9-1), within each cluster check for: severity disagreements (one says Critical, another says Low), soundness disagreements (one says SOUND, another says UNSOUND), recommendation disagreements (conflicting solutions). (2) Use keyword matching on severity terms and soundness terms within cluster member observations. (3) Flag contradictions as Aleatory divergence via signal.rs SignalType::Conflict. (4) Create a :concept/has-contradiction (Boolean, One) datom on the cluster entity. (5) In seed output (C9-3), include 'CONTRADICTION: agents disagree on X — deliberation needed' section. ACCEPTANCE: (A) C8 compliance disagreement between PROJECT_ASSESSMENT and other 3 audits is detected and flagged. (B) Contradictions surface in seed output with both positions stated. (C) No false positives on clearly agreeing observations. CONSIDERATIONS: Severity keyword matching is coarse. An observation saying 'severity is not Critical' would false-positive match 'Critical'. Use sentence-level context: only match severity terms that are clearly self-attributed, not negated. DEPENDS-ON: C9-1 (t-6090a2ed). FILE: crates/braid-kernel/src/concept.rs, signal.rs." :op :assert}
+   {:e #blake3 "0534187e3fa05684d28fdc6aaa6e8dd69f2501406e3a5cb08155544e7562124f" :a :task/id :v "t-b569197c" :op :assert}
+   {:e #blake3 "0534187e3fa05684d28fdc6aaa6e8dd69f2501406e3a5cb08155544e7562124f" :a :task/labels :v :label/C9 :op :assert}
+   {:e #blake3 "0534187e3fa05684d28fdc6aaa6e8dd69f2501406e3a5cb08155544e7562124f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "0534187e3fa05684d28fdc6aaa6e8dd69f2501406e3a5cb08155544e7562124f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0534187e3fa05684d28fdc6aaa6e8dd69f2501406e3a5cb08155544e7562124f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0534187e3fa05684d28fdc6aaa6e8dd69f2501406e3a5cb08155544e7562124f" :a :task/title :v "C9-4: Contradiction detection across observations — surface agent disagreements as Aleatory divergence signals" :op :assert}
+   {:e #blake3 "0534187e3fa05684d28fdc6aaa6e8dd69f2501406e3a5cb08155544e7562124f" :a :task/title-l0 :v "C9-4" :op :assert}
+   {:e #blake3 "0534187e3fa05684d28fdc6aaa6e8dd69f2501406e3a5cb08155544e7562124f" :a :task/title-l1 :v "C9-4: Contradiction detection across observations — surface agent disagreem..." :op :assert}
+   {:e #blake3 "0534187e3fa05684d28fdc6aaa6e8dd69f2501406e3a5cb08155544e7562124f" :a :task/traces-to :v #blake3 "2d17226e391e7dda3608ef50a15d828162ba5700ee247cb8cdbe059073736a1a" :op :assert}
+   {:e #blake3 "0534187e3fa05684d28fdc6aaa6e8dd69f2501406e3a5cb08155544e7562124f" :a :task/traces-to :v #blake3 "fd9e87bc8d2ed78a031457ba495af201833052c254c01ef0d6f063762cabd590" :op :assert}
+   {:e #blake3 "0534187e3fa05684d28fdc6aaa6e8dd69f2501406e3a5cb08155544e7562124f" :a :task/type :v :task.type/task :op :assert}
+ ]}

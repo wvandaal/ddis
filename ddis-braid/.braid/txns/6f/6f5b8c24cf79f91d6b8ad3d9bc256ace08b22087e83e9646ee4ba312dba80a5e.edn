@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774562331/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-STORE-022 \"Single-Writer Cache Safety\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "28a99509c697f3190b42278c19a0631519d550af9d9e7e99a8d75c3bdff3af46" :a :db/doc :v "A dirty LiveStore flushes store.bin when has_new_external_txns() returns true, overwriting another instance's newer state" :op :assert}
+   {:e #blake3 "42c7fa621458c012985b8f65510d1da3d4ffd225c76b7b6cdf335e37083141e2" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "42c7fa621458c012985b8f65510d1da3d4ffd225c76b7b6cdf335e37083141e2" :a :comonad/falsification :v #blake3 "28a99509c697f3190b42278c19a0631519d550af9d9e7e99a8d75c3bdff3af46" :op :assert}
+   {:e #blake3 "42c7fa621458c012985b8f65510d1da3d4ffd225c76b7b6cdf335e37083141e2" :a :db/doc :v "Single-Writer Cache Safety" :op :assert}
+   {:e #blake3 "42c7fa621458c012985b8f65510d1da3d4ffd225c76b7b6cdf335e37083141e2" :a :db/ident :v :spec/inv-store-022 :op :assert}
+   {:e #blake3 "42c7fa621458c012985b8f65510d1da3d4ffd225c76b7b6cdf335e37083141e2" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "42c7fa621458c012985b8f65510d1da3d4ffd225c76b7b6cdf335e37083141e2" :a :spec/falsification :v "A dirty LiveStore flushes store.bin when has_new_external_txns() returns true, overwriting another instance's newer state" :op :assert}
+   {:e #blake3 "42c7fa621458c012985b8f65510d1da3d4ffd225c76b7b6cdf335e37083141e2" :a :spec/id :v "INV-STORE-022" :op :assert}
+   {:e #blake3 "42c7fa621458c012985b8f65510d1da3d4ffd225c76b7b6cdf335e37083141e2" :a :spec/namespace :v :spec.ns/STORE :op :assert}
+   {:e #blake3 "42c7fa621458c012985b8f65510d1da3d4ffd225c76b7b6cdf335e37083141e2" :a :spec/statement :v "When multiple LiveStore instances coexist in the same process, only the instance that performed the most recent write may flush store.bin. A LiveStore that detects external transactions since its open must skip the flush to prevent stale-overwrite." :op :assert}
+   {:e #blake3 "9292fd89bf0d20767d02af52a97e6be9427ac7cb630cc2dc1fb43e3751312204" :a :db/ident :v :task/t-2aee8163 :op :assert}
+   {:e #blake3 "9292fd89bf0d20767d02af52a97e6be9427ac7cb630cc2dc1fb43e3751312204" :a :task/created-at :v 1774562330 :op :assert}
+   {:e #blake3 "9292fd89bf0d20767d02af52a97e6be9427ac7cb630cc2dc1fb43e3751312204" :a :task/id :v "t-2aee8163" :op :assert}
+   {:e #blake3 "9292fd89bf0d20767d02af52a97e6be9427ac7cb630cc2dc1fb43e3751312204" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "9292fd89bf0d20767d02af52a97e6be9427ac7cb630cc2dc1fb43e3751312204" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9292fd89bf0d20767d02af52a97e6be9427ac7cb630cc2dc1fb43e3751312204" :a :task/title :v "Implement INV-STORE-022: Single-Writer Cache Safety" :op :assert}
+   {:e #blake3 "9292fd89bf0d20767d02af52a97e6be9427ac7cb630cc2dc1fb43e3751312204" :a :task/traces-to :v #blake3 "42c7fa621458c012985b8f65510d1da3d4ffd225c76b7b6cdf335e37083141e2" :op :assert}
+   {:e #blake3 "9292fd89bf0d20767d02af52a97e6be9427ac7cb630cc2dc1fb43e3751312204" :a :task/type :v :task.type/task :op :assert}
+ ]}

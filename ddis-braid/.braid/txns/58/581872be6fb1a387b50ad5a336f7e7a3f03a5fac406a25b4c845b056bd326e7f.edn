@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774564060/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIT-TEST: Verification suite for policy-driven F(S). UNIT TESTS: (1) DDIS policy produces F(S) within 0.05 of current formula on identical store (backward compat). (2) Empty policy returns F(S)=0.0. (3) Single-boundary policy produces that boundary's alignment score. (4) Adding a boundary changes F(S) proportionally to its weight. (5) MaterializedViews incremental == batch for policy-driven F(S) (SOUND-ISO). INTEGRATION: (6) Verification sprint simulation: close 50 tasks, add 50 witnesses, measure F(S) delta (must be > +0.05 if ceiling dissolved). (7) Hypothesis ledger: record 10 predictions, compare to actuals, mean error < 0.30. TRACES: ADR-FITNESS-001, SOUND-ISO."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ba1ca08b65d9fadfe342255ede767dba90973d06a996974a73c02ea5114ce9ec" :a :db/ident :v :task/t-5bfc6cd5 :op :assert}
+   {:e #blake3 "ba1ca08b65d9fadfe342255ede767dba90973d06a996974a73c02ea5114ce9ec" :a :task/created-at :v 1774564059 :op :assert}
+   {:e #blake3 "ba1ca08b65d9fadfe342255ede767dba90973d06a996974a73c02ea5114ce9ec" :a :task/id :v "t-5bfc6cd5" :op :assert}
+   {:e #blake3 "ba1ca08b65d9fadfe342255ede767dba90973d06a996974a73c02ea5114ce9ec" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ba1ca08b65d9fadfe342255ede767dba90973d06a996974a73c02ea5114ce9ec" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ba1ca08b65d9fadfe342255ede767dba90973d06a996974a73c02ea5114ce9ec" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ba1ca08b65d9fadfe342255ede767dba90973d06a996974a73c02ea5114ce9ec" :a :task/title :v "FIT-TEST: Verification suite for policy-driven F(S). UNIT TESTS: (1) DDIS policy produces F(S) within 0.05 of current formula on identical store (backward compat). (2) Empty policy returns F(S)=0.0. (3) Single-boundary policy produces that boundary's alignment score. (4) Adding a boundary changes F(S) proportionally to its weight. (5) MaterializedViews incremental == batch for policy-driven F(S) (SOUND-ISO). INTEGRATION: (6) Verification sprint simulation: close 50 tasks, add 50 witnesses, measure F(S) delta (must be > +0.05 if ceiling dissolved). (7) Hypothesis ledger: record 10 predictions, compare to actuals, mean error < 0.30. TRACES: ADR-FITNESS-001, SOUND-ISO." :op :assert}
+   {:e #blake3 "ba1ca08b65d9fadfe342255ede767dba90973d06a996974a73c02ea5114ce9ec" :a :task/title-l0 :v "FIT-TEST" :op :assert}
+   {:e #blake3 "ba1ca08b65d9fadfe342255ede767dba90973d06a996974a73c02ea5114ce9ec" :a :task/title-l1 :v "FIT-TEST: Verification suite for policy-driven F(S)" :op :assert}
+   {:e #blake3 "ba1ca08b65d9fadfe342255ede767dba90973d06a996974a73c02ea5114ce9ec" :a :task/type :v :task.type/task :op :assert}
+ ]}

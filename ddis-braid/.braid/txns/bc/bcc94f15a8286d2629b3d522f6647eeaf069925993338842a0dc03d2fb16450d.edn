@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774560362/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :db/ident :v :recon/trace-9c2d78f5a323b7e8 :op :assert}
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :recon/trace-neighborhood :v "DELIBERATION" :op :assert}
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.bilateral.inv-signal-001" :op :assert}
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.deliberation.inv-deliberation-001" :op :assert}
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.guidance.inv-signal-001" :op :assert}
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.methodology.inv-signal-001" :op :assert}
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-deliberation-001" :op :assert}
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.stage.inv-deliberation-001" :op :assert}
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.wave_gates.inv-deliberation-001" :op :assert}
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :recon/trace-neighbors :v ":impl/braid.src.main.inv-signal-001" :op :assert}
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :recon/trace-neighbors :v ":task/t-74d6abc0" :op :assert}
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :recon/trace-neighbors :v ":task/t-9cb083b5" :op :assert}
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :recon/trace-refs :v "INV-DELIBERATION-001" :op :assert}
+   {:e #blake3 "413dc56c0e6bbd310cb5e269e3a576a43724c309639d53b364f2675467002a37" :a :recon/trace-refs :v "INV-SIGNAL-001" :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774563896/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SLIM-2: Implement SlimCache struct and write_slim_cache/read_slim_cache in layout.rs. SlimCache contains (datoms, frontier, schema, clock, views) only — no indexes. Serialized via bincode, compressed via zstd level 3. Atomic write via tmp+rename. meta.json fingerprint unchanged. Backward compatible: detect old format by checking for zstd magic number (0xFD2FB528). ACCEPTANCE: (A) write_slim_cache output < 25MB for 140K datom store. (B) read_slim_cache + from_primary produces valid Store. (C) Old format gracefully falls back to full deserialization. TRACES: ADR-CACHE-001, INV-CACHE-003. FILE: crates/braid/src/layout.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :db/ident :v :task/t-8970c83b :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/acceptance :v "(A) write_slim_cache output < 25MB for 140K datom store. (B) read_slim_cache + from_primary produces valid Store. (C) Old format gracefully falls back to full deserialization. TRACES: ADR-CACHE-001, INV-CACHE-003." :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/body :v "ACCEPTANCE: (A) write_slim_cache output < 25MB for 140K datom store. (B) read_slim_cache + from_primary produces valid Store. (C) Old format gracefully falls back to full deserialization. TRACES: ADR-CACHE-001, INV-CACHE-003. FILE: crates/braid/src/layout.rs" :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/created-at :v 1774563895 :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/files :v "crates/braid/src/layout.rs" :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/id :v "t-8970c83b" :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/title :v "SLIM-2: Implement SlimCache struct and write_slim_cache/read_slim_cache in layout.rs. SlimCache contains (datoms, frontier, schema, clock, views) only — no indexes. Serialized via bincode, compressed via zstd level 3. Atomic write via tmp+rename. meta.json fingerprint unchanged. Backward compatible: detect old format by checking for zstd magic number (0xFD2FB528)" :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/title-l0 :v "SLIM-2" :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/title-l1 :v "SLIM-2: Implement SlimCache struct and write_slim_cache/read_slim_cache in la..." :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/type :v :task.type/task :op :assert}
+ ]}

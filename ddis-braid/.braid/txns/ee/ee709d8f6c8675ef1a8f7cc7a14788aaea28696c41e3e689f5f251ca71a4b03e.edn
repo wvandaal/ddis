@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774563984/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WRITER-2: Wire pre_opened to task command (create/close/update/set). Add pre_opened parameter to task module entry points. Route through commands::run dispatch. ACCEPTANCE: (A) task create writes through main's LiveStore. (B) Task immediately visible on next search. (C) No stale-overwrite on task close. TRACES: INV-CACHE-002, INV-STORE-022. FILE: crates/braid/src/commands/task.rs, crates/braid/src/commands/mod.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "324189d17e11ca138aeacd886f94a8b192737e18a95e4400a12b313a5fe0ad08" :a :db/ident :v :task/t-ef33a18a :op :assert}
+   {:e #blake3 "324189d17e11ca138aeacd886f94a8b192737e18a95e4400a12b313a5fe0ad08" :a :task/acceptance :v "(A) task create writes through main's LiveStore. (B) Task immediately visible on next search. (C) No stale-overwrite on task close. TRACES: INV-CACHE-002, INV-STORE-022." :op :assert}
+   {:e #blake3 "324189d17e11ca138aeacd886f94a8b192737e18a95e4400a12b313a5fe0ad08" :a :task/body :v "ACCEPTANCE: (A) task create writes through main's LiveStore. (B) Task immediately visible on next search. (C) No stale-overwrite on task close. TRACES: INV-CACHE-002, INV-STORE-022. FILE: crates/braid/src/commands/task.rs, crates/braid/src/commands/mod.rs" :op :assert}
+   {:e #blake3 "324189d17e11ca138aeacd886f94a8b192737e18a95e4400a12b313a5fe0ad08" :a :task/created-at :v 1774563983 :op :assert}
+   {:e #blake3 "324189d17e11ca138aeacd886f94a8b192737e18a95e4400a12b313a5fe0ad08" :a :task/files :v "crates/braid/src/commands/mod.rs" :op :assert}
+   {:e #blake3 "324189d17e11ca138aeacd886f94a8b192737e18a95e4400a12b313a5fe0ad08" :a :task/files :v "crates/braid/src/commands/task.rs" :op :assert}
+   {:e #blake3 "324189d17e11ca138aeacd886f94a8b192737e18a95e4400a12b313a5fe0ad08" :a :task/id :v "t-ef33a18a" :op :assert}
+   {:e #blake3 "324189d17e11ca138aeacd886f94a8b192737e18a95e4400a12b313a5fe0ad08" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "324189d17e11ca138aeacd886f94a8b192737e18a95e4400a12b313a5fe0ad08" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "324189d17e11ca138aeacd886f94a8b192737e18a95e4400a12b313a5fe0ad08" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "324189d17e11ca138aeacd886f94a8b192737e18a95e4400a12b313a5fe0ad08" :a :task/title :v "WRITER-2: Wire pre_opened to task command (create/close/update/set). Add pre_opened parameter to task module entry points. Route through commands::run dispatch" :op :assert}
+   {:e #blake3 "324189d17e11ca138aeacd886f94a8b192737e18a95e4400a12b313a5fe0ad08" :a :task/title-l0 :v "WRITER-2" :op :assert}
+   {:e #blake3 "324189d17e11ca138aeacd886f94a8b192737e18a95e4400a12b313a5fe0ad08" :a :task/title-l1 :v "WRITER-2: Wire pre_opened to task command (create/close/update/set)" :op :assert}
+   {:e #blake3 "324189d17e11ca138aeacd886f94a8b192737e18a95e4400a12b313a5fe0ad08" :a :task/type :v :task.type/task :op :assert}
+ ]}

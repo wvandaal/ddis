@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774563854/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ceb5b13b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "00d336e5facca4a08033a88ce4fb0f64cb031dddd256c717e4515103ccfe84b8" :a :task/close-reason :v "Superseded by ADR-CACHE-001 slim cache. Approach refined: serialize primary only with zstd, not eliminate cache entirely." :op :assert}
+   {:e #blake3 "00d336e5facca4a08033a88ce4fb0f64cb031dddd256c717e4515103ccfe84b8" :a :task/closed-at :v 1774563853 :op :assert}
+   {:e #blake3 "00d336e5facca4a08033a88ce4fb0f64cb031dddd256c717e4515103ccfe84b8" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "00d336e5facca4a08033a88ce4fb0f64cb031dddd256c717e4515103ccfe84b8" :a :task/status :v :task.status/closed :op :assert}
+ ]}

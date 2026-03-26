@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774563797/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CACHE-005 \"Cache Load Latency Bound\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "17eb26489ad25f74c73338a967fc0ee2cf5dc7fbbb92cb8b8fa6560bfb043291" :a :db/ident :v :task/t-84ffe650 :op :assert}
+   {:e #blake3 "17eb26489ad25f74c73338a967fc0ee2cf5dc7fbbb92cb8b8fa6560bfb043291" :a :task/created-at :v 1774563796 :op :assert}
+   {:e #blake3 "17eb26489ad25f74c73338a967fc0ee2cf5dc7fbbb92cb8b8fa6560bfb043291" :a :task/id :v "t-84ffe650" :op :assert}
+   {:e #blake3 "17eb26489ad25f74c73338a967fc0ee2cf5dc7fbbb92cb8b8fa6560bfb043291" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "17eb26489ad25f74c73338a967fc0ee2cf5dc7fbbb92cb8b8fa6560bfb043291" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "17eb26489ad25f74c73338a967fc0ee2cf5dc7fbbb92cb8b8fa6560bfb043291" :a :task/title :v "Implement INV-CACHE-005: Cache Load Latency Bound" :op :assert}
+   {:e #blake3 "17eb26489ad25f74c73338a967fc0ee2cf5dc7fbbb92cb8b8fa6560bfb043291" :a :task/traces-to :v #blake3 "8c22c1af173074d4e512551c20477ff1cf37870cbaaaaab1fd52061b27cd80dc" :op :assert}
+   {:e #blake3 "17eb26489ad25f74c73338a967fc0ee2cf5dc7fbbb92cb8b8fa6560bfb043291" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "53780dfb95e0f80298c2e884b1c6f9655bced7f2c123ef200c72d1f886cd18c4" :a :db/doc :v "LiveStore::open exceeding 500ms on a store with <= 500K datoms when cache is fresh" :op :assert}
+   {:e #blake3 "8c22c1af173074d4e512551c20477ff1cf37870cbaaaaab1fd52061b27cd80dc" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "8c22c1af173074d4e512551c20477ff1cf37870cbaaaaab1fd52061b27cd80dc" :a :comonad/falsification :v #blake3 "53780dfb95e0f80298c2e884b1c6f9655bced7f2c123ef200c72d1f886cd18c4" :op :assert}
+   {:e #blake3 "8c22c1af173074d4e512551c20477ff1cf37870cbaaaaab1fd52061b27cd80dc" :a :db/doc :v "Cache Load Latency Bound" :op :assert}
+   {:e #blake3 "8c22c1af173074d4e512551c20477ff1cf37870cbaaaaab1fd52061b27cd80dc" :a :db/ident :v :spec/inv-cache-005 :op :assert}
+   {:e #blake3 "8c22c1af173074d4e512551c20477ff1cf37870cbaaaaab1fd52061b27cd80dc" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "8c22c1af173074d4e512551c20477ff1cf37870cbaaaaab1fd52061b27cd80dc" :a :spec/falsification :v "LiveStore::open exceeding 500ms on a store with <= 500K datoms when cache is fresh" :op :assert}
+   {:e #blake3 "8c22c1af173074d4e512551c20477ff1cf37870cbaaaaab1fd52061b27cd80dc" :a :spec/id :v "INV-CACHE-005" :op :assert}
+   {:e #blake3 "8c22c1af173074d4e512551c20477ff1cf37870cbaaaaab1fd52061b27cd80dc" :a :spec/namespace :v :spec.ns/CACHE :op :assert}
+   {:e #blake3 "8c22c1af173074d4e512551c20477ff1cf37870cbaaaaab1fd52061b27cd80dc" :a :spec/statement :v "For all stores with datoms count <= 500K: wall_clock(LiveStore::open(path)) < 500ms for cache-hit path (read compressed primary + rebuild indexes)" :op :assert}
+ ]}

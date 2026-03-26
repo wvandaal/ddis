@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774563786/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CACHE-001 \"Primary Sufficiency\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1e2fdf354e05e9a07d30d8f8198ea24bde1dce517a1b74c6f46e10349a6cb322" :a :db/ident :v :task/t-d0b042d7 :op :assert}
+   {:e #blake3 "1e2fdf354e05e9a07d30d8f8198ea24bde1dce517a1b74c6f46e10349a6cb322" :a :task/created-at :v 1774563785 :op :assert}
+   {:e #blake3 "1e2fdf354e05e9a07d30d8f8198ea24bde1dce517a1b74c6f46e10349a6cb322" :a :task/id :v "t-d0b042d7" :op :assert}
+   {:e #blake3 "1e2fdf354e05e9a07d30d8f8198ea24bde1dce517a1b74c6f46e10349a6cb322" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "1e2fdf354e05e9a07d30d8f8198ea24bde1dce517a1b74c6f46e10349a6cb322" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1e2fdf354e05e9a07d30d8f8198ea24bde1dce517a1b74c6f46e10349a6cb322" :a :task/title :v "Implement INV-CACHE-001: Primary Sufficiency" :op :assert}
+   {:e #blake3 "1e2fdf354e05e9a07d30d8f8198ea24bde1dce517a1b74c6f46e10349a6cb322" :a :task/traces-to :v #blake3 "bd1047180517c4fcd940da1608187222a2bec1a16d130c8545b4b7e59b7b9061" :op :assert}
+   {:e #blake3 "1e2fdf354e05e9a07d30d8f8198ea24bde1dce517a1b74c6f46e10349a6cb322" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "31849c9579c345a54d1a987a97b2ccc3aa1080aa338d53fec9f867530b520b34" :a :db/doc :v "Any store where deserialize(primary) + rebuild_indexes differs from the original store in any index entry" :op :assert}
+   {:e #blake3 "bd1047180517c4fcd940da1608187222a2bec1a16d130c8545b4b7e59b7b9061" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "bd1047180517c4fcd940da1608187222a2bec1a16d130c8545b4b7e59b7b9061" :a :comonad/falsification :v #blake3 "31849c9579c345a54d1a987a97b2ccc3aa1080aa338d53fec9f867530b520b34" :op :assert}
+   {:e #blake3 "bd1047180517c4fcd940da1608187222a2bec1a16d130c8545b4b7e59b7b9061" :a :db/doc :v "Primary Sufficiency" :op :assert}
+   {:e #blake3 "bd1047180517c4fcd940da1608187222a2bec1a16d130c8545b4b7e59b7b9061" :a :db/ident :v :spec/inv-cache-001 :op :assert}
+   {:e #blake3 "bd1047180517c4fcd940da1608187222a2bec1a16d130c8545b4b7e59b7b9061" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "bd1047180517c4fcd940da1608187222a2bec1a16d130c8545b4b7e59b7b9061" :a :spec/falsification :v "Any store where deserialize(primary) + rebuild_indexes differs from the original store in any index entry" :op :assert}
+   {:e #blake3 "bd1047180517c4fcd940da1608187222a2bec1a16d130c8545b4b7e59b7b9061" :a :spec/id :v "INV-CACHE-001" :op :assert}
+   {:e #blake3 "bd1047180517c4fcd940da1608187222a2bec1a16d130c8545b4b7e59b7b9061" :a :spec/namespace :v :spec.ns/CACHE :op :assert}
+   {:e #blake3 "bd1047180517c4fcd940da1608187222a2bec1a16d130c8545b4b7e59b7b9061" :a :spec/statement :v "For all stores S: from_primary(serialize(primary(S))) = S, where primary(S) = (datoms, frontier, schema, clock, views). Indexes are derived via the from_datoms free functor and need not be serialized." :op :assert}
+ ]}

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774564035/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIT-1: Implement policy-driven F(S) from BoundaryRegistry. compute_fitness_from_policy already computes per-boundary alignment scores. Change F(S) to be the weighted mean of these scores with weights from policy datoms. Remove the hardcoded V/C/D/H/K/I/U components. The DDIS policy manifest defines boundaries that recover the current 7-component formula as a special case. ACCEPTANCE: (A) F(S) computed entirely from BoundaryRegistry. (B) No hardcoded component weights in kernel. (C) DDIS policy produces equivalent F(S) to current formula on identical store. (D) Empty policy produces F(S)=0.0. TRACES: ADR-FITNESS-001, C8, INV-BILATERAL-001. FILE: crates/braid-kernel/src/bilateral.rs, crates/braid-kernel/src/policy.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :db/ident :v :task/t-ddbb79b2 :op :assert}
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :task/acceptance :v "(A) F(S) computed entirely from BoundaryRegistry. (B) No hardcoded component weights in kernel. (C) DDIS policy produces equivalent F(S) to current formula on identical store. (D) Empty policy produces F(S)=0.0. TRACES: ADR-FITNESS-001, C8, INV-BILATERAL-001." :op :assert}
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :task/body :v "ACCEPTANCE: (A) F(S) computed entirely from BoundaryRegistry. (B) No hardcoded component weights in kernel. (C) DDIS policy produces equivalent F(S) to current formula on identical store. (D) Empty policy produces F(S)=0.0. TRACES: ADR-FITNESS-001, C8, INV-BILATERAL-001. FILE: crates/braid-kernel/src/bilateral.rs, crates/braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :task/created-at :v 1774564034 :op :assert}
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :task/files :v "crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :task/files :v "crates/braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :task/id :v "t-ddbb79b2" :op :assert}
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :task/title :v "FIT-1: Implement policy-driven F(S) from BoundaryRegistry. compute_fitness_from_policy already computes per-boundary alignment scores. Change F(S) to be the weighted mean of these scores with weights from policy datoms. Remove the hardcoded V/C/D/H/K/I/U components. The DDIS policy manifest defines boundaries that recover the current 7-component formula as a special case" :op :assert}
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :task/title-l0 :v "FIT-1" :op :assert}
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :task/title-l1 :v "FIT-1: Implement policy-driven F(S) from BoundaryRegistry" :op :assert}
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :task/traces-to :v #blake3 "7b9bbe4204b84aba3ff9e9571e7be271c1ce17a41c96a69e29f7e1b95bc6d937" :op :assert}
+   {:e #blake3 "8dd0faed2481ab33725da7496e8d32ab4c01549bfc2e563516dfba1edec21195" :a :task/type :v :task.type/task :op :assert}
+ ]}

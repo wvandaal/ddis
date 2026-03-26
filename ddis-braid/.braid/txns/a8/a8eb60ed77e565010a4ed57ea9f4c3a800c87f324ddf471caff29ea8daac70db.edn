@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774563923/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SLIM-TEST: Verification suite for slim cache invariants. UNIT TESTS: (1) proptest round-trip: generate random BTreeSet<Datom> (10-1000 datoms), serialize_primary -> deserialize -> from_primary, assert all 5 indexes identical to from_datoms (INV-CACHE-004). (2) proptest compression: arbitrary byte vectors through zstd round-trip (INV-CACHE-003). (3) from_primary correctness: specific edge cases — empty store, single datom, retraction-only, schema-defining datoms, Ref values for VAET. E2E TESTS: (4) braid init -> populate 1000 datoms -> restart CLI -> verify all datoms visible (INV-CACHE-001). (5) benchmark: measure load_store wall clock at 100K, 250K, 500K synthetic datoms (INV-CACHE-005). (6) backward compat: old format store.bin still loads correctly. FAILURE DIAGNOSTICS: Each test logs datom count, cache size bytes, load time ms, index entry counts for each of 5 indexes. DEPENDS-ON: SLIM-1, SLIM-2, SLIM-3. TRACES: INV-CACHE-001/003/004/005."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a390af416c7d83521ebead9a36b88fa7c3d361423cb858784bf78bb7d14cc186" :a :db/ident :v :task/t-f027f9fb :op :assert}
+   {:e #blake3 "a390af416c7d83521ebead9a36b88fa7c3d361423cb858784bf78bb7d14cc186" :a :task/created-at :v 1774563922 :op :assert}
+   {:e #blake3 "a390af416c7d83521ebead9a36b88fa7c3d361423cb858784bf78bb7d14cc186" :a :task/id :v "t-f027f9fb" :op :assert}
+   {:e #blake3 "a390af416c7d83521ebead9a36b88fa7c3d361423cb858784bf78bb7d14cc186" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "a390af416c7d83521ebead9a36b88fa7c3d361423cb858784bf78bb7d14cc186" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a390af416c7d83521ebead9a36b88fa7c3d361423cb858784bf78bb7d14cc186" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a390af416c7d83521ebead9a36b88fa7c3d361423cb858784bf78bb7d14cc186" :a :task/title :v "SLIM-TEST: Verification suite for slim cache invariants. UNIT TESTS: (1) proptest round-trip: generate random BTreeSet<Datom> (10-1000 datoms), serialize_primary -> deserialize -> from_primary, assert all 5 indexes identical to from_datoms (INV-CACHE-004). (2) proptest compression: arbitrary byte vectors through zstd round-trip (INV-CACHE-003). (3) from_primary correctness: specific edge cases — empty store, single datom, retraction-only, schema-defining datoms, Ref values for VAET. E2E TESTS: (4) braid init -> populate 1000 datoms -> restart CLI -> verify all datoms visible (INV-CACHE-001). (5) benchmark: measure load_store wall clock at 100K, 250K, 500K synthetic datoms (INV-CACHE-005). (6) backward compat: old format store.bin still loads correctly. FAILURE DIAGNOSTICS: Each test logs datom count, cache size bytes, load time ms, index entry counts for each of 5 indexes. DEPENDS-ON: SLIM-1, SLIM-2, SLIM-3. TRACES: INV-CACHE-001/003/004/005." :op :assert}
+   {:e #blake3 "a390af416c7d83521ebead9a36b88fa7c3d361423cb858784bf78bb7d14cc186" :a :task/title-l0 :v "SLIM-TEST" :op :assert}
+   {:e #blake3 "a390af416c7d83521ebead9a36b88fa7c3d361423cb858784bf78bb7d14cc186" :a :task/title-l1 :v "SLIM-TEST: Verification suite for slim cache invariants" :op :assert}
+   {:e #blake3 "a390af416c7d83521ebead9a36b88fa7c3d361423cb858784bf78bb7d14cc186" :a :task/type :v :task.type/task :op :assert}
+ ]}

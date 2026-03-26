@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774564038/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIT-2: Update MaterializedViews to track per-boundary accumulators. Currently tracks 7 hardcoded F(S) components. Change to track per-boundary numerator/denominator pairs keyed by boundary entity ID. observe_datom routes each datom to the boundaries that match its pattern. ACCEPTANCE: (A) MaterializedViews.fitness() returns same value as batch compute from BoundaryRegistry. (B) Incremental == batch isomorphism holds. (C) No DDIS-specific field names in MaterializedViews. TRACES: INV-CACHE-004, ADR-FITNESS-001, SOUND-ISO. FILE: crates/braid-kernel/src/views.rs, crates/braid-kernel/src/store.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "df54eb8f9347111ad223b96661ec3001c5d1683b0d714eb251db54b435e269d9" :a :db/ident :v :task/t-85996e37 :op :assert}
+   {:e #blake3 "df54eb8f9347111ad223b96661ec3001c5d1683b0d714eb251db54b435e269d9" :a :task/acceptance :v "(A) MaterializedViews.fitness() returns same value as batch compute from BoundaryRegistry. (B) Incremental == batch isomorphism holds. (C) No DDIS-specific field names in MaterializedViews. TRACES: INV-CACHE-004, ADR-FITNESS-001, SOUND-ISO." :op :assert}
+   {:e #blake3 "df54eb8f9347111ad223b96661ec3001c5d1683b0d714eb251db54b435e269d9" :a :task/body :v "ACCEPTANCE: (A) MaterializedViews.fitness() returns same value as batch compute from BoundaryRegistry. (B) Incremental == batch isomorphism holds. (C) No DDIS-specific field names in MaterializedViews. TRACES: INV-CACHE-004, ADR-FITNESS-001, SOUND-ISO. FILE: crates/braid-kernel/src/views.rs, crates/braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "df54eb8f9347111ad223b96661ec3001c5d1683b0d714eb251db54b435e269d9" :a :task/created-at :v 1774564037 :op :assert}
+   {:e #blake3 "df54eb8f9347111ad223b96661ec3001c5d1683b0d714eb251db54b435e269d9" :a :task/files :v "crates/braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "df54eb8f9347111ad223b96661ec3001c5d1683b0d714eb251db54b435e269d9" :a :task/files :v "crates/braid-kernel/src/views.rs" :op :assert}
+   {:e #blake3 "df54eb8f9347111ad223b96661ec3001c5d1683b0d714eb251db54b435e269d9" :a :task/id :v "t-85996e37" :op :assert}
+   {:e #blake3 "df54eb8f9347111ad223b96661ec3001c5d1683b0d714eb251db54b435e269d9" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "df54eb8f9347111ad223b96661ec3001c5d1683b0d714eb251db54b435e269d9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "df54eb8f9347111ad223b96661ec3001c5d1683b0d714eb251db54b435e269d9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "df54eb8f9347111ad223b96661ec3001c5d1683b0d714eb251db54b435e269d9" :a :task/title :v "FIT-2: Update MaterializedViews to track per-boundary accumulators. Currently tracks 7 hardcoded F(S) components. Change to track per-boundary numerator/denominator pairs keyed by boundary entity ID. observe_datom routes each datom to the boundaries that match its pattern" :op :assert}
+   {:e #blake3 "df54eb8f9347111ad223b96661ec3001c5d1683b0d714eb251db54b435e269d9" :a :task/title-l0 :v "FIT-2" :op :assert}
+   {:e #blake3 "df54eb8f9347111ad223b96661ec3001c5d1683b0d714eb251db54b435e269d9" :a :task/title-l1 :v "FIT-2: Update MaterializedViews to track per-boundary accumulators" :op :assert}
+   {:e #blake3 "df54eb8f9347111ad223b96661ec3001c5d1683b0d714eb251db54b435e269d9" :a :task/type :v :task.type/task :op :assert}
+ ]}

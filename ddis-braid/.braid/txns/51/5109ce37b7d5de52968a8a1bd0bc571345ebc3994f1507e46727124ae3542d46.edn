@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774564090/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C8-1: Parameterize SpecId to accept policy-defined element types. Currently spec_id.rs:53 enforces INV/ADR/NEG only. Change: SpecId reads allowed element type prefixes from policy datoms (e.g. :policy/claim-type-prefixes). Default bootstrap includes INV/ADR/NEG for DDIS. Non-DDIS projects can add BUG/FEATURE/TEST/etc. ACCEPTANCE: (A) braid spec create BUG-REACT-001 succeeds with a React policy manifest. (B) Default DDIS policy still accepts INV/ADR/NEG. (C) No hardcoded element type strings in kernel. TRACES: C8, INV-FOUNDATION-006. FILE: crates/braid-kernel/src/spec_id.rs, crates/braid-kernel/src/policy.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :db/ident :v :task/t-7f6004fb :op :assert}
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :task/acceptance :v "(A) braid spec create BUG-REACT-001 succeeds with a React policy manifest. (B) Default DDIS policy still accepts INV/ADR/NEG. (C) No hardcoded element type strings in kernel. TRACES: C8, INV-FOUNDATION-006." :op :assert}
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :task/body :v "ACCEPTANCE: (A) braid spec create BUG-REACT-001 succeeds with a React policy manifest. (B) Default DDIS policy still accepts INV/ADR/NEG. (C) No hardcoded element type strings in kernel. TRACES: C8, INV-FOUNDATION-006. FILE: crates/braid-kernel/src/spec_id.rs, crates/braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :task/created-at :v 1774564089 :op :assert}
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :task/files :v "crates/braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :task/files :v "crates/braid-kernel/src/spec_id.rs" :op :assert}
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :task/id :v "t-7f6004fb" :op :assert}
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :task/title :v "C8-1: Parameterize SpecId to accept policy-defined element types. Currently spec_id.rs:53 enforces INV/ADR/NEG only. Change: SpecId reads allowed element type prefixes from policy datoms (e.g. :policy/claim-type-prefixes). Default bootstrap includes INV/ADR/NEG for DDIS. Non-DDIS projects can add BUG/FEATURE/TEST/etc" :op :assert}
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :task/title-l0 :v "C8-1" :op :assert}
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :task/title-l1 :v "C8-1: Parameterize SpecId to accept policy-defined element types" :op :assert}
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :task/traces-to :v #blake3 "7acde41dbb27e9f3be835c10c3a870013f0855f97c7b597475f8921cbdc6de60" :op :assert}
+   {:e #blake3 "63df46d706f1ba485b7585f628c5aa07e9c524ac6ad23ab642e75acfd3be6677" :a :task/type :v :task.type/task :op :assert}
+ ]}

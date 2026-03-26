@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774560510/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C9-1: Observation corroboration — cluster by source agent, compute convergence scores"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :db/ident :v :task/t-46a977c8 :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/created-at :v 1774560509 :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/description :v "CONTEXT: 4 agents, 226 observations, same findings appear independently. Store treats each as independent. No corroboration detection. RATIONALE: Concept engine already clusters observations. After clustering, compute corroboration_score = distinct_agent_count / total_session_agents. APPROACH: (1) After clustering, collect distinct :tx/agent values per cluster. (2) Add corroboration_score and agent_count to ConceptSummary. (3) Store as :concept/corroboration datoms. (4) Surface in braid status. ACCEPTANCE: Top cluster has corroboration >= 3/4 on audit data. ConceptSummary has corroboration_score. DEPENDS-ON: t-7716255c. FILE: crates/braid-kernel/src/concept.rs. EFFORT: 3h." :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/id :v "t-46a977c8" :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/labels :v :label/C9 :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/title :v "C9-1: Observation corroboration — cluster by source agent, compute convergence scores" :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/title-l0 :v "C9-1" :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/title-l1 :v "C9-1: Observation corroboration — cluster by source agent, compute converge..." :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/traces-to :v #blake3 "1becd9d6d843ecd8e4358ed6eb20f29ed260a22ec17f2aee0e9c40294e74cfb0" :op :assert}
+   {:e #blake3 "2e62b221f80fd43767eb7c6c878834b24222adf6f6eebe953072df4177b911f7" :a :task/type :v :task.type/task :op :assert}
+ ]}

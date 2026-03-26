@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774563750/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "ANALYSIS: Store.bin composition at 140K datoms. Primary state: datoms BTreeSet ~74MB (60%), frontier+schema+clock <1MB, MaterializedViews ~8MB (5%). Derived indexes: entity_index ~18.5MB, attribute_index ~12.5MB, vaet_index ~2.5MB, avet_index ~10MB, live_view ~2.5MB. Total derived: ~46MB (37%). With zstd level 3: primary ~74MB compresses to ~15-20MB (structured strings compress well). Decompression at ~1GB/s: 15-20ms. Total estimated load path: read 18MB (50ms) + decompress (15ms) + bincode deserialize (300ms) + index rebuild (120ms) = ~485ms. Traces: INV-PERF-001, INV-CACHE-005."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "665aad6ace8bcb0d3eab1976c942416a090afbfd4220f808e331928738a14dd5" :a :db/doc :v "ANALYSIS: Store.bin composition at 140K datoms. Primary state: datoms BTreeSet ~74MB (60%), frontier+schema+clock <1MB, MaterializedViews ~8MB (5%). Derived indexes: entity_index ~18.5MB, attribute_index ~12.5MB, vaet_index ~2.5MB, avet_index ~10MB, live_view ~2.5MB. Total derived: ~46MB (37%). With zstd level 3: primary ~74MB compresses to ~15-20MB (structured strings compress well). Decompression at ~1GB/s: 15-20ms. Total estimated load path: read 18MB (50ms) + decompress (15ms) + bincode deserialize (300ms) + index rebuild (120ms) = ~485ms. Traces: INV-PERF-001, INV-CACHE-005." :op :assert}
+   {:e #blake3 "665aad6ace8bcb0d3eab1976c942416a090afbfd4220f808e331928738a14dd5" :a :db/ident :v :observation/analysis-storebin-composition-at-140k-datoms-primary-stat :op :assert}
+   {:e #blake3 "665aad6ace8bcb0d3eab1976c942416a090afbfd4220f808e331928738a14dd5" :a :exploration/body :v "ANALYSIS: Store.bin composition at 140K datoms. Primary state: datoms BTreeSet ~74MB (60%), frontier+schema+clock <1MB, MaterializedViews ~8MB (5%). Derived indexes: entity_index ~18.5MB, attribute_index ~12.5MB, vaet_index ~2.5MB, avet_index ~10MB, live_view ~2.5MB. Total derived: ~46MB (37%). With zstd level 3: primary ~74MB compresses to ~15-20MB (structured strings compress well). Decompression at ~1GB/s: 15-20ms. Total estimated load path: read 18MB (50ms) + decompress (15ms) + bincode deserialize (300ms) + index rebuild (120ms) = ~485ms. Traces: INV-PERF-001, INV-CACHE-005." :op :assert}
+   {:e #blake3 "665aad6ace8bcb0d3eab1976c942416a090afbfd4220f808e331928738a14dd5" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "665aad6ace8bcb0d3eab1976c942416a090afbfd4220f808e331928738a14dd5" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "665aad6ace8bcb0d3eab1976c942416a090afbfd4220f808e331928738a14dd5" :a :exploration/content-hash :v #bytes "6e79b5c44e36602f127f367cbe11ad7dee23a02b0bad9210f862b4dcbac13894" :op :assert}
+   {:e #blake3 "665aad6ace8bcb0d3eab1976c942416a090afbfd4220f808e331928738a14dd5" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "665aad6ace8bcb0d3eab1976c942416a090afbfd4220f808e331928738a14dd5" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "665aad6ace8bcb0d3eab1976c942416a090afbfd4220f808e331928738a14dd5" :a :exploration/source-session :v #blake3 "16cdc88940d832d2814577cb90f76e2fc85dece9c38c4bd489ccfaf658fb43e1" :op :assert}
+ ]}

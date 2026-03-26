@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774564097/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C8-3: Replace :spec/ and :spec/falsification hardcoding in methodology.rs with policy-driven queries. Lines 389, 444 scan for :spec/ entities. Line 908 checks :spec/falsification. Change: query policy for claim patterns and formalization attributes. ACCEPTANCE: (A) methodology_gaps detects gaps in non-DDIS projects using policy patterns. (B) No :spec/ literal in methodology.rs production code. (C) Telemetry still counts spec engagement for DDIS projects. TRACES: C8, INV-FOUNDATION-006. FILE: crates/braid-kernel/src/methodology.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dc22b4bac00c47333cefca1ce53f28481c9087ab1fd609dc8603c856b8faba11" :a :db/ident :v :task/t-11cd0f7d :op :assert}
+   {:e #blake3 "dc22b4bac00c47333cefca1ce53f28481c9087ab1fd609dc8603c856b8faba11" :a :task/acceptance :v "(A) methodology_gaps detects gaps in non-DDIS projects using policy patterns. (B) No :spec/ literal in methodology.rs production code. (C) Telemetry still counts spec engagement for DDIS projects. TRACES: C8, INV-FOUNDATION-006." :op :assert}
+   {:e #blake3 "dc22b4bac00c47333cefca1ce53f28481c9087ab1fd609dc8603c856b8faba11" :a :task/body :v "ACCEPTANCE: (A) methodology_gaps detects gaps in non-DDIS projects using policy patterns. (B) No :spec/ literal in methodology.rs production code. (C) Telemetry still counts spec engagement for DDIS projects. TRACES: C8, INV-FOUNDATION-006. FILE: crates/braid-kernel/src/methodology.rs" :op :assert}
+   {:e #blake3 "dc22b4bac00c47333cefca1ce53f28481c9087ab1fd609dc8603c856b8faba11" :a :task/created-at :v 1774564096 :op :assert}
+   {:e #blake3 "dc22b4bac00c47333cefca1ce53f28481c9087ab1fd609dc8603c856b8faba11" :a :task/files :v "crates/braid-kernel/src/methodology.rs" :op :assert}
+   {:e #blake3 "dc22b4bac00c47333cefca1ce53f28481c9087ab1fd609dc8603c856b8faba11" :a :task/id :v "t-11cd0f7d" :op :assert}
+   {:e #blake3 "dc22b4bac00c47333cefca1ce53f28481c9087ab1fd609dc8603c856b8faba11" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "dc22b4bac00c47333cefca1ce53f28481c9087ab1fd609dc8603c856b8faba11" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "dc22b4bac00c47333cefca1ce53f28481c9087ab1fd609dc8603c856b8faba11" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "dc22b4bac00c47333cefca1ce53f28481c9087ab1fd609dc8603c856b8faba11" :a :task/title :v "C8-3: Replace :spec/ and :spec/falsification hardcoding in methodology.rs with policy-driven queries. Lines 389, 444 scan for :spec/ entities. Line 908 checks :spec/falsification. Change: query policy for claim patterns and formalization attributes" :op :assert}
+   {:e #blake3 "dc22b4bac00c47333cefca1ce53f28481c9087ab1fd609dc8603c856b8faba11" :a :task/title-l0 :v "C8-3" :op :assert}
+   {:e #blake3 "dc22b4bac00c47333cefca1ce53f28481c9087ab1fd609dc8603c856b8faba11" :a :task/title-l1 :v "C8-3: Replace :spec/ and :spec/falsification hardcoding in methodology.rs wit..." :op :assert}
+   {:e #blake3 "dc22b4bac00c47333cefca1ce53f28481c9087ab1fd609dc8603c856b8faba11" :a :task/traces-to :v #blake3 "7acde41dbb27e9f3be835c10c3a870013f0855f97c7b597475f8921cbdc6de60" :op :assert}
+   {:e #blake3 "dc22b4bac00c47333cefca1ce53f28481c9087ab1fd609dc8603c856b8faba11" :a :task/type :v :task.type/task :op :assert}
+ ]}

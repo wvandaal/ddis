@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774564100/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C8-4: Make task types data-driven via schema, not hardcoded enum. Currently task.rs:70-111 has TaskType enum with 7 fixed variants. Change: TaskType becomes a newtype wrapping String, validated against :schema/task-type datoms in the store. Default schema bootstraps the current 7 types. Non-DDIS projects can add custom types via transact. ACCEPTANCE: (A) braid task create with custom type succeeds if type is in schema. (B) Default schema includes task/bug/feature/epic/question/docs/test. (C) No hardcoded task type strings in kernel matching logic. TRACES: C8, C9. FILE: crates/braid-kernel/src/task.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "573430ee4294021f0dc1e2785366dbd4a90ac8a85728bf2a927843cce6c947c6" :a :db/ident :v :task/t-d379d5cc :op :assert}
+   {:e #blake3 "573430ee4294021f0dc1e2785366dbd4a90ac8a85728bf2a927843cce6c947c6" :a :task/acceptance :v "(A) braid task create with custom type succeeds if type is in schema. (B) Default schema includes task/bug/feature/epic/question/docs/test. (C) No hardcoded task type strings in kernel matching logic. TRACES: C8, C9." :op :assert}
+   {:e #blake3 "573430ee4294021f0dc1e2785366dbd4a90ac8a85728bf2a927843cce6c947c6" :a :task/body :v "ACCEPTANCE: (A) braid task create with custom type succeeds if type is in schema. (B) Default schema includes task/bug/feature/epic/question/docs/test. (C) No hardcoded task type strings in kernel matching logic. TRACES: C8, C9. FILE: crates/braid-kernel/src/task.rs" :op :assert}
+   {:e #blake3 "573430ee4294021f0dc1e2785366dbd4a90ac8a85728bf2a927843cce6c947c6" :a :task/created-at :v 1774564099 :op :assert}
+   {:e #blake3 "573430ee4294021f0dc1e2785366dbd4a90ac8a85728bf2a927843cce6c947c6" :a :task/files :v "crates/braid-kernel/src/task.rs" :op :assert}
+   {:e #blake3 "573430ee4294021f0dc1e2785366dbd4a90ac8a85728bf2a927843cce6c947c6" :a :task/id :v "t-d379d5cc" :op :assert}
+   {:e #blake3 "573430ee4294021f0dc1e2785366dbd4a90ac8a85728bf2a927843cce6c947c6" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "573430ee4294021f0dc1e2785366dbd4a90ac8a85728bf2a927843cce6c947c6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "573430ee4294021f0dc1e2785366dbd4a90ac8a85728bf2a927843cce6c947c6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "573430ee4294021f0dc1e2785366dbd4a90ac8a85728bf2a927843cce6c947c6" :a :task/title :v "C8-4: Make task types data-driven via schema, not hardcoded enum. Currently task.rs:70-111 has TaskType enum with 7 fixed variants. Change: TaskType becomes a newtype wrapping String, validated against :schema/task-type datoms in the store. Default schema bootstraps the current 7 types. Non-DDIS projects can add custom types via transact" :op :assert}
+   {:e #blake3 "573430ee4294021f0dc1e2785366dbd4a90ac8a85728bf2a927843cce6c947c6" :a :task/title-l0 :v "C8-4" :op :assert}
+   {:e #blake3 "573430ee4294021f0dc1e2785366dbd4a90ac8a85728bf2a927843cce6c947c6" :a :task/title-l1 :v "C8-4: Make task types data-driven via schema, not hardcoded enum" :op :assert}
+   {:e #blake3 "573430ee4294021f0dc1e2785366dbd4a90ac8a85728bf2a927843cce6c947c6" :a :task/type :v :task.type/task :op :assert}
+ ]}

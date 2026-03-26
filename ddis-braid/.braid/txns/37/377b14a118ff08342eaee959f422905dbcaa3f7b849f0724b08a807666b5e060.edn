@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774563832/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-CACHE-002 \"Prolly Tree Staged Migration\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0e9fcbd212f059263205b6a6ef2e19b1619872b152e85ccb524d6cdf44edc75a" :a :db/ident :v :task/t-efcad4f2 :op :assert}
+   {:e #blake3 "0e9fcbd212f059263205b6a6ef2e19b1619872b152e85ccb524d6cdf44edc75a" :a :task/created-at :v 1774563831 :op :assert}
+   {:e #blake3 "0e9fcbd212f059263205b6a6ef2e19b1619872b152e85ccb524d6cdf44edc75a" :a :task/id :v "t-efcad4f2" :op :assert}
+   {:e #blake3 "0e9fcbd212f059263205b6a6ef2e19b1619872b152e85ccb524d6cdf44edc75a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "0e9fcbd212f059263205b6a6ef2e19b1619872b152e85ccb524d6cdf44edc75a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0e9fcbd212f059263205b6a6ef2e19b1619872b152e85ccb524d6cdf44edc75a" :a :task/title :v "Implement ADR-CACHE-002: Prolly Tree Staged Migration" :op :assert}
+   {:e #blake3 "0e9fcbd212f059263205b6a6ef2e19b1619872b152e85ccb524d6cdf44edc75a" :a :task/traces-to :v #blake3 "ca531dbf1752e8fce511d96fc71acb869c746f0fb64752d91568af4f1e6cd00e" :op :assert}
+   {:e #blake3 "0e9fcbd212f059263205b6a6ef2e19b1619872b152e85ccb524d6cdf44edc75a" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "ca531dbf1752e8fce511d96fc71acb869c746f0fb64752d91568af4f1e6cd00e" :a :adr/decision :v "Current stage: BTreeMap + slim cache. Stage 2: prolly tree for primary datom set only (branch = pointer copy, diff = O(d)). Stage 3: full prolly tree block store for all persistence. Recommended crate: merkle-search-tree (domodwyer). Rejected: immediate prolly migration (current bottleneck is I/O not index type), custom implementation (unnecessary when proven crate exists)" :op :assert}
+   {:e #blake3 "ca531dbf1752e8fce511d96fc71acb869c746f0fb64752d91568af4f1e6cd00e" :a :adr/problem :v "BTreeMap indexes are not content-addressable, not history-independent, and merge is O(N) not O(d). These properties are needed at Stage 2 (branching) and Stage 3 (multi-agent sync)." :op :assert}
+   {:e #blake3 "ca531dbf1752e8fce511d96fc71acb869c746f0fb64752d91568af4f1e6cd00e" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "ca531dbf1752e8fce511d96fc71acb869c746f0fb64752d91568af4f1e6cd00e" :a :db/doc :v "Prolly Tree Staged Migration" :op :assert}
+   {:e #blake3 "ca531dbf1752e8fce511d96fc71acb869c746f0fb64752d91568af4f1e6cd00e" :a :db/ident :v :spec/adr-cache-002 :op :assert}
+   {:e #blake3 "ca531dbf1752e8fce511d96fc71acb869c746f0fb64752d91568af4f1e6cd00e" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "ca531dbf1752e8fce511d96fc71acb869c746f0fb64752d91568af4f1e6cd00e" :a :spec/id :v "ADR-CACHE-002" :op :assert}
+   {:e #blake3 "ca531dbf1752e8fce511d96fc71acb869c746f0fb64752d91568af4f1e6cd00e" :a :spec/namespace :v :spec.ns/CACHE :op :assert}
+ ]}

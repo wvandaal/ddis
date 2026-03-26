@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774563793/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CACHE-004 \"Index Rebuild Isomorphism\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "46cde47aa6f1740723ce51c3ad528333241981eaa4f4d3e51d3b4261f8439ae0" :a :db/doc :v "Any datom set where rebuilt indexes differ structurally from directly constructed indexes" :op :assert}
+   {:e #blake3 "a2806af2739173c9d123fb922cbe8d13962cb2b7583464474a820b34e891398e" :a :db/ident :v :task/t-9f0aedd9 :op :assert}
+   {:e #blake3 "a2806af2739173c9d123fb922cbe8d13962cb2b7583464474a820b34e891398e" :a :task/created-at :v 1774563792 :op :assert}
+   {:e #blake3 "a2806af2739173c9d123fb922cbe8d13962cb2b7583464474a820b34e891398e" :a :task/id :v "t-9f0aedd9" :op :assert}
+   {:e #blake3 "a2806af2739173c9d123fb922cbe8d13962cb2b7583464474a820b34e891398e" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "a2806af2739173c9d123fb922cbe8d13962cb2b7583464474a820b34e891398e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a2806af2739173c9d123fb922cbe8d13962cb2b7583464474a820b34e891398e" :a :task/title :v "Implement INV-CACHE-004: Index Rebuild Isomorphism" :op :assert}
+   {:e #blake3 "a2806af2739173c9d123fb922cbe8d13962cb2b7583464474a820b34e891398e" :a :task/traces-to :v #blake3 "f217b3518ca823e16230ebc177488a2b2ac59c1cbfc42db1ee0090c634a4ec51" :op :assert}
+   {:e #blake3 "a2806af2739173c9d123fb922cbe8d13962cb2b7583464474a820b34e891398e" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "f217b3518ca823e16230ebc177488a2b2ac59c1cbfc42db1ee0090c634a4ec51" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "f217b3518ca823e16230ebc177488a2b2ac59c1cbfc42db1ee0090c634a4ec51" :a :comonad/falsification :v #blake3 "46cde47aa6f1740723ce51c3ad528333241981eaa4f4d3e51d3b4261f8439ae0" :op :assert}
+   {:e #blake3 "f217b3518ca823e16230ebc177488a2b2ac59c1cbfc42db1ee0090c634a4ec51" :a :db/doc :v "Index Rebuild Isomorphism" :op :assert}
+   {:e #blake3 "f217b3518ca823e16230ebc177488a2b2ac59c1cbfc42db1ee0090c634a4ec51" :a :db/ident :v :spec/inv-cache-004 :op :assert}
+   {:e #blake3 "f217b3518ca823e16230ebc177488a2b2ac59c1cbfc42db1ee0090c634a4ec51" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "f217b3518ca823e16230ebc177488a2b2ac59c1cbfc42db1ee0090c634a4ec51" :a :spec/falsification :v "Any datom set where rebuilt indexes differ structurally from directly constructed indexes" :op :assert}
+   {:e #blake3 "f217b3518ca823e16230ebc177488a2b2ac59c1cbfc42db1ee0090c634a4ec51" :a :spec/id :v "INV-CACHE-004" :op :assert}
+   {:e #blake3 "f217b3518ca823e16230ebc177488a2b2ac59c1cbfc42db1ee0090c634a4ec51" :a :spec/namespace :v :spec.ns/CACHE :op :assert}
+   {:e #blake3 "f217b3518ca823e16230ebc177488a2b2ac59c1cbfc42db1ee0090c634a4ec51" :a :spec/statement :v "For all datom sets D: rebuild_indexes(deserialize_primary(serialize_primary(from_datoms(D)))) produces identical entity_index, attribute_index, vaet_index, avet_index, and live_view as direct from_datoms(D)" :op :assert}
+ ]}

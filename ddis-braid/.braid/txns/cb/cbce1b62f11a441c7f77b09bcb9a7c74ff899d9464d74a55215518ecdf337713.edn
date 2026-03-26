@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774563850/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-bbe26fe0"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/close-reason :v "Superseded by PERF-ZERO (t-dcbc1d54). Session 047 decomposed into precise task tree with formal invariants." :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/closed-at :v 1774563849 :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/status :v :task.status/closed :op :assert}
+ ]}

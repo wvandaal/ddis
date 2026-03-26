@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774562377/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VISIBILITY-TEST-2: second verification of cache fix"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aaae242c11f4d3335fa115124f37e044d7bc251eb51b3be9774a40c20bfb1126" :a :db/ident :v :task/t-43b96f49 :op :assert}
+   {:e #blake3 "aaae242c11f4d3335fa115124f37e044d7bc251eb51b3be9774a40c20bfb1126" :a :task/created-at :v 1774562376 :op :assert}
+   {:e #blake3 "aaae242c11f4d3335fa115124f37e044d7bc251eb51b3be9774a40c20bfb1126" :a :task/id :v "t-43b96f49" :op :assert}
+   {:e #blake3 "aaae242c11f4d3335fa115124f37e044d7bc251eb51b3be9774a40c20bfb1126" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "aaae242c11f4d3335fa115124f37e044d7bc251eb51b3be9774a40c20bfb1126" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "aaae242c11f4d3335fa115124f37e044d7bc251eb51b3be9774a40c20bfb1126" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "aaae242c11f4d3335fa115124f37e044d7bc251eb51b3be9774a40c20bfb1126" :a :task/title :v "VISIBILITY-TEST-2: second verification of cache fix" :op :assert}
+   {:e #blake3 "aaae242c11f4d3335fa115124f37e044d7bc251eb51b3be9774a40c20bfb1126" :a :task/title-l0 :v "VISIBILITY-TEST-2" :op :assert}
+   {:e #blake3 "aaae242c11f4d3335fa115124f37e044d7bc251eb51b3be9774a40c20bfb1126" :a :task/title-l1 :v "VISIBILITY-TEST-2: second verification of cache fix" :op :assert}
+   {:e #blake3 "aaae242c11f4d3335fa115124f37e044d7bc251eb51b3be9774a40c20bfb1126" :a :task/type :v :task.type/task :op :assert}
+ ]}

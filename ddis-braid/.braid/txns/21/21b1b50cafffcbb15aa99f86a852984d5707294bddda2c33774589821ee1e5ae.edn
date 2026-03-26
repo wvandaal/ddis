@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774563899/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SLIM-3: Wire SlimCache into load_store() path. On cache hit: read_slim_cache -> from_primary (new fast path). On cache miss: full rebuild from EDN txn files (unchanged). On write: write_slim_cache replaces write_index_cache. Incremental path: read slim cache + apply delta datoms + index_datom for each. ACCEPTANCE: (A) load_store returns correct Store for all three paths. (B) store.bin size < 25MB after write. (C) Incremental path still works (delta < 50% threshold). DEPENDS-ON: SLIM-1, SLIM-2. TRACES: INV-CACHE-001, INV-CACHE-005. FILE: crates/braid/src/layout.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0bdc2410ba59d7461c6f430499bfb792c82954679b01388cba0c8d99356e746d" :a :db/ident :v :task/t-1f8f82b7 :op :assert}
+   {:e #blake3 "0bdc2410ba59d7461c6f430499bfb792c82954679b01388cba0c8d99356e746d" :a :task/acceptance :v "(A) load_store returns correct Store for all three paths. (B) store.bin size < 25MB after write. (C) Incremental path still works (delta < 50% threshold). DEPENDS-ON: SLIM-1, SLIM-2. TRACES: INV-CACHE-001, INV-CACHE-005." :op :assert}
+   {:e #blake3 "0bdc2410ba59d7461c6f430499bfb792c82954679b01388cba0c8d99356e746d" :a :task/body :v "ACCEPTANCE: (A) load_store returns correct Store for all three paths. (B) store.bin size < 25MB after write. (C) Incremental path still works (delta < 50% threshold). DEPENDS-ON: SLIM-1, SLIM-2. TRACES: INV-CACHE-001, INV-CACHE-005. FILE: crates/braid/src/layout.rs" :op :assert}
+   {:e #blake3 "0bdc2410ba59d7461c6f430499bfb792c82954679b01388cba0c8d99356e746d" :a :task/created-at :v 1774563898 :op :assert}
+   {:e #blake3 "0bdc2410ba59d7461c6f430499bfb792c82954679b01388cba0c8d99356e746d" :a :task/files :v "crates/braid/src/layout.rs" :op :assert}
+   {:e #blake3 "0bdc2410ba59d7461c6f430499bfb792c82954679b01388cba0c8d99356e746d" :a :task/id :v "t-1f8f82b7" :op :assert}
+   {:e #blake3 "0bdc2410ba59d7461c6f430499bfb792c82954679b01388cba0c8d99356e746d" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "0bdc2410ba59d7461c6f430499bfb792c82954679b01388cba0c8d99356e746d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0bdc2410ba59d7461c6f430499bfb792c82954679b01388cba0c8d99356e746d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0bdc2410ba59d7461c6f430499bfb792c82954679b01388cba0c8d99356e746d" :a :task/title :v "SLIM-3: Wire SlimCache into load_store() path. On cache hit: read_slim_cache -> from_primary (new fast path). On cache miss: full rebuild from EDN txn files (unchanged). On write: write_slim_cache replaces write_index_cache. Incremental path: read slim cache + apply delta datoms + index_datom for each" :op :assert}
+   {:e #blake3 "0bdc2410ba59d7461c6f430499bfb792c82954679b01388cba0c8d99356e746d" :a :task/title-l0 :v "SLIM-3" :op :assert}
+   {:e #blake3 "0bdc2410ba59d7461c6f430499bfb792c82954679b01388cba0c8d99356e746d" :a :task/title-l1 :v "SLIM-3: Wire SlimCache into load_store() path" :op :assert}
+   {:e #blake3 "0bdc2410ba59d7461c6f430499bfb792c82954679b01388cba0c8d99356e746d" :a :task/type :v :task.type/task :op :assert}
+ ]}

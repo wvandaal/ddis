@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774562334/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: L1-CACHE-SAFETY: Fixed stale cache overwrite race. Session detection now restricted to pre_opened commands. Defensive flush guard added (skip if external txns detected). INV-STORE-022."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "edfd8fd05a3c1e24dbf877f46933dbb6e1966bca442c92c71b35165031444806" :a :db/ident :v :task/t-315f6b6d :op :assert}
+   {:e #blake3 "edfd8fd05a3c1e24dbf877f46933dbb6e1966bca442c92c71b35165031444806" :a :task/created-at :v 1774562333 :op :assert}
+   {:e #blake3 "edfd8fd05a3c1e24dbf877f46933dbb6e1966bca442c92c71b35165031444806" :a :task/id :v "t-315f6b6d" :op :assert}
+   {:e #blake3 "edfd8fd05a3c1e24dbf877f46933dbb6e1966bca442c92c71b35165031444806" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "edfd8fd05a3c1e24dbf877f46933dbb6e1966bca442c92c71b35165031444806" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "edfd8fd05a3c1e24dbf877f46933dbb6e1966bca442c92c71b35165031444806" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "edfd8fd05a3c1e24dbf877f46933dbb6e1966bca442c92c71b35165031444806" :a :task/title :v "L1-CACHE-SAFETY: Fixed stale cache overwrite race. Session detection now restricted to pre_opened commands. Defensive flush guard added (skip if external txns detected). INV-STORE-022." :op :assert}
+   {:e #blake3 "edfd8fd05a3c1e24dbf877f46933dbb6e1966bca442c92c71b35165031444806" :a :task/title-l0 :v "L1-CACHE-SAFETY" :op :assert}
+   {:e #blake3 "edfd8fd05a3c1e24dbf877f46933dbb6e1966bca442c92c71b35165031444806" :a :task/title-l1 :v "L1-CACHE-SAFETY: Fixed stale cache overwrite race" :op :assert}
+   {:e #blake3 "edfd8fd05a3c1e24dbf877f46933dbb6e1966bca442c92c71b35165031444806" :a :task/type :v :task.type/bug :op :assert}
+ ]}

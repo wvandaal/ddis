@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774563790/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CACHE-003 \"Compression Round-Trip Integrity\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3cef9272ca15754dc6b89bd2f10b977e49a3231ff5bcbf7f4d4891349e2529f0" :a :db/ident :v :task/t-71f8c758 :op :assert}
+   {:e #blake3 "3cef9272ca15754dc6b89bd2f10b977e49a3231ff5bcbf7f4d4891349e2529f0" :a :task/created-at :v 1774563789 :op :assert}
+   {:e #blake3 "3cef9272ca15754dc6b89bd2f10b977e49a3231ff5bcbf7f4d4891349e2529f0" :a :task/id :v "t-71f8c758" :op :assert}
+   {:e #blake3 "3cef9272ca15754dc6b89bd2f10b977e49a3231ff5bcbf7f4d4891349e2529f0" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "3cef9272ca15754dc6b89bd2f10b977e49a3231ff5bcbf7f4d4891349e2529f0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3cef9272ca15754dc6b89bd2f10b977e49a3231ff5bcbf7f4d4891349e2529f0" :a :task/title :v "Implement INV-CACHE-003: Compression Round-Trip Integrity" :op :assert}
+   {:e #blake3 "3cef9272ca15754dc6b89bd2f10b977e49a3231ff5bcbf7f4d4891349e2529f0" :a :task/traces-to :v #blake3 "fa6bd8194c433b62450c59eb2784fd119fe526d7eaf1efc1a0ceef8168af6d07" :op :assert}
+   {:e #blake3 "3cef9272ca15754dc6b89bd2f10b977e49a3231ff5bcbf7f4d4891349e2529f0" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "95ea62540706c08134b00cebdca336fbd503ba5e6368c0ecbc99e24215fb41f0" :a :db/doc :v "Any byte sequence where zstd round-trip produces different output" :op :assert}
+   {:e #blake3 "fa6bd8194c433b62450c59eb2784fd119fe526d7eaf1efc1a0ceef8168af6d07" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "fa6bd8194c433b62450c59eb2784fd119fe526d7eaf1efc1a0ceef8168af6d07" :a :comonad/falsification :v #blake3 "95ea62540706c08134b00cebdca336fbd503ba5e6368c0ecbc99e24215fb41f0" :op :assert}
+   {:e #blake3 "fa6bd8194c433b62450c59eb2784fd119fe526d7eaf1efc1a0ceef8168af6d07" :a :db/doc :v "Compression Round-Trip Integrity" :op :assert}
+   {:e #blake3 "fa6bd8194c433b62450c59eb2784fd119fe526d7eaf1efc1a0ceef8168af6d07" :a :db/ident :v :spec/inv-cache-003 :op :assert}
+   {:e #blake3 "fa6bd8194c433b62450c59eb2784fd119fe526d7eaf1efc1a0ceef8168af6d07" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "fa6bd8194c433b62450c59eb2784fd119fe526d7eaf1efc1a0ceef8168af6d07" :a :spec/falsification :v "Any byte sequence where zstd round-trip produces different output" :op :assert}
+   {:e #blake3 "fa6bd8194c433b62450c59eb2784fd119fe526d7eaf1efc1a0ceef8168af6d07" :a :spec/id :v "INV-CACHE-003" :op :assert}
+   {:e #blake3 "fa6bd8194c433b62450c59eb2784fd119fe526d7eaf1efc1a0ceef8168af6d07" :a :spec/namespace :v :spec.ns/CACHE :op :assert}
+   {:e #blake3 "fa6bd8194c433b62450c59eb2784fd119fe526d7eaf1efc1a0ceef8168af6d07" :a :spec/statement :v "For all byte sequences b: decompress(compress(b)) = b. The cache compression codec is lossless." :op :assert}
+ ]}
