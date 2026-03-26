@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774560316/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C9-2: Observation dependency extraction — parse prose cross-references into datom links for graph traversal"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :db/ident :v :task/t-03f867f7 :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/created-at :v 1774560315 :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/description :v "CONTEXT: Audit observations contain prose dependency references like 'interacts with F-INV-001', 'requires F-C8-001 as prerequisite', 'strengthens F-TYPE-001'. These are valuable dependency information locked in unstructured text. The dependency graph between findings is invisible to the query engine. RATIONALE: The trace scanner (trace.rs) already extracts spec references (INV-*, ADR-*, NEG-*) from source code text using regex. The same technique applied to observation bodies extracts cross-references between observations. Once extracted as datom refs, the dependency graph becomes queryable via the VAET index. APPROACH: (1) Create observation_links() function that scans :exploration/body text for patterns: task IDs (t-[0-9a-f]{8}), finding IDs (F-TYPE-NNN, F-INV-NNN, F-C8-NNN, etc.), and dependency keywords ('depends on', 'requires', 'prerequisite', 'interacts with', 'blocks', 'enables', 'strengthens'). (2) Classify links as :observation/depends-on (Ref, Many) for blocking deps and :observation/related-to (Ref, Many) for non-blocking relations. (3) Run during harvest pipeline after observation storage. (4) Expose via VAET index — braid query can traverse 'what depends on this finding?'. ACCEPTANCE: (A) After running on audit observations, the dependency chain from F-ERR-003 -> F-INV-001 -> F-TYPE-001 -> F-C8-002 is queryable via VAET. (B) observation_links() returns empty vec for observations with no cross-references. (C) Duplicate links are deduplicated. CONSIDERATIONS: Prose reference parsing is inherently fuzzy. False positives (matching 'F-TYPE' in unrelated context) are acceptable because the links are advisory, not constraining. False negatives are worse — missing a dependency means incomplete traversal. Favor recall over precision. DEPENDS-ON: t-7716255c (C9 EPIC). FILE: crates/braid-kernel/src/harvest.rs or new observation_graph.rs." :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/id :v "t-03f867f7" :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/labels :v :label/C9 :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/title :v "C9-2: Observation dependency extraction — parse prose cross-references into datom links for graph traversal" :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/title-l0 :v "C9-2" :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/title-l1 :v "C9-2: Observation dependency extraction — parse prose cross-references into..." :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/traces-to :v #blake3 "cbe2a002aa135e5210fc67be14759c0931cd5f31582a0c58c1a5046402e51019" :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/type :v :task.type/task :op :assert}
+ ]}

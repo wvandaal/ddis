@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774557616/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2-TELEMETRY measurement: indexed lookups replace full scans"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5c4e393e308a2416aab85adda98197fafaafd63603b11f8a18ce1bc83568d7b4" :a :db/doc :v "L2-TELEMETRY measurement: indexed lookups replace full scans" :op :assert}
+   {:e #blake3 "5c4e393e308a2416aab85adda98197fafaafd63603b11f8a18ce1bc83568d7b4" :a :db/ident :v :observation/l2-telemetry-measurement-indexed-lookups-replace-full-scans :op :assert}
+   {:e #blake3 "5c4e393e308a2416aab85adda98197fafaafd63603b11f8a18ce1bc83568d7b4" :a :exploration/body :v "L2-TELEMETRY measurement: indexed lookups replace full scans" :op :assert}
+   {:e #blake3 "5c4e393e308a2416aab85adda98197fafaafd63603b11f8a18ce1bc83568d7b4" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "5c4e393e308a2416aab85adda98197fafaafd63603b11f8a18ce1bc83568d7b4" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "5c4e393e308a2416aab85adda98197fafaafd63603b11f8a18ce1bc83568d7b4" :a :exploration/content-hash :v #bytes "f0563b2852feda383e98c7fd170e0c31fe12f50160a1ee1315f799f78df50767" :op :assert}
+   {:e #blake3 "5c4e393e308a2416aab85adda98197fafaafd63603b11f8a18ce1bc83568d7b4" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "5c4e393e308a2416aab85adda98197fafaafd63603b11f8a18ce1bc83568d7b4" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "5c4e393e308a2416aab85adda98197fafaafd63603b11f8a18ce1bc83568d7b4" :a :exploration/source-session :v #blake3 "25c93b2e4c7393a02ef78089ae7cd4c93aff6c2209e6fac0d7dfbccdd4f8f438" :op :assert}
+ ]}

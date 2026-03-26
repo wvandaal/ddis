@@ -104,7 +104,42 @@ impl DiskLayout {
             fs::write(&genesis_edn_path, &genesis_bytes)?;
         }
 
+        // C1 ENFORCEMENT: Set sticky bit on txns/ directory.
+        // Sticky bit (mode 1755) means only the file OWNER can rename or
+        // delete files inside the directory. This blocks `sed -i` (which
+        // creates a temp file and renames) from non-owner processes.
+        // Combined with 0o444 on files, this provides defense-in-depth:
+        //   Layer 1: File permissions (0o444) — blocks direct writes
+        //   Layer 2: Directory sticky bit — blocks sed -i rename trick
+        //   Layer 3: BLAKE3 hash verification on load — catches any bypass
+        //   Layer 4: Auto-quarantine of tampered files — prevents reoccurrence
+        Self::set_sticky_bit(&root.join("txns"));
+
         Ok(layout)
+    }
+
+    /// Set sticky bit + owner-only write on a directory (C1 enforcement).
+    ///
+    /// Mode 1755: owner rwx, group/other rx, sticky bit prevents non-owner
+    /// from renaming or deleting files (blocks sed -i replacement attack).
+    /// Uses libc::chmod directly because Rust's fs::set_permissions is
+    /// affected by umask, which strips the sticky bit.
+    fn set_sticky_bit(dir: &std::path::Path) {
+        use std::ffi::CString;
+        if let Some(path_str) = dir.to_str() {
+            if let Ok(c_path) = CString::new(path_str) {
+                // SAFETY: c_path is a valid null-terminated string from a valid Path.
+                // libc::chmod is a standard POSIX call. Mode 0o1755 = sticky + rwxr-xr-x.
+                let result = unsafe { libc::chmod(c_path.as_ptr(), 0o1755) };
+                if result != 0 {
+                    eprintln!(
+                        "warning: could not set sticky bit on {}: errno {} (C1 defense layer 2 degraded)",
+                        dir.display(),
+                        std::io::Error::last_os_error()
+                    );
+                }
+            }
+        }
     }
 
     /// Open an existing layout.
@@ -143,6 +178,13 @@ impl DiskLayout {
             Ok(mut file) => {
                 file.write_all(&bytes)?;
                 file.sync_all()?;
+                // C1 ENFORCEMENT: Make transaction file read-only (0o444).
+                // Once written, a datom is immutable. Agents using sed/echo/>
+                // to edit .edn files break content-addressable hashes (C2) and
+                // corrupt the store. Read-only permissions make this impossible
+                // at the filesystem level — the strongest enforcement available
+                // without kernel-level file sealing.
+                Self::make_readonly(&full_path);
                 // Invalidate the store cache so the next load_store() picks up
                 // this new transaction. Without this, commands that write and then
                 // read within the same process (or rapid succession) would miss
@@ -182,6 +224,8 @@ impl DiskLayout {
             Ok(mut file) => {
                 file.write_all(&bytes)?;
                 file.sync_all()?;
+                // C1 ENFORCEMENT: Read-only after write. See write_tx() comment.
+                Self::make_readonly(&full_path);
                 // No cache invalidation — LiveStore handles this.
             }
             Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
@@ -191,6 +235,112 @@ impl DiskLayout {
         }
 
         Ok(file_path)
+    }
+
+    /// Make a file immutable — C1 mechanistic enforcement.
+    ///
+    /// Once a transaction file is written, it must NEVER be modified.
+    /// Three-layer defense:
+    ///   1. chmod 0o444 — blocks echo >, direct writes
+    ///   2. chattr +i (if root) — blocks sed -i, mv, rm, truncate
+    ///   3. Hash verification on load — catches any bypass
+    ///
+    /// Layer 2 (chattr) requires root/CAP_LINUX_IMMUTABLE. It silently
+    /// degrades if unavailable — the hash verification layer catches any
+    /// tamper that slips through.
+    fn make_readonly(path: &std::path::Path) {
+        use std::os::unix::fs::PermissionsExt;
+        // Layer 1: file permissions
+        let perms = fs::Permissions::from_mode(0o444);
+        if let Err(e) = fs::set_permissions(path, perms) {
+            eprintln!(
+                "warning: could not set read-only on {}: {e} (C1 layer 1 degraded)",
+                path.display()
+            );
+        }
+        // Layer 2: Linux immutable flag (chattr +i equivalent via ioctl)
+        Self::set_immutable(path);
+    }
+
+    /// Set the Linux immutable flag (FS_IMMUTE_FL) on a file.
+    ///
+    /// This is equivalent to `chattr +i`. When set, the file cannot be
+    /// modified, deleted, renamed, or linked — even by the owner. Only
+    /// root (or CAP_LINUX_IMMUTABLE) can set or clear this flag.
+    ///
+    /// Silently degrades on non-Linux, non-ext4/xfs, or without root.
+    #[cfg(target_os = "linux")]
+    fn set_immutable(path: &std::path::Path) {
+        use std::os::unix::io::AsRawFd;
+        // FS_IOC_SETFLAGS = 0x40086602, FS_IMMUTABLE_FL = 0x00000010
+        const FS_IOC_GETFLAGS: libc::c_ulong = 0x80086601;
+        const FS_IOC_SETFLAGS: libc::c_ulong = 0x40086602;
+        const FS_IMMUTABLE_FL: libc::c_long = 0x00000010;
+
+        let file = match fs::File::open(path) {
+            Ok(f) => f,
+            Err(_) => return,
+        };
+        let fd = file.as_raw_fd();
+
+        unsafe {
+            let mut flags: libc::c_long = 0;
+            if libc::ioctl(fd, FS_IOC_GETFLAGS, &mut flags) != 0 {
+                return; // Not supported on this filesystem
+            }
+            if flags & FS_IMMUTABLE_FL != 0 {
+                return; // Already immutable
+            }
+            flags |= FS_IMMUTABLE_FL;
+            // This will fail with EPERM if not root — that's fine,
+            // layer 3 (hash verification) catches any tamper.
+            let _ = libc::ioctl(fd, FS_IOC_SETFLAGS, &flags);
+        }
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    fn set_immutable(_path: &std::path::Path) {
+        // No equivalent on non-Linux. Hash verification is the fallback.
+    }
+
+    /// Seal all existing transaction files by setting them read-only.
+    ///
+    /// Call this once to retroactively protect transaction files that were
+    /// written before the read-only enforcement was added. Idempotent:
+    /// files already read-only are unaffected.
+    pub fn seal_existing_txns(&self) -> Result<usize, BraidError> {
+        use std::os::unix::fs::PermissionsExt;
+        let txns_dir = self.root.join("txns");
+        if !txns_dir.is_dir() {
+            return Ok(0);
+        }
+        let mut sealed = 0usize;
+        for shard_entry in fs::read_dir(&txns_dir)? {
+            let shard_entry = shard_entry?;
+            if !shard_entry.file_type()?.is_dir() {
+                continue;
+            }
+            let shard_path = shard_entry.path();
+            for file_entry in fs::read_dir(&shard_path)? {
+                let file_entry = file_entry?;
+                let path = file_entry.path();
+                if path.extension().and_then(|e| e.to_str()) != Some("edn") {
+                    continue;
+                }
+                let meta = fs::metadata(&path)?;
+                let mode = meta.permissions().mode();
+                // Only seal if currently writable (any write bit set)
+                if mode & 0o222 != 0 {
+                    Self::make_readonly(&path);
+                    sealed += 1;
+                }
+            }
+            // Sticky bit on shard directory: prevents non-owner rename/delete.
+            Self::set_sticky_bit(&shard_path);
+        }
+        // Also set sticky bit on parent txns/ directory.
+        Self::set_sticky_bit(&txns_dir);
+        Ok(sealed)
     }
 
     /// Invalidate the store cache so the next load picks up new transactions.
@@ -228,12 +378,24 @@ impl DiskLayout {
         let bytes = fs::read(&path)?;
 
         // INV-LAYOUT-005: Verify content hash matches expected hash from filename.
+        // C1 ENFORCEMENT: If tampered, quarantine the file automatically so it
+        // cannot corrupt future loads. The .corrupt extension removes it from
+        // list_tx_hashes() (which only lists *.edn files).
         let actual_hash = ContentHash::of(&bytes);
         let actual_hex = actual_hash.to_hex();
         if actual_hex != hash_hex {
+            // Quarantine: rename to .edn.corrupt so it's excluded from future loads
+            let corrupt_path = path.with_extension("edn.corrupt");
+            let _ = fs::rename(&path, &corrupt_path);
+            eprintln!(
+                "C1 VIOLATION DETECTED: tx {hash_hex} was tampered (hash={actual_hex}). \
+                 File quarantined to {}.corrupt. The datom store is append-only — \
+                 editing transaction files is forbidden.",
+                path.display()
+            );
             return Err(BraidError::Validation(format!(
                 "INV-LAYOUT-005: content hash mismatch for tx {hash_hex}: \
-                 expected {hash_hex}, got {actual_hex} (file may be corrupt or tampered)"
+                 expected {hash_hex}, got {actual_hex} (TAMPERED — file quarantined)"
             )));
         }
 
@@ -413,6 +575,12 @@ impl DiskLayout {
     ///
     /// After a slow-path load, the cache is written for subsequent calls.
     pub fn load_store(&self) -> Result<Store, BraidError> {
+        // C1 ENFORCEMENT: Seal any writable txn files on load (one-time migration).
+        // After this, all txn files in the store are read-only. This runs once
+        // per store lifecycle — subsequent loads find 0 writable files and return
+        // immediately. Cost: O(F) readdir on first load, O(1) thereafter.
+        let _ = self.seal_existing_txns();
+
         let hashes = self.list_tx_hashes()?;
         let fingerprint = self.txn_fingerprint(&hashes);
 
@@ -444,9 +612,11 @@ impl DiskLayout {
                 // on schema bootstrap (unknown attributes). apply_datoms
                 // inserts datoms + rebuilds schema holistically.
                 for hash in &delta_hashes {
-                    if let Ok(tx) = self.read_tx(hash) {
-                        store.apply_datoms(&tx.datoms);
-                    }
+                    // C1 ENFORCEMENT: hash-mismatch errors are HARD FAILURES,
+                    // not silent skips. A tampered txn file must abort the load
+                    // — silently skipping it would cause data loss.
+                    let tx = self.read_tx(hash)?;
+                    store.apply_datoms(&tx.datoms);
                 }
 
                 // Verify: datom count should be >= cached (monotonic growth, C1)

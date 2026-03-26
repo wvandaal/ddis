@@ -100,41 +100,56 @@ fn main() {
     let cmd_name = commands::command_name_for(&cmd);
     let skip_exit_warning = commands::is_harvest_command(&cmd);
     let budget_exempt = is_budget_exempt(&cmd);
-    let exit_warn_path = commands::store_path(&cmd).map(|p| p.to_path_buf());
 
-    // LIVESTORE-5a: ST-1 session auto-detect using LiveStore write-through.
-    // Previously created DiskLayout + load_store + write_tx (which invalidated cache).
-    // Now uses LiveStore: write goes through write_tx (no invalidation), flush on drop.
-    if cmd_name != "init" && cmd_name != "session" {
-        if let Some(ref store_path) = exit_warn_path {
-            if let Ok(mut live) = live_store::LiveStore::open(store_path) {
-                if braid_kernel::guidance::detect_session_start(live.store()) {
-                    let agent = braid_kernel::datom::AgentId::from_name("braid:session");
-                    let tx_id = commands::write::next_tx_id(live.store(), agent);
-                    let datoms = braid_kernel::guidance::create_session_start_datoms(
-                        live.store(),
-                        agent,
-                        tx_id,
-                    );
-                    let tx_file = braid_kernel::layout::TxFile {
-                        tx_id,
-                        agent,
-                        provenance: braid_kernel::datom::ProvenanceType::Derived,
-                        rationale: "ST-1: auto-detected session start".to_string(),
-                        causal_predecessors: vec![],
-                        datoms,
-                    };
-                    let _ = live.write_tx(&tx_file);
-                }
-                // LiveStore drops here — flush writes store.bin if dirty.
+    // L1-SINGLE (INV-PERF-001): Resolve store path and open LiveStore ONCE for entire process.
+    // Previously opened 2-3x per command (session detect, command, post-command hooks),
+    // each deserializing 110MB bincode at ~2-3s. Now: one open, zero redundant deserializations.
+    let resolved_path = commands::store_path(&cmd)
+        .map(|p| commands::resolve_store_path(p.to_path_buf()));
+
+    let mut live = if cmd_name != "init" {
+        resolved_path
+            .as_ref()
+            .and_then(|p| live_store::LiveStore::open(p).ok())
+    } else {
+        None
+    };
+
+    // LIVESTORE-5a: ST-1 session auto-detect using the single LiveStore.
+    // L1-SINGLE: Skip session detection for read-only commands to avoid
+    // marking the store dirty (which triggers 110MB store.bin serialization on drop).
+    let is_read_only_cmd = matches!(
+        cmd_name,
+        "status" | "query" | "log" | "schema" | "task" | "witness" | "analyze" | "topology"
+    );
+    if cmd_name != "init" && cmd_name != "session" && !is_read_only_cmd {
+        if let Some(ref mut live) = live {
+            if braid_kernel::guidance::detect_session_start(live.store()) {
+                let agent = braid_kernel::datom::AgentId::from_name("braid:session");
+                let tx_id = commands::write::next_tx_id(live.store(), agent);
+                let datoms = braid_kernel::guidance::create_session_start_datoms(
+                    live.store(),
+                    agent,
+                    tx_id,
+                );
+                let tx_file = braid_kernel::layout::TxFile {
+                    tx_id,
+                    agent,
+                    provenance: braid_kernel::datom::ProvenanceType::Derived,
+                    rationale: "ST-1: auto-detected session start".to_string(),
+                    causal_predecessors: vec![],
+                    datoms,
+                };
+                let _ = live.write_tx(&tx_file);
             }
+            // LiveStore stays alive — reused by command and post-command hooks.
         }
     }
 
     // D4-8: Try daemon routing before direct execution (INV-DAEMON-007).
     // If the daemon is running, route supported commands through the socket.
     // Falls back silently to direct mode on any failure.
-    if let Some(ref store_path) = exit_warn_path {
+    if let Some(ref store_path) = resolved_path {
         if let Some(text) = daemon::try_route_through_daemon(
             store_path,
             cmd_name,
@@ -145,7 +160,9 @@ fn main() {
         }
     }
 
-    let result = commands::run(cmd, &budget_ctx, mode, cli.quiet);
+    // L1-SINGLE: Pass the pre-opened LiveStore to command dispatch.
+    // The command reuses it (zero deserialization) instead of opening its own.
+    let result = commands::run(cmd, &budget_ctx, mode, cli.quiet, live.as_mut());
     match result {
         Ok(cmd_output) => {
             // INV-BUDGET-001 + INV-BUDGET-005: enforce per-command token ceiling
@@ -159,9 +176,9 @@ fn main() {
             };
             print!("{}", cmd_output.render(mode));
 
-            // T2-1: Single post-command store load for RFL-2, AR-2 trace, and exit warning.
-            // All three paths need (DiskLayout, Store) for the same braid root.
-            // Load once, reuse for all purposes.
+            // L1-SINGLE: Post-command hooks reuse the same LiveStore.
+            // Previously opened a THIRD LiveStore here (~2-3s deserialization).
+            // Now the store is already warm in memory with all command writes visible.
             let needs_rfl2 = cmd_output.json.get("_acp").is_some();
             let needs_exit_warning = !skip_exit_warning
                 && !cli.quiet
@@ -174,25 +191,23 @@ fn main() {
                 "observe" | "transact" | "write" | "task" | "spec"
             );
 
-            // LIVESTORE-5a: Post-command store access via LiveStore.
-            // Opens fresh (picks up any txns written by the command).
-            let mut post_cmd_live =
-                if (needs_rfl2 || needs_exit_warning || is_knowledge_producing)
-                    && exit_warn_path.is_some()
-                {
-                exit_warn_path
-                    .as_ref()
-                    .and_then(|path| live_store::LiveStore::open(path).ok())
-            } else {
-                None
-            };
+            // L1-SINGLE: For commands that need post-command hooks, refresh the store
+            // to pick up any txns written by the command. For read-only commands, skip
+            // the refresh entirely — the store is already fresh from the single open.
+            let needs_post_hooks = needs_rfl2 || needs_exit_warning || is_knowledge_producing;
+            if needs_post_hooks {
+                if live.is_none() {
+                    live = resolved_path
+                        .as_ref()
+                        .and_then(|path| live_store::LiveStore::open(path).ok());
+                } else if let Some(ref mut l) = live {
+                    let _ = l.refresh_if_needed();
+                }
+            }
 
             // RFL-2: Record projected action as datom for R(t) feedback loop.
-            // If the command produced ACP output (_acp field), extract the action
-            // and auto-transact it as an :action/* entity. This is the PREDICTION
-            // half — the outcome is classified on the NEXT command (RFL-3).
             if let (Some(acp), Some(ref mut live)) =
-                (cmd_output.json.get("_acp"), post_cmd_live.as_mut())
+                (cmd_output.json.get("_acp"), live.as_mut())
             {
                 if let Some(action) = acp.get("action") {
                     let cmd_str = action.get("command").and_then(|v| v.as_str()).unwrap_or("");
@@ -253,19 +268,15 @@ fn main() {
             }
 
             // AR-2: Reconciliation trace — write :recon/trace-* datoms for
-            // knowledge-producing commands. These traces feed the concentration
-            // detector (AR-4) which detects sustained work in a spec neighborhood.
-            // Traces are OPTIONAL: if anything fails, silently skip.
+            // knowledge-producing commands.
             if is_knowledge_producing {
-                if let Some(ref mut live) = post_cmd_live {
-                    // Extract spec refs from the full JSON output
+                if let Some(ref mut live) = live {
                     let json_str = serde_json::to_string(&cmd_output.json).unwrap_or_default();
                     let spec_refs = braid_kernel::task::parse_spec_refs(&json_str);
 
                     if !spec_refs.is_empty() {
                         use braid_kernel::datom::*;
 
-                        // Graph traversal: find related entities via spec dependency graph
                         let neighbors =
                             braid_kernel::guidance::spec_graph_neighbors(live.store(), &spec_refs);
                         let namespace = spec_refs
@@ -314,7 +325,6 @@ fn main() {
                             ));
                         }
 
-                        // Cardinality::Many — one datom per spec ref
                         for spec_ref in &spec_refs {
                             datoms.push(Datom::new(
                                 trace_entity,
@@ -325,9 +335,7 @@ fn main() {
                             ));
                         }
 
-                        // Cardinality::Many — one datom per neighbor ident
                         for (neighbor_entity, _score) in &neighbors {
-                            // Resolve ident from store if available
                             let ident_attr = Attribute::from_keyword(":db/ident");
                             let neighbor_ident = live.store()
                                 .entity_datoms(*neighbor_entity)
@@ -363,7 +371,7 @@ fn main() {
 
             // NEG-HARVEST-001: warn on exit if unharvested work is at risk.
             if needs_exit_warning {
-                if let Some(ref live) = post_cmd_live {
+                if let Some(ref live) = live {
                     if let Some(warning) =
                         braid_kernel::guidance::should_warn_on_exit(live.store(), None)
                     {
@@ -371,7 +379,6 @@ fn main() {
                     }
 
                     // D2.1: Show active divergence types alongside harvest warning
-                    // (INV-SIGNAL-001). Uses lightweight detection — no spectral analysis.
                     let detector = braid_kernel::signal::ConfusionDetector::default();
                     let source = braid_kernel::datom::EntityId::from_ident(":system/exit-check");
                     let budget = live.store().len() as u64;
@@ -394,7 +401,6 @@ fn main() {
                                 types.join(", ")
                             );
                         } else {
-                            // CE-FIX BUG-2: Compress noisy divergence footer when >5 types.
                             eprintln!(
                                 "braid divergence \u{2014} {} active divergence types (use --verbose for details)",
                                 count,
@@ -403,6 +409,7 @@ fn main() {
                     }
                 }
             }
+            // L1-SINGLE: LiveStore drops here — single flush of store.bin for entire process.
         }
         Err(e) => {
             eprint!("{}", e.render(mode));

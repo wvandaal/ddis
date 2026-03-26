@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774556256/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a23b5a30be2d2d91a2fcbe714ce4880a4a945320a8b0a000d09385b85d45705d" :a :db/ident :v :recon/trace-d2e115343f9fa6ce :op :assert}
+   {:e #blake3 "a23b5a30be2d2d91a2fcbe714ce4880a4a945320a8b0a000d09385b85d45705d" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "a23b5a30be2d2d91a2fcbe714ce4880a4a945320a8b0a000d09385b85d45705d" :a :recon/trace-neighborhood :v "SCHEMA" :op :assert}
+   {:e #blake3 "a23b5a30be2d2d91a2fcbe714ce4880a4a945320a8b0a000d09385b85d45705d" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.kani_proofs.inv-schema-004" :op :assert}
+   {:e #blake3 "a23b5a30be2d2d91a2fcbe714ce4880a4a945320a8b0a000d09385b85d45705d" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.proptest_strategies.inv-schema-004" :op :assert}
+   {:e #blake3 "a23b5a30be2d2d91a2fcbe714ce4880a4a945320a8b0a000d09385b85d45705d" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-schema-004" :op :assert}
+   {:e #blake3 "a23b5a30be2d2d91a2fcbe714ce4880a4a945320a8b0a000d09385b85d45705d" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.schema.inv-schema-004" :op :assert}
+   {:e #blake3 "a23b5a30be2d2d91a2fcbe714ce4880a4a945320a8b0a000d09385b85d45705d" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.store.inv-schema-004" :op :assert}
+   {:e #blake3 "a23b5a30be2d2d91a2fcbe714ce4880a4a945320a8b0a000d09385b85d45705d" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.e2e_distillation.inv-schema-004" :op :assert}
+   {:e #blake3 "a23b5a30be2d2d91a2fcbe714ce4880a4a945320a8b0a000d09385b85d45705d" :a :recon/trace-neighbors :v ":task/t-31f6c8b8" :op :assert}
+   {:e #blake3 "a23b5a30be2d2d91a2fcbe714ce4880a4a945320a8b0a000d09385b85d45705d" :a :recon/trace-neighbors :v ":task/t-ea6d8241" :op :assert}
+   {:e #blake3 "a23b5a30be2d2d91a2fcbe714ce4880a4a945320a8b0a000d09385b85d45705d" :a :recon/trace-refs :v "INV-SCHEMA-004" :op :assert}
+ ]}

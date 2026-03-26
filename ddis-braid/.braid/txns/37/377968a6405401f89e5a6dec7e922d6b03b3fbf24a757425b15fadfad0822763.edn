@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774560256/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: C9 Second-Order Epistemic Closure — the store applies its own coherence machinery to its own knowledge"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3282efad4156a63ac508ed46d095a14bfd814c1fddc9367a3ea9bc267f53df5a" :a :db/ident :v :task/t-7716255c :op :assert}
+   {:e #blake3 "3282efad4156a63ac508ed46d095a14bfd814c1fddc9367a3ea9bc267f53df5a" :a :task/created-at :v 1774560255 :op :assert}
+   {:e #blake3 "3282efad4156a63ac508ed46d095a14bfd814c1fddc9367a3ea9bc267f53df5a" :a :task/description :v "ROOT INSIGHT: The store has first-order knowledge (facts about the codebase) but not second-order knowledge (facts about the structure of its own fact-base). The concept engine clusters domain observations but not meta-observations. The seed assembles context by keyword relevance but not by convergence detection. The bilateral scan checks spec-impl alignment but not knowledge-knowledge alignment. The machinery exists — it just isn't pointed at itself. PRINCIPLE (C9): The system must apply its own coherence machinery to its own knowledge, not just to the domain it manages. WHY NOW: Every other task on the 264h audit roadmap will produce knowledge needing synthesis. This makes every subsequent session 3x more effective. COMPONENTS: C9-1 corroboration detection, C9-2 dependency extraction, C9-3 seed integration, C9-4 contradiction detection, C9-5 stagnation detection, C9-TEST integration test. ACCEPTANCE: braid seed --task 'determine path forward' produces coherent brief surfacing top 5 convergent findings from multi-agent audit ranked by corroboration x severity with dependency chains, without reading markdown files. TOTAL EFFORT: ~20h." :op :assert}
+   {:e #blake3 "3282efad4156a63ac508ed46d095a14bfd814c1fddc9367a3ea9bc267f53df5a" :a :task/id :v "t-7716255c" :op :assert}
+   {:e #blake3 "3282efad4156a63ac508ed46d095a14bfd814c1fddc9367a3ea9bc267f53df5a" :a :task/labels :v :label/C9 :op :assert}
+   {:e #blake3 "3282efad4156a63ac508ed46d095a14bfd814c1fddc9367a3ea9bc267f53df5a" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "3282efad4156a63ac508ed46d095a14bfd814c1fddc9367a3ea9bc267f53df5a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3282efad4156a63ac508ed46d095a14bfd814c1fddc9367a3ea9bc267f53df5a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3282efad4156a63ac508ed46d095a14bfd814c1fddc9367a3ea9bc267f53df5a" :a :task/title :v "EPIC: C9 Second-Order Epistemic Closure — the store applies its own coherence machinery to its own knowledge" :op :assert}
+   {:e #blake3 "3282efad4156a63ac508ed46d095a14bfd814c1fddc9367a3ea9bc267f53df5a" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "3282efad4156a63ac508ed46d095a14bfd814c1fddc9367a3ea9bc267f53df5a" :a :task/title-l1 :v "EPIC: C9 Second-Order Epistemic Closure — the store applies its own coheren..." :op :assert}
+   {:e #blake3 "3282efad4156a63ac508ed46d095a14bfd814c1fddc9367a3ea9bc267f53df5a" :a :task/traces-to :v #blake3 "1becd9d6d843ecd8e4358ed6eb20f29ed260a22ec17f2aee0e9c40294e74cfb0" :op :assert}
+   {:e #blake3 "3282efad4156a63ac508ed46d095a14bfd814c1fddc9367a3ea9bc267f53df5a" :a :task/traces-to :v #blake3 "b8a4bebf5634d533a34d85a0fea7f293cb5e93934ee229810b9ae6ead5cf3d14" :op :assert}
+   {:e #blake3 "3282efad4156a63ac508ed46d095a14bfd814c1fddc9367a3ea9bc267f53df5a" :a :task/type :v :task.type/epic :op :assert}
+ ]}

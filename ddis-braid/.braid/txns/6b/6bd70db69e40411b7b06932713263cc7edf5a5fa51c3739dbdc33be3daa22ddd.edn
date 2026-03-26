@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774556664/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "AUDIT-TYPE-005: SchemaError::Inconsistency(String) catch-all should be split into specific variants. PROBLEM: error.rs:148 maps all schema consistency violations to one variant. Cannot distinguish duplicate attribute definitions from type conflicts from cardinality mismatches. The string message is the only discriminant. SOLUTION: Split into DuplicateAttribute { attr }, TypeConflict { attr, expected, got }, CardinalityMismatch { attr, expected, got }. VERIFICATION: SchemaError has no Inconsistency(String) variant. DEPENDS-ON: None. INTERACTS-WITH: W2-004 (validate_evolution produces schema errors)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1356565675c847527f34efd0caecea50585ebd662e7de862c0e86fdd81f91609" :a :db/doc :v "AUDIT-TYPE-005: SchemaError::Inconsistency(String) catch-all should be split into specific variants. PROBLEM: error.rs:148 maps all schema consistency violations to one variant. Cannot distinguish duplicate attribute definitions from type conflicts from cardinality mismatches. The string message is the only discriminant. SOLUTION: Split into DuplicateAttribute { attr }, TypeConflict { attr, expected, got }, CardinalityMismatch { attr, expected, got }. VERIFICATION: SchemaError has no Inconsistency(String) variant. DEPENDS-ON: None. INTERACTS-WITH: W2-004 (validate_evolution produces schema errors)." :op :assert}
+   {:e #blake3 "1356565675c847527f34efd0caecea50585ebd662e7de862c0e86fdd81f91609" :a :db/ident :v :observation/audit-type-005-schemaerrorinconsistencystring-catch-all :op :assert}
+   {:e #blake3 "1356565675c847527f34efd0caecea50585ebd662e7de862c0e86fdd81f91609" :a :exploration/body :v "AUDIT-TYPE-005: SchemaError::Inconsistency(String) catch-all should be split into specific variants. PROBLEM: error.rs:148 maps all schema consistency violations to one variant. Cannot distinguish duplicate attribute definitions from type conflicts from cardinality mismatches. The string message is the only discriminant. SOLUTION: Split into DuplicateAttribute { attr }, TypeConflict { attr, expected, got }, CardinalityMismatch { attr, expected, got }. VERIFICATION: SchemaError has no Inconsistency(String) variant. DEPENDS-ON: None. INTERACTS-WITH: W2-004 (validate_evolution produces schema errors)." :op :assert}
+   {:e #blake3 "1356565675c847527f34efd0caecea50585ebd662e7de862c0e86fdd81f91609" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "1356565675c847527f34efd0caecea50585ebd662e7de862c0e86fdd81f91609" :a :exploration/confidence :v 0.6 :op :assert}
+   {:e #blake3 "1356565675c847527f34efd0caecea50585ebd662e7de862c0e86fdd81f91609" :a :exploration/content-hash :v #bytes "b08c04cfb23fee750b7b6b68fe2eac535f50015c770fbb89bfe528d8ff7710f8" :op :assert}
+   {:e #blake3 "1356565675c847527f34efd0caecea50585ebd662e7de862c0e86fdd81f91609" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "1356565675c847527f34efd0caecea50585ebd662e7de862c0e86fdd81f91609" :a :exploration/related-spec :v #blake3 "0eb54aeaf48c61a16dec94c8a0ccae2c81ac36cdfbbeccd30ca0c133ac3e6ad6" :op :assert}
+   {:e #blake3 "1356565675c847527f34efd0caecea50585ebd662e7de862c0e86fdd81f91609" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "1356565675c847527f34efd0caecea50585ebd662e7de862c0e86fdd81f91609" :a :exploration/source-session :v #blake3 "25c93b2e4c7393a02ef78089ae7cd4c93aff6c2209e6fac0d7dfbccdd4f8f438" :op :assert}
+   {:e #blake3 "1356565675c847527f34efd0caecea50585ebd662e7de862c0e86fdd81f91609" :a :exploration/tags :v :tag/P3 :op :assert}
+   {:e #blake3 "1356565675c847527f34efd0caecea50585ebd662e7de862c0e86fdd81f91609" :a :exploration/tags :v :tag/audit :op :assert}
+   {:e #blake3 "1356565675c847527f34efd0caecea50585ebd662e7de862c0e86fdd81f91609" :a :exploration/tags :v :tag/type-system :op :assert}
+ ]}

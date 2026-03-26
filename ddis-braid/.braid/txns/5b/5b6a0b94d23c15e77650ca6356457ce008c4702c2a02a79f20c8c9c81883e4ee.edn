@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774556243/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: PERF-ZERO — Sub-1s Universal Latency (INV-PERF-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f2d8eed9c7903acedcfc6dd200c34e9f93345f3c2f96fb7f3f5a91e49486b93e" :a :db/ident :v :task/t-dcbc1d54 :op :assert}
+   {:e #blake3 "f2d8eed9c7903acedcfc6dd200c34e9f93345f3c2f96fb7f3f5a91e49486b93e" :a :task/created-at :v 1774556242 :op :assert}
+   {:e #blake3 "f2d8eed9c7903acedcfc6dd200c34e9f93345f3c2f96fb7f3f5a91e49486b93e" :a :task/id :v "t-dcbc1d54" :op :assert}
+   {:e #blake3 "f2d8eed9c7903acedcfc6dd200c34e9f93345f3c2f96fb7f3f5a91e49486b93e" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "f2d8eed9c7903acedcfc6dd200c34e9f93345f3c2f96fb7f3f5a91e49486b93e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f2d8eed9c7903acedcfc6dd200c34e9f93345f3c2f96fb7f3f5a91e49486b93e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f2d8eed9c7903acedcfc6dd200c34e9f93345f3c2f96fb7f3f5a91e49486b93e" :a :task/title :v "EPIC: PERF-ZERO — Sub-1s Universal Latency (INV-PERF-001)" :op :assert}
+   {:e #blake3 "f2d8eed9c7903acedcfc6dd200c34e9f93345f3c2f96fb7f3f5a91e49486b93e" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "f2d8eed9c7903acedcfc6dd200c34e9f93345f3c2f96fb7f3f5a91e49486b93e" :a :task/title-l1 :v "EPIC: PERF-ZERO — Sub-1s Universal Latency (INV-PERF-001)" :op :assert}
+   {:e #blake3 "f2d8eed9c7903acedcfc6dd200c34e9f93345f3c2f96fb7f3f5a91e49486b93e" :a :task/type :v :task.type/epic :op :assert}
+ ]}

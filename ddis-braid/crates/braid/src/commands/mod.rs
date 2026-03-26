@@ -2154,7 +2154,7 @@ fn try_build_footer(
 
 /// Resolve the store path: if the default `.braid` doesn't exist in CWD,
 /// walk up the directory tree to find it (like git finds `.git/`).
-fn resolve_store_path(path: PathBuf) -> PathBuf {
+pub fn resolve_store_path(path: PathBuf) -> PathBuf {
     if path.is_dir() {
         return path;
     }
@@ -2274,6 +2274,7 @@ pub fn run(
     budget_ctx: &BudgetCtx,
     mode: crate::output::OutputMode,
     quiet: bool,
+    pre_opened: Option<&mut crate::live_store::LiveStore>,
 ) -> Result<crate::output::CommandOutput, crate::error::BraidError> {
     use crate::output::CommandOutput;
 
@@ -2320,9 +2321,9 @@ pub fn run(
             // --deep implies --full and --spectral (progressive disclosure).
             let full = full || deep;
             let spectral = spectral || deep;
-            // Status returns CommandOutput natively — need special handling.
+            // L1-SINGLE: Status receives the pre-opened LiveStore (zero deserialization).
             let cmd_output = status::run(
-                &path, &agent, json, verbose, deep, spectral, full, verify, commit,
+                &path, &agent, json, verbose, deep, spectral, full, verify, commit, pre_opened, quiet,
             )?;
             return Ok(maybe_inject_footer(
                 cmd_output,

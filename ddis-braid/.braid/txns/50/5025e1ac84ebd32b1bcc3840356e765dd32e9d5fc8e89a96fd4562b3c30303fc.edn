@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774556307/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: L2-FITNESS: Eliminate 7 entities_matching_pattern O(N) scans in compute_fitness_from_policy. Use attribute_index range queries. FILE: crates/braid-kernel/src/bilateral.rs:833"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "98e047bc5ee62647def0f8d0ef9b746f8ee31054c14396c7f294d171fdf95d93" :a :db/ident :v :task/t-a781b2cc :op :assert}
+   {:e #blake3 "98e047bc5ee62647def0f8d0ef9b746f8ee31054c14396c7f294d171fdf95d93" :a :task/created-at :v 1774556306 :op :assert}
+   {:e #blake3 "98e047bc5ee62647def0f8d0ef9b746f8ee31054c14396c7f294d171fdf95d93" :a :task/files :v "crates/braid-kernel/src/bilateral.rs:833" :op :assert}
+   {:e #blake3 "98e047bc5ee62647def0f8d0ef9b746f8ee31054c14396c7f294d171fdf95d93" :a :task/id :v "t-a781b2cc" :op :assert}
+   {:e #blake3 "98e047bc5ee62647def0f8d0ef9b746f8ee31054c14396c7f294d171fdf95d93" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "98e047bc5ee62647def0f8d0ef9b746f8ee31054c14396c7f294d171fdf95d93" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "98e047bc5ee62647def0f8d0ef9b746f8ee31054c14396c7f294d171fdf95d93" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "98e047bc5ee62647def0f8d0ef9b746f8ee31054c14396c7f294d171fdf95d93" :a :task/title :v "L2-FITNESS: Eliminate 7 entities_matching_pattern O(N) scans in compute_fitness_from_policy. Use attribute_index range queries. FILE: crates/braid-kernel/src/bilateral.rs:833" :op :assert}
+   {:e #blake3 "98e047bc5ee62647def0f8d0ef9b746f8ee31054c14396c7f294d171fdf95d93" :a :task/title-l0 :v "L2-FITNESS" :op :assert}
+   {:e #blake3 "98e047bc5ee62647def0f8d0ef9b746f8ee31054c14396c7f294d171fdf95d93" :a :task/title-l1 :v "L2-FITNESS: Eliminate 7 entities_matching_pattern O(N) scans in compute_fitne..." :op :assert}
+   {:e #blake3 "98e047bc5ee62647def0f8d0ef9b746f8ee31054c14396c7f294d171fdf95d93" :a :task/type :v :task.type/task :op :assert}
+ ]}

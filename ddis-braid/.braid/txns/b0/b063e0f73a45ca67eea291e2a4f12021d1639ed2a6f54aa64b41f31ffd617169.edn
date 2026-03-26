@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774556727/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SPEC-GAP-3: Namespace-to-implementation-file mapping not documented [LOW, from FULL_AUDIT F-SPEC-004]. 20+ spec namespaces map to 47+ source files. Mapping is partially in doc comments but not maintained as formal cross-reference. Confusing cases: GUIDANCE maps to guidance.rs + methodology.rs + routing.rs + context.rs (4 files). COHERENCE maps to bilateral.rs + coherence.rs (overlapping names). SOLUTION: Add namespace-to-file mapping table in docs/guide/00-architecture.md. VERIFICATION: Table exists and is accurate for all namespaces. DEPENDENCIES: Independent. 1 hour."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "752d22db028ece4e1516b14c2e187c2ad1483b95cf71cf999fdffa1241522a55" :a :db/ident :v :task/t-44a5d633 :op :assert}
+   {:e #blake3 "752d22db028ece4e1516b14c2e187c2ad1483b95cf71cf999fdffa1241522a55" :a :task/body :v "SPEC-GAP-3: Namespace-to-implementation-file mapping not documented [LOW, from FULL_AUDIT F-SPEC-004]. 20+ spec namespaces map to 47+ source files. Mapping is partially in doc comments but not maintained as formal cross-reference. Confusing cases: GUIDANCE maps to guidance.rs + methodology.rs + routing.rs + context.rs (4 files). COHERENCE maps to bilateral.rs + coherence.rs (overlapping names). SOLUTION: Add namespace-to-file mapping table in docs/guide/00-architecture.md. VERIFICATION: Table exists and is accurate for all namespaces. DEPENDENCIES: Independent. 1 hour." :op :assert}
+   {:e #blake3 "752d22db028ece4e1516b14c2e187c2ad1483b95cf71cf999fdffa1241522a55" :a :task/created-at :v 1774556726 :op :assert}
+   {:e #blake3 "752d22db028ece4e1516b14c2e187c2ad1483b95cf71cf999fdffa1241522a55" :a :task/id :v "t-44a5d633" :op :assert}
+   {:e #blake3 "752d22db028ece4e1516b14c2e187c2ad1483b95cf71cf999fdffa1241522a55" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "752d22db028ece4e1516b14c2e187c2ad1483b95cf71cf999fdffa1241522a55" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "752d22db028ece4e1516b14c2e187c2ad1483b95cf71cf999fdffa1241522a55" :a :task/title :v "SPEC-GAP-3: Namespace-to-implementation-file mapping not documented [LOW, from" :op :assert}
+   {:e #blake3 "752d22db028ece4e1516b14c2e187c2ad1483b95cf71cf999fdffa1241522a55" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "dd56d523204797d6ca123da8ffeb404094dd49b475cbe83a5a4e313a0b909f6c" :a :db/doc :v "SPEC-GAP-3: Namespace-to-implementation-file mapping not documented [LOW, from FULL_AUDIT F-SPEC-004]. 20+ spec namespaces map to 47+ source files. Mapping is partially in doc comments but not maintained as formal cross-reference. Confusing cases: GUIDANCE maps to guidance.rs + methodology.rs + routing.rs + context.rs (4 files). COHERENCE maps to bilateral.rs + coherence.rs (overlapping names). SOLUTION: Add namespace-to-file mapping table in docs/guide/00-architecture.md. VERIFICATION: Table exists and is accurate for all namespaces. DEPENDENCIES: Independent. 1 hour." :op :assert}
+   {:e #blake3 "dd56d523204797d6ca123da8ffeb404094dd49b475cbe83a5a4e313a0b909f6c" :a :db/ident :v :observation/spec-gap-3-namespace-to-implementation-file-mapping-not-doc :op :assert}
+   {:e #blake3 "dd56d523204797d6ca123da8ffeb404094dd49b475cbe83a5a4e313a0b909f6c" :a :exploration/body :v "SPEC-GAP-3: Namespace-to-implementation-file mapping not documented [LOW, from FULL_AUDIT F-SPEC-004]. 20+ spec namespaces map to 47+ source files. Mapping is partially in doc comments but not maintained as formal cross-reference. Confusing cases: GUIDANCE maps to guidance.rs + methodology.rs + routing.rs + context.rs (4 files). COHERENCE maps to bilateral.rs + coherence.rs (overlapping names). SOLUTION: Add namespace-to-file mapping table in docs/guide/00-architecture.md. VERIFICATION: Table exists and is accurate for all namespaces. DEPENDENCIES: Independent. 1 hour." :op :assert}
+   {:e #blake3 "dd56d523204797d6ca123da8ffeb404094dd49b475cbe83a5a4e313a0b909f6c" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "dd56d523204797d6ca123da8ffeb404094dd49b475cbe83a5a4e313a0b909f6c" :a :exploration/confidence :v 0.78 :op :assert}
+   {:e #blake3 "dd56d523204797d6ca123da8ffeb404094dd49b475cbe83a5a4e313a0b909f6c" :a :exploration/content-hash :v #bytes "be58bba3a24367823ceebc1f6c5766bf9a87e752facea5c7c9fd3c5e837b3cb3" :op :assert}
+   {:e #blake3 "dd56d523204797d6ca123da8ffeb404094dd49b475cbe83a5a4e313a0b909f6c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "dd56d523204797d6ca123da8ffeb404094dd49b475cbe83a5a4e313a0b909f6c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "dd56d523204797d6ca123da8ffeb404094dd49b475cbe83a5a4e313a0b909f6c" :a :exploration/source-session :v #blake3 "25c93b2e4c7393a02ef78089ae7cd4c93aff6c2209e6fac0d7dfbccdd4f8f438" :op :assert}
+ ]}

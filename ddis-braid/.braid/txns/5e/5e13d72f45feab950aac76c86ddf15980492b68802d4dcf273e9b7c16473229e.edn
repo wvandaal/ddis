@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774560258/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-431adf0d"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/close-reason :v "L1-SINGLE complete: single LiveStore per process. Status 6.1s->4.3s (30%). 1646 kernel tests pass." :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/closed-at :v 1774560257 :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/status :v :task.status/closed :op :assert}
+ ]}

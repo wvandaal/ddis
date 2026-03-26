@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774556217/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-29388e19"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4266b971fc9e8b486ec2970bc7b2ba80068cedc228e4baf3184a6c6ed25b3319" :a :task/close-reason :v "Superseded by PERF-ZERO. Schema::from_datoms addressed by single-LiveStore (L1)." :op :assert}
+   {:e #blake3 "4266b971fc9e8b486ec2970bc7b2ba80068cedc228e4baf3184a6c6ed25b3319" :a :task/closed-at :v 1774556216 :op :assert}
+   {:e #blake3 "4266b971fc9e8b486ec2970bc7b2ba80068cedc228e4baf3184a6c6ed25b3319" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "4266b971fc9e8b486ec2970bc7b2ba80068cedc228e4baf3184a6c6ed25b3319" :a :task/status :v :task.status/closed :op :assert}
+ ]}

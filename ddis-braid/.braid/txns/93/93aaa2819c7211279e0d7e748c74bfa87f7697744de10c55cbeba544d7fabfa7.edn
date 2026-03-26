@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774560242/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PERF-ZERO Session 047 results at 140K datoms: status 6.1s->4.3s (30% improvement), observe fixed (was panicking), query 2.9s->3.0s (unchanged), seed 8.2s->10.4s (regression - needs investigation). Remaining gap to sub-1s target: 3.3s for status. Bottleneck: 110MB store.bin deserialization (~2s) and 11K txn hash listing (~0.5s). Layer 1 (single LiveStore) working. Layer 2 (telemetry indexed) working. Need: slim cache format or daemon for sub-1s."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8a115bf451bddb37064321ab7ce9eb8cf836cb0e8a88c9d87f35fe87ffcecf84" :a :db/doc :v "PERF-ZERO Session 047 results at 140K datoms: status 6.1s->4.3s (30% improvement), observe fixed (was panicking), query 2.9s->3.0s (unchanged), seed 8.2s->10.4s (regression - needs investigation). Remaining gap to sub-1s target: 3.3s for status. Bottleneck: 110MB store.bin deserialization (~2s) and 11K txn hash listing (~0.5s). Layer 1 (single LiveStore) working. Layer 2 (telemetry indexed) working. Need: slim cache format or daemon for sub-1s." :op :assert}
+   {:e #blake3 "8a115bf451bddb37064321ab7ce9eb8cf836cb0e8a88c9d87f35fe87ffcecf84" :a :db/ident :v :observation/perf-zero-session-047-results-at-140k-datoms-status-61s-4 :op :assert}
+   {:e #blake3 "8a115bf451bddb37064321ab7ce9eb8cf836cb0e8a88c9d87f35fe87ffcecf84" :a :exploration/body :v "PERF-ZERO Session 047 results at 140K datoms: status 6.1s->4.3s (30% improvement), observe fixed (was panicking), query 2.9s->3.0s (unchanged), seed 8.2s->10.4s (regression - needs investigation). Remaining gap to sub-1s target: 3.3s for status. Bottleneck: 110MB store.bin deserialization (~2s) and 11K txn hash listing (~0.5s). Layer 1 (single LiveStore) working. Layer 2 (telemetry indexed) working. Need: slim cache format or daemon for sub-1s." :op :assert}
+   {:e #blake3 "8a115bf451bddb37064321ab7ce9eb8cf836cb0e8a88c9d87f35fe87ffcecf84" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "8a115bf451bddb37064321ab7ce9eb8cf836cb0e8a88c9d87f35fe87ffcecf84" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "8a115bf451bddb37064321ab7ce9eb8cf836cb0e8a88c9d87f35fe87ffcecf84" :a :exploration/content-hash :v #bytes "e5a8547b01eedf48acb21d5f3bf5730b5e15f3b4553e450d93b152636885ef21" :op :assert}
+   {:e #blake3 "8a115bf451bddb37064321ab7ce9eb8cf836cb0e8a88c9d87f35fe87ffcecf84" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "8a115bf451bddb37064321ab7ce9eb8cf836cb0e8a88c9d87f35fe87ffcecf84" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "8a115bf451bddb37064321ab7ce9eb8cf836cb0e8a88c9d87f35fe87ffcecf84" :a :exploration/source-session :v #blake3 "c2cef5c4e2e495a91e5506387541671a63ea1f3f65e518f8cb3228a5bbc0b527" :op :assert}
+ ]}

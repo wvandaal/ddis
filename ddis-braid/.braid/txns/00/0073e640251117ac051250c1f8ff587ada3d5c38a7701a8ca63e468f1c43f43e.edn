@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774556303/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: L2-ALL-TASKS: Eliminate 4 redundant all_tasks() calls per status. Cache result at start of status computation. FILE: crates/braid-kernel/src/task.rs, crates/braid/src/commands/status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :db/ident :v :task/t-b83d8efb :op :assert}
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/created-at :v 1774556302 :op :assert}
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/files :v "crates/braid-kernel/src/task.rs" :op :assert}
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/files :v "crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/id :v "t-b83d8efb" :op :assert}
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/title :v "L2-ALL-TASKS: Eliminate 4 redundant all_tasks() calls per status. Cache result at start of status computation. FILE: crates/braid-kernel/src/task.rs, crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/title-l0 :v "L2-ALL-TASKS" :op :assert}
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/title-l1 :v "L2-ALL-TASKS: Eliminate 4 redundant all_tasks() calls per status" :op :assert}
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/type :v :task.type/task :op :assert}
+ ]}

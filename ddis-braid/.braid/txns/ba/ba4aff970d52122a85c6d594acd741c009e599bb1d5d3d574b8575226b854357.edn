@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774556183/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PERF Layer 2: 20 full O(N) datom scans in single braid status. Hottest: telemetry_from_store (10 scans), methodology_gaps cascade (crystallization_candidates + all_tasks + witness_gaps + spec_concentration), entities_matching_pattern (7x per fitness), all_tasks called 4x redundantly. Total: ~2.16M datom iterations at 108K datoms. Fix: use attribute_index, cache results, materialize in views."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "044ae5c07655a59cf43f200af554edad4b956917acde13f614eb99273f7f0953" :a :db/doc :v "PERF Layer 2: 20 full O(N) datom scans in single braid status. Hottest: telemetry_from_store (10 scans), methodology_gaps cascade (crystallization_candidates + all_tasks + witness_gaps + spec_concentration), entities_matching_pattern (7x per fitness), all_tasks called 4x redundantly. Total: ~2.16M datom iterations at 108K datoms. Fix: use attribute_index, cache results, materialize in views." :op :assert}
+   {:e #blake3 "044ae5c07655a59cf43f200af554edad4b956917acde13f614eb99273f7f0953" :a :db/ident :v :observation/perf-layer-2-20-full-on-datom-scans-in-single-braid-statu :op :assert}
+   {:e #blake3 "044ae5c07655a59cf43f200af554edad4b956917acde13f614eb99273f7f0953" :a :exploration/body :v "PERF Layer 2: 20 full O(N) datom scans in single braid status. Hottest: telemetry_from_store (10 scans), methodology_gaps cascade (crystallization_candidates + all_tasks + witness_gaps + spec_concentration), entities_matching_pattern (7x per fitness), all_tasks called 4x redundantly. Total: ~2.16M datom iterations at 108K datoms. Fix: use attribute_index, cache results, materialize in views." :op :assert}
+   {:e #blake3 "044ae5c07655a59cf43f200af554edad4b956917acde13f614eb99273f7f0953" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "044ae5c07655a59cf43f200af554edad4b956917acde13f614eb99273f7f0953" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "044ae5c07655a59cf43f200af554edad4b956917acde13f614eb99273f7f0953" :a :exploration/content-hash :v #bytes "807356bdc350096caf1efb9f6348adabcfd4c549ea3cde603aae4afad63376c3" :op :assert}
+   {:e #blake3 "044ae5c07655a59cf43f200af554edad4b956917acde13f614eb99273f7f0953" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "044ae5c07655a59cf43f200af554edad4b956917acde13f614eb99273f7f0953" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "044ae5c07655a59cf43f200af554edad4b956917acde13f614eb99273f7f0953" :a :exploration/source-session :v #blake3 "25c93b2e4c7393a02ef78089ae7cd4c93aff6c2209e6fac0d7dfbccdd4f8f438" :op :assert}
+ ]}

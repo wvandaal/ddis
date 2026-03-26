@@ -349,8 +349,9 @@ pub(crate) fn call_tool(
 /// F(S), M(t), coherence, harvest warning, task counts, and next action.
 /// This is the primary orientation tool — use at session start.
 fn tool_status(live: &mut LiveStore) -> Result<JsonValue, BraidError> {
+    let root = live.layout().root.clone();
     let output = crate::commands::status::run(
-        live.layout().root.as_path(),
+        root.as_path(),
         "braid:mcp",
         false, // json
         false, // verbose
@@ -359,6 +360,8 @@ fn tool_status(live: &mut LiveStore) -> Result<JsonValue, BraidError> {
         false, // full
         false, // verify
         false, // commit
+        Some(live),
+        false, // quiet
     )?;
 
     // Render agent-mode output as MCP text content

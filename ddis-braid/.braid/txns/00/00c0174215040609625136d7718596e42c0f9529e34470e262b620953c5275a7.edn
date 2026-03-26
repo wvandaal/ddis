@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774556214/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a9831ad8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0e55953ef76988558c00786da8ff692053635c5b179b5b102d0b206322f90413" :a :task/close-reason :v "Superseded by PERF-ZERO Layer 2 tasks. check_coherence_fast scans addressed in L2-FITNESS." :op :assert}
+   {:e #blake3 "0e55953ef76988558c00786da8ff692053635c5b179b5b102d0b206322f90413" :a :task/closed-at :v 1774556213 :op :assert}
+   {:e #blake3 "0e55953ef76988558c00786da8ff692053635c5b179b5b102d0b206322f90413" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "0e55953ef76988558c00786da8ff692053635c5b179b5b102d0b206322f90413" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774558399/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "NEG-LAYOUT-001: No transaction file modification after write. Safety property: □ ¬(∃ txn file f in txns/: content(f, t2) ≠ content(f, t1) for t2 > t1 where t1 = write_time(f)). Once a .edn file is written by braid, its content MUST NOT change. Violation detection: BLAKE3(content) ≠ filename_hash. Violation response: automatic quarantine to .edn.corrupt + hard error on load. Enforcement: 0o444 file permissions, sticky bit directories, hash verification, quarantine. This is the mechanistic enforcement of C1 (append-only) and NEG-STORE-001 (no datom deletion) at the storage layer."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7b5409eb96c8f01b180b545d0c9893485a1b6d75516f6adaf5bc22f6e87ea334" :a :db/doc :v "NEG-LAYOUT-001: No transaction file modification after write. Safety property: □ ¬(∃ txn file f in txns/: content(f, t2) ≠ content(f, t1) for t2 > t1 where t1 = write_time(f)). Once a .edn file is written by braid, its content MUST NOT change. Violation detection: BLAKE3(content) ≠ filename_hash. Violation response: automatic quarantine to .edn.corrupt + hard error on load. Enforcement: 0o444 file permissions, sticky bit directories, hash verification, quarantine. This is the mechanistic enforcement of C1 (append-only) and NEG-STORE-001 (no datom deletion) at the storage layer." :op :assert}
+   {:e #blake3 "7b5409eb96c8f01b180b545d0c9893485a1b6d75516f6adaf5bc22f6e87ea334" :a :db/ident :v :observation/neg-layout-001-no-transaction-file-modification-after-write :op :assert}
+   {:e #blake3 "7b5409eb96c8f01b180b545d0c9893485a1b6d75516f6adaf5bc22f6e87ea334" :a :exploration/body :v "NEG-LAYOUT-001: No transaction file modification after write. Safety property: □ ¬(∃ txn file f in txns/: content(f, t2) ≠ content(f, t1) for t2 > t1 where t1 = write_time(f)). Once a .edn file is written by braid, its content MUST NOT change. Violation detection: BLAKE3(content) ≠ filename_hash. Violation response: automatic quarantine to .edn.corrupt + hard error on load. Enforcement: 0o444 file permissions, sticky bit directories, hash verification, quarantine. This is the mechanistic enforcement of C1 (append-only) and NEG-STORE-001 (no datom deletion) at the storage layer." :op :assert}
+   {:e #blake3 "7b5409eb96c8f01b180b545d0c9893485a1b6d75516f6adaf5bc22f6e87ea334" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "7b5409eb96c8f01b180b545d0c9893485a1b6d75516f6adaf5bc22f6e87ea334" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "7b5409eb96c8f01b180b545d0c9893485a1b6d75516f6adaf5bc22f6e87ea334" :a :exploration/content-hash :v #bytes "518f26b270e8315e12ec84e08d9868eb8ae9b6d49f93914beb6ede3bcce919d9" :op :assert}
+   {:e #blake3 "7b5409eb96c8f01b180b545d0c9893485a1b6d75516f6adaf5bc22f6e87ea334" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7b5409eb96c8f01b180b545d0c9893485a1b6d75516f6adaf5bc22f6e87ea334" :a :exploration/related-spec :v #blake3 "baacf64c169a2f1e1ddd8c4f8e851b606254fd7801130e41e4b0a7d7cd2d2973" :op :assert}
+   {:e #blake3 "7b5409eb96c8f01b180b545d0c9893485a1b6d75516f6adaf5bc22f6e87ea334" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7b5409eb96c8f01b180b545d0c9893485a1b6d75516f6adaf5bc22f6e87ea334" :a :exploration/source-session :v #blake3 "25c93b2e4c7393a02ef78089ae7cd4c93aff6c2209e6fac0d7dfbccdd4f8f438" :op :assert}
+   {:e #blake3 "7b5409eb96c8f01b180b545d0c9893485a1b6d75516f6adaf5bc22f6e87ea334" :a :exploration/tags :v :tag/C1 :op :assert}
+   {:e #blake3 "7b5409eb96c8f01b180b545d0c9893485a1b6d75516f6adaf5bc22f6e87ea334" :a :exploration/tags :v :tag/enforcement :op :assert}
+   {:e #blake3 "7b5409eb96c8f01b180b545d0c9893485a1b6d75516f6adaf5bc22f6e87ea334" :a :exploration/tags :v :tag/immutability :op :assert}
+ ]}

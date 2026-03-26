@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774556284/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: L1-SINGLE: Single LiveStore per process. Open once in main.rs, pass through session detect, command dispatch, and post-command hooks. Eliminates 2 redundant LiveStore::open() calls saving ~4s. FILE: crates/braid/src/main.rs, crates/braid/src/commands/mod.rs, crates/braid/src/commands/status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :db/ident :v :task/t-431adf0d :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/created-at :v 1774556283 :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/files :v "crates/braid/src/commands/mod.rs" :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/files :v "crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/files :v "crates/braid/src/main.rs" :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/id :v "t-431adf0d" :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/title :v "L1-SINGLE: Single LiveStore per process. Open once in main.rs, pass through session detect, command dispatch, and post-command hooks. Eliminates 2 redundant LiveStore::open() calls saving ~4s. FILE: crates/braid/src/main.rs, crates/braid/src/commands/mod.rs, crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/title-l0 :v "L1-SINGLE" :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/title-l1 :v "L1-SINGLE: Single LiveStore per process" :op :assert}
+   {:e #blake3 "a1a8c56782d1c2a4b66e7632e04f7f9632fb12bcf0afc824ab8c41eb90d20e02" :a :task/type :v :task.type/task :op :assert}
+ ]}

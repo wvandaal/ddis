@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774556198/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3cce0359"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2aa537d4fe26b895c66e86b34ba633cd74231da67414143a7dc0a6ec9172d4fe" :a :task/close-reason :v "Superseded by PERF-ZERO epic (Session 047). Layer 2 materialization covers this finding." :op :assert}
+   {:e #blake3 "2aa537d4fe26b895c66e86b34ba633cd74231da67414143a7dc0a6ec9172d4fe" :a :task/closed-at :v 1774556197 :op :assert}
+   {:e #blake3 "2aa537d4fe26b895c66e86b34ba633cd74231da67414143a7dc0a6ec9172d4fe" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "2aa537d4fe26b895c66e86b34ba633cd74231da67414143a7dc0a6ec9172d4fe" :a :task/status :v :task.status/closed :op :assert}
+ ]}

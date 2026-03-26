@@ -1559,7 +1559,11 @@ fn word_boundary_match(haystack: &str, needle: &str) -> bool {
     let needle_bytes = needle.as_bytes();
     let nlen = needle_bytes.len();
 
-    for i in 0..=(bytes.len().saturating_sub(nlen)) {
+    if nlen == 0 || nlen > bytes.len() {
+        return false;
+    }
+
+    for i in 0..=(bytes.len() - nlen) {
         if &bytes[i..i + nlen] == needle_bytes {
             let before_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
             let after_ok = i + nlen >= bytes.len() || !bytes[i + nlen].is_ascii_alphanumeric();

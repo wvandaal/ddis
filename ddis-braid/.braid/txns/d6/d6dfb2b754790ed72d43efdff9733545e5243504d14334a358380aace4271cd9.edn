@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774560265/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b83d8efb"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/close-reason :v "L2-ALL-TASKS complete: all_tasks() now uses attribute_datoms instead of full scan. O(T) vs O(N)." :op :assert}
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/closed-at :v 1774560264 :op :assert}
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "36d52e735bbf8a48eafeb71d7422b9091c6253efab05f0d8e4c86980d0da7229" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774560262/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-889db349"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :task/close-reason :v "L2-TELEMETRY complete: 10 full datom scans replaced with attribute_datoms indexed lookups. All tests pass." :op :assert}
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :task/closed-at :v 1774560261 :op :assert}
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :task/status :v :task.status/closed :op :assert}
+ ]}

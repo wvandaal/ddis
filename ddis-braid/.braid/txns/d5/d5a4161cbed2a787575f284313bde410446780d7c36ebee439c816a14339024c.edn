@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774560295/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C9-1: Observation corroboration detection — cluster observations by source agent and compute convergence scores"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :db/ident :v :task/t-6090a2ed :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/created-at :v 1774560294 :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/description :v "CONTEXT: 4 independent audit agents produced 226 observations. Many describe the same finding (e.g. F(S) monotonicity falsified appears in all 4 reports). The store treats each as independent — no mechanism detects that 4 sources agree on the same defect. Corroboration is the strongest epistemic signal: independent agreement is more certain than any single high-confidence observation. RATIONALE: The concept engine (concept.rs) already performs agglomerative clustering via embeddings. After clustering, compute corroboration_score = distinct_agent_count / total_agents_in_session. P(defect | 4 independent reports) >> P(defect | 1 report). This is Bayesian updating across independent sources. APPROACH: (1) After concept clustering, for each cluster collect the set of distinct :tx/agent values from the observation transactions. (2) Add corroboration_score = |distinct_agents| / |total_session_agents| to ConceptSummary. (3) Add confidence_range (min, max, mean) across cluster members. (4) Store as :concept/corroboration (Double, One) and :concept/agent-count (Long, One) datoms. (5) Surface in braid status concept section: 'f-s-monotonicity (4/4 agents, confidence 0.85-0.95)'. ACCEPTANCE: (A) After running on 226 audit observations, top cluster contains F(S) monotonicity finding with corroboration >= 3/4. (B) ConceptSummary has corroboration_score field. (C) braid status shows agent count per concept. CONSIDERATIONS: The HashEmbedder concept-collapse problem (AUDIT-EXT CONCEPT-COLLAPSE) may merge distinct findings into one mega-cluster. If so, this task surfaces the problem clearly (one cluster with corroboration 4/4 and 200 observations = obviously collapsed). The corroboration signal is still useful even with imperfect clustering — it just operates at a coarser granularity. DEPENDS-ON: t-7716255c (C9 EPIC). FILE: crates/braid-kernel/src/concept.rs." :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/id :v "t-6090a2ed" :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/labels :v :label/C9 :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/title :v "C9-1: Observation corroboration detection — cluster observations by source agent and compute convergence scores" :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/title-l0 :v "C9-1" :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/title-l1 :v "C9-1: Observation corroboration detection — cluster observations by source..." :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/traces-to :v #blake3 "1becd9d6d843ecd8e4358ed6eb20f29ed260a22ec17f2aee0e9c40294e74cfb0" :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -353,36 +353,49 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
     let boundary = last_harvest_wall_time(store);
     let has_recent_harvest = boundary > 0;
 
-    // T1-1: Count distinct wall_times AFTER last harvest (session-scoped).
-    // When no harvest exists (boundary == 0), all wall_times are in-session.
-    let session_walls: BTreeSet<u64> = store
-        .datoms()
-        .filter(|d| d.tx.wall_time() > boundary)
-        .map(|d| d.tx.wall_time())
-        .collect();
+    // L2-TELEMETRY (INV-PERF-001): ALL scans use attribute_datoms() indexed lookup.
+    // Previously: 10-12 full O(N) datom scans (~139K datoms each).
+    // Now: O(K) per attribute where K << N.
+
+    // T1-1: Count distinct wall_times via :tx/agent index (one per transaction).
+    // Fall back to full scan for genesis/bootstrap stores without :tx/agent datoms.
+    let tx_attr = Attribute::from_keyword(":tx/agent");
+    let tx_datoms = store.attribute_datoms(&tx_attr);
+    let session_walls: BTreeSet<u64> = if !tx_datoms.is_empty() {
+        tx_datoms
+            .iter()
+            .filter(|d| d.tx.wall_time() > boundary)
+            .map(|d| d.tx.wall_time())
+            .collect()
+    } else {
+        store
+            .datoms()
+            .filter(|d| d.tx.wall_time() > boundary)
+            .map(|d| d.tx.wall_time())
+            .collect()
+    };
     let session_turn_count = session_walls.len() as u32;
 
     let txns_since = count_txns_since_last_harvest(store) as u32;
 
-    // T1-1: Count spec entities created/modified since last harvest, not total.
+    // T1-1: Count spec entities created since harvest via :db/ident index.
+    let ident_attr = Attribute::from_keyword(":db/ident");
     let spec_entity_count = store
-        .datoms()
+        .attribute_datoms(&ident_attr)
+        .iter()
         .filter(|d| {
             d.tx.wall_time() > boundary
-                && d.attribute.as_str() == ":db/ident"
                 && d.op == Op::Assert
                 && matches!(&d.value, Value::Keyword(k) if k.starts_with(":spec/"))
         })
         .count() as u32;
 
-    // T1-2(a): Tasks created since harvest whose titles contain spec ref patterns.
+    // T1-2(a): Tasks with spec refs via :task/title index.
+    let task_title_attr = Attribute::from_keyword(":task/title");
     let tasks_with_spec_refs = store
-        .datoms()
-        .filter(|d| {
-            d.tx.wall_time() > boundary
-                && d.attribute.as_str() == ":task/title"
-                && d.op == Op::Assert
-        })
+        .attribute_datoms(&task_title_attr)
+        .iter()
+        .filter(|d| d.tx.wall_time() > boundary && d.op == Op::Assert)
         .filter(|d| {
             if let Value::String(title) = &d.value {
                 !crate::task::parse_spec_refs(title).is_empty()
@@ -392,14 +405,12 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
         })
         .count() as u32;
 
-    // T1-2(b): Observations created since harvest whose body contains spec refs.
+    // T1-2(b): Observations with spec refs via :exploration/body index.
+    let body_attr = Attribute::from_keyword(":exploration/body");
     let observations_with_spec_refs = store
-        .datoms()
-        .filter(|d| {
-            d.tx.wall_time() > boundary
-                && d.attribute.as_str() == ":exploration/body"
-                && d.op == Op::Assert
-        })
+        .attribute_datoms(&body_attr)
+        .iter()
+        .filter(|d| d.tx.wall_time() > boundary && d.op == Op::Assert)
         .filter(|d| {
             if let Value::String(body) = &d.value {
                 !crate::task::parse_spec_refs(body).is_empty()
@@ -409,87 +420,62 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
         })
         .count() as u32;
 
-    // T1-2(c): :impl/implements datoms created since harvest (trace evidence).
+    // T1-2(c): Impl links via :impl/implements index.
+    let impl_attr = Attribute::from_keyword(":impl/implements");
     let impl_links = store
-        .datoms()
-        .filter(|d| {
-            d.tx.wall_time() > boundary
-                && d.attribute.as_str() == ":impl/implements"
-                && d.op == Op::Assert
-        })
+        .attribute_datoms(&impl_attr)
+        .iter()
+        .filter(|d| d.tx.wall_time() > boundary && d.op == Op::Assert)
         .count() as u32;
 
-    // T1-2: Total spec engagement = all four categories, capped at total_turns.
     let raw_total_spec = spec_entity_count
         .saturating_add(tasks_with_spec_refs)
         .saturating_add(observations_with_spec_refs)
         .saturating_add(impl_links);
 
-    // C8-FIX-5: Don't penalize external projects that don't use :spec/* datoms.
-    // If the store has no :spec/element-type datoms at all (store-wide, not just
-    // session-scoped), the project doesn't use DDIS spec format. In that case:
-    // - If observations or tasks exist → spec_language_ratio = 1.0 (process is active)
-    // - If store is empty → spec_language_ratio = 0.0 (no methodology at all)
-    let store_has_spec_datoms = store.datoms().any(|d| {
-        d.op == Op::Assert
-            && (d.attribute.as_str() == ":spec/element-type"
-                || (d.attribute.as_str() == ":db/ident"
-                    && matches!(&d.value, Value::Keyword(k) if k.starts_with(":spec/"))))
-    });
+    // C8-FIX-5: Check for spec datoms via indexed lookup.
+    let spec_type_attr = Attribute::from_keyword(":spec/element-type");
+    let store_has_spec_datoms = !store.attribute_datoms(&spec_type_attr).is_empty()
+        || store
+            .attribute_datoms(&ident_attr)
+            .iter()
+            .any(|d| {
+                d.op == Op::Assert
+                    && matches!(&d.value, Value::Keyword(k) if k.starts_with(":spec/"))
+            });
+
     let total_spec = if store_has_spec_datoms {
-        // Braid-like project: compute normally
         raw_total_spec
     } else {
-        // External project: check if any methodology is happening
-        let has_observations = store
-            .datoms()
-            .any(|d| d.attribute.as_str() == ":exploration/body" && d.op == Op::Assert);
-        let has_tasks = store
-            .datoms()
-            .any(|d| d.attribute.as_str() == ":task/title" && d.op == Op::Assert);
+        let has_observations = !store.attribute_datoms(&body_attr).is_empty();
+        let has_tasks = !store.attribute_datoms(&task_title_attr).is_empty();
         if has_observations || has_tasks {
-            // Process is active, just not in DDIS spec format — full credit
             session_turn_count.max(1)
         } else {
-            // Empty store — no methodology at all
             0
         }
     };
 
-    // A3: M(t) floor clamp — when a harvest exists and fewer than 10 txns
-    // have occurred since, the store is in a healthy inter-session state.
-    // Without this floor, M(t) drops below 0.5 between sessions because
-    // transact_frequency and query_diversity reset, triggering false DRIFT
-    // warnings (CC-5 failure in bilateral scan).
     let harvest_is_recent = has_recent_harvest && txns_since < 10;
 
-    // CE-MT: Count session observations (`:exploration/body` since last harvest).
+    // CE-MT: Session observations and task counts via indexed lookup.
     let session_observation_count = store
-        .datoms()
-        .filter(|d| {
-            d.tx.wall_time() > boundary
-                && d.attribute.as_str() == ":exploration/body"
-                && d.op == Op::Assert
-        })
+        .attribute_datoms(&body_attr)
+        .iter()
+        .filter(|d| d.tx.wall_time() > boundary && d.op == Op::Assert)
         .count() as u32;
 
-    // CE-MT: Count session task creations (`:task/title` since last harvest).
     let session_task_count = store
-        .datoms()
-        .filter(|d| {
-            d.tx.wall_time() > boundary
-                && d.attribute.as_str() == ":task/title"
-                && d.op == Op::Assert
-        })
+        .attribute_datoms(&task_title_attr)
+        .iter()
+        .filter(|d| d.tx.wall_time() > boundary && d.op == Op::Assert)
         .count() as u32;
 
     SessionTelemetry {
-        // max(1) prevents division by zero when 0 transactions since harvest
         total_turns: session_turn_count.max(1),
         transact_turns: txns_since,
         spec_language_turns: total_spec.min(session_turn_count.max(1)),
         query_type_count: if session_turn_count > 0 { 1 } else { 0 },
-        // FIX-NAG: On fresh stores (<10 txns), nothing to harvest yet — don't nag.
         harvest_quality: if has_recent_harvest || session_turn_count < 10 {
             0.7
         } else {
@@ -507,21 +493,40 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
 /// Uses tx-count proxy: counts tx files whose wall_time exceeds the most
 /// recent transaction with provenance "braid:harvest" or "braid:observe".
 pub fn count_txns_since_last_harvest(store: &Store) -> usize {
+    // L2-TELEMETRY (INV-PERF-001): Use :tx/agent index when available (O(T) vs O(N)).
+    // Fall back to full scan for genesis/bootstrap stores without :tx/agent datoms.
     let boundary = last_harvest_wall_time(store);
+    let tx_attr = Attribute::from_keyword(":tx/agent");
+    let tx_datoms = store.attribute_datoms(&tx_attr);
 
-    if boundary == 0 {
-        // No harvest ever — count all distinct wall times
-        let walls: std::collections::BTreeSet<u64> =
-            store.datoms().map(|d| d.tx.wall_time()).collect();
-        walls.len()
+    // Fast path: use indexed :tx/agent datoms (one per transaction).
+    if !tx_datoms.is_empty() {
+        if boundary == 0 {
+            let walls: std::collections::BTreeSet<u64> =
+                tx_datoms.iter().map(|d| d.tx.wall_time()).collect();
+            walls.len()
+        } else {
+            let walls: std::collections::BTreeSet<u64> = tx_datoms
+                .iter()
+                .filter(|d| d.tx.wall_time() > boundary)
+                .map(|d| d.tx.wall_time())
+                .collect();
+            walls.len()
+        }
     } else {
-        // Count distinct wall times strictly after the last harvest
-        let walls: std::collections::BTreeSet<u64> = store
-            .datoms()
-            .filter(|d| d.tx.wall_time() > boundary)
-            .map(|d| d.tx.wall_time())
-            .collect();
-        walls.len()
+        // Slow fallback: scan all datoms (genesis stores, bootstrap).
+        if boundary == 0 {
+            let walls: std::collections::BTreeSet<u64> =
+                store.datoms().map(|d| d.tx.wall_time()).collect();
+            walls.len()
+        } else {
+            let walls: std::collections::BTreeSet<u64> = store
+                .datoms()
+                .filter(|d| d.tx.wall_time() > boundary)
+                .map(|d| d.tx.wall_time())
+                .collect();
+            walls.len()
+        }
     }
 }
 
@@ -531,19 +536,16 @@ pub fn count_txns_since_last_harvest(store: &Store) -> usize {
 /// Used by the harvest CLI to determine the session boundary:
 /// datoms with tx.wall_time > this value are "this session's work."
 pub fn last_harvest_wall_time(store: &Store) -> u64 {
-    let mut latest: u64 = 0;
-    for datom in store.datoms() {
-        // Only harvest session commits define the session boundary.
-        // Observations are IN-session work and must NOT reset the boundary —
-        // otherwise harvest would never see them as "new since last harvest."
-        if datom.attribute.as_str() == ":harvest/agent" && datom.op == Op::Assert {
-            let wall = datom.tx.wall_time();
-            if wall > latest {
-                latest = wall;
-            }
-        }
-    }
-    latest
+    // L2-TELEMETRY (INV-PERF-001): Use attribute_datoms index instead of full scan.
+    // O(K) where K = harvest datoms, not O(N) where N = all datoms.
+    let attr = Attribute::from_keyword(":harvest/agent");
+    store
+        .attribute_datoms(&attr)
+        .iter()
+        .filter(|d| d.op == Op::Assert)
+        .map(|d| d.tx.wall_time())
+        .max()
+        .unwrap_or(0)
 }
 
 // ---------------------------------------------------------------------------

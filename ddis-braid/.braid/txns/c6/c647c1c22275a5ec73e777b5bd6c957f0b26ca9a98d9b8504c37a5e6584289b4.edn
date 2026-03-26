@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774556320/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f95e15ab"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "980d3e842b0f38113d335577204be59e50594e83eb60f12cc816a37803714f81" :a :task/close-reason :v "Fixed: added early return in word_boundary_match when needle > haystack" :op :assert}
+   {:e #blake3 "980d3e842b0f38113d335577204be59e50594e83eb60f12cc816a37803714f81" :a :task/closed-at :v 1774556319 :op :assert}
+   {:e #blake3 "980d3e842b0f38113d335577204be59e50594e83eb60f12cc816a37803714f81" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "980d3e842b0f38113d335577204be59e50594e83eb60f12cc816a37803714f81" :a :task/status :v :task.status/closed :op :assert}
+ ]}

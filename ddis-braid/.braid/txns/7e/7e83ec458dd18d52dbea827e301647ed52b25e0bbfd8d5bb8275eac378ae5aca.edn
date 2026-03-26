@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774556206/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-aea318c6"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "30c0a09326312d27336b540edc3083568aed0b529ce64b4384d951f412a21906" :a :task/close-reason :v "Superseded by PERF-ZERO epic (Session 047). Complete audit finding now decomposed into actionable task tree." :op :assert}
+   {:e #blake3 "30c0a09326312d27336b540edc3083568aed0b529ce64b4384d951f412a21906" :a :task/closed-at :v 1774556205 :op :assert}
+   {:e #blake3 "30c0a09326312d27336b540edc3083568aed0b529ce64b4384d951f412a21906" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "30c0a09326312d27336b540edc3083568aed0b529ce64b4384d951f412a21906" :a :task/status :v :task.status/closed :op :assert}
+ ]}

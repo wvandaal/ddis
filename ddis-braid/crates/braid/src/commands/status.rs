@@ -130,6 +130,10 @@ fn trace_staleness_json(status: &TraceStaleStatus) -> serde_json::Value {
 }
 
 /// Run status and return structured CommandOutput (INV-INTERFACE-001: three output modes).
+///
+/// L1-SINGLE (INV-PERF-001): Accepts an optional pre-opened LiveStore to avoid
+/// redundant 110MB bincode deserialization. If `pre_opened` is Some, uses it
+/// directly (0ms). If None, opens its own (fallback for direct invocation).
 #[allow(clippy::too_many_arguments)]
 pub fn run(
     path: &Path,
@@ -141,6 +145,8 @@ pub fn run(
     full: bool,
     verify: bool,
     commit: bool,
+    pre_opened: Option<&mut crate::live_store::LiveStore>,
+    quiet: bool,
 ) -> Result<CommandOutput, BraidError> {
     // Verify mode: check integrity with structured output
     if verify {
@@ -189,9 +195,16 @@ pub fn run(
         return Ok(CommandOutput { json, agent, human });
     }
 
-    // LIVESTORE-4: Use LiveStore for write-through persistence.
-    // Creates the store once, writes update it in-memory, flush on drop.
-    let mut live = crate::live_store::LiveStore::open(path)?;
+    // L1-SINGLE (INV-PERF-001): Use pre-opened LiveStore if available.
+    // Eliminates ~2-3s bincode deserialization for 110MB store.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = crate::live_store::LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let hashes = live.layout().list_tx_hashes()?;
     let tx_since_harvest = count_txns_since_last_harvest(live.store());
 
@@ -252,10 +265,9 @@ pub fn run(
     );
 
     // Phase 2: UAQ-6 write-through (mutable borrow).
-    // LIVESTORE-4: Uses live.write_tx() instead of layout.write_tx().
-    // No cache invalidation — the in-memory store is updated, dirty flag set,
-    // and store.bin written on flush/drop (INV-STORE-021).
-    {
+    // L1-SINGLE: Skip attention tracking writes in quiet mode to avoid marking
+    // the store dirty (which would trigger 110MB store.bin serialization on drop).
+    if !quiet {
         let budget = braid_kernel::ActivationStrategy::Navigate.max_context_tokens();
         let labels = braid_kernel::extract_block_labels(&projection.context, budget);
         if !labels.is_empty() {

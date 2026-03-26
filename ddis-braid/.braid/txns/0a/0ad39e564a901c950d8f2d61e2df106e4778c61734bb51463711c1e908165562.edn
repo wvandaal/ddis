@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774556165/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 047: PERF-ZERO epic initiated. Three-layer performance bottleneck identified: (1) Store loading 2-3x per command ~4s, (2) 20 O(N) datom scans ~2s, (3) status --deep hangs from O(n³) spectral. Plan: single LiveStore per process, materialize derived state, cache expensive computations."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "79981e283aa6a54418b545ca91d7ba8f7ee921566f510524f08c3e3f952e7c0e" :a :db/doc :v "Session 047: PERF-ZERO epic initiated. Three-layer performance bottleneck identified: (1) Store loading 2-3x per command ~4s, (2) 20 O(N) datom scans ~2s, (3) status --deep hangs from O(n³) spectral. Plan: single LiveStore per process, materialize derived state, cache expensive computations." :op :assert}
+   {:e #blake3 "79981e283aa6a54418b545ca91d7ba8f7ee921566f510524f08c3e3f952e7c0e" :a :db/ident :v :observation/session-047-perf-zero-epic-initiated-three-layer-performan :op :assert}
+   {:e #blake3 "79981e283aa6a54418b545ca91d7ba8f7ee921566f510524f08c3e3f952e7c0e" :a :exploration/body :v "Session 047: PERF-ZERO epic initiated. Three-layer performance bottleneck identified: (1) Store loading 2-3x per command ~4s, (2) 20 O(N) datom scans ~2s, (3) status --deep hangs from O(n³) spectral. Plan: single LiveStore per process, materialize derived state, cache expensive computations." :op :assert}
+   {:e #blake3 "79981e283aa6a54418b545ca91d7ba8f7ee921566f510524f08c3e3f952e7c0e" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "79981e283aa6a54418b545ca91d7ba8f7ee921566f510524f08c3e3f952e7c0e" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "79981e283aa6a54418b545ca91d7ba8f7ee921566f510524f08c3e3f952e7c0e" :a :exploration/content-hash :v #bytes "3fd42f3dd6731f4706cfcc3ad4e28ec8f85a8ca70cc832a854dfee15cb30d392" :op :assert}
+   {:e #blake3 "79981e283aa6a54418b545ca91d7ba8f7ee921566f510524f08c3e3f952e7c0e" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "79981e283aa6a54418b545ca91d7ba8f7ee921566f510524f08c3e3f952e7c0e" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "79981e283aa6a54418b545ca91d7ba8f7ee921566f510524f08c3e3f952e7c0e" :a :exploration/source-session :v #blake3 "25c93b2e4c7393a02ef78089ae7cd4c93aff6c2209e6fac0d7dfbccdd4f8f438" :op :assert}
+ ]}

@@ -161,6 +161,11 @@ impl LiveStore {
         &self.path
     }
 
+    /// Number of known transaction hashes (L1-SINGLE: avoids redundant list_tx_hashes).
+    pub fn known_hash_count(&self) -> usize {
+        self.known_hashes.len()
+    }
+
     /// Whether the in-memory store has unserialized changes.
     pub fn is_dirty(&self) -> bool {
         self.dirty

@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774556754/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :db/ident :v :recon/trace-4d53bd031c15c398 :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-neighborhood :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.error.inv-topology-001" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.topology.inv-topology-003" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.trilateral.adr-trilateral-004" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.witness.inv-witness-009" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-neighbors :v ":impl/braid.src.commands.mod.inv-topology-003" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-neighbors :v ":task/t-66a2c3cf" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-neighbors :v ":task/t-9e123e45" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-neighbors :v ":task/t-ca5930c0" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-neighbors :v ":task/t-dc54f525" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-neighbors :v ":task/t-deee1247" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-refs :v "INV-TOPOLOGY-001" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-refs :v "INV-TOPOLOGY-003" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-refs :v "INV-TOPOLOGY-005" :op :assert}
+   {:e #blake3 "187b9d59c355c7443df80e2c177f60f2431a1a01fea5000ddce14423dcfa69f1" :a :recon/trace-refs :v "INV-WITNESS-009" :op :assert}
+ ]}

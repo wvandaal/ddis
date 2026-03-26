@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774556594/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a345fc95258d89625343a049ddc2be5b06ce8edac30ea4b1a2569ef93319b001" :a :db/ident :v :recon/trace-21e05e17422b52ba :op :assert}
+   {:e #blake3 "a345fc95258d89625343a049ddc2be5b06ce8edac30ea4b1a2569ef93319b001" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "a345fc95258d89625343a049ddc2be5b06ce8edac30ea4b1a2569ef93319b001" :a :recon/trace-neighborhood :v "SEED" :op :assert}
+   {:e #blake3 "a345fc95258d89625343a049ddc2be5b06ce8edac30ea4b1a2569ef93319b001" :a :recon/trace-neighbors :v ":task/t-0745ad40" :op :assert}
+   {:e #blake3 "a345fc95258d89625343a049ddc2be5b06ce8edac30ea4b1a2569ef93319b001" :a :recon/trace-neighbors :v ":task/t-083eff62" :op :assert}
+   {:e #blake3 "a345fc95258d89625343a049ddc2be5b06ce8edac30ea4b1a2569ef93319b001" :a :recon/trace-neighbors :v ":task/t-29c9f672" :op :assert}
+   {:e #blake3 "a345fc95258d89625343a049ddc2be5b06ce8edac30ea4b1a2569ef93319b001" :a :recon/trace-neighbors :v ":task/t-3f0f3ef1" :op :assert}
+   {:e #blake3 "a345fc95258d89625343a049ddc2be5b06ce8edac30ea4b1a2569ef93319b001" :a :recon/trace-neighbors :v ":task/t-7286ed7d" :op :assert}
+   {:e #blake3 "a345fc95258d89625343a049ddc2be5b06ce8edac30ea4b1a2569ef93319b001" :a :recon/trace-neighbors :v ":task/t-827dbbb8" :op :assert}
+   {:e #blake3 "a345fc95258d89625343a049ddc2be5b06ce8edac30ea4b1a2569ef93319b001" :a :recon/trace-neighbors :v ":task/t-856e8769" :op :assert}
+   {:e #blake3 "a345fc95258d89625343a049ddc2be5b06ce8edac30ea4b1a2569ef93319b001" :a :recon/trace-neighbors :v ":task/t-b027b6df" :op :assert}
+   {:e #blake3 "a345fc95258d89625343a049ddc2be5b06ce8edac30ea4b1a2569ef93319b001" :a :recon/trace-neighbors :v ":task/t-be34dcd5" :op :assert}
+   {:e #blake3 "a345fc95258d89625343a049ddc2be5b06ce8edac30ea4b1a2569ef93319b001" :a :recon/trace-neighbors :v ":task/t-c8f7f66a" :op :assert}
+   {:e #blake3 "a345fc95258d89625343a049ddc2be5b06ce8edac30ea4b1a2569ef93319b001" :a :recon/trace-refs :v "INV-SEED-005" :op :assert}
+ ]}

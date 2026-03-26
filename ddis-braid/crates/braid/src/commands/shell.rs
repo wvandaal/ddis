@@ -97,6 +97,8 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 false,
                 false,
                 false,
+                None,
+                false,
             ) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
@@ -191,6 +193,8 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 false,
                 false,
                 false,
+                None,
+                false,
             ) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
@@ -208,6 +212,8 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 false,
                 false,
                 false,
+                false,
+                None,
                 false,
             ) {
                 Ok(co) => DispatchResult::Output(co.human),

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774560176/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Final PERF-ZERO measurement session 047"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6eaf75eaa1141b1e731b6483c437e0bc1210549da14fe7011e056e4fbda6dc4d" :a :db/doc :v "Final PERF-ZERO measurement session 047" :op :assert}
+   {:e #blake3 "6eaf75eaa1141b1e731b6483c437e0bc1210549da14fe7011e056e4fbda6dc4d" :a :db/ident :v :observation/final-perf-zero-measurement-session-047 :op :assert}
+   {:e #blake3 "6eaf75eaa1141b1e731b6483c437e0bc1210549da14fe7011e056e4fbda6dc4d" :a :exploration/body :v "Final PERF-ZERO measurement session 047" :op :assert}
+   {:e #blake3 "6eaf75eaa1141b1e731b6483c437e0bc1210549da14fe7011e056e4fbda6dc4d" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "6eaf75eaa1141b1e731b6483c437e0bc1210549da14fe7011e056e4fbda6dc4d" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "6eaf75eaa1141b1e731b6483c437e0bc1210549da14fe7011e056e4fbda6dc4d" :a :exploration/content-hash :v #bytes "1f5468f4185a25591683ca5b69008be3acfd0ead64895322989578df27652e0d" :op :assert}
+   {:e #blake3 "6eaf75eaa1141b1e731b6483c437e0bc1210549da14fe7011e056e4fbda6dc4d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "6eaf75eaa1141b1e731b6483c437e0bc1210549da14fe7011e056e4fbda6dc4d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "6eaf75eaa1141b1e731b6483c437e0bc1210549da14fe7011e056e4fbda6dc4d" :a :exploration/source-session :v #blake3 "c2cef5c4e2e495a91e5506387541671a63ea1f3f65e518f8cb3228a5bbc0b527" :op :assert}
+ ]}

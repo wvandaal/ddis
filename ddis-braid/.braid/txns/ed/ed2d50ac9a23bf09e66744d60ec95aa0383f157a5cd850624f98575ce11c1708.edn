@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774556271/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-PERF-001 \"Sub-Second Universal Latency\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0a8a1d86836a6cb51124bf3390fe76c01a7ce96f0963499bd9eda5f96a4eb5ca" :a :db/doc :v "Any command in {status, status --deep, observe, task list, task ready, harvest --commit, seed --inject, query} exceeding 1000ms on a store with <= 500K datoms" :op :assert}
+   {:e #blake3 "6bd5138542e0b1e959206fcf3ab979a32dd5921ee7a4be0bd752a4b433a0cec0" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "6bd5138542e0b1e959206fcf3ab979a32dd5921ee7a4be0bd752a4b433a0cec0" :a :comonad/falsification :v #blake3 "0a8a1d86836a6cb51124bf3390fe76c01a7ce96f0963499bd9eda5f96a4eb5ca" :op :assert}
+   {:e #blake3 "6bd5138542e0b1e959206fcf3ab979a32dd5921ee7a4be0bd752a4b433a0cec0" :a :db/doc :v "Sub-Second Universal Latency" :op :assert}
+   {:e #blake3 "6bd5138542e0b1e959206fcf3ab979a32dd5921ee7a4be0bd752a4b433a0cec0" :a :db/ident :v :spec/inv-perf-001 :op :assert}
+   {:e #blake3 "6bd5138542e0b1e959206fcf3ab979a32dd5921ee7a4be0bd752a4b433a0cec0" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "6bd5138542e0b1e959206fcf3ab979a32dd5921ee7a4be0bd752a4b433a0cec0" :a :spec/falsification :v "Any command in {status, status --deep, observe, task list, task ready, harvest --commit, seed --inject, query} exceeding 1000ms on a store with <= 500K datoms" :op :assert}
+   {:e #blake3 "6bd5138542e0b1e959206fcf3ab979a32dd5921ee7a4be0bd752a4b433a0cec0" :a :spec/id :v "INV-PERF-001" :op :assert}
+   {:e #blake3 "6bd5138542e0b1e959206fcf3ab979a32dd5921ee7a4be0bd752a4b433a0cec0" :a :spec/namespace :v :spec.ns/PERF :op :assert}
+   {:e #blake3 "6bd5138542e0b1e959206fcf3ab979a32dd5921ee7a4be0bd752a4b433a0cec0" :a :spec/statement :v "All CLI commands complete in < 1000ms wall clock on stores with <= 500K datoms" :op :assert}
+   {:e #blake3 "baa31ac83c894dea9a11bd16e69909a77051b601c61a3b6646c209a11fe461c6" :a :db/ident :v :task/t-3c24eb33 :op :assert}
+   {:e #blake3 "baa31ac83c894dea9a11bd16e69909a77051b601c61a3b6646c209a11fe461c6" :a :task/created-at :v 1774556269 :op :assert}
+   {:e #blake3 "baa31ac83c894dea9a11bd16e69909a77051b601c61a3b6646c209a11fe461c6" :a :task/id :v "t-3c24eb33" :op :assert}
+   {:e #blake3 "baa31ac83c894dea9a11bd16e69909a77051b601c61a3b6646c209a11fe461c6" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "baa31ac83c894dea9a11bd16e69909a77051b601c61a3b6646c209a11fe461c6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "baa31ac83c894dea9a11bd16e69909a77051b601c61a3b6646c209a11fe461c6" :a :task/title :v "Implement INV-PERF-001: Sub-Second Universal Latency" :op :assert}
+   {:e #blake3 "baa31ac83c894dea9a11bd16e69909a77051b601c61a3b6646c209a11fe461c6" :a :task/traces-to :v #blake3 "6bd5138542e0b1e959206fcf3ab979a32dd5921ee7a4be0bd752a4b433a0cec0" :op :assert}
+   {:e #blake3 "baa31ac83c894dea9a11bd16e69909a77051b601c61a3b6646c209a11fe461c6" :a :task/type :v :task.type/task :op :assert}
+ ]}

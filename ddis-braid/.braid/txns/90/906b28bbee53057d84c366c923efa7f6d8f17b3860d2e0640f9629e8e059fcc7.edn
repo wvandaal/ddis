@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774556310/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: L2-METHODOLOGY-GAPS: Eliminate O(N) cascade in methodology_gaps(). crystallization_candidates + witness_gaps + spec_concentration all do full scans. Use attribute_index lookups. FILE: crates/braid-kernel/src/methodology.rs:1202"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "830063d905bb0d29fc22b554794d4bd6e5b6423d0c3e5cbc3ac33b32e0c1f934" :a :db/ident :v :task/t-361146ea :op :assert}
+   {:e #blake3 "830063d905bb0d29fc22b554794d4bd6e5b6423d0c3e5cbc3ac33b32e0c1f934" :a :task/created-at :v 1774556309 :op :assert}
+   {:e #blake3 "830063d905bb0d29fc22b554794d4bd6e5b6423d0c3e5cbc3ac33b32e0c1f934" :a :task/files :v "crates/braid-kernel/src/methodology.rs:1202" :op :assert}
+   {:e #blake3 "830063d905bb0d29fc22b554794d4bd6e5b6423d0c3e5cbc3ac33b32e0c1f934" :a :task/id :v "t-361146ea" :op :assert}
+   {:e #blake3 "830063d905bb0d29fc22b554794d4bd6e5b6423d0c3e5cbc3ac33b32e0c1f934" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "830063d905bb0d29fc22b554794d4bd6e5b6423d0c3e5cbc3ac33b32e0c1f934" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "830063d905bb0d29fc22b554794d4bd6e5b6423d0c3e5cbc3ac33b32e0c1f934" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "830063d905bb0d29fc22b554794d4bd6e5b6423d0c3e5cbc3ac33b32e0c1f934" :a :task/title :v "L2-METHODOLOGY-GAPS: Eliminate O(N) cascade in methodology_gaps(). crystallization_candidates + witness_gaps + spec_concentration all do full scans. Use attribute_index lookups. FILE: crates/braid-kernel/src/methodology.rs:1202" :op :assert}
+   {:e #blake3 "830063d905bb0d29fc22b554794d4bd6e5b6423d0c3e5cbc3ac33b32e0c1f934" :a :task/title-l0 :v "L2-METHODOLOGY-GAPS" :op :assert}
+   {:e #blake3 "830063d905bb0d29fc22b554794d4bd6e5b6423d0c3e5cbc3ac33b32e0c1f934" :a :task/title-l1 :v "L2-METHODOLOGY-GAPS: Eliminate O(N) cascade in methodology_gaps()" :op :assert}
+   {:e #blake3 "830063d905bb0d29fc22b554794d4bd6e5b6423d0c3e5cbc3ac33b32e0c1f934" :a :task/type :v :task.type/task :op :assert}
+ ]}

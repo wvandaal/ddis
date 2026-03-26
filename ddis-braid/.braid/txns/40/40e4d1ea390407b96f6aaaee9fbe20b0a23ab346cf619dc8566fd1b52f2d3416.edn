@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774556626/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "HYGIENE-2: 8 clippy errors fail CI gate [LOW, from FULL_AUDIT F-ERR-003]. cargo clippy --all-targets -- -D warnings produces 8 errors: routing.rs:2819 unused import, concept.rs:129,1911,1979,3608,4827 style issues, routing.rs:808 identical if/else, seed.rs:2624 manual clamp. All trivial. SOLUTION: Fix all 8 in one commit. VERIFICATION: cargo clippy --all-targets -- -D warnings exits 0. DEPENDENCIES: None. 15 minutes. Should be first task in any session (unblocks CI gate)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "686b43a318b9d716b2ea96af9f154ee4efebb3ff21ac39a477ecc0d67d716fb5" :a :db/ident :v :task/t-0114330f :op :assert}
+   {:e #blake3 "686b43a318b9d716b2ea96af9f154ee4efebb3ff21ac39a477ecc0d67d716fb5" :a :task/body :v "HYGIENE-2: 8 clippy errors fail CI gate [LOW, from FULL_AUDIT F-ERR-003]. cargo clippy --all-targets -- -D warnings produces 8 errors: routing.rs:2819 unused import, concept.rs:129,1911,1979,3608,4827 style issues, routing.rs:808 identical if/else, seed.rs:2624 manual clamp. All trivial. SOLUTION: Fix all 8 in one commit. VERIFICATION: cargo clippy --all-targets -- -D warnings exits 0. DEPENDENCIES: None. 15 minutes. Should be first task in any session (unblocks CI gate)." :op :assert}
+   {:e #blake3 "686b43a318b9d716b2ea96af9f154ee4efebb3ff21ac39a477ecc0d67d716fb5" :a :task/created-at :v 1774556625 :op :assert}
+   {:e #blake3 "686b43a318b9d716b2ea96af9f154ee4efebb3ff21ac39a477ecc0d67d716fb5" :a :task/id :v "t-0114330f" :op :assert}
+   {:e #blake3 "686b43a318b9d716b2ea96af9f154ee4efebb3ff21ac39a477ecc0d67d716fb5" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "686b43a318b9d716b2ea96af9f154ee4efebb3ff21ac39a477ecc0d67d716fb5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "686b43a318b9d716b2ea96af9f154ee4efebb3ff21ac39a477ecc0d67d716fb5" :a :task/title :v "HYGIENE-2: 8 clippy errors fail CI gate [LOW, from FULL_AUDIT F-ERR-003]. cargo" :op :assert}
+   {:e #blake3 "686b43a318b9d716b2ea96af9f154ee4efebb3ff21ac39a477ecc0d67d716fb5" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "6f10efa289fc0137babd777cef0244af698c9e7bc8c14c28a680aea4977b0b4c" :a :db/doc :v "HYGIENE-2: 8 clippy errors fail CI gate [LOW, from FULL_AUDIT F-ERR-003]. cargo clippy --all-targets -- -D warnings produces 8 errors: routing.rs:2819 unused import, concept.rs:129,1911,1979,3608,4827 style issues, routing.rs:808 identical if/else, seed.rs:2624 manual clamp. All trivial. SOLUTION: Fix all 8 in one commit. VERIFICATION: cargo clippy --all-targets -- -D warnings exits 0. DEPENDENCIES: None. 15 minutes. Should be first task in any session (unblocks CI gate)." :op :assert}
+   {:e #blake3 "6f10efa289fc0137babd777cef0244af698c9e7bc8c14c28a680aea4977b0b4c" :a :db/ident :v :observation/hygiene-2-8-clippy-errors-fail-ci-gate-low-from-full-audi :op :assert}
+   {:e #blake3 "6f10efa289fc0137babd777cef0244af698c9e7bc8c14c28a680aea4977b0b4c" :a :exploration/body :v "HYGIENE-2: 8 clippy errors fail CI gate [LOW, from FULL_AUDIT F-ERR-003]. cargo clippy --all-targets -- -D warnings produces 8 errors: routing.rs:2819 unused import, concept.rs:129,1911,1979,3608,4827 style issues, routing.rs:808 identical if/else, seed.rs:2624 manual clamp. All trivial. SOLUTION: Fix all 8 in one commit. VERIFICATION: cargo clippy --all-targets -- -D warnings exits 0. DEPENDENCIES: None. 15 minutes. Should be first task in any session (unblocks CI gate)." :op :assert}
+   {:e #blake3 "6f10efa289fc0137babd777cef0244af698c9e7bc8c14c28a680aea4977b0b4c" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "6f10efa289fc0137babd777cef0244af698c9e7bc8c14c28a680aea4977b0b4c" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "6f10efa289fc0137babd777cef0244af698c9e7bc8c14c28a680aea4977b0b4c" :a :exploration/content-hash :v #bytes "756b0887049a625067ac84513d5f38f27bb8679cb2e76ba81afe9c070eff2126" :op :assert}
+   {:e #blake3 "6f10efa289fc0137babd777cef0244af698c9e7bc8c14c28a680aea4977b0b4c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "6f10efa289fc0137babd777cef0244af698c9e7bc8c14c28a680aea4977b0b4c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "6f10efa289fc0137babd777cef0244af698c9e7bc8c14c28a680aea4977b0b4c" :a :exploration/source-session :v #blake3 "25c93b2e4c7393a02ef78089ae7cd4c93aff6c2209e6fac0d7dfbccdd4f8f438" :op :assert}
+ ]}

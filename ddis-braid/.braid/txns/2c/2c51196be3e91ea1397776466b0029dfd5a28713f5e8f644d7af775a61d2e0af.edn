@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774558404/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :db/ident :v :recon/trace-89191bf12c69c5d5 :op :assert}
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :recon/trace-neighborhood :v "LAYOUT" :op :assert}
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.agent_md.inv-store-001" :op :assert}
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.layout.inv-layout-002" :op :assert}
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.layout.neg-layout-001" :op :assert}
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.promote.neg-store-001" :op :assert}
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.store.neg-store-001" :op :assert}
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.task.neg-store-001" :op :assert}
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.neg-store-001" :op :assert}
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.stateright_model.neg-store-001" :op :assert}
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :recon/trace-neighbors :v ":impl/braid.src.layout.inv-layout-002" :op :assert}
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :recon/trace-neighbors :v ":task/t-81aa964b" :op :assert}
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :recon/trace-refs :v "NEG-LAYOUT-001" :op :assert}
+   {:e #blake3 "779c8b4e9b0d7b22a80561497a37b0cfefabec45e495d8519b213d30148372c6" :a :recon/trace-refs :v "NEG-STORE-001" :op :assert}
+ ]}

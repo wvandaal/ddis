@@ -973,11 +973,14 @@ pub fn task_summary(store: &Store, entity: EntityId) -> Option<TaskSummary> {
 
 /// Find all task entities in the store.
 pub fn all_tasks(store: &Store) -> Vec<TaskSummary> {
+    // L2-ALL-TASKS (INV-PERF-001): Use attribute_datoms index instead of full scan.
+    // O(T) where T = task count, not O(N) where N = all datoms.
+    let attr = Attribute::from_keyword(":task/id");
     let mut seen = BTreeSet::new();
     let mut tasks = Vec::new();
 
-    for d in store.datoms() {
-        if d.attribute.as_str() == ":task/id" && d.op == Op::Assert && seen.insert(d.entity) {
+    for d in store.attribute_datoms(&attr) {
+        if d.op == Op::Assert && seen.insert(d.entity) {
             if let Some(summary) = task_summary(store, d.entity) {
                 tasks.push(summary);
             }

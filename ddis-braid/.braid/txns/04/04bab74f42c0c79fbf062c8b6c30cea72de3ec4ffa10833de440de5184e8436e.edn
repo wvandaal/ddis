@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774556300/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: L2-TELEMETRY: Eliminate 10 O(N) scans in telemetry_from_store(). Use attribute_datoms() instead of datoms(). Cache last_harvest_wall_time in MaterializedViews. FILE: crates/braid-kernel/src/methodology.rs:352"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :db/ident :v :task/t-889db349 :op :assert}
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :task/created-at :v 1774556299 :op :assert}
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :task/files :v "crates/braid-kernel/src/methodology.rs:352" :op :assert}
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :task/id :v "t-889db349" :op :assert}
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :task/title :v "L2-TELEMETRY: Eliminate 10 O(N) scans in telemetry_from_store(). Use attribute_datoms() instead of datoms(). Cache last_harvest_wall_time in MaterializedViews. FILE: crates/braid-kernel/src/methodology.rs:352" :op :assert}
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :task/title-l0 :v "L2-TELEMETRY" :op :assert}
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :task/title-l1 :v "L2-TELEMETRY: Eliminate 10 O(N) scans in telemetry_from_store()" :op :assert}
+   {:e #blake3 "acafcf308b92a317ff4f54ef39a4f562ea08abff8bfd2a6bc617619277c2d780" :a :task/type :v :task.type/task :op :assert}
+ ]}

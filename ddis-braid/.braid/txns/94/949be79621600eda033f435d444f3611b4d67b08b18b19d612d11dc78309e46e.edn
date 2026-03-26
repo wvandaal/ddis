@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774556179/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PERF Layer 1: LiveStore opened 2-3 times per command. Session detect (main.rs:110) opens, writes session txn, drops (flushes 110MB). Command (e.g. status.rs:194) opens again. Post-command (main.rs:185) opens third time. Each deserialize is ~2-3s for 110MB bincode. Fix: single LiveStore per process lifetime."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d569a064d798f07d4d5ac43bccbed8d1cb9fc4136bb38f67dc812f131fdc8893" :a :db/doc :v "PERF Layer 1: LiveStore opened 2-3 times per command. Session detect (main.rs:110) opens, writes session txn, drops (flushes 110MB). Command (e.g. status.rs:194) opens again. Post-command (main.rs:185) opens third time. Each deserialize is ~2-3s for 110MB bincode. Fix: single LiveStore per process lifetime." :op :assert}
+   {:e #blake3 "d569a064d798f07d4d5ac43bccbed8d1cb9fc4136bb38f67dc812f131fdc8893" :a :db/ident :v :observation/perf-layer-1-livestore-opened-2-3-times-per-command-sessio :op :assert}
+   {:e #blake3 "d569a064d798f07d4d5ac43bccbed8d1cb9fc4136bb38f67dc812f131fdc8893" :a :exploration/body :v "PERF Layer 1: LiveStore opened 2-3 times per command. Session detect (main.rs:110) opens, writes session txn, drops (flushes 110MB). Command (e.g. status.rs:194) opens again. Post-command (main.rs:185) opens third time. Each deserialize is ~2-3s for 110MB bincode. Fix: single LiveStore per process lifetime." :op :assert}
+   {:e #blake3 "d569a064d798f07d4d5ac43bccbed8d1cb9fc4136bb38f67dc812f131fdc8893" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "d569a064d798f07d4d5ac43bccbed8d1cb9fc4136bb38f67dc812f131fdc8893" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "d569a064d798f07d4d5ac43bccbed8d1cb9fc4136bb38f67dc812f131fdc8893" :a :exploration/content-hash :v #bytes "b55c6f3ca723fdac6ebb27c18a2e38616007480038a195fd4715a063a65ea0dd" :op :assert}
+   {:e #blake3 "d569a064d798f07d4d5ac43bccbed8d1cb9fc4136bb38f67dc812f131fdc8893" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d569a064d798f07d4d5ac43bccbed8d1cb9fc4136bb38f67dc812f131fdc8893" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d569a064d798f07d4d5ac43bccbed8d1cb9fc4136bb38f67dc812f131fdc8893" :a :exploration/source-session :v #blake3 "25c93b2e4c7393a02ef78089ae7cd4c93aff6c2209e6fac0d7dfbccdd4f8f438" :op :assert}
+ ]}

@@ -1,0 +1,13 @@
+{:tx/id #hlc "1774555069/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "45f65f825a0346723a1f678699710c8ce127e212c250e8bb9ee881fcbf12856d" :a :db/ident :v :recon/trace-276ae48b14a78829 :op :assert}
+   {:e #blake3 "45f65f825a0346723a1f678699710c8ce127e212c250e8bb9ee881fcbf12856d" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "45f65f825a0346723a1f678699710c8ce127e212c250e8bb9ee881fcbf12856d" :a :recon/trace-neighborhood :v "SIGNAL" :op :assert}
+   {:e #blake3 "45f65f825a0346723a1f678699710c8ce127e212c250e8bb9ee881fcbf12856d" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.bilateral.inv-signal-002" :op :assert}
+   {:e #blake3 "45f65f825a0346723a1f678699710c8ce127e212c250e8bb9ee881fcbf12856d" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.signal.inv-signal-002" :op :assert}
+   {:e #blake3 "45f65f825a0346723a1f678699710c8ce127e212c250e8bb9ee881fcbf12856d" :a :recon/trace-refs :v "INV-SIGNAL-002" :op :assert}
+ ]}
