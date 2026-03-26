@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774531748/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P0-SCHEMA: Guard Schema::from_datoms in apply_datoms — skip rebuild when no :db/* attributes in batch"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :db/ident :v :task/t-ea070fea :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/created-at :v 1774531747 :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/description :v "CONTEXT: Schema::from_datoms is called inside every Store::apply_datoms (store.rs:1183), triggering a full O(N=105K) scan to rebuild schema even when the transaction contains zero :db/* attributes. 99% of transactions don't touch schema. This is the dominant write-path cost.\n\nAPPROACH: Before calling Schema::from_datoms, check if any datom in the incoming batch has attribute.namespace() == \"db\". If none do, skip the schema rebuild entirely. The schema from the prior state is still valid.\n\nACCEPTANCE: (A) apply_datoms with non-schema datoms does NOT call Schema::from_datoms (verify via timing or counter). (B) apply_datoms with schema datoms DOES rebuild (correctness preserved). (C) All 2040+ existing tests pass unchanged. (D) Benchmark: LiveStore.write_tx latency decreases measurably.\n\nFILE: crates/braid-kernel/src/store.rs (line ~1183)\nDEPENDS-ON: nothing (Wave 0)" :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/id :v "t-ea070fea" :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/title :v "P0-SCHEMA: Guard Schema::from_datoms in apply_datoms — skip rebuild when no :db/* attributes in batch" :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/title-l0 :v "P0-SCHEMA" :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/title-l1 :v "P0-SCHEMA: Guard Schema::from_datoms in apply_datoms — skip rebuild when no..." :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/traces-to :v #blake3 "fd00a7254b7645334d1058a6047b9dcdc3b3dfbc8f5bbd715971933e1f04f7af" :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/type :v :task.type/task :op :assert}
+ ]}

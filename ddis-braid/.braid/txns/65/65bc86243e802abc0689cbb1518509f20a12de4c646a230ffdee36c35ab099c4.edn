@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774532026/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P2-TASKS-TEST: Tests for single all_tasks computation in StatusSnapshot"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "97896be69cbcf0f3dbcb9d3ba7d302995dcfcd294d9976794bfe8140c235d2b6" :a :db/ident :v :task/t-432a6583 :op :assert}
+   {:e #blake3 "97896be69cbcf0f3dbcb9d3ba7d302995dcfcd294d9976794bfe8140c235d2b6" :a :task/created-at :v 1774532025 :op :assert}
+   {:e #blake3 "97896be69cbcf0f3dbcb9d3ba7d302995dcfcd294d9976794bfe8140c235d2b6" :a :task/description :v "UNIT TESTS:\n1. test_status_snapshot_tasks_populated: StatusSnapshot::compute_with_layout populates tasks field. Assert non-empty and matches all_tasks(store).len().\n2. test_task_counts_from_cached: task_counts_from_tasks(&snapshot.tasks) == task_counts(store). Verifies the cached path produces identical results.\n3. test_ready_set_from_cached: compute_ready_set_from_tasks(&snapshot.tasks) == compute_ready_set(store).\n\nE2E:\n4. Modify e2e_performance_guard.sh to time braid status and assert < 3s (intermediate target before full materialization).\n\nFAILURE DIAGNOSTICS: If cached vs direct results diverge, diff the task ID sets to identify which tasks are missing/extra.\n\nDEPENDS-ON: P2-TASKS" :op :assert}
+   {:e #blake3 "97896be69cbcf0f3dbcb9d3ba7d302995dcfcd294d9976794bfe8140c235d2b6" :a :task/id :v "t-432a6583" :op :assert}
+   {:e #blake3 "97896be69cbcf0f3dbcb9d3ba7d302995dcfcd294d9976794bfe8140c235d2b6" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "97896be69cbcf0f3dbcb9d3ba7d302995dcfcd294d9976794bfe8140c235d2b6" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "97896be69cbcf0f3dbcb9d3ba7d302995dcfcd294d9976794bfe8140c235d2b6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "97896be69cbcf0f3dbcb9d3ba7d302995dcfcd294d9976794bfe8140c235d2b6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "97896be69cbcf0f3dbcb9d3ba7d302995dcfcd294d9976794bfe8140c235d2b6" :a :task/title :v "P2-TASKS-TEST: Tests for single all_tasks computation in StatusSnapshot" :op :assert}
+   {:e #blake3 "97896be69cbcf0f3dbcb9d3ba7d302995dcfcd294d9976794bfe8140c235d2b6" :a :task/title-l0 :v "P2-TASKS-TEST" :op :assert}
+   {:e #blake3 "97896be69cbcf0f3dbcb9d3ba7d302995dcfcd294d9976794bfe8140c235d2b6" :a :task/title-l1 :v "P2-TASKS-TEST: Tests for single all_tasks computation in StatusSnapshot" :op :assert}
+   {:e #blake3 "97896be69cbcf0f3dbcb9d3ba7d302995dcfcd294d9976794bfe8140c235d2b6" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "97896be69cbcf0f3dbcb9d3ba7d302995dcfcd294d9976794bfe8140c235d2b6" :a :task/type :v :task.type/task :op :assert}
+ ]}

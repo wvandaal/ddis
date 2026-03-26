@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774502995/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-d23ba87d"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/close-reason :v "Already complete: model2vec wired via resolve_embedder (Session 024-025), EMBED-CONSISTENCY re-embedding live, online threshold calibration live. Model at ~/.braid/models/potion-base-8M/ auto-discovered. Verified working in Session 046 E2E." :op :assert}
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/closed-at :v 1774502994 :op :assert}
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "6778be24a3507ef4a78ecb0439e6e51752ab7ba609eefb85bc47fd5a440c0b57" :a :task/status :v :task.status/closed :op :assert}
+ ]}

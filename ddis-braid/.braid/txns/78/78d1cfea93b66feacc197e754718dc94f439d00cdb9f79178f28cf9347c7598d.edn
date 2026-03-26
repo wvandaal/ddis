@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774531825/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P3-TELEMETRY: Merge 4 datom scans in telemetry_from_store into single pass"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9479f3319eb1ddf41d391d1ed6b347229f8ab9c26b52d12ea54b60ba8ea64db3" :a :db/ident :v :task/t-5fa04c36 :op :assert}
+   {:e #blake3 "9479f3319eb1ddf41d391d1ed6b347229f8ab9c26b52d12ea54b60ba8ea64db3" :a :task/created-at :v 1774531824 :op :assert}
+   {:e #blake3 "9479f3319eb1ddf41d391d1ed6b347229f8ab9c26b52d12ea54b60ba8ea64db3" :a :task/description :v "CONTEXT: telemetry_from_store in methodology.rs does 4 separate store.datoms() full scans (lines 352-400) with different attribute filters: session wall times, spec entity count, tasks with spec refs, count_txns_since_last_harvest. Additionally, count_txns_since_last_harvest is called SEPARATELY in status.rs:196. Total: 5 redundant O(N) scans = 525K iterations.\n\nAPPROACH: Rewrite telemetry_from_store as a single-pass collector. Iterate datoms() once, check attribute against all 4 conditions (session/wall, spec/element-type, task/traces-to, tx/provenance-type), accumulate all counters simultaneously. Return SessionTelemetry with all fields populated. Remove the separate count_txns_since_last_harvest call from status.rs — read it from telemetry instead.\n\nACCEPTANCE: (A) telemetry_from_store returns identical SessionTelemetry before/after. (B) Only 1 store.datoms() call in the function (grep verification). (C) Benchmark: 4-5x speedup for telemetry computation.\n\nFILE: crates/braid-kernel/src/methodology.rs, crates/braid/src/commands/status.rs (remove duplicate call)\nDEPENDS-ON: nothing (Wave 1)." :op :assert}
+   {:e #blake3 "9479f3319eb1ddf41d391d1ed6b347229f8ab9c26b52d12ea54b60ba8ea64db3" :a :task/id :v "t-5fa04c36" :op :assert}
+   {:e #blake3 "9479f3319eb1ddf41d391d1ed6b347229f8ab9c26b52d12ea54b60ba8ea64db3" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "9479f3319eb1ddf41d391d1ed6b347229f8ab9c26b52d12ea54b60ba8ea64db3" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "9479f3319eb1ddf41d391d1ed6b347229f8ab9c26b52d12ea54b60ba8ea64db3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9479f3319eb1ddf41d391d1ed6b347229f8ab9c26b52d12ea54b60ba8ea64db3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9479f3319eb1ddf41d391d1ed6b347229f8ab9c26b52d12ea54b60ba8ea64db3" :a :task/title :v "P3-TELEMETRY: Merge 4 datom scans in telemetry_from_store into single pass" :op :assert}
+   {:e #blake3 "9479f3319eb1ddf41d391d1ed6b347229f8ab9c26b52d12ea54b60ba8ea64db3" :a :task/title-l0 :v "P3-TELEMETRY" :op :assert}
+   {:e #blake3 "9479f3319eb1ddf41d391d1ed6b347229f8ab9c26b52d12ea54b60ba8ea64db3" :a :task/title-l1 :v "P3-TELEMETRY: Merge 4 datom scans in telemetry_from_store into single pass" :op :assert}
+   {:e #blake3 "9479f3319eb1ddf41d391d1ed6b347229f8ab9c26b52d12ea54b60ba8ea64db3" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "9479f3319eb1ddf41d391d1ed6b347229f8ab9c26b52d12ea54b60ba8ea64db3" :a :task/type :v :task.type/task :op :assert}
+ ]}

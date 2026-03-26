@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774531800/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P2-TASKS: Compute all_tasks once in StatusSnapshot — eliminate 4 redundant O(N) scans"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "08fa5aec0cc20d562ac30666f07d066fb227998b09992696f195a53945a49825" :a :db/ident :v :task/t-0c1ef3e7 :op :assert}
+   {:e #blake3 "08fa5aec0cc20d562ac30666f07d066fb227998b09992696f195a53945a49825" :a :task/created-at :v 1774531799 :op :assert}
+   {:e #blake3 "08fa5aec0cc20d562ac30666f07d066fb227998b09992696f195a53945a49825" :a :task/description :v "CONTEXT: all_tasks(store) is called 4 separate times per braid status: task_counts(), compute_ready_set(), methodology_gaps(), compute_routing_with_calibration(). Each call scans 105K datoms + iterates ~1400 tasks. Total: ~500K iterations wasted on redundancy.\n\nAPPROACH: Add tasks: Vec<TaskSummary> field to StatusSnapshot. Compute all_tasks() once in StatusSnapshot::compute_with_layout(). Pass &snapshot.tasks to task_counts (trivial group-by), compute_ready_set (takes slice), methodology_gaps (takes slice), and compute_routing_with_calibration (takes slice). Each consumer function gains a _from_tasks variant that accepts pre-computed tasks instead of calling all_tasks internally.\n\nACCEPTANCE: (A) all_tasks called exactly 1 time per status invocation (verify via debug counter or single grep showing only StatusSnapshot calls it). (B) All task-dependent outputs identical before/after. (C) Benchmark: ~400K fewer datom iterations per status.\n\nFILE: crates/braid/src/commands/status.rs (StatusSnapshot), crates/braid-kernel/src/task.rs, crates/braid-kernel/src/methodology.rs, crates/braid-kernel/src/routing.rs\nDEPENDS-ON: nothing (Wave 1)." :op :assert}
+   {:e #blake3 "08fa5aec0cc20d562ac30666f07d066fb227998b09992696f195a53945a49825" :a :task/id :v "t-0c1ef3e7" :op :assert}
+   {:e #blake3 "08fa5aec0cc20d562ac30666f07d066fb227998b09992696f195a53945a49825" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "08fa5aec0cc20d562ac30666f07d066fb227998b09992696f195a53945a49825" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "08fa5aec0cc20d562ac30666f07d066fb227998b09992696f195a53945a49825" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "08fa5aec0cc20d562ac30666f07d066fb227998b09992696f195a53945a49825" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "08fa5aec0cc20d562ac30666f07d066fb227998b09992696f195a53945a49825" :a :task/title :v "P2-TASKS: Compute all_tasks once in StatusSnapshot — eliminate 4 redundant O(N) scans" :op :assert}
+   {:e #blake3 "08fa5aec0cc20d562ac30666f07d066fb227998b09992696f195a53945a49825" :a :task/title-l0 :v "P2-TASKS" :op :assert}
+   {:e #blake3 "08fa5aec0cc20d562ac30666f07d066fb227998b09992696f195a53945a49825" :a :task/title-l1 :v "P2-TASKS: Compute all_tasks once in StatusSnapshot — eliminate 4 redundant..." :op :assert}
+   {:e #blake3 "08fa5aec0cc20d562ac30666f07d066fb227998b09992696f195a53945a49825" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "08fa5aec0cc20d562ac30666f07d066fb227998b09992696f195a53945a49825" :a :task/type :v :task.type/task :op :assert}
+ ]}

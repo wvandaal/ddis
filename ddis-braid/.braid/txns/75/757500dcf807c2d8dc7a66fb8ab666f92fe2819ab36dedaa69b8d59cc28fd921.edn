@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774531989/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dc6788bd13d929589dfca665ad809042a39cf85bb574b6e6f45441b07a8190a7" :a :db/ident :v :recon/trace-88aded5d5905ba86 :op :assert}
+   {:e #blake3 "dc6788bd13d929589dfca665ad809042a39cf85bb574b6e6f45441b07a8190a7" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "dc6788bd13d929589dfca665ad809042a39cf85bb574b6e6f45441b07a8190a7" :a :recon/trace-neighborhood :v "STORE" :op :assert}
+   {:e #blake3 "dc6788bd13d929589dfca665ad809042a39cf85bb574b6e6f45441b07a8190a7" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.query.evaluator.inv-store-012" :op :assert}
+   {:e #blake3 "dc6788bd13d929589dfca665ad809042a39cf85bb574b6e6f45441b07a8190a7" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-store-012" :op :assert}
+   {:e #blake3 "dc6788bd13d929589dfca665ad809042a39cf85bb574b6e6f45441b07a8190a7" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.store.inv-store-012" :op :assert}
+   {:e #blake3 "dc6788bd13d929589dfca665ad809042a39cf85bb574b6e6f45441b07a8190a7" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.task.inv-store-012" :op :assert}
+   {:e #blake3 "dc6788bd13d929589dfca665ad809042a39cf85bb574b6e6f45441b07a8190a7" :a :recon/trace-neighbors :v ":task/t-0ce58460" :op :assert}
+   {:e #blake3 "dc6788bd13d929589dfca665ad809042a39cf85bb574b6e6f45441b07a8190a7" :a :recon/trace-neighbors :v ":task/t-28e0b1aa" :op :assert}
+   {:e #blake3 "dc6788bd13d929589dfca665ad809042a39cf85bb574b6e6f45441b07a8190a7" :a :recon/trace-neighbors :v ":task/t-2dc2e39d" :op :assert}
+   {:e #blake3 "dc6788bd13d929589dfca665ad809042a39cf85bb574b6e6f45441b07a8190a7" :a :recon/trace-neighbors :v ":task/t-7714a430" :op :assert}
+   {:e #blake3 "dc6788bd13d929589dfca665ad809042a39cf85bb574b6e6f45441b07a8190a7" :a :recon/trace-neighbors :v ":task/t-c2bbcda9" :op :assert}
+   {:e #blake3 "dc6788bd13d929589dfca665ad809042a39cf85bb574b6e6f45441b07a8190a7" :a :recon/trace-refs :v "INV-STORE-012" :op :assert}
+ ]}

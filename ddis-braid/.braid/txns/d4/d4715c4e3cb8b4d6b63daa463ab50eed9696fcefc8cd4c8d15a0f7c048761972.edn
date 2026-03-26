@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774531883/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P9-DOUBLE-LOAD: Eliminate double LiveStore::open in main.rs — single store handle per CLI invocation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "78a168fb8116853428824082776e92da27eba9cb81d8547d0578b17cadbbeb81" :a :db/ident :v :task/t-9937a0ff :op :assert}
+   {:e #blake3 "78a168fb8116853428824082776e92da27eba9cb81d8547d0578b17cadbbeb81" :a :task/created-at :v 1774531882 :op :assert}
+   {:e #blake3 "78a168fb8116853428824082776e92da27eba9cb81d8547d0578b17cadbbeb81" :a :task/description :v "CONTEXT: main.rs opens LiveStore TWICE per command: Phase 1 (session auto-detect, writes session start tx, drops), Phase 3 (post-command hooks for RFL-2). Each open deserializes 92MB store.bin = ~300ms. Double open = guaranteed 600ms overhead per command.\n\nAPPROACH: Open LiveStore once at the top of main, pass a mutable reference through session auto-detect, command dispatch, and post-command hooks. The session auto-detect and RFL-2 hooks reuse the same handle. This requires threading LiveStore through the command dispatch, which means command functions take &mut LiveStore instead of opening their own. Moderate refactor but eliminates 300ms per command.\n\nACCEPTANCE: (A) Only 1 LiveStore::open() call per CLI invocation. (B) Session auto-detect and post-command hooks both see the same store state. (C) All E2E tests pass. (D) Benchmark: ~300ms improvement per command.\n\nFILE: crates/braid/src/main.rs, command dispatch in crates/braid/src/commands/mod.rs\nDEPENDS-ON: nothing directly, but benefits compound with P4-DAEMON (daemon makes this less critical). Wave 2." :op :assert}
+   {:e #blake3 "78a168fb8116853428824082776e92da27eba9cb81d8547d0578b17cadbbeb81" :a :task/id :v "t-9937a0ff" :op :assert}
+   {:e #blake3 "78a168fb8116853428824082776e92da27eba9cb81d8547d0578b17cadbbeb81" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "78a168fb8116853428824082776e92da27eba9cb81d8547d0578b17cadbbeb81" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "78a168fb8116853428824082776e92da27eba9cb81d8547d0578b17cadbbeb81" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "78a168fb8116853428824082776e92da27eba9cb81d8547d0578b17cadbbeb81" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "78a168fb8116853428824082776e92da27eba9cb81d8547d0578b17cadbbeb81" :a :task/title :v "P9-DOUBLE-LOAD: Eliminate double LiveStore::open in main.rs — single store handle per CLI invocation" :op :assert}
+   {:e #blake3 "78a168fb8116853428824082776e92da27eba9cb81d8547d0578b17cadbbeb81" :a :task/title-l0 :v "P9-DOUBLE-LOAD" :op :assert}
+   {:e #blake3 "78a168fb8116853428824082776e92da27eba9cb81d8547d0578b17cadbbeb81" :a :task/title-l1 :v "P9-DOUBLE-LOAD: Eliminate double LiveStore::open in main.rs — single store..." :op :assert}
+   {:e #blake3 "78a168fb8116853428824082776e92da27eba9cb81d8547d0578b17cadbbeb81" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "78a168fb8116853428824082776e92da27eba9cb81d8547d0578b17cadbbeb81" :a :task/traces-to :v #blake3 "8b58cdde33537e25686b2d290e82a9a921657f268bb6cc853c6c327548e61e6b" :op :assert}
+   {:e #blake3 "78a168fb8116853428824082776e92da27eba9cb81d8547d0578b17cadbbeb81" :a :task/type :v :task.type/task :op :assert}
+ ]}

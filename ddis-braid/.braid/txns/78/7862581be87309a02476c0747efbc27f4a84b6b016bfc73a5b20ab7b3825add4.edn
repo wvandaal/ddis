@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774531921/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P5-SEED-SCANS: Refactor assemble_seed to single-pass collector — eliminate 15 datoms() scans"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2f82e3da992e788ecb724d25b80647563eb6e1f758cb80a026895909a9b0b1f9" :a :db/ident :v :task/t-cf2fb06a :op :assert}
+   {:e #blake3 "2f82e3da992e788ecb724d25b80647563eb6e1f758cb80a026895909a9b0b1f9" :a :task/created-at :v 1774531920 :op :assert}
+   {:e #blake3 "2f82e3da992e788ecb724d25b80647563eb6e1f758cb80a026895909a9b0b1f9" :a :task/description :v "CONTEXT: seed.rs contains 15 separate store.datoms() full scans and 7 store.entities() calls. The assemble_seed function chains multiple O(N) passes for active intentions, spec context, task context, verify_seed, etc. This makes braid seed --inject one of the most expensive operations.\n\nAPPROACH: Create a SeedCollector struct that gathers all needed signals in a single datoms() iteration: for each datom, classify by attribute/namespace and accumulate into the appropriate collection (active_tasks, spec_elements, observations, sessions, etc.). Then pass the collector to the section builders. Same pattern as StatusSnapshot.\n\nACCEPTANCE: (A) braid seed output is byte-identical before/after. (B) Only 1-2 store.datoms() calls in seed.rs (down from 15). (C) Benchmark: braid seed --inject latency decreases 5-10x.\n\nFILE: crates/braid-kernel/src/seed.rs\nDEPENDS-ON: nothing directly, but this is the largest refactor. Wave 3." :op :assert}
+   {:e #blake3 "2f82e3da992e788ecb724d25b80647563eb6e1f758cb80a026895909a9b0b1f9" :a :task/id :v "t-cf2fb06a" :op :assert}
+   {:e #blake3 "2f82e3da992e788ecb724d25b80647563eb6e1f758cb80a026895909a9b0b1f9" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "2f82e3da992e788ecb724d25b80647563eb6e1f758cb80a026895909a9b0b1f9" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "2f82e3da992e788ecb724d25b80647563eb6e1f758cb80a026895909a9b0b1f9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2f82e3da992e788ecb724d25b80647563eb6e1f758cb80a026895909a9b0b1f9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2f82e3da992e788ecb724d25b80647563eb6e1f758cb80a026895909a9b0b1f9" :a :task/title :v "P5-SEED-SCANS: Refactor assemble_seed to single-pass collector — eliminate 15 datoms() scans" :op :assert}
+   {:e #blake3 "2f82e3da992e788ecb724d25b80647563eb6e1f758cb80a026895909a9b0b1f9" :a :task/title-l0 :v "P5-SEED-SCANS" :op :assert}
+   {:e #blake3 "2f82e3da992e788ecb724d25b80647563eb6e1f758cb80a026895909a9b0b1f9" :a :task/title-l1 :v "P5-SEED-SCANS: Refactor assemble_seed to single-pass collector — eliminate..." :op :assert}
+   {:e #blake3 "2f82e3da992e788ecb724d25b80647563eb6e1f758cb80a026895909a9b0b1f9" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "2f82e3da992e788ecb724d25b80647563eb6e1f758cb80a026895909a9b0b1f9" :a :task/type :v :task.type/task :op :assert}
+ ]}

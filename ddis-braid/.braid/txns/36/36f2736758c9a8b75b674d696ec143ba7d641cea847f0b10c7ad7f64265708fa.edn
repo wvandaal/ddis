@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774532043/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P3-TELEMETRY-TEST: Tests for single-pass telemetry collector"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :db/ident :v :task/t-c4476167 :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/created-at :v 1774532042 :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/description :v "UNIT TESTS:\n1. test_telemetry_single_pass_identical: New single-pass telemetry_from_store produces identical SessionTelemetry as old multi-scan version. Compare all fields.\n2. test_txns_since_harvest_in_telemetry: Verify count_txns_since_last_harvest value is included in SessionTelemetry and matches independent computation.\n\nPROPERTY-BASED:\n3. proptest: For any store with 0-100 sessions, 0-500 spec elements, 0-1000 tasks, single-pass == multi-scan.\n\nBENCHMARK:\n4. criterion: telemetry_from_store on 100K datom store. Before: 4 scans. After: 1 scan. Expect ~4x speedup.\n\nDEPENDS-ON: P3-TELEMETRY" :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/id :v "t-c4476167" :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/title :v "P3-TELEMETRY-TEST: Tests for single-pass telemetry collector" :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/title-l0 :v "P3-TELEMETRY-TEST" :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/title-l1 :v "P3-TELEMETRY-TEST: Tests for single-pass telemetry collector" :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/type :v :task.type/task :op :assert}
+ ]}

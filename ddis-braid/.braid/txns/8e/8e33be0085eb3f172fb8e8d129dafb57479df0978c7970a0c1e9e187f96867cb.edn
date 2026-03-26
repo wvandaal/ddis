@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774531494/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "760e74ee2c63c784b2cf647b6f25636cf38b0e622c4e5ce759b35638bd587589" :a :db/ident :v :recon/trace-24aa7c9a79cec1ea :op :assert}
+   {:e #blake3 "760e74ee2c63c784b2cf647b6f25636cf38b0e622c4e5ce759b35638bd587589" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "760e74ee2c63c784b2cf647b6f25636cf38b0e622c4e5ce759b35638bd587589" :a :recon/trace-neighborhood :v "STORE" :op :assert}
+   {:e #blake3 "760e74ee2c63c784b2cf647b6f25636cf38b0e622c4e5ce759b35638bd587589" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.store.adr-store-006" :op :assert}
+   {:e #blake3 "760e74ee2c63c784b2cf647b6f25636cf38b0e622c4e5ce759b35638bd587589" :a :recon/trace-neighbors :v ":task/t-29b48cc5" :op :assert}
+   {:e #blake3 "760e74ee2c63c784b2cf647b6f25636cf38b0e622c4e5ce759b35638bd587589" :a :recon/trace-neighbors :v ":task/t-6e6dde06" :op :assert}
+   {:e #blake3 "760e74ee2c63c784b2cf647b6f25636cf38b0e622c4e5ce759b35638bd587589" :a :recon/trace-neighbors :v ":task/t-b0c36992" :op :assert}
+   {:e #blake3 "760e74ee2c63c784b2cf647b6f25636cf38b0e622c4e5ce759b35638bd587589" :a :recon/trace-refs :v "ADR-STORE-006" :op :assert}
+   {:e #blake3 "760e74ee2c63c784b2cf647b6f25636cf38b0e622c4e5ce759b35638bd587589" :a :recon/trace-refs :v "INV-DAEMON-001" :op :assert}
+ ]}

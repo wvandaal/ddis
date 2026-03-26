@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774531968/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P10-PARTIAL-IMPLS-TRACKER: Track known partially implemented features from architecture audit"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "65314d1f8d3f3dce2fc8bef6dea76cb91777cf0c39e6e4c891b6de3e1c3dcde1" :a :db/ident :v :task/t-4fd7f0e1 :op :assert}
+   {:e #blake3 "65314d1f8d3f3dce2fc8bef6dea76cb91777cf0c39e6e4c891b6de3e1c3dcde1" :a :task/created-at :v 1774531967 :op :assert}
+   {:e #blake3 "65314d1f8d3f3dce2fc8bef6dea76cb91777cf0c39e6e4c891b6de3e1c3dcde1" :a :task/description :v "CONTEXT: Architecture audit identified 5 partially implemented features: (1) Resolution modes — only LWW, Lattice/Multi stub (Stage 2, INV-RESOLUTION-001..008). (2) Deliberation — decide() always returns LWW (Stage 2, INV-DELIBERATION-001..006). (3) W_alpha working set — not implemented (Stage 2, INV-STORE-013). Root cause of every-command-writes-to-shared-store. (4) Branch management — code exists but not in CLI workflow (Stage 3). (5) Signal cascade fire modes — not implemented (Stage 3, spec/09-signal.md).\n\nPURPOSE: This is a tracking task, not implementation. Ensures audit findings are not lost. Each item should have its own task created when its stage becomes active.\n\nACCEPTANCE: This task is closed when each partial implementation has a corresponding tracked task with correct stage annotation." :op :assert}
+   {:e #blake3 "65314d1f8d3f3dce2fc8bef6dea76cb91777cf0c39e6e4c891b6de3e1c3dcde1" :a :task/id :v "t-4fd7f0e1" :op :assert}
+   {:e #blake3 "65314d1f8d3f3dce2fc8bef6dea76cb91777cf0c39e6e4c891b6de3e1c3dcde1" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "65314d1f8d3f3dce2fc8bef6dea76cb91777cf0c39e6e4c891b6de3e1c3dcde1" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "65314d1f8d3f3dce2fc8bef6dea76cb91777cf0c39e6e4c891b6de3e1c3dcde1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "65314d1f8d3f3dce2fc8bef6dea76cb91777cf0c39e6e4c891b6de3e1c3dcde1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "65314d1f8d3f3dce2fc8bef6dea76cb91777cf0c39e6e4c891b6de3e1c3dcde1" :a :task/title :v "P10-PARTIAL-IMPLS-TRACKER: Track known partially implemented features from architecture audit" :op :assert}
+   {:e #blake3 "65314d1f8d3f3dce2fc8bef6dea76cb91777cf0c39e6e4c891b6de3e1c3dcde1" :a :task/title-l0 :v "P10-PARTIAL-IMPLS-TRACKER" :op :assert}
+   {:e #blake3 "65314d1f8d3f3dce2fc8bef6dea76cb91777cf0c39e6e4c891b6de3e1c3dcde1" :a :task/title-l1 :v "P10-PARTIAL-IMPLS-TRACKER: Track known partially implemented features from ar..." :op :assert}
+   {:e #blake3 "65314d1f8d3f3dce2fc8bef6dea76cb91777cf0c39e6e4c891b6de3e1c3dcde1" :a :task/traces-to :v #blake3 "728a848983ba65ae6a0a610873e1266104907090ee4ad17fb8b815a6793065ad" :op :assert}
+   {:e #blake3 "65314d1f8d3f3dce2fc8bef6dea76cb91777cf0c39e6e4c891b6de3e1c3dcde1" :a :task/traces-to :v #blake3 "b5c2484fe5810bf6fedb0192ee75735626bd5820092a937340af041ca82374d2" :op :assert}
+   {:e #blake3 "65314d1f8d3f3dce2fc8bef6dea76cb91777cf0c39e6e4c891b6de3e1c3dcde1" :a :task/type :v :task.type/docs :op :assert}
+ ]}

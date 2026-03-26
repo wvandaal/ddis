@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774531904/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P4-DAEMON-AUTOSTART: Wire daemon auto-start per ADR-STORE-006 — fork on first command, auto-stop after 2h"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8213e4e1557b5162ec8310baf78391fea810d5457d872d59a94fa8da6d13d15f" :a :db/ident :v :task/t-588ed0fa :op :assert}
+   {:e #blake3 "8213e4e1557b5162ec8310baf78391fea810d5457d872d59a94fa8da6d13d15f" :a :task/created-at :v 1774531903 :op :assert}
+   {:e #blake3 "8213e4e1557b5162ec8310baf78391fea810d5457d872d59a94fa8da6d13d15f" :a :task/description :v "CONTEXT: ADR-STORE-006 specifies 'auto-start on first braid command, auto-stop after 2 hours inactivity.' The daemon exists (1,925 LOC, 35 tests, 12 E2E) but is never auto-started — only 7 runtime datoms exist. The daemon saves ~300ms per command (store.bin deserialization) and amortizes O(N) computations across session.\n\nAPPROACH: In main.rs, before command dispatch: (1) Check daemon.lock. (2) If not running, fork-exec 'braid daemon start' as background process. (3) Wait up to 500ms for socket to appear. (4) Route through daemon if available, fall back to direct mode on any failure. Auto-stop: add 2h inactivity timer to daemon event loop (check on each request, or use a separate timer thread).\n\nACCEPTANCE: (A) First braid command auto-starts daemon. (B) daemon.lock appears after first command. (C) Subsequent commands route through daemon (verify via daemon status request count). (D) Daemon auto-stops after 2h. (E) All E2E tests pass with and without daemon.\n\nFILE: crates/braid/src/main.rs, crates/braid/src/daemon.rs (add inactivity timer)\nDEPENDS-ON: P0-P3 (daemon benefits compound with cheaper computation). Wave 3." :op :assert}
+   {:e #blake3 "8213e4e1557b5162ec8310baf78391fea810d5457d872d59a94fa8da6d13d15f" :a :task/id :v "t-588ed0fa" :op :assert}
+   {:e #blake3 "8213e4e1557b5162ec8310baf78391fea810d5457d872d59a94fa8da6d13d15f" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "8213e4e1557b5162ec8310baf78391fea810d5457d872d59a94fa8da6d13d15f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8213e4e1557b5162ec8310baf78391fea810d5457d872d59a94fa8da6d13d15f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8213e4e1557b5162ec8310baf78391fea810d5457d872d59a94fa8da6d13d15f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8213e4e1557b5162ec8310baf78391fea810d5457d872d59a94fa8da6d13d15f" :a :task/title :v "P4-DAEMON-AUTOSTART: Wire daemon auto-start per ADR-STORE-006 — fork on first command, auto-stop after 2h" :op :assert}
+   {:e #blake3 "8213e4e1557b5162ec8310baf78391fea810d5457d872d59a94fa8da6d13d15f" :a :task/title-l0 :v "P4-DAEMON-AUTOSTART" :op :assert}
+   {:e #blake3 "8213e4e1557b5162ec8310baf78391fea810d5457d872d59a94fa8da6d13d15f" :a :task/title-l1 :v "P4-DAEMON-AUTOSTART: Wire daemon auto-start per ADR-STORE-006 — fork on fir..." :op :assert}
+   {:e #blake3 "8213e4e1557b5162ec8310baf78391fea810d5457d872d59a94fa8da6d13d15f" :a :task/traces-to :v #blake3 "01a286515542ccc7bf49a77ce4391d43e752b81b78216b9cb88b08960ec950c6" :op :assert}
+   {:e #blake3 "8213e4e1557b5162ec8310baf78391fea810d5457d872d59a94fa8da6d13d15f" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "8213e4e1557b5162ec8310baf78391fea810d5457d872d59a94fa8da6d13d15f" :a :task/type :v :task.type/task :op :assert}
+ ]}

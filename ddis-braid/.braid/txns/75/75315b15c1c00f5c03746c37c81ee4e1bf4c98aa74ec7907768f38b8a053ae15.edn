@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774532066/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PERF-REGRESSION-E2E: Master E2E performance guard script — validates all latency targets"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "26e26db2c5c94eec0f9b38940113d70ac87f15be82e90aec0cf9f99d8a02edc4" :a :db/ident :v :task/t-5fc73a07 :op :assert}
+   {:e #blake3 "26e26db2c5c94eec0f9b38940113d70ac87f15be82e90aec0cf9f99d8a02edc4" :a :task/created-at :v 1774532065 :op :assert}
+   {:e #blake3 "26e26db2c5c94eec0f9b38940113d70ac87f15be82e90aec0cf9f99d8a02edc4" :a :task/description :v "E2E SCRIPT: scripts/e2e_performance_guard.sh\n\nCHECKS:\n1. braid status on 105K datom store: wall-clock < 2s (target after P0-P3)\n2. braid observe on 105K datom store: wall-clock < 1s\n3. braid harvest --commit (preview mode): wall-clock < 3s\n4. braid seed --inject: wall-clock < 3s (relaxed until P5)\n5. braid task list: wall-clock < 1s\n\nMETHODOLOGY: Each check runs 3 times, takes the median. Uses /usr/bin/time for measurement. Reports all timings in structured format for trend tracking.\n\nFAILURE DIAGNOSTICS: On any timing exceeding threshold, the script reports: (A) the exact timing, (B) store size (datoms, entities, txns), (C) which check failed, (D) suggested investigation (which P-task to prioritize).\n\nDEPENDS-ON: P0-P3 (the fixes that make targets achievable). This script should FAIL on the current codebase and PASS after P0-P3." :op :assert}
+   {:e #blake3 "26e26db2c5c94eec0f9b38940113d70ac87f15be82e90aec0cf9f99d8a02edc4" :a :task/id :v "t-5fc73a07" :op :assert}
+   {:e #blake3 "26e26db2c5c94eec0f9b38940113d70ac87f15be82e90aec0cf9f99d8a02edc4" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "26e26db2c5c94eec0f9b38940113d70ac87f15be82e90aec0cf9f99d8a02edc4" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "26e26db2c5c94eec0f9b38940113d70ac87f15be82e90aec0cf9f99d8a02edc4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "26e26db2c5c94eec0f9b38940113d70ac87f15be82e90aec0cf9f99d8a02edc4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "26e26db2c5c94eec0f9b38940113d70ac87f15be82e90aec0cf9f99d8a02edc4" :a :task/title :v "PERF-REGRESSION-E2E: Master E2E performance guard script — validates all latency targets" :op :assert}
+   {:e #blake3 "26e26db2c5c94eec0f9b38940113d70ac87f15be82e90aec0cf9f99d8a02edc4" :a :task/title-l0 :v "PERF-REGRESSION-E2E" :op :assert}
+   {:e #blake3 "26e26db2c5c94eec0f9b38940113d70ac87f15be82e90aec0cf9f99d8a02edc4" :a :task/title-l1 :v "PERF-REGRESSION-E2E: Master E2E performance guard script — validates all la..." :op :assert}
+   {:e #blake3 "26e26db2c5c94eec0f9b38940113d70ac87f15be82e90aec0cf9f99d8a02edc4" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "26e26db2c5c94eec0f9b38940113d70ac87f15be82e90aec0cf9f99d8a02edc4" :a :task/type :v :task.type/task :op :assert}
+ ]}

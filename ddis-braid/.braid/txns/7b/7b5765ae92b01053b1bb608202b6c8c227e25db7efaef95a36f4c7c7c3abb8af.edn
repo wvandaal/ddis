@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774531945/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P11-PERF-SLA: Add INV-PERF-001..003 performance invariants + E2E guard script"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :db/ident :v :task/t-919802a3 :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/created-at :v 1774531944 :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/description :v "CONTEXT: The spec has NO formal performance invariants. Current braid status at 5s exceeds interactive thresholds. ADR-STORE-006 achieved <1s at 70K datoms. With materialization fixes (P0-P3), sub-2s at 500K should be achievable.\n\nAPPROACH: (1) Crystallize spec elements: INV-PERF-001 (braid status < 2s at 500K datoms), INV-PERF-002 (braid observe < 1s), INV-PERF-003 (braid harvest --commit < 5s). (2) Create E2E performance guard script: scripts/e2e_performance_guard.sh that measures wall-clock time of each command against thresholds. (3) Falsification: any command exceeding its threshold in the E2E script.\n\nACCEPTANCE: (A) 3 spec elements exist in the store with proper IDs and falsification conditions. (B) E2E script passes after P0-P3 are implemented. (C) E2E script is included in CI or pre-push checks.\n\nFILE: spec/ (new invariants), scripts/e2e_performance_guard.sh\nDEPENDS-ON: P0-P3 (the fixes that make the targets achievable). Wave 4." :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/id :v "t-919802a3" :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/title :v "P11-PERF-SLA: Add INV-PERF-001..003 performance invariants + E2E guard script" :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/title-l0 :v "P11-PERF-SLA" :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/title-l1 :v "P11-PERF-SLA: Add INV-PERF-001..003 performance invariants + E2E guard script" :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/type :v :task.type/task :op :assert}
+ ]}

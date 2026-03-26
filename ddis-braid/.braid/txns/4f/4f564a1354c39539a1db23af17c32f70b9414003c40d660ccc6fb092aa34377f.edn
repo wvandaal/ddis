@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774531783/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P1-COHERENCE: Deduplicate live_projections + materialize ISP counts in MaterializedViews"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :db/ident :v :task/t-737e31aa :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/created-at :v 1774531782 :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/description :v "CONTEXT: check_coherence_fast does 3 full O(N=105K) datom scans: live_projections called TWICE (once in compute_phi_default, once for report counts), plus compute_beta_1 builds a DiGraph. These 3 scans = ~315K iterations per status call.\n\nAPPROACH: Two changes:\n(A) DEDUP: Refactor check_coherence_fast to call live_projections ONCE, pass the result to both compute_phi_default and the report builder. Pure refactor, no behavioral change.\n(B) MATERIALIZE: Add isp_intent, isp_spec, isp_impl counters to MaterializedViews. In observe_datom, classify each datom's namespace (using the same logic as live_projections) and increment the appropriate counter. check_coherence_fast reads materialized counts for the report instead of scanning.\n\nACCEPTANCE: (A) check_coherence_fast produces identical CoherenceReport before/after. (B) MaterializedViews ISP counts match batch live_projections on a test store with 1000+ datoms. (C) Benchmark: check_coherence_fast time decreases from ~1.5s to <100ms.\n\nFILE: crates/braid-kernel/src/trilateral.rs, crates/braid-kernel/src/store.rs (MaterializedViews)\nDEPENDS-ON: nothing (Wave 1). compute_beta_1 remains O(N) — a future task can materialize it." :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/id :v "t-737e31aa" :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/title :v "P1-COHERENCE: Deduplicate live_projections + materialize ISP counts in MaterializedViews" :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/title-l0 :v "P1-COHERENCE" :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/title-l1 :v "P1-COHERENCE: Deduplicate live_projections + materialize ISP counts in Materi..." :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/traces-to :v #blake3 "32d69903b9845b778ed7b2c0a79d9f7e0b33e4584f5c7f10766482e0555ec696" :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/type :v :task.type/task :op :assert}
+ ]}

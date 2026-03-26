@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774531988/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P0-SCHEMA-TEST: Unit + benchmark tests for schema rebuild guard"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :db/ident :v :task/t-c24663f1 :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/created-at :v 1774531987 :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/description :v "UNIT TESTS:\n1. test_apply_datoms_no_schema_rebuild: Apply 100 non-:db/* datoms. Assert schema object identity unchanged (ptr::eq or generation counter). Invariant: INV-STORE-012 (schema consistency for non-schema writes).\n2. test_apply_datoms_schema_rebuild_when_needed: Apply datoms including :db/ident. Assert schema IS rebuilt and reflects the new attribute. Invariant: schema correctness preserved.\n3. test_apply_datoms_mixed_batch: Apply batch with 99 exploration datoms + 1 :db/ident. Assert schema rebuilt. Guards edge case of mixed batches.\n\nPROPERTY-BASED:\n4. proptest: For any Vec<Datom> batch, the result of apply_datoms with guard == apply_datoms without guard (bit-identical Store state). This proves the guard is a pure optimization with no behavioral change.\n\nBENCHMARK:\n5. criterion bench: apply_datoms with 1000 non-schema datoms on a 100K datom store. Before: O(100K) schema scan. After: O(0). Expect >10x speedup.\n\nFAILURE DIAGNOSTICS: If test 4 fails, the diff between with-guard and without-guard stores reveals which datom caused divergence. Log the batch contents and schema diff.\n\nDEPENDS-ON: P0-SCHEMA" :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/id :v "t-c24663f1" :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/title :v "P0-SCHEMA-TEST: Unit + benchmark tests for schema rebuild guard" :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/title-l0 :v "P0-SCHEMA-TEST" :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/title-l1 :v "P0-SCHEMA-TEST: Unit + benchmark tests for schema rebuild guard" :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/traces-to :v #blake3 "fd00a7254b7645334d1058a6047b9dcdc3b3dfbc8f5bbd715971933e1f04f7af" :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/type :v :task.type/task :op :assert}
+ ]}

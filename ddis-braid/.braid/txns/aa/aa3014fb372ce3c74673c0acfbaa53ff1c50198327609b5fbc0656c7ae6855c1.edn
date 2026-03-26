@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774531765/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P6-INDEX-REFACTOR: Extract insert_datom_to_indexes method — eliminate 7-site copy-paste in store.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :db/ident :v :task/t-7bbb3de9 :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/created-at :v 1774531764 :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/description :v "CONTEXT: Store has the same 20-line index maintenance block (entity_index, attribute_index, vaet_index, avet_index, live_view updates) copy-pasted in 7+ locations: genesis(), from_datoms(), apply_datoms(), transact() x3, merge(), inject_metadata_datom(). Risk of divergence when adding new indexes or changing behavior.\n\nAPPROACH: Extract fn insert_datom_to_indexes(&mut self, datom: &Datom) that handles all index updates for a single datom. Replace all 7 copy-paste sites. Pure refactoring — no behavioral change.\n\nACCEPTANCE: (A) All 2040+ existing tests pass unchanged. (B) No behavioral changes in any test output. (C) Only 1 site in store.rs contains index insertion logic.\n\nFILE: crates/braid-kernel/src/store.rs\nDEPENDS-ON: nothing (Wave 0). ENABLES: P7-VIEWS-ACCURACY (accurate task counts need clean insert path)." :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/id :v "t-7bbb3de9" :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/title :v "P6-INDEX-REFACTOR: Extract insert_datom_to_indexes method — eliminate 7-site copy-paste in store.rs" :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/title-l0 :v "P6-INDEX-REFACTOR" :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/title-l1 :v "P6-INDEX-REFACTOR: Extract insert_datom_to_indexes method — eliminate 7-sit..." :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/traces-to :v #blake3 "fd00a7254b7645334d1058a6047b9dcdc3b3dfbc8f5bbd715971933e1f04f7af" :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/type :v :task.type/task :op :assert}
+ ]}

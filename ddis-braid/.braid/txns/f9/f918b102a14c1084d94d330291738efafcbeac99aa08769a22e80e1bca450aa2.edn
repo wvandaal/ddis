@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774532009/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P1-COHERENCE-TEST: Tests for live_projections dedup + ISP materialization"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4fad7367c899a03d55b56940a06591783cbd520499a473c7f3912a49706f701c" :a :db/ident :v :task/t-289499b3 :op :assert}
+   {:e #blake3 "4fad7367c899a03d55b56940a06591783cbd520499a473c7f3912a49706f701c" :a :task/created-at :v 1774532008 :op :assert}
+   {:e #blake3 "4fad7367c899a03d55b56940a06591783cbd520499a473c7f3912a49706f701c" :a :task/description :v "UNIT TESTS:\n1. test_coherence_dedup_identical: check_coherence_fast with dedup produces identical CoherenceReport as before. Compare all fields: phi, beta_1, live_intent, live_spec, live_impl, quadrant. Invariant: INV-TRILATERAL-001.\n2. test_isp_materialized_matches_batch: Build store incrementally via apply_datoms. Compare MaterializedViews.isp_* counts vs live_projections(store) batch computation. Must be equal for intent, spec, impl counts.\n3. test_isp_after_retraction: Assert datom, then retract. Verify ISP counts decrement correctly (or remain stable if retractions are counted differently).\n\nPROPERTY-BASED:\n4. proptest: For any sequence of Assert/Retract datoms across different namespaces, MaterializedViews ISP counts match live_projections batch computation.\n\nE2E:\n5. scripts/e2e_coherence_perf.sh: Run braid status on the real 105K datom store. Time check_coherence_fast. Assert < 500ms (down from ~1.5s).\n\nFAILURE DIAGNOSTICS: On mismatch, log the full datom sequence and the running ISP counters at each step. This reveals which datom caused divergence.\n\nDEPENDS-ON: P1-COHERENCE" :op :assert}
+   {:e #blake3 "4fad7367c899a03d55b56940a06591783cbd520499a473c7f3912a49706f701c" :a :task/id :v "t-289499b3" :op :assert}
+   {:e #blake3 "4fad7367c899a03d55b56940a06591783cbd520499a473c7f3912a49706f701c" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "4fad7367c899a03d55b56940a06591783cbd520499a473c7f3912a49706f701c" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "4fad7367c899a03d55b56940a06591783cbd520499a473c7f3912a49706f701c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4fad7367c899a03d55b56940a06591783cbd520499a473c7f3912a49706f701c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4fad7367c899a03d55b56940a06591783cbd520499a473c7f3912a49706f701c" :a :task/title :v "P1-COHERENCE-TEST: Tests for live_projections dedup + ISP materialization" :op :assert}
+   {:e #blake3 "4fad7367c899a03d55b56940a06591783cbd520499a473c7f3912a49706f701c" :a :task/title-l0 :v "P1-COHERENCE-TEST" :op :assert}
+   {:e #blake3 "4fad7367c899a03d55b56940a06591783cbd520499a473c7f3912a49706f701c" :a :task/title-l1 :v "P1-COHERENCE-TEST: Tests for live_projections dedup + ISP materialization" :op :assert}
+   {:e #blake3 "4fad7367c899a03d55b56940a06591783cbd520499a473c7f3912a49706f701c" :a :task/traces-to :v #blake3 "32d69903b9845b778ed7b2c0a79d9f7e0b33e4584f5c7f10766482e0555ec696" :op :assert}
+   {:e #blake3 "4fad7367c899a03d55b56940a06591783cbd520499a473c7f3912a49706f701c" :a :task/type :v :task.type/task :op :assert}
+ ]}

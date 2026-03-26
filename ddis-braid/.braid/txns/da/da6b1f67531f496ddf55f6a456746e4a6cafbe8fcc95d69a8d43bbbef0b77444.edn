@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774531846/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P7-VIEWS-ACCURACY: Fix MaterializedViews task counts to use LIVE status (not historical accumulation)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "457728e6594512e9d861017809ac69a186103e95d57814a4384b645bcd82924f" :a :db/ident :v :task/t-6a468368 :op :assert}
+   {:e #blake3 "457728e6594512e9d861017809ac69a186103e95d57814a4384b645bcd82924f" :a :task/created-at :v 1774531845 :op :assert}
+   {:e #blake3 "457728e6594512e9d861017809ac69a186103e95d57814a4384b645bcd82924f" :a :task/description :v "CONTEXT: MaterializedViews task_open/task_in_progress/task_closed count ALL historical :task/status Assert datoms. A task transitioning open→in_progress→closed adds 3 to the total across all counters. Actual live state is just closed=1. This causes methodology_gaps and status dashboard to show inflated numbers.\n\nAPPROACH: On each :task/status Assert in observe_datom, use the LIVE view to find the PREVIOUS live value for that entity-attribute pair. Decrement the old status counter, increment the new one. The LIVE view (live_view BTreeMap in Store) already tracks latest-wins per (entity, attribute) — read it before updating.\n\nACCEPTANCE: (A) After applying transitions open→in_progress→closed to 10 tasks, MaterializedViews shows task_open=0, task_in_progress=0, task_closed=10. (B) MaterializedViews.task_open + task_in_progress + task_closed == count of distinct task entities. (C) Matches all_tasks() grouped by resolved status.\n\nFILE: crates/braid-kernel/src/store.rs (MaterializedViews::observe_datom)\nDEPENDS-ON: P6-INDEX-REFACTOR (clean insert path makes wiring easier)." :op :assert}
+   {:e #blake3 "457728e6594512e9d861017809ac69a186103e95d57814a4384b645bcd82924f" :a :task/id :v "t-6a468368" :op :assert}
+   {:e #blake3 "457728e6594512e9d861017809ac69a186103e95d57814a4384b645bcd82924f" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "457728e6594512e9d861017809ac69a186103e95d57814a4384b645bcd82924f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "457728e6594512e9d861017809ac69a186103e95d57814a4384b645bcd82924f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "457728e6594512e9d861017809ac69a186103e95d57814a4384b645bcd82924f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "457728e6594512e9d861017809ac69a186103e95d57814a4384b645bcd82924f" :a :task/title :v "P7-VIEWS-ACCURACY: Fix MaterializedViews task counts to use LIVE status (not historical accumulation)" :op :assert}
+   {:e #blake3 "457728e6594512e9d861017809ac69a186103e95d57814a4384b645bcd82924f" :a :task/title-l0 :v "P7-VIEWS-ACCURACY" :op :assert}
+   {:e #blake3 "457728e6594512e9d861017809ac69a186103e95d57814a4384b645bcd82924f" :a :task/title-l1 :v "P7-VIEWS-ACCURACY: Fix MaterializedViews task counts to use LIVE status (not..." :op :assert}
+   {:e #blake3 "457728e6594512e9d861017809ac69a186103e95d57814a4384b645bcd82924f" :a :task/traces-to :v #blake3 "fd00a7254b7645334d1058a6047b9dcdc3b3dfbc8f5bbd715971933e1f04f7af" :op :assert}
+   {:e #blake3 "457728e6594512e9d861017809ac69a186103e95d57814a4384b645bcd82924f" :a :task/type :v :task.type/bug :op :assert}
+ ]}

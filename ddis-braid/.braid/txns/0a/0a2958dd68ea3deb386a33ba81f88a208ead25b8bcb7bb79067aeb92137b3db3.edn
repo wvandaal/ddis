@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774531866/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P8-CONCEPT-SCANS: Replace 17 datoms() full scans in concept.rs with attribute_datoms index lookups"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :db/ident :v :task/t-45c3def0 :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/created-at :v 1774531865 :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/description :v "CONTEXT: concept.rs contains 17 store.datoms() calls. Functions like find_nearest_concept, concept_inventory, assign_to_concepts, co_occurrence_matrix, and compute_observe_steering_multi each do full O(N=105K) scans to find concept/exploration datoms. With only ~3 concepts and ~95 observations, scanning 105K datoms to find ~100 relevant ones is 1000x over-read.\n\nAPPROACH: Replace store.datoms() calls with store.attribute_datoms(attr) index lookups. The attribute_index already provides O(1) lookup by attribute. For example: find_nearest_concept should use attribute_datoms(':concept/embedding') instead of filtering all datoms. This is the same optimization applied to bilateral.rs in Session 032 (PERF-2).\n\nACCEPTANCE: (A) All concept operations produce identical results. (B) No store.datoms() calls remain in concept.rs (only attribute_datoms/entity_datoms). (C) Benchmark: braid observe latency decreases measurably (concept assignment is on the hot path).\n\nFILE: crates/braid-kernel/src/concept.rs\nDEPENDS-ON: nothing, but Wave 2 sequencing (after core materialization)." :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/id :v "t-45c3def0" :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/title :v "P8-CONCEPT-SCANS: Replace 17 datoms() full scans in concept.rs with attribute_datoms index lookups" :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/title-l0 :v "P8-CONCEPT-SCANS" :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/title-l1 :v "P8-CONCEPT-SCANS: Replace 17 datoms() full scans in concept.rs with attribute..." :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/type :v :task.type/task :op :assert}
+ ]}

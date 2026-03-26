@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774531730/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: PERF-REGRESSION — Restore sub-2s braid status at 100K+ datoms via materialization completion"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :db/ident :v :task/t-bbe26fe0 :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/created-at :v 1774531729 :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/description :v "CONTEXT: braid status regressed from 3s (Session 039, 70K datoms) to 5s (Session 046, 105K datoms). The store tripled while the computation didn't get smarter. MaterializedViews covers F(S) fitness (1 of 13 full datom scans per status call) but coherence, telemetry, task counts, methodology gaps, and routing are all batch-recomputed on every invocation. ROOT CAUSE: 13 full O(N) datom scans per braid status call = 1.35M datom iterations at 105K datoms. Plus a hidden O(N) schema rebuild on every apply_datoms write. TARGET: braid status < 2s for stores up to 500K datoms. WAVE 0 (standalone): P0-SCHEMA, P6-INDEX-REFACTOR. WAVE 1 (core materialization): P1-COHERENCE, P2-TASKS, P3-TELEMETRY. WAVE 2 (compound): P7-VIEWS-ACCURACY, P8-CONCEPT-SCANS, P9-DOUBLE-LOAD. WAVE 3 (capstone): P4-DAEMON-AUTOSTART, P5-SEED-SCANS. WAVE 4 (formalization): P11-PERF-SLA. ACCEPTANCE: (A) braid status < 2s at 105K datoms. (B) braid observe < 1s. (C) All 2040+ tests pass. (D) E2E performance guard script." :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/id :v "t-bbe26fe0" :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/title :v "EPIC: PERF-REGRESSION — Restore sub-2s braid status at 100K+ datoms via materialization completion" :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/title-l1 :v "EPIC: PERF-REGRESSION — Restore sub-2s braid status at 100K+ datoms via mat..." :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/traces-to :v #blake3 "32d69903b9845b778ed7b2c0a79d9f7e0b33e4584f5c7f10766482e0555ec696" :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/traces-to :v #blake3 "fd00a7254b7645334d1058a6047b9dcdc3b3dfbc8f5bbd715971933e1f04f7af" :op :assert}
+   {:e #blake3 "4165932047cd4d803c1c639d1aa9c360f9df18009b2193a3790b3860703fb705" :a :task/type :v :task.type/epic :op :assert}
+ ]}
