@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774489842/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ONLINE-TEST: Tests for per-observation online calibration (3 unit + E2E extension)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :db/ident :v :task/t-62f1dde3 :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/created-at :v 1774489841 :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/description :v "CONTEXT: Tests for online calibration + E2E verification.\n\nUNIT TESTS (3 in observe.rs or concept.rs tests):\n\n1. test_online_calibration_convergence:\n   - Fresh store with innate concepts. Make 5 observations via observe command.\n   - After observation 3: verify :config/concept.join-threshold datom exists.\n   - After observation 5: verify threshold differs from bootstrap default (0.20 for model2vec, 0.65 for hash).\n   - After observation 5: verify :config/calibration.similarity-count == '5'.\n\n2. test_online_calibration_statistics_correct:\n   - Known similarities [0.3, 0.5, 0.7]. Mean=0.5, variance=0.0267, stddev=0.163.\n   - Threshold = 0.5 - 0.5*0.163 = 0.418. Temperature = 0.163/2 = 0.082.\n   - Verify the formula produces these values.\n\n3. test_online_calibration_clamp:\n   - If all similarities are very high (e.g., 0.95, 0.96, 0.97), threshold should be clamped to <= 0.85.\n   - If all similarities are very low (e.g., 0.05, 0.06, 0.07), threshold should be clamped to >= 0.15.\n\nE2E VERIFICATION (extend existing e2e_calibrating_threshold.sh):\n- Add check: after observation 3, query :config/concept.join-threshold — should exist.\n- Add check: after observation 5, compare threshold to bootstrap default — should differ.\n- Add check: concept member counts should NOT all be identical after 8 observations (discrimination test).\n\nDEPENDS-ON: ONLINE-1." :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/id :v "t-62f1dde3" :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/labels :v :label/S045-ONLINE :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/title :v "ONLINE-TEST: Tests for per-observation online calibration (3 unit + E2E extension)" :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/title-l0 :v "ONLINE-TEST" :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/title-l1 :v "ONLINE-TEST: Tests for per-observation online calibration (3 unit + E2E exten..." :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/traces-to :v #blake3 "5ee8f32d89f3ab426040c00c49df650205e9c498a13759b72b17fb01b167a80e" :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/traces-to :v #blake3 "bb68771c0f403c927260336945dceada87933be4981b2fe81d8ec63e5430a4dd" :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774489845/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ONLINE-RETEST: Dogfood retest with online calibration (target >=6/10)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :db/ident :v :task/t-48bbcf75 :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/created-at :v 1774489844 :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/description :v "CONTEXT: After ONLINE-1 + tests pass, retest on Go CLI. Same protocol as prior retests but with online calibration active. The threshold should converge by observation 3-5, preventing concept collapse for observations 6-10.\n\nAPPROACH: Rename .braid -> .braid.pre-online, fresh init, same subagent prompt. Target >= 6/10.\n\nKEY DIFFERENCE: Observations 1-2 still use bootstrap default (insufficient data). Observation 3+ uses calibrated threshold. Observations 6-10 should show concept discrimination (not all concepts getting every observation).\n\nDEPENDS-ON: ONLINE-TEST." :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/id :v "t-48bbcf75" :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/labels :v :label/S045-ONLINE :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/title :v "ONLINE-RETEST: Dogfood retest with online calibration (target >=6/10)" :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/title-l0 :v "ONLINE-RETEST" :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/title-l1 :v "ONLINE-RETEST: Dogfood retest with online calibration (target >=6/10)" :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/traces-to :v #blake3 "5ee8f32d89f3ab426040c00c49df650205e9c498a13759b72b17fb01b167a80e" :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/traces-to :v #blake3 "791ce65b20564279d064cb37745fcdd4b9e31f36804346447a413c2befbb9709" :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/type :v :task.type/task :op :assert}
+ ]}
