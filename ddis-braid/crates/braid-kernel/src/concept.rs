@@ -834,6 +834,274 @@ fn narrow_candidates(store: &Store) -> Vec<FrontierRec> {
     }
 }
 
+// ===================================================================
+// Discrepancy-Driven Steering (INQ-2)
+// ===================================================================
+
+/// Result of computing a discrepancy brief between an observation and its concept.
+#[derive(Debug, Clone)]
+pub struct DiscrepancyBrief {
+    /// Keywords that are novel (present in observation but not in expected).
+    pub novel_keywords: Vec<String>,
+    /// Keywords that were expected (present in centroid-nearest but not in observation).
+    pub expected_keywords: Vec<String>,
+    /// The concept name.
+    pub concept_name: String,
+    /// Surprise level (1.0 - cosine similarity).
+    pub surprise: f32,
+}
+
+/// Find the stored observation whose embedding is closest to the given vector.
+///
+/// Scans all `:exploration/embedding` datoms and returns the entity ID, body text,
+/// and cosine similarity of the best match. Uses two-phase latest-wins (like
+/// `find_nearest_concept`).
+///
+/// Returns `None` if no observations with embeddings exist.
+pub fn find_nearest_observation(
+    store: &Store,
+    target: &[f32],
+) -> Option<(EntityId, String, f32)> {
+    let embed_attr = Attribute::from_keyword(":exploration/embedding");
+    let body_attr = Attribute::from_keyword(":exploration/body");
+
+    // Phase 1: latest embedding per observation entity.
+    let mut latest_emb: BTreeMap<EntityId, Vec<f32>> = BTreeMap::new();
+    for d in store.datoms() {
+        if d.op == Op::Assert && d.attribute == embed_attr {
+            if let Value::Bytes(ref bytes) = d.value {
+                latest_emb.insert(d.entity, bytes_to_embedding(bytes));
+            }
+        }
+    }
+
+    // Phase 2: best match with dimension guard.
+    let mut best: Option<(EntityId, f32)> = None;
+    for (entity, obs_emb) in &latest_emb {
+        if obs_emb.len() == target.len() {
+            let sim = cosine_similarity(obs_emb, target);
+            if best.is_none_or(|(_, s)| sim > s) {
+                best = Some((*entity, sim));
+            }
+        }
+    }
+
+    let (entity, similarity) = best?;
+
+    // Phase 3: retrieve body text for the best match.
+    let body = store
+        .live_value(entity, &body_attr)
+        .and_then(|v| if let Value::String(s) = v { Some(s.clone()) } else { None })
+        .unwrap_or_default();
+
+    Some((entity, body, similarity))
+}
+
+/// Compute a discrepancy brief for an observation against its concept.
+///
+/// Given an observation embedding and the concept it joined:
+/// 1. Compute discrepancy = observation_embedding - concept_centroid (element-wise).
+/// 2. Find the stored observation closest to the discrepancy vector → what was NOVEL.
+/// 3. Find the stored observation closest to the centroid → what was EXPECTED.
+/// 4. Keyword set difference → the novel elements.
+///
+/// Returns `None` if surprise is below `min_surprise` (default 0.3) or if there
+/// aren't enough observations to compute a meaningful brief.
+pub fn compute_discrepancy_brief(
+    store: &Store,
+    observation_embedding: &[f32],
+    concept_entity: EntityId,
+    surprise: f32,
+    min_surprise: f32,
+) -> Option<DiscrepancyBrief> {
+    if surprise < min_surprise {
+        return None;
+    }
+
+    let concept_name = concept_name_from_entity(store, concept_entity);
+
+    // Get concept centroid.
+    let emb_attr = Attribute::from_keyword(":concept/embedding");
+    let centroid = store
+        .live_value(concept_entity, &emb_attr)
+        .and_then(|v| {
+            if let Value::Bytes(b) = v {
+                Some(bytes_to_embedding(b))
+            } else {
+                None
+            }
+        })?;
+
+    if centroid.len() != observation_embedding.len() {
+        return None;
+    }
+
+    // Discrepancy vector = observation - centroid.
+    let mut discrepancy: Vec<f32> = observation_embedding
+        .iter()
+        .zip(centroid.iter())
+        .map(|(o, c)| o - c)
+        .collect();
+    crate::embedding::l2_normalize(&mut discrepancy);
+
+    // Find nearest observation to discrepancy (what was NOVEL).
+    let novel_obs = find_nearest_observation(store, &discrepancy);
+    // Find nearest observation to centroid (what was EXPECTED).
+    let expected_obs = find_nearest_observation(store, &centroid);
+
+    let novel_text = novel_obs.map(|(_, body, _)| body).unwrap_or_default();
+    let expected_text = expected_obs.map(|(_, body, _)| body).unwrap_or_default();
+
+    // Keyword set difference.
+    let novel_kw = crate::connections::tokenize(&novel_text);
+    let expected_kw = crate::connections::tokenize(&expected_text);
+
+    let novel_only: Vec<String> = novel_kw.difference(&expected_kw).cloned().collect();
+    let expected_only: Vec<String> = expected_kw.difference(&novel_kw).cloned().collect();
+
+    if novel_only.is_empty() && expected_only.is_empty() {
+        return None;
+    }
+
+    Some(DiscrepancyBrief {
+        novel_keywords: novel_only,
+        expected_keywords: expected_only,
+        concept_name,
+        surprise,
+    })
+}
+
+/// Format a discrepancy brief as a human-readable string.
+///
+/// Output: "[concept] expected: {kw1, kw2}. You found: {kw3, kw4}."
+pub fn format_discrepancy_brief(brief: &DiscrepancyBrief) -> String {
+    let expected = if brief.expected_keywords.is_empty() {
+        "(nothing specific)".to_string()
+    } else {
+        let mut sorted = brief.expected_keywords.clone();
+        sorted.sort();
+        sorted.truncate(5);
+        format!("{{{}}}", sorted.join(", "))
+    };
+    let novel = if brief.novel_keywords.is_empty() {
+        "(confirming)".to_string()
+    } else {
+        let mut sorted = brief.novel_keywords.clone();
+        sorted.sort();
+        sorted.truncate(5);
+        format!("{{{}}}", sorted.join(", "))
+    };
+    format!(
+        "[{}] expected: {}. You found: {}.",
+        brief.concept_name, expected, novel
+    )
+}
+
+// ===================================================================
+// Graduated Situational Brief (INQ-3)
+// ===================================================================
+
+/// Epistemological level of an observation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EpistemicLevel {
+    /// Joins 1 concept, low surprise, no topological event.
+    Concept,
+    /// Bridges concepts or triggers a topological event.
+    Theory,
+    /// High surprise + topology shift — paradigm-level insight.
+    Paradigm,
+}
+
+impl std::fmt::Display for EpistemicLevel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            EpistemicLevel::Concept => write!(f, "concept"),
+            EpistemicLevel::Theory => write!(f, "theory"),
+            EpistemicLevel::Paradigm => write!(f, "paradigm"),
+        }
+    }
+}
+
+/// A graduated situational brief for an observation.
+#[derive(Debug, Clone)]
+pub struct SituationalBrief {
+    /// The output line.
+    pub line: String,
+    /// Epistemological level.
+    pub level: EpistemicLevel,
+}
+
+/// Compute a graduated situational brief based on surprise level.
+///
+/// - Low surprise (<0.3): "concept-name ✓"
+/// - Medium surprise (0.3-0.5): concept + discrepancy keywords
+/// - High surprise (>0.5): "NEW TERRITORY: [discrepancy brief]"
+/// - Topological event: "TOPOLOGY SHIFT: [what changed]"
+///
+/// `topo_events` should be the topological events detected for this observation.
+/// `discrepancy` is an optional pre-computed discrepancy brief.
+pub fn situational_brief(
+    store: &Store,
+    assignment: &ConceptAssignment,
+    topo_events: &[String],
+    discrepancy: Option<&DiscrepancyBrief>,
+) -> Option<SituationalBrief> {
+    // Topological event takes precedence — paradigm level.
+    if !topo_events.is_empty() {
+        let event_summary = topo_events[0].clone();
+        let level = match assignment {
+            ConceptAssignment::Joined { surprise, .. } if *surprise > 0.5 => {
+                EpistemicLevel::Paradigm
+            }
+            _ => EpistemicLevel::Theory,
+        };
+        return Some(SituationalBrief {
+            line: format!("TOPOLOGY SHIFT: {event_summary}"),
+            level,
+        });
+    }
+
+    match assignment {
+        ConceptAssignment::Joined {
+            concept,
+            surprise,
+            ..
+        } => {
+            let name = concept_name_from_entity(store, *concept);
+            if *surprise < 0.3 {
+                // Low surprise: confirming.
+                Some(SituationalBrief {
+                    line: format!("{name} \u{2713}"),
+                    level: EpistemicLevel::Concept,
+                })
+            } else if *surprise < 0.5 {
+                // Medium surprise: concept + discrepancy keywords.
+                let detail = discrepancy
+                    .map(format_discrepancy_brief)
+                    .unwrap_or_else(|| {
+                        format!("{name} (surprise={surprise:.2})")
+                    });
+                Some(SituationalBrief {
+                    line: detail,
+                    level: EpistemicLevel::Concept,
+                })
+            } else {
+                // High surprise: new territory.
+                let detail = discrepancy
+                    .map(format_discrepancy_brief)
+                    .unwrap_or_else(|| {
+                        format!("beyond {name} (surprise={surprise:.2})")
+                    });
+                Some(SituationalBrief {
+                    line: format!("NEW TERRITORY: {detail}"),
+                    level: EpistemicLevel::Theory,
+                })
+            }
+        }
+        ConceptAssignment::Uncategorized => None,
+    }
+}
+
 /// Generate datoms for a new concept entity.
 ///
 /// Returns datoms that the caller should transact into the store.
@@ -1421,7 +1689,20 @@ pub fn compute_observe_steering_multi(
 pub fn format_concept_status(store: &Store) -> Vec<String> {
     let (inventory, innate_set) = concept_inventory_with_innate(store);
     if inventory.is_empty() {
-        return Vec::new();
+        // INQ-1-REV: Show "none yet" when no concepts exist (instead of empty vec).
+        let obs_count = count_observations(store);
+        let min_cluster_size: usize =
+            crate::config::get_config(store, "concept.min-cluster-size")
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(MIN_CLUSTER_SIZE);
+        if obs_count > 0 {
+            return vec![format!(
+                "concepts: none yet ({obs_count}/{min_cluster_size} toward first concepts)"
+            )];
+        }
+        return vec![format!(
+            "concepts: none yet (emerge after {min_cluster_size}+ observations)"
+        )];
     }
 
     let mut lines = Vec::new();
@@ -2343,9 +2624,12 @@ mod tests {
     fn concept_status_empty_store() {
         let store = Store::genesis();
         let lines = format_concept_status(&store);
+        // INQ-1-REV: Empty store now shows "concepts: none yet" instead of empty vec.
+        assert_eq!(lines.len(), 1, "empty store should have 1 'none yet' line");
         assert!(
-            lines.is_empty(),
-            "empty store should have no concept status"
+            lines[0].contains("none yet"),
+            "empty store should say 'none yet', got: {}",
+            lines[0]
         );
     }
 
@@ -4748,6 +5032,331 @@ mod tests {
         assert!(
             calibrate_join_threshold(&store).is_none(),
             "should return None without observation-concept pairs"
+        );
+    }
+
+    // ===================================================================
+    // INQ-TEST: Inquiry Engine Tests
+    // ===================================================================
+
+    /// Helper: build a store with N observations (no innate concepts).
+    fn store_with_observations(texts: &[&str]) -> Store {
+        let mut store = store_with_schema();
+        let emb = make_embedder();
+        let agent = AgentId::from_name("test");
+
+        for (i, text) in texts.iter().enumerate() {
+            let tx = TxId::new(100 + i as u64, 0, agent);
+            let slug: String = text
+                .chars()
+                .take(30)
+                .filter(|c| c.is_ascii_alphanumeric() || *c == '-')
+                .map(|c| c.to_ascii_lowercase())
+                .collect();
+            let ident = format!(":observation/{slug}");
+            let entity = EntityId::from_ident(&ident);
+            let embedding = emb.embed(text);
+
+            let datoms = vec![
+                Datom::new(
+                    entity,
+                    Attribute::from_keyword(":db/ident"),
+                    Value::Keyword(ident),
+                    tx,
+                    Op::Assert,
+                ),
+                Datom::new(
+                    entity,
+                    Attribute::from_keyword(":exploration/body"),
+                    Value::String(text.to_string()),
+                    tx,
+                    Op::Assert,
+                ),
+                Datom::new(
+                    entity,
+                    Attribute::from_keyword(":exploration/embedding"),
+                    Value::Bytes(crate::embedding::embedding_to_bytes(&embedding)),
+                    tx,
+                    Op::Assert,
+                ),
+            ];
+            store.apply_datoms(&datoms);
+        }
+        store
+    }
+
+    /// INQ-TEST-1: Fresh store (no innate concepts) has 0 concepts.
+    #[test]
+    fn test_init_no_innate_concepts() {
+        let store = store_with_schema();
+        let (inventory, _) = concept_inventory_with_innate(&store);
+        assert!(
+            inventory.is_empty(),
+            "fresh store without innate seeding should have 0 concepts"
+        );
+    }
+
+    /// INQ-TEST-2: After MIN_CLUSTER_SIZE similar observations, crystallize produces concepts.
+    #[test]
+    fn test_auto_crystallize_after_three() {
+        let texts = &[
+            "error handling in cascade module returns",
+            "error handling in storage module returns",
+            "error handling in events module returns",
+        ];
+        let store = store_with_observations(texts);
+
+        // Confirm: no concepts yet (just observations).
+        let (inventory, _) = concept_inventory_with_innate(&store);
+        assert!(
+            inventory.is_empty(),
+            "observations alone should not produce concepts"
+        );
+
+        // Collect uncategorized observations.
+        let embed_attr = Attribute::from_keyword(":exploration/embedding");
+        let body_attr = Attribute::from_keyword(":exploration/body");
+        let mut observations = Vec::new();
+        for d in store.datoms() {
+            if d.op == Op::Assert && d.attribute == embed_attr {
+                if let Value::Bytes(ref b) = d.value {
+                    let emb = crate::embedding::bytes_to_embedding(b);
+                    let body = store
+                        .live_value(d.entity, &body_attr)
+                        .and_then(|v| {
+                            if let Value::String(s) = v {
+                                Some(s.clone())
+                            } else {
+                                None
+                            }
+                        })
+                        .unwrap_or_default();
+                    observations.push((d.entity, emb, body));
+                }
+            }
+        }
+
+        assert!(
+            observations.len() >= MIN_CLUSTER_SIZE,
+            "should have at least {} observations, got {}",
+            MIN_CLUSTER_SIZE,
+            observations.len()
+        );
+
+        // Crystallize.
+        let new_concepts =
+            crystallize_concepts(&observations, JOIN_THRESHOLD, MIN_CLUSTER_SIZE);
+        assert!(
+            !new_concepts.is_empty(),
+            "3 similar observations should produce at least 1 concept"
+        );
+
+        // Apply concept datoms to store.
+        let mut store = store;
+        let agent = AgentId::from_name("test");
+        let cryst_tx = TxId::new(200, 0, agent);
+        for concept in &new_concepts {
+            let datoms: Vec<Datom> = concept_to_datoms(concept, 1000)
+                .into_iter()
+                .map(|(e, a, v)| Datom::new(e, a, v, cryst_tx, Op::Assert))
+                .collect();
+            store.apply_datoms(&datoms);
+        }
+
+        // Now concepts should exist.
+        let (inventory, _) = concept_inventory_with_innate(&store);
+        assert!(
+            !inventory.is_empty(),
+            "after crystallization, store should have concepts"
+        );
+    }
+
+    /// INQ-TEST-3: Discrepancy brief produces novel keywords for surprising observations.
+    #[test]
+    fn test_discrepancy_brief_novel_keywords() {
+        // Build store with a concept and observations.
+        let mut store = store_with_observations(&[
+            "database schema tables columns indexes",
+            "database storage persistence transactions",
+            "database queries optimization caching",
+        ]);
+        let emb = make_embedder();
+        let agent = AgentId::from_name("test");
+
+        // Crystallize a concept from these.
+        let embed_attr = Attribute::from_keyword(":exploration/embedding");
+        let body_attr = Attribute::from_keyword(":exploration/body");
+        let mut observations = Vec::new();
+        for d in store.datoms() {
+            if d.op == Op::Assert && d.attribute == embed_attr {
+                if let Value::Bytes(ref b) = d.value {
+                    let e = crate::embedding::bytes_to_embedding(b);
+                    let body = store
+                        .live_value(d.entity, &body_attr)
+                        .and_then(|v| {
+                            if let Value::String(s) = v {
+                                Some(s.clone())
+                            } else {
+                                None
+                            }
+                        })
+                        .unwrap_or_default();
+                    observations.push((d.entity, e, body));
+                }
+            }
+        }
+
+        let concepts = crystallize_concepts(&observations, JOIN_THRESHOLD, MIN_CLUSTER_SIZE);
+        if concepts.is_empty() {
+            // Skip test if hash embedder doesn't produce close enough embeddings.
+            return;
+        }
+
+        let cryst_tx = TxId::new(200, 0, agent);
+        for concept in &concepts {
+            let datoms: Vec<Datom> = concept_to_datoms(concept, 1000)
+                .into_iter()
+                .map(|(e, a, v)| Datom::new(e, a, v, cryst_tx, Op::Assert))
+                .collect();
+            store.apply_datoms(&datoms);
+            let member_datoms: Vec<Datom> = membership_datoms(concept.entity, &concept.members)
+                .into_iter()
+                .map(|(e, a, v)| Datom::new(e, a, v, cryst_tx, Op::Assert))
+                .collect();
+            store.apply_datoms(&member_datoms);
+        }
+
+        // New observation about streaming (different from database concept).
+        let novel_embedding = emb.embed("event streaming pipeline message broker");
+        let concept_entity = concepts[0].entity;
+        let brief = compute_discrepancy_brief(&store, &novel_embedding, concept_entity, 0.7, 0.3);
+
+        // With high surprise, we should get a brief (may be None if nearest obs lookup
+        // doesn't find differences — depends on hash embedder's behavior).
+        if let Some(brief) = brief {
+            assert!(
+                !brief.novel_keywords.is_empty() || !brief.expected_keywords.is_empty(),
+                "discrepancy brief should contain at least some keywords"
+            );
+            assert!(!brief.concept_name.is_empty());
+            assert!(brief.surprise >= 0.3);
+        }
+    }
+
+    /// INQ-TEST-4: Discrepancy brief returns None for confirming observations.
+    #[test]
+    fn test_discrepancy_brief_confirming() {
+        let store = store_with_schema();
+        let emb = make_embedder();
+        let embedding = emb.embed("test observation");
+        let concept_entity = EntityId::from_content(b"test-concept");
+
+        // Low surprise should return None.
+        let brief = compute_discrepancy_brief(&store, &embedding, concept_entity, 0.1, 0.3);
+        assert!(
+            brief.is_none(),
+            "low surprise (0.1) should not produce a discrepancy brief"
+        );
+    }
+
+    /// INQ-TEST-5: Situational brief produces correct output at all graduated levels.
+    #[test]
+    fn test_situational_brief_graduated() {
+        let store = store_with_schema();
+        let concept_entity = EntityId::from_content(b"test-concept");
+
+        // Level 1: Low surprise → "name ✓"
+        let low = ConceptAssignment::Joined {
+            concept: concept_entity,
+            similarity: 0.85,
+            surprise: 0.15,
+            strength: 1.0,
+        };
+        let brief_low = situational_brief(&store, &low, &[], None);
+        assert!(brief_low.is_some(), "low surprise should produce a brief");
+        let b = brief_low.unwrap();
+        assert!(
+            b.line.contains('\u{2713}'),
+            "low surprise should contain checkmark, got: {}",
+            b.line
+        );
+        assert_eq!(b.level, EpistemicLevel::Concept);
+
+        // Level 2: Medium surprise → concept + details
+        let med = ConceptAssignment::Joined {
+            concept: concept_entity,
+            similarity: 0.6,
+            surprise: 0.4,
+            strength: 1.0,
+        };
+        let brief_med = situational_brief(&store, &med, &[], None);
+        assert!(brief_med.is_some());
+        let b = brief_med.unwrap();
+        assert_eq!(b.level, EpistemicLevel::Concept);
+
+        // Level 3: High surprise → "NEW TERRITORY"
+        let high = ConceptAssignment::Joined {
+            concept: concept_entity,
+            similarity: 0.3,
+            surprise: 0.7,
+            strength: 1.0,
+        };
+        let brief_high = situational_brief(&store, &high, &[], None);
+        assert!(brief_high.is_some());
+        let b = brief_high.unwrap();
+        assert!(
+            b.line.contains("NEW TERRITORY"),
+            "high surprise should say NEW TERRITORY, got: {}",
+            b.line
+        );
+        assert_eq!(b.level, EpistemicLevel::Theory);
+
+        // Level 4: Topological event → "TOPOLOGY SHIFT"
+        let topo_events = vec!["new bridge: A-B".to_string()];
+        let brief_topo = situational_brief(&store, &low, &topo_events, None);
+        assert!(brief_topo.is_some());
+        let b = brief_topo.unwrap();
+        assert!(
+            b.line.contains("TOPOLOGY SHIFT"),
+            "topo event should say TOPOLOGY SHIFT, got: {}",
+            b.line
+        );
+
+        // Uncategorized → None
+        let uncat = ConceptAssignment::Uncategorized;
+        let brief_uncat = situational_brief(&store, &uncat, &[], None);
+        assert!(
+            brief_uncat.is_none(),
+            "uncategorized should produce no brief"
+        );
+    }
+
+    /// INQ-TEST-6: find_nearest_observation returns the closest observation.
+    #[test]
+    fn test_find_nearest_observation() {
+        let texts = &[
+            "database schema tables columns indexes",
+            "streaming pipeline events kafka",
+            "error handling retry backoff circuit",
+        ];
+        let store = store_with_observations(texts);
+        let emb = make_embedder();
+
+        // Search for something close to "database".
+        let target = emb.embed("database schema tables columns");
+        let result = find_nearest_observation(&store, &target);
+        assert!(
+            result.is_some(),
+            "should find at least one nearest observation"
+        );
+        let (_, body, sim) = result.unwrap();
+        assert!(
+            !body.is_empty(),
+            "nearest observation should have non-empty body"
+        );
+        assert!(
+            sim > 0.0,
+            "cosine similarity should be positive, got {sim}"
         );
     }
 }

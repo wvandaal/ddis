@@ -1,0 +1,49 @@
+{:tx/id #hlc "1774502510/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 3 candidates from task 'Session 046: INQUIRY-ENGINE — emergent concepts, discrepancy steering, situational brief'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "716c3b5431e69ff8f59a90dac31a0f323f9265e0de508868b3b9a51dd79ec3f3" :a :hypothesis/action :v #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :op :assert}
+   {:e #blake3 "716c3b5431e69ff8f59a90dac31a0f323f9265e0de508868b3b9a51dd79ec3f3" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "716c3b5431e69ff8f59a90dac31a0f323f9265e0de508868b3b9a51dd79ec3f3" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "716c3b5431e69ff8f59a90dac31a0f323f9265e0de508868b3b9a51dd79ec3f3" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "716c3b5431e69ff8f59a90dac31a0f323f9265e0de508868b3b9a51dd79ec3f3" :a :hypothesis/predicted :v 0.32263799467005494 :op :assert}
+   {:e #blake3 "716c3b5431e69ff8f59a90dac31a0f323f9265e0de508868b3b9a51dd79ec3f3" :a :hypothesis/timestamp :v #inst 1774502511 :op :assert}
+   {:e #blake3 "7897dfcef9317dbfdf93958dfbd2c16e8769cf979e516ce21e28bb7d321caaf5" :a :hypothesis/action :v #blake3 "11146360f74be633495a6342dd8200186db3c8cf4a9c36a3c12288606c58cf62" :op :assert}
+   {:e #blake3 "7897dfcef9317dbfdf93958dfbd2c16e8769cf979e516ce21e28bb7d321caaf5" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "7897dfcef9317dbfdf93958dfbd2c16e8769cf979e516ce21e28bb7d321caaf5" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "7897dfcef9317dbfdf93958dfbd2c16e8769cf979e516ce21e28bb7d321caaf5" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "7897dfcef9317dbfdf93958dfbd2c16e8769cf979e516ce21e28bb7d321caaf5" :a :hypothesis/predicted :v 0.762751131527472 :op :assert}
+   {:e #blake3 "7897dfcef9317dbfdf93958dfbd2c16e8769cf979e516ce21e28bb7d321caaf5" :a :hypothesis/timestamp :v #inst 1774502511 :op :assert}
+   {:e #blake3 "88c8c4b6fd50997cfac9f2a3aedd5cd6d58c90017d91f3de11c0826c662fb1a0" :a :hypothesis/action :v #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :op :assert}
+   {:e #blake3 "88c8c4b6fd50997cfac9f2a3aedd5cd6d58c90017d91f3de11c0826c662fb1a0" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "88c8c4b6fd50997cfac9f2a3aedd5cd6d58c90017d91f3de11c0826c662fb1a0" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "88c8c4b6fd50997cfac9f2a3aedd5cd6d58c90017d91f3de11c0826c662fb1a0" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "88c8c4b6fd50997cfac9f2a3aedd5cd6d58c90017d91f3de11c0826c662fb1a0" :a :hypothesis/predicted :v 0.3139120932566085 :op :assert}
+   {:e #blake3 "88c8c4b6fd50997cfac9f2a3aedd5cd6d58c90017d91f3de11c0826c662fb1a0" :a :hypothesis/timestamp :v #inst 1774502511 :op :assert}
+   {:e #blake3 "dcc0069ffa7ad432a3cc1f08d2ce7ea6d8c3430c48de72166b7a15700e0421ba" :a :db/ident :v :session/s-1774502511848 :op :assert}
+   {:e #blake3 "dcc0069ffa7ad432a3cc1f08d2ce7ea6d8c3430c48de72166b7a15700e0421ba" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "dcc0069ffa7ad432a3cc1f08d2ce7ea6d8c3430c48de72166b7a15700e0421ba" :a :session/current :v #blake3 "dcc0069ffa7ad432a3cc1f08d2ce7ea6d8c3430c48de72166b7a15700e0421ba" :op :assert}
+   {:e #blake3 "dcc0069ffa7ad432a3cc1f08d2ce7ea6d8c3430c48de72166b7a15700e0421ba" :a :session/start-datom-count :v 104609 :op :assert}
+   {:e #blake3 "dcc0069ffa7ad432a3cc1f08d2ce7ea6d8c3430c48de72166b7a15700e0421ba" :a :session/start-fitness :v 0.6161429164230393 :op :assert}
+   {:e #blake3 "dcc0069ffa7ad432a3cc1f08d2ce7ea6d8c3430c48de72166b7a15700e0421ba" :a :session/start-time :v "2026-03-26T05:21:51Z" :op :assert}
+   {:e #blake3 "dcc0069ffa7ad432a3cc1f08d2ce7ea6d8c3430c48de72166b7a15700e0421ba" :a :session/started-at :v 1774502511 :op :assert}
+   {:e #blake3 "dcc0069ffa7ad432a3cc1f08d2ce7ea6d8c3430c48de72166b7a15700e0421ba" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "dcc0069ffa7ad432a3cc1f08d2ce7ea6d8c3430c48de72166b7a15700e0421ba" :a :session/task :v "Session 046: INQUIRY-ENGINE — emergent concepts, discrepancy steering, situational brief" :op :assert}
+   {:e #blake3 "e8238bac2209198775ab50347c90f2c30034087ba73ce9e88b360f4f072369b0" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "fea2df9c03b1572e53eabb98d766da45e85b8af3793f864f748a2fd9bab3f4bb" :a :db/doc :v "Harvest session for task: Session 046: INQUIRY-ENGINE — emergent concepts, discrepancy steering, situational brief" :op :assert}
+   {:e #blake3 "fea2df9c03b1572e53eabb98d766da45e85b8af3793f864f748a2fd9bab3f4bb" :a :db/ident :v :harvest/session-braid-user-1774502510 :op :assert}
+   {:e #blake3 "fea2df9c03b1572e53eabb98d766da45e85b8af3793f864f748a2fd9bab3f4bb" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "fea2df9c03b1572e53eabb98d766da45e85b8af3793f864f748a2fd9bab3f4bb" :a :harvest/candidate-count :v 3 :op :assert}
+   {:e #blake3 "fea2df9c03b1572e53eabb98d766da45e85b8af3793f864f748a2fd9bab3f4bb" :a :harvest/codebase-snapshot :v "Codebase: 0 LOC across 0 source files\nTests: 2044 passing" :op :assert}
+   {:e #blake3 "fea2df9c03b1572e53eabb98d766da45e85b8af3793f864f748a2fd9bab3f4bb" :a :harvest/context-metrics :v "{\"candidates\":3,\"k_eff_estimated\":\"0.95\",\"observations\":0,\"output_tokens_est\":13,\"tasks_closed\":0,\"tx_count\":2,\"wall_elapsed_s\":33}" :op :assert}
+   {:e #blake3 "fea2df9c03b1572e53eabb98d766da45e85b8af3793f864f748a2fd9bab3f4bb" :a :harvest/delta-summary :v "+51 datoms, +6 entities" :op :assert}
+   {:e #blake3 "fea2df9c03b1572e53eabb98d766da45e85b8af3793f864f748a2fd9bab3f4bb" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "fea2df9c03b1572e53eabb98d766da45e85b8af3793f864f748a2fd9bab3f4bb" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "fea2df9c03b1572e53eabb98d766da45e85b8af3793f864f748a2fd9bab3f4bb" :a :harvest/recommended-tasks :v "t-d9536d87,t-56b8f57e,t-88751f73" :op :assert}
+   {:e #blake3 "fea2df9c03b1572e53eabb98d766da45e85b8af3793f864f748a2fd9bab3f4bb" :a :harvest/store-datom-count :v 104576 :op :assert}
+   {:e #blake3 "fea2df9c03b1572e53eabb98d766da45e85b8af3793f864f748a2fd9bab3f4bb" :a :harvest/store-entity-count :v 10020 :op :assert}
+   {:e #blake3 "fea2df9c03b1572e53eabb98d766da45e85b8af3793f864f748a2fd9bab3f4bb" :a :harvest/task :v "Session 046: INQUIRY-ENGINE — emergent concepts, discrepancy steering, situational brief" :op :assert}
+   {:e #blake3 "fea2df9c03b1572e53eabb98d766da45e85b8af3793f864f748a2fd9bab3f4bb" :a :harvest/tx-since-last :v 2 :op :assert}
+ ]}

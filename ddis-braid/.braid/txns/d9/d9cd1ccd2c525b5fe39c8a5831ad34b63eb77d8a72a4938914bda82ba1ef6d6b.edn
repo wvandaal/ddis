@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774502429/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INQ-1-REV: Removed innate concept seeding from braid init (default OFF via config gate). Added auto-crystallization during observe: when MIN_CLUSTER_SIZE uncategorized observations accumulate, crystallize immediately. Config overrides: concept.innate-concepts, concept.min-cluster-size, concept.join-threshold. Status shows 'none yet' when no concepts exist."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "789ab3b90b746b239ac97749efb124caee1cd3c794ca79c3c41d827eb1d1aad5" :a :db/doc :v "INQ-1-REV: Removed innate concept seeding from braid init (default OFF via config gate). Added auto-crystallization during observe: when MIN_CLUSTER_SIZE uncategorized observations accumulate, crystallize immediately. Config overrides: concept.innate-concepts, concept.min-cluster-size, concept.join-threshold. Status shows 'none yet' when no concepts exist." :op :assert}
+   {:e #blake3 "789ab3b90b746b239ac97749efb124caee1cd3c794ca79c3c41d827eb1d1aad5" :a :db/ident :v :observation/inq-1-rev-removed-innate-concept-seeding-from-braid-init-d :op :assert}
+   {:e #blake3 "789ab3b90b746b239ac97749efb124caee1cd3c794ca79c3c41d827eb1d1aad5" :a :exploration/body :v "INQ-1-REV: Removed innate concept seeding from braid init (default OFF via config gate). Added auto-crystallization during observe: when MIN_CLUSTER_SIZE uncategorized observations accumulate, crystallize immediately. Config overrides: concept.innate-concepts, concept.min-cluster-size, concept.join-threshold. Status shows 'none yet' when no concepts exist." :op :assert}
+   {:e #blake3 "789ab3b90b746b239ac97749efb124caee1cd3c794ca79c3c41d827eb1d1aad5" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "789ab3b90b746b239ac97749efb124caee1cd3c794ca79c3c41d827eb1d1aad5" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "789ab3b90b746b239ac97749efb124caee1cd3c794ca79c3c41d827eb1d1aad5" :a :exploration/content-hash :v #bytes "053985b95a9a11f0363b5d3234a6575cc71163737ba7598d3ebc1b2b929235e5" :op :assert}
+   {:e #blake3 "789ab3b90b746b239ac97749efb124caee1cd3c794ca79c3c41d827eb1d1aad5" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "789ab3b90b746b239ac97749efb124caee1cd3c794ca79c3c41d827eb1d1aad5" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "789ab3b90b746b239ac97749efb124caee1cd3c794ca79c3c41d827eb1d1aad5" :a :exploration/source-session :v #blake3 "94753a33fb82ff805ada072b50ebcb4b2d244ebf6522b4e4d556b7a31cfc8e19" :op :assert}
+ ]}

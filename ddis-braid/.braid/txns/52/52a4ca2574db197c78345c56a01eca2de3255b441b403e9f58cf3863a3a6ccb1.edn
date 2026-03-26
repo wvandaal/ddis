@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774502448/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INQ-3: Added situational_brief graduated function. Low surprise (<0.3): checkmark. Medium (0.3-0.5): concept + discrepancy keywords. High (>0.5): NEW TERRITORY. Topological event: TOPOLOGY SHIFT. Wired into observe.rs replacing old concept_line + gap_line assembly."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "51c756d267ce3c747b25ab3aec48c91b458045bcb268f631b6e24a0dbd59d1b3" :a :db/doc :v "INQ-3: Added situational_brief graduated function. Low surprise (<0.3): checkmark. Medium (0.3-0.5): concept + discrepancy keywords. High (>0.5): NEW TERRITORY. Topological event: TOPOLOGY SHIFT. Wired into observe.rs replacing old concept_line + gap_line assembly." :op :assert}
+   {:e #blake3 "51c756d267ce3c747b25ab3aec48c91b458045bcb268f631b6e24a0dbd59d1b3" :a :db/ident :v :observation/inq-3-added-situational-brief-graduated-function-low-surpr :op :assert}
+   {:e #blake3 "51c756d267ce3c747b25ab3aec48c91b458045bcb268f631b6e24a0dbd59d1b3" :a :exploration/body :v "INQ-3: Added situational_brief graduated function. Low surprise (<0.3): checkmark. Medium (0.3-0.5): concept + discrepancy keywords. High (>0.5): NEW TERRITORY. Topological event: TOPOLOGY SHIFT. Wired into observe.rs replacing old concept_line + gap_line assembly." :op :assert}
+   {:e #blake3 "51c756d267ce3c747b25ab3aec48c91b458045bcb268f631b6e24a0dbd59d1b3" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "51c756d267ce3c747b25ab3aec48c91b458045bcb268f631b6e24a0dbd59d1b3" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "51c756d267ce3c747b25ab3aec48c91b458045bcb268f631b6e24a0dbd59d1b3" :a :exploration/content-hash :v #bytes "4aff11ba5366e2510af868cca32a8d37d9fad89b5e0779f737d824bbed191fda" :op :assert}
+   {:e #blake3 "51c756d267ce3c747b25ab3aec48c91b458045bcb268f631b6e24a0dbd59d1b3" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "51c756d267ce3c747b25ab3aec48c91b458045bcb268f631b6e24a0dbd59d1b3" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "51c756d267ce3c747b25ab3aec48c91b458045bcb268f631b6e24a0dbd59d1b3" :a :exploration/source-session :v #blake3 "94753a33fb82ff805ada072b50ebcb4b2d244ebf6522b4e4d556b7a31cfc8e19" :op :assert}
+ ]}

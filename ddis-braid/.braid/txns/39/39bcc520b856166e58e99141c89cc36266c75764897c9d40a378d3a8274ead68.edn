@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774502465/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3ff42cbd"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5a4fd5eb91dc3a684210959335f227398f4d626440e5abb81037ae8eabdb1d46" :a :task/close-reason :v "INQ-2: Implemented compute_discrepancy_brief + find_nearest_observation in concept.rs. Discrepancy vector approach, keyword set difference for novel vs expected." :op :assert}
+   {:e #blake3 "5a4fd5eb91dc3a684210959335f227398f4d626440e5abb81037ae8eabdb1d46" :a :task/closed-at :v 1774502464 :op :assert}
+   {:e #blake3 "5a4fd5eb91dc3a684210959335f227398f4d626440e5abb81037ae8eabdb1d46" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "5a4fd5eb91dc3a684210959335f227398f4d626440e5abb81037ae8eabdb1d46" :a :task/status :v :task.status/closed :op :assert}
+ ]}

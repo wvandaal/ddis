@@ -619,7 +619,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     let sigmoid_temperature: f32 = braid_kernel::config::get_config(store, "concept.sigmoid-temperature")
         .and_then(|v| v.parse().ok())
         .unwrap_or(0.05); // Bootstrap default temperature
-    let multi_assignments = braid_kernel::concept::assign_to_concepts_soft(
+    let mut multi_assignments = braid_kernel::concept::assign_to_concepts_soft(
         store,
         &obs_embedding,
         join_threshold,
@@ -627,10 +627,147 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         0.1, // min_strength: filter out noise below 10%
     );
     // Backward-compatible single assignment: first match or Uncategorized.
-    let concept_assignment = multi_assignments
+    let mut concept_assignment = multi_assignments
         .first()
         .cloned()
         .unwrap_or(braid_kernel::concept::ConceptAssignment::Uncategorized);
+
+    // --- INQ-1-REV: Auto-crystallization when uncategorized observations accumulate ---
+    // C9: config override with fallback to constant.
+    let min_cluster_size: usize =
+        braid_kernel::config::get_config(store, "concept.min-cluster-size")
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(braid_kernel::concept::MIN_CLUSTER_SIZE);
+    let mut auto_crystallized_concepts: Vec<String> = Vec::new();
+    let mut uncategorized_count: usize = 0;
+
+    if matches!(concept_assignment, braid_kernel::concept::ConceptAssignment::Uncategorized) {
+        // Count uncategorized observations (have embedding but no concept ref).
+        let concept_ref_attr = Attribute::from_keyword(":exploration/concept");
+        let embed_ref_attr = Attribute::from_keyword(":exploration/embedding");
+
+        let entities_with_embedding: std::collections::HashSet<braid_kernel::datom::EntityId> =
+            store
+                .datoms()
+                .filter(|d| d.op == Op::Assert && d.attribute == embed_ref_attr)
+                .map(|d| d.entity)
+                .collect();
+        let entities_with_concept: std::collections::HashSet<braid_kernel::datom::EntityId> =
+            store
+                .datoms()
+                .filter(|d| d.op == Op::Assert && d.attribute == concept_ref_attr)
+                .map(|d| d.entity)
+                .collect();
+        let existing_uncategorized: Vec<braid_kernel::datom::EntityId> = entities_with_embedding
+            .difference(&entities_with_concept)
+            .copied()
+            .collect();
+
+        // +1 for the current observation (its embedding isn't in the store yet).
+        uncategorized_count = existing_uncategorized.len() + 1;
+
+        if uncategorized_count >= min_cluster_size {
+            // Collect all uncategorized observation embeddings + body text.
+            let body_attr_for_cryst = Attribute::from_keyword(":exploration/body");
+            let mut observations: Vec<(braid_kernel::datom::EntityId, Vec<f32>, String)> =
+                Vec::new();
+            for &eid in &existing_uncategorized {
+                let emb = store
+                    .live_value(eid, &embed_ref_attr)
+                    .and_then(|v| {
+                        if let braid_kernel::datom::Value::Bytes(b) = v {
+                            Some(braid_kernel::embedding::bytes_to_embedding(b))
+                        } else {
+                            None
+                        }
+                    });
+                let body = store
+                    .live_value(eid, &body_attr_for_cryst)
+                    .and_then(|v| {
+                        if let braid_kernel::datom::Value::String(s) = v {
+                            Some(s.clone())
+                        } else {
+                            None
+                        }
+                    })
+                    .unwrap_or_default();
+                if let Some(embedding) = emb {
+                    observations.push((eid, embedding, body));
+                }
+            }
+            // Include current observation.
+            observations.push((entity, obs_embedding.clone(), args.text.to_string()));
+
+            let crystallize_threshold: f32 =
+                braid_kernel::config::get_config(store, "concept.crystallize-threshold")
+                    .and_then(|v| v.parse().ok())
+                    .unwrap_or(join_threshold);
+
+            let new_concepts = braid_kernel::concept::crystallize_concepts(
+                &observations,
+                crystallize_threshold,
+                min_cluster_size,
+            );
+
+            if !new_concepts.is_empty() {
+                let now = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_secs() as i64)
+                    .unwrap_or(0);
+
+                let cryst_agent = AgentId::from_name(args.agent);
+                let cryst_tx_id = super::write::next_tx_id(store, cryst_agent);
+                let mut cryst_datoms = Vec::new();
+
+                for concept in &new_concepts {
+                    let concept_datom_tuples =
+                        braid_kernel::concept::concept_to_datoms(concept, now);
+                    for (e, a, v) in concept_datom_tuples {
+                        cryst_datoms.push(Datom::new(e, a, v, cryst_tx_id, Op::Assert));
+                    }
+                    let member_datom_tuples = braid_kernel::concept::membership_datoms(
+                        concept.entity,
+                        &concept.members,
+                    );
+                    for (e, a, v) in member_datom_tuples {
+                        cryst_datoms.push(Datom::new(e, a, v, cryst_tx_id, Op::Assert));
+                    }
+                    auto_crystallized_concepts.push(concept.name.clone());
+                }
+
+                let cryst_tx = TxFile {
+                    tx_id: cryst_tx_id,
+                    agent: cryst_agent,
+                    provenance: ProvenanceType::Derived,
+                    rationale: format!(
+                        "INQ-1-REV: auto-crystallized {} concept(s) from {} uncategorized observations",
+                        new_concepts.len(),
+                        uncategorized_count,
+                    ),
+                    causal_predecessors: vec![],
+                    datoms: cryst_datoms,
+                };
+                let _ = live.write_tx(&cryst_tx);
+                let _ = live.store(); // Refresh after crystallization write.
+
+                // Re-try concept assignment now that concepts exist.
+                let store = live.store();
+                multi_assignments = braid_kernel::concept::assign_to_concepts_soft(
+                    store,
+                    &obs_embedding,
+                    join_threshold,
+                    sigmoid_temperature,
+                    0.1,
+                );
+                concept_assignment = multi_assignments
+                    .first()
+                    .cloned()
+                    .unwrap_or(braid_kernel::concept::ConceptAssignment::Uncategorized);
+            }
+        }
+    }
+    let store = live.store();
+
     let entity_matches = braid_kernel::concept::entity_auto_link(store, args.text);
     let steering = braid_kernel::concept::compute_observe_steering_multi(
         store,
@@ -880,14 +1017,62 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         responsive_parts.push(event.clone());
     }
 
-    // CCE-5: Concept-aware steering (replaces generic micro-hypothesis).
-    if let Some(ref line) = steering.concept_line {
+    // --- INQ-1-REV: Auto-crystallization feedback ---
+    if !auto_crystallized_concepts.is_empty() {
+        for name in &auto_crystallized_concepts {
+            responsive_parts.push(format!(
+                "AUTO-CRYSTALLIZED: concept [{name}] from {uncategorized_count} observations"
+            ));
+        }
+    } else if matches!(
+        concept_assignment,
+        braid_kernel::concept::ConceptAssignment::Uncategorized
+    ) && uncategorized_count > 0
+    {
+        // Show progress toward crystallization.
+        responsive_parts.push(format!(
+            "uncategorized ({uncategorized_count}/{min_cluster_size} toward first concepts)"
+        ));
+    }
+
+    // --- INQ-2 + INQ-3: Graduated situational brief ---
+    // Compute discrepancy brief for surprising observations.
+    let discrepancy = match &concept_assignment {
+        braid_kernel::concept::ConceptAssignment::Joined {
+            concept, surprise, ..
+        } => {
+            let disc_min_surprise: f32 =
+                braid_kernel::config::get_config(store, "concept.discrepancy-min-surprise")
+                    .and_then(|v| v.parse().ok())
+                    .unwrap_or(0.3);
+            braid_kernel::concept::compute_discrepancy_brief(
+                store,
+                &obs_embedding,
+                *concept,
+                *surprise,
+                disc_min_surprise,
+            )
+        }
+        _ => None,
+    };
+
+    // Situational brief replaces the old concept_line + gap_line + steering.question.
+    if let Some(brief) = braid_kernel::concept::situational_brief(
+        store,
+        &concept_assignment,
+        &topo_events,
+        discrepancy.as_ref(),
+    ) {
+        responsive_parts.push(brief.line);
+    } else if let Some(ref line) = steering.concept_line {
+        // Fallback to legacy steering when situational brief not applicable.
         responsive_parts.push(line.clone());
     } else {
         // STEER-3b: Near-miss feedback when concept assignment doesn't fire.
-        if let Some((_, best_sim)) = braid_kernel::concept::find_nearest_concept(store, &obs_embedding) {
+        if let Some((_, best_sim)) =
+            braid_kernel::concept::find_nearest_concept(store, &obs_embedding)
+        {
             if best_sim > 0.05 {
-                // Show the near miss — helps agents understand the system.
                 responsive_parts.push(format!(
                     "near: best concept match cosine={best_sim:.2} (threshold={join_threshold:.2})"
                 ));
@@ -1107,6 +1292,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             "summary": n.summary,
         })),
         "auto_crystallized": auto_crystallized,
+        "auto_crystallized_concepts": auto_crystallized_concepts,
         "cotransacted": cotx_entities.iter().map(|(t, i)| serde_json::json!({"type": t, "ident": i})).collect::<Vec<_>>(),
         "connections": connections.iter().map(|c| {
             let hex: String = c.target.as_bytes().iter().take(8).map(|b| format!("{b:02x}")).collect();

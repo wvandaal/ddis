@@ -1,0 +1,52 @@
+{:tx/id #hlc "1774502476/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 26 candidates from task 'Session 046: INQUIRY-ENGINE — emergent concepts, discrepancy steering, situational brief'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :db/doc :v "Harvest session for task: Session 046: INQUIRY-ENGINE — emergent concepts, discrepancy steering, situational brief" :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :db/ident :v :harvest/session-braid-user-1774502476 :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/accomplishments :v "Session entity: :config/calibration-similarity-sum-sq; Session entity: :recon/trace-f8c35f5ad63146a5; Session entity: :config/concept-join-threshold; INQ-2: Added compute_discrepancy_brief and find_nearest_observation to concept.rs. Discrepancy vector = observation - centroid, nearest obs to discrepancy = what was NOVEL, nearest obs to centroid = what was EXPECTED, keyword set difference = the novel elements.; Session entity: :config/concept-sigmoid-temperature; Session entity: :config/calibration-similarity-count; Session entity: :config/calibration-similarity-sum\nINQ-3: Added situational_brief graduated function. Low surprise (<0.3): checkmark. Medium (0.3-0.5): concept + discrepancy keywords. High (>0.5): NEW TERRITORY. Topological event: TOPOLOGY SHIFT. Wired into observe.rs replacing old concept_line + gap_line assembly.; INQ-1-REV: Removed innate concept seeding from braid init (default OFF via config gate). Added auto-crystallization during observe: when MIN_CLUSTER_SIZE uncategorized observations accumulate, crystallize immediately. Config overrides: concept.innate-concepts, concept.min-cluster-size, concept.join-threshold. Status shows 'none yet' when no concepts exist." :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/candidate-count :v 26 :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/codebase-snapshot :v "Codebase: 0 LOC across 0 source files\nTests: 2044 passing" :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/context-metrics :v "{\"candidates\":26,\"k_eff_estimated\":\"0.77\",\"observations\":3,\"output_tokens_est\":1219,\"tasks_closed\":2,\"tx_count\":23,\"wall_elapsed_s\":3355}" :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/delta-summary :v "+214 datoms, +19 entities" :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/git-summary :v "branch=main, 1 commits, 1 files (+14/-20)\n  8f0958ae Session 045 FINAL: Landing — harvest + seed for Session 046\nHot files:\n  ddis-braid/AGENTS.md (34 lines changed)" :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/observation-count :v 3 :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/recommended-tasks :v "t-d9536d87,t-88751f73,t-8e8cf412" :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/store-datom-count :v 104525 :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/store-entity-count :v 10014 :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: Session 046: INQUIRY-ENGINE — emergent concepts, discrepancy steering, situational brief\nRun: `braid seed --task \"continue: Session 046: INQUIRY-ENGINE — emergent concepts, discrepancy steering, situational brief\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/task :v "Session 046: INQUIRY-ENGINE — emergent concepts, discrepancy steering, situational brief" :op :assert}
+   {:e #blake3 "82572ea721a2ee1047dd74913c6d8a937fdb5be3b6995c1a82ebd1c284347856" :a :harvest/tx-since-last :v 23 :op :assert}
+   {:e #blake3 "94753a33fb82ff805ada072b50ebcb4b2d244ebf6522b4e4d556b7a31cfc8e19" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "adf5f938a94f1ddbcdf8efd3457903ff57e50811064dd11f1d401b928a3d974d" :a :hypothesis/action :v #blake3 "11146360f74be633495a6342dd8200186db3c8cf4a9c36a3c12288606c58cf62" :op :assert}
+   {:e #blake3 "adf5f938a94f1ddbcdf8efd3457903ff57e50811064dd11f1d401b928a3d974d" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "adf5f938a94f1ddbcdf8efd3457903ff57e50811064dd11f1d401b928a3d974d" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "adf5f938a94f1ddbcdf8efd3457903ff57e50811064dd11f1d401b928a3d974d" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "adf5f938a94f1ddbcdf8efd3457903ff57e50811064dd11f1d401b928a3d974d" :a :hypothesis/predicted :v 1.0 :op :assert}
+   {:e #blake3 "adf5f938a94f1ddbcdf8efd3457903ff57e50811064dd11f1d401b928a3d974d" :a :hypothesis/timestamp :v #inst 1774502501 :op :assert}
+   {:e #blake3 "b2679275ecbecd6f9c827419fe1e8fba4b13cf73d30cf3110e32bc96a5cc0f08" :a :hypothesis/action :v #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :op :assert}
+   {:e #blake3 "b2679275ecbecd6f9c827419fe1e8fba4b13cf73d30cf3110e32bc96a5cc0f08" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "b2679275ecbecd6f9c827419fe1e8fba4b13cf73d30cf3110e32bc96a5cc0f08" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "b2679275ecbecd6f9c827419fe1e8fba4b13cf73d30cf3110e32bc96a5cc0f08" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "b2679275ecbecd6f9c827419fe1e8fba4b13cf73d30cf3110e32bc96a5cc0f08" :a :hypothesis/predicted :v 0.4520312214396285 :op :assert}
+   {:e #blake3 "b2679275ecbecd6f9c827419fe1e8fba4b13cf73d30cf3110e32bc96a5cc0f08" :a :hypothesis/timestamp :v #inst 1774502501 :op :assert}
+   {:e #blake3 "b9936e61507180965ead79be54ce2843a9d9cddd41cf679efbcc8dc8aca15006" :a :hypothesis/action :v #blake3 "44d5d397154b469c1d33bf5cb4da749089379e765e10f4b6ae4f21ac379b2780" :op :assert}
+   {:e #blake3 "b9936e61507180965ead79be54ce2843a9d9cddd41cf679efbcc8dc8aca15006" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "b9936e61507180965ead79be54ce2843a9d9cddd41cf679efbcc8dc8aca15006" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "b9936e61507180965ead79be54ce2843a9d9cddd41cf679efbcc8dc8aca15006" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "b9936e61507180965ead79be54ce2843a9d9cddd41cf679efbcc8dc8aca15006" :a :hypothesis/predicted :v 0.44881188328870397 :op :assert}
+   {:e #blake3 "b9936e61507180965ead79be54ce2843a9d9cddd41cf679efbcc8dc8aca15006" :a :hypothesis/timestamp :v #inst 1774502501 :op :assert}
+   {:e #blake3 "e8238bac2209198775ab50347c90f2c30034087ba73ce9e88b360f4f072369b0" :a :db/ident :v :session/s-1774502501503 :op :assert}
+   {:e #blake3 "e8238bac2209198775ab50347c90f2c30034087ba73ce9e88b360f4f072369b0" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "e8238bac2209198775ab50347c90f2c30034087ba73ce9e88b360f4f072369b0" :a :session/current :v #blake3 "e8238bac2209198775ab50347c90f2c30034087ba73ce9e88b360f4f072369b0" :op :assert}
+   {:e #blake3 "e8238bac2209198775ab50347c90f2c30034087ba73ce9e88b360f4f072369b0" :a :session/start-datom-count :v 104561 :op :assert}
+   {:e #blake3 "e8238bac2209198775ab50347c90f2c30034087ba73ce9e88b360f4f072369b0" :a :session/start-fitness :v 0.6161415925279894 :op :assert}
+   {:e #blake3 "e8238bac2209198775ab50347c90f2c30034087ba73ce9e88b360f4f072369b0" :a :session/start-time :v "2026-03-26T05:21:41Z" :op :assert}
+   {:e #blake3 "e8238bac2209198775ab50347c90f2c30034087ba73ce9e88b360f4f072369b0" :a :session/started-at :v 1774502501 :op :assert}
+   {:e #blake3 "e8238bac2209198775ab50347c90f2c30034087ba73ce9e88b360f4f072369b0" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "e8238bac2209198775ab50347c90f2c30034087ba73ce9e88b360f4f072369b0" :a :session/task :v "## Session Synthesis Directive\n\n**Next session task**: continue: Session 046: INQUIRY-ENGINE — emergent concepts, discrepancy steering, situational brief\nRun: `braid seed --task \"continue: Session 046: INQUIRY-ENGINE — emergent concepts, discrepancy steering, situational brief\"` to start the next session.\n" :op :assert}
+ ]}

@@ -1,0 +1,49 @@
+{:tx/id #hlc "1774502532/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 3 candidates from task 'Session 046 INQUIRY-ENGINE'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "32fcbeeee5330252e596500fbe1c67e2ba8df5a9b7b7d799a5f97e869ede91a3" :a :hypothesis/action :v #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :op :assert}
+   {:e #blake3 "32fcbeeee5330252e596500fbe1c67e2ba8df5a9b7b7d799a5f97e869ede91a3" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "32fcbeeee5330252e596500fbe1c67e2ba8df5a9b7b7d799a5f97e869ede91a3" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "32fcbeeee5330252e596500fbe1c67e2ba8df5a9b7b7d799a5f97e869ede91a3" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "32fcbeeee5330252e596500fbe1c67e2ba8df5a9b7b7d799a5f97e869ede91a3" :a :hypothesis/predicted :v 0.31391544782160713 :op :assert}
+   {:e #blake3 "32fcbeeee5330252e596500fbe1c67e2ba8df5a9b7b7d799a5f97e869ede91a3" :a :hypothesis/timestamp :v #inst 1774502533 :op :assert}
+   {:e #blake3 "519c6fd4d764353a1f8e4924597e5a4bc12bc74cd68691c3133f38836eb27e36" :a :hypothesis/action :v #blake3 "11146360f74be633495a6342dd8200186db3c8cf4a9c36a3c12288606c58cf62" :op :assert}
+   {:e #blake3 "519c6fd4d764353a1f8e4924597e5a4bc12bc74cd68691c3133f38836eb27e36" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "519c6fd4d764353a1f8e4924597e5a4bc12bc74cd68691c3133f38836eb27e36" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "519c6fd4d764353a1f8e4924597e5a4bc12bc74cd68691c3133f38836eb27e36" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "519c6fd4d764353a1f8e4924597e5a4bc12bc74cd68691c3133f38836eb27e36" :a :hypothesis/predicted :v 0.7627559145325682 :op :assert}
+   {:e #blake3 "519c6fd4d764353a1f8e4924597e5a4bc12bc74cd68691c3133f38836eb27e36" :a :hypothesis/timestamp :v #inst 1774502533 :op :assert}
+   {:e #blake3 "616041060b9998c2031ce82612ca2525e98f1cef1472510336ec17e66130582d" :a :hypothesis/action :v #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :op :assert}
+   {:e #blake3 "616041060b9998c2031ce82612ca2525e98f1cef1472510336ec17e66130582d" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "616041060b9998c2031ce82612ca2525e98f1cef1472510336ec17e66130582d" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "616041060b9998c2031ce82612ca2525e98f1cef1472510336ec17e66130582d" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "616041060b9998c2031ce82612ca2525e98f1cef1472510336ec17e66130582d" :a :hypothesis/predicted :v 0.3226419506496192 :op :assert}
+   {:e #blake3 "616041060b9998c2031ce82612ca2525e98f1cef1472510336ec17e66130582d" :a :hypothesis/timestamp :v #inst 1774502533 :op :assert}
+   {:e #blake3 "8dd0db43ee1a00c90f7d0f003a0d927e7639082ab7f85d53b8b594fe23654c30" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "8fae532fa0c2cde3fe2b43921413dd47310a4c805ba2e2eb90ee24077a28479e" :a :db/ident :v :session/s-1774502533344 :op :assert}
+   {:e #blake3 "8fae532fa0c2cde3fe2b43921413dd47310a4c805ba2e2eb90ee24077a28479e" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "8fae532fa0c2cde3fe2b43921413dd47310a4c805ba2e2eb90ee24077a28479e" :a :session/current :v #blake3 "8fae532fa0c2cde3fe2b43921413dd47310a4c805ba2e2eb90ee24077a28479e" :op :assert}
+   {:e #blake3 "8fae532fa0c2cde3fe2b43921413dd47310a4c805ba2e2eb90ee24077a28479e" :a :session/start-datom-count :v 104705 :op :assert}
+   {:e #blake3 "8fae532fa0c2cde3fe2b43921413dd47310a4c805ba2e2eb90ee24077a28479e" :a :session/start-fitness :v 0.6161455594623196 :op :assert}
+   {:e #blake3 "8fae532fa0c2cde3fe2b43921413dd47310a4c805ba2e2eb90ee24077a28479e" :a :session/start-time :v "2026-03-26T05:22:13Z" :op :assert}
+   {:e #blake3 "8fae532fa0c2cde3fe2b43921413dd47310a4c805ba2e2eb90ee24077a28479e" :a :session/started-at :v 1774502533 :op :assert}
+   {:e #blake3 "8fae532fa0c2cde3fe2b43921413dd47310a4c805ba2e2eb90ee24077a28479e" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "8fae532fa0c2cde3fe2b43921413dd47310a4c805ba2e2eb90ee24077a28479e" :a :session/task :v "Session 046 INQUIRY-ENGINE" :op :assert}
+   {:e #blake3 "d82d3ba6721b1cf1424866fbc8a3c23355dac847129ecbb87352b66f9ec5660d" :a :db/doc :v "Harvest session for task: Session 046 INQUIRY-ENGINE" :op :assert}
+   {:e #blake3 "d82d3ba6721b1cf1424866fbc8a3c23355dac847129ecbb87352b66f9ec5660d" :a :db/ident :v :harvest/session-braid-user-1774502532 :op :assert}
+   {:e #blake3 "d82d3ba6721b1cf1424866fbc8a3c23355dac847129ecbb87352b66f9ec5660d" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "d82d3ba6721b1cf1424866fbc8a3c23355dac847129ecbb87352b66f9ec5660d" :a :harvest/candidate-count :v 3 :op :assert}
+   {:e #blake3 "d82d3ba6721b1cf1424866fbc8a3c23355dac847129ecbb87352b66f9ec5660d" :a :harvest/codebase-snapshot :v "Codebase: 0 LOC across 0 source files\nTests: 2044 passing" :op :assert}
+   {:e #blake3 "d82d3ba6721b1cf1424866fbc8a3c23355dac847129ecbb87352b66f9ec5660d" :a :harvest/context-metrics :v "{\"candidates\":3,\"k_eff_estimated\":\"0.95\",\"observations\":0,\"output_tokens_est\":13,\"tasks_closed\":0,\"tx_count\":2,\"wall_elapsed_s\":9}" :op :assert}
+   {:e #blake3 "d82d3ba6721b1cf1424866fbc8a3c23355dac847129ecbb87352b66f9ec5660d" :a :harvest/delta-summary :v "+48 datoms, +6 entities" :op :assert}
+   {:e #blake3 "d82d3ba6721b1cf1424866fbc8a3c23355dac847129ecbb87352b66f9ec5660d" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "d82d3ba6721b1cf1424866fbc8a3c23355dac847129ecbb87352b66f9ec5660d" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "d82d3ba6721b1cf1424866fbc8a3c23355dac847129ecbb87352b66f9ec5660d" :a :harvest/recommended-tasks :v "t-d9536d87,t-56b8f57e,t-88751f73" :op :assert}
+   {:e #blake3 "d82d3ba6721b1cf1424866fbc8a3c23355dac847129ecbb87352b66f9ec5660d" :a :harvest/store-datom-count :v 104672 :op :assert}
+   {:e #blake3 "d82d3ba6721b1cf1424866fbc8a3c23355dac847129ecbb87352b66f9ec5660d" :a :harvest/store-entity-count :v 10032 :op :assert}
+   {:e #blake3 "d82d3ba6721b1cf1424866fbc8a3c23355dac847129ecbb87352b66f9ec5660d" :a :harvest/task :v "Session 046 INQUIRY-ENGINE" :op :assert}
+   {:e #blake3 "d82d3ba6721b1cf1424866fbc8a3c23355dac847129ecbb87352b66f9ec5660d" :a :harvest/tx-since-last :v 2 :op :assert}
+ ]}

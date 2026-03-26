@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774502458/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-786e3584"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dcd3cc128250c928aa7ccd7d99d8f0ed33a0bc3fb7296948ed14f8abeda082ba" :a :task/close-reason :v "INQ-1-REV: Implemented auto-crystallization during observe, config gate for innate concepts, config-driven MIN_CLUSTER_SIZE in harvest, 'none yet' in status. 6 unit tests + 10/10 E2E." :op :assert}
+   {:e #blake3 "dcd3cc128250c928aa7ccd7d99d8f0ed33a0bc3fb7296948ed14f8abeda082ba" :a :task/closed-at :v 1774502457 :op :assert}
+   {:e #blake3 "dcd3cc128250c928aa7ccd7d99d8f0ed33a0bc3fb7296948ed14f8abeda082ba" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "dcd3cc128250c928aa7ccd7d99d8f0ed33a0bc3fb7296948ed14f8abeda082ba" :a :task/status :v :task.status/closed :op :assert}
+ ]}

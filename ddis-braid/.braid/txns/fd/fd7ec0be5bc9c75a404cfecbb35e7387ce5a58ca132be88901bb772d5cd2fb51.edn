@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774502438/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INQ-2: Added compute_discrepancy_brief and find_nearest_observation to concept.rs. Discrepancy vector = observation - centroid, nearest obs to discrepancy = what was NOVEL, nearest obs to centroid = what was EXPECTED, keyword set difference = the novel elements."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d91e97515617755a0e540e62fbcbb0219957abb49dd40b64ea1462432ba41cee" :a :db/doc :v "INQ-2: Added compute_discrepancy_brief and find_nearest_observation to concept.rs. Discrepancy vector = observation - centroid, nearest obs to discrepancy = what was NOVEL, nearest obs to centroid = what was EXPECTED, keyword set difference = the novel elements." :op :assert}
+   {:e #blake3 "d91e97515617755a0e540e62fbcbb0219957abb49dd40b64ea1462432ba41cee" :a :db/ident :v :observation/inq-2-added-compute-discrepancy-brief-and-find-nearest-obse :op :assert}
+   {:e #blake3 "d91e97515617755a0e540e62fbcbb0219957abb49dd40b64ea1462432ba41cee" :a :exploration/body :v "INQ-2: Added compute_discrepancy_brief and find_nearest_observation to concept.rs. Discrepancy vector = observation - centroid, nearest obs to discrepancy = what was NOVEL, nearest obs to centroid = what was EXPECTED, keyword set difference = the novel elements." :op :assert}
+   {:e #blake3 "d91e97515617755a0e540e62fbcbb0219957abb49dd40b64ea1462432ba41cee" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "d91e97515617755a0e540e62fbcbb0219957abb49dd40b64ea1462432ba41cee" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "d91e97515617755a0e540e62fbcbb0219957abb49dd40b64ea1462432ba41cee" :a :exploration/content-hash :v #bytes "71f0639e5c64e5165d132813868809ce425aa9948391956ba7d8dc8b30019470" :op :assert}
+   {:e #blake3 "d91e97515617755a0e540e62fbcbb0219957abb49dd40b64ea1462432ba41cee" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d91e97515617755a0e540e62fbcbb0219957abb49dd40b64ea1462432ba41cee" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d91e97515617755a0e540e62fbcbb0219957abb49dd40b64ea1462432ba41cee" :a :exploration/source-session :v #blake3 "94753a33fb82ff805ada072b50ebcb4b2d244ebf6522b4e4d556b7a31cfc8e19" :op :assert}
+ ]}

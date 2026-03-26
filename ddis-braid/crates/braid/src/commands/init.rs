@@ -284,45 +284,55 @@ pub fn run(
     }
 
     // --- CCE-3: Innate concept schemas (Piagetian sensorimotor reflexes) ---
-    // Seed 5 universal concepts (components, dependencies, invariants, patterns, anomalies)
-    // so observations can match concepts from the very first `braid observe`.
+    // INQ-1-REV: Innate concepts are OFF by default. Concepts emerge organically from
+    // observations via auto-crystallization (MIN_CLUSTER_SIZE threshold). Enable with
+    // config: concept.innate-concepts = "on".
+    // C9: config override with fallback to constant.
     {
-        let innate_agent = AgentId::from_name("braid:init");
-        let innate_tx_id = super::write::next_tx_id(live.store(), innate_agent);
-        // MODEL-WIRE + EMBED-CONSISTENCY: Use resolved embedder and tag type (INV-EMBEDDING-004).
-        let (init_embedder, embedder_type) = super::model::resolve_embedder(path);
-        let embedder_kw = format!(":embedder/{embedder_type}");
-        let innate_tuples = braid_kernel::concept::innate_concept_datoms_typed(
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| d.as_secs() as i64)
-                .unwrap_or(0),
-            init_embedder.as_ref(),
-            &embedder_kw,
-        );
-        if !innate_tuples.is_empty() {
-            let innate_datoms: Vec<braid_kernel::datom::Datom> = innate_tuples
-                .into_iter()
-                .map(|(e, a, v)| {
-                    braid_kernel::datom::Datom::new(
-                        e,
-                        a,
-                        v,
-                        innate_tx_id,
-                        braid_kernel::datom::Op::Assert,
-                    )
-                })
-                .collect();
-            let tx = TxFile {
-                tx_id: innate_tx_id,
-                agent: innate_agent,
-                provenance: ProvenanceType::Inferred,
-                rationale: "CCE-3: innate concept schemas".to_string(),
-                causal_predecessors: vec![],
-                datoms: innate_datoms,
-            };
-            live.write_tx(&tx)?;
-            out.push_str("  schemas: components | dependencies | invariants | patterns | anomalies\n");
+        let innate_enabled = braid_kernel::config::get_config_or(
+            live.store(),
+            "concept.innate-concepts",
+            "off",
+        ) == "on";
+        if innate_enabled {
+            let innate_agent = AgentId::from_name("braid:init");
+            let innate_tx_id = super::write::next_tx_id(live.store(), innate_agent);
+            let (init_embedder, embedder_type) = super::model::resolve_embedder(path);
+            let embedder_kw = format!(":embedder/{embedder_type}");
+            let innate_tuples = braid_kernel::concept::innate_concept_datoms_typed(
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_secs() as i64)
+                    .unwrap_or(0),
+                init_embedder.as_ref(),
+                &embedder_kw,
+            );
+            if !innate_tuples.is_empty() {
+                let innate_datoms: Vec<braid_kernel::datom::Datom> = innate_tuples
+                    .into_iter()
+                    .map(|(e, a, v)| {
+                        braid_kernel::datom::Datom::new(
+                            e,
+                            a,
+                            v,
+                            innate_tx_id,
+                            braid_kernel::datom::Op::Assert,
+                        )
+                    })
+                    .collect();
+                let tx = TxFile {
+                    tx_id: innate_tx_id,
+                    agent: innate_agent,
+                    provenance: ProvenanceType::Inferred,
+                    rationale: "CCE-3: innate concept schemas".to_string(),
+                    causal_predecessors: vec![],
+                    datoms: innate_datoms,
+                };
+                live.write_tx(&tx)?;
+                out.push_str(
+                    "  schemas: components | dependencies | invariants | patterns | anomalies\n",
+                );
+            }
         }
     }
 

@@ -879,7 +879,17 @@ pub fn run(
             .copied()
             .collect();
 
-        if uncategorized_entities.len() >= braid_kernel::concept::MIN_CLUSTER_SIZE {
+        // C9: Use config overrides with fallback to constants (ADR-FOUNDATION-031).
+        let min_cluster_size: usize =
+            braid_kernel::config::get_config(store, "concept.min-cluster-size")
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(braid_kernel::concept::MIN_CLUSTER_SIZE);
+        let crystallize_threshold: f32 =
+            braid_kernel::config::get_config(store, "concept.join-threshold")
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(braid_kernel::concept::JOIN_THRESHOLD);
+
+        if uncategorized_entities.len() >= min_cluster_size {
             // Load embeddings and body text for uncategorized observations.
             let mut observations = Vec::new();
             for &eid in &uncategorized_entities {
@@ -909,8 +919,8 @@ pub fn run(
 
             let new_concepts = braid_kernel::concept::crystallize_concepts(
                 &observations,
-                braid_kernel::concept::JOIN_THRESHOLD,
-                braid_kernel::concept::MIN_CLUSTER_SIZE,
+                crystallize_threshold,
+                min_cluster_size,
             );
 
             if !new_concepts.is_empty() {
