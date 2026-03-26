@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774533086/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c4476167"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/close-reason :v "Superseded: replaced by UA-TEST (comprehensive isomorphism proof)" :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/closed-at :v 1774533085 :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "9f9a6206a728215fc6601c0d0994c9a98399dadf93311c40366be83dafaf3a94" :a :task/status :v :task.status/closed :op :assert}
+ ]}

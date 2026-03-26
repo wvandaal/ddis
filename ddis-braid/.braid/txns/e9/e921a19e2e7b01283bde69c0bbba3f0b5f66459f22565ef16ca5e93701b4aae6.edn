@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774533363/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P4-DAEMON-V2: Lazy daemon auto-start — first command direct, daemon warms in background, subsequent commands route through socket"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f0070c7b17527ea88bd0613f0f189c71bda99f63977a8a950a2b84e85dbfdfaf" :a :db/ident :v :task/t-697fdaa7 :op :assert}
+   {:e #blake3 "f0070c7b17527ea88bd0613f0f189c71bda99f63977a8a950a2b84e85dbfdfaf" :a :task/created-at :v 1774533362 :op :assert}
+   {:e #blake3 "f0070c7b17527ea88bd0613f0f189c71bda99f63977a8a950a2b84e85dbfdfaf" :a :task/description :v "CONTEXT: ADR-STORE-006 specifies auto-start. Daemon exists (1,925 LOC, 35 tests). After UA-1, daemon holds ALL MaterializedViews in memory — true O(1) for all accumulator reads. PROTOCOL: (1) Check daemon.lock. (2) If running: route through socket. (3) If NOT running: execute in DIRECT MODE (no wait), then fork-exec daemon start in background. Next command finds daemon ready. WHY: User never waits for daemon startup. First command = current speed. Second command = daemon speed. AUTO-STOP: 2h inactivity timer. ACCEPTANCE: (A) No startup penalty. (B) Second command routes through daemon. (C) Auto-stop after 2h. (D) All E2E pass. FILE: main.rs, daemon.rs. DEPENDS-ON: UA-1, P0-SCHEMA." :op :assert}
+   {:e #blake3 "f0070c7b17527ea88bd0613f0f189c71bda99f63977a8a950a2b84e85dbfdfaf" :a :task/id :v "t-697fdaa7" :op :assert}
+   {:e #blake3 "f0070c7b17527ea88bd0613f0f189c71bda99f63977a8a950a2b84e85dbfdfaf" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "f0070c7b17527ea88bd0613f0f189c71bda99f63977a8a950a2b84e85dbfdfaf" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f0070c7b17527ea88bd0613f0f189c71bda99f63977a8a950a2b84e85dbfdfaf" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f0070c7b17527ea88bd0613f0f189c71bda99f63977a8a950a2b84e85dbfdfaf" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f0070c7b17527ea88bd0613f0f189c71bda99f63977a8a950a2b84e85dbfdfaf" :a :task/title :v "P4-DAEMON-V2: Lazy daemon auto-start — first command direct, daemon warms in background, subsequent commands route through socket" :op :assert}
+   {:e #blake3 "f0070c7b17527ea88bd0613f0f189c71bda99f63977a8a950a2b84e85dbfdfaf" :a :task/title-l0 :v "P4-DAEMON-V2" :op :assert}
+   {:e #blake3 "f0070c7b17527ea88bd0613f0f189c71bda99f63977a8a950a2b84e85dbfdfaf" :a :task/title-l1 :v "P4-DAEMON-V2: Lazy daemon auto-start — first command direct, daemon warms i..." :op :assert}
+   {:e #blake3 "f0070c7b17527ea88bd0613f0f189c71bda99f63977a8a950a2b84e85dbfdfaf" :a :task/traces-to :v #blake3 "01a286515542ccc7bf49a77ce4391d43e752b81b78216b9cb88b08960ec950c6" :op :assert}
+   {:e #blake3 "f0070c7b17527ea88bd0613f0f189c71bda99f63977a8a950a2b84e85dbfdfaf" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "f0070c7b17527ea88bd0613f0f189c71bda99f63977a8a950a2b84e85dbfdfaf" :a :task/type :v :task.type/task :op :assert}
+ ]}

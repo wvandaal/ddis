@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774533061/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-737e31aa"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/close-reason :v "Superseded: folded into Universal Accumulator (unified P1+P2+P3+P7)" :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/closed-at :v 1774533060 :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "7a8dda0f66eae128bac8c0bf06c04d9c7f2bbbbbacae8be2ce251c2cfaa3c90f" :a :task/status :v :task.status/closed :op :assert}
+ ]}

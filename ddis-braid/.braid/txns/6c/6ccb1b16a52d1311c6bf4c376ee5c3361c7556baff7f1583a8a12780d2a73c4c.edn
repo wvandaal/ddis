@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774533202/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-45c3def0"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/close-reason :v "Superseded: replaced by P8-CONCEPT-INDEX with deeper concept membership index in MaterializedViews" :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/closed-at :v 1774533201 :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "ea41cfb69c6fca85f820c47d2113ba2f36d7a509a1ae0ff88897a5d1ba77db76" :a :task/status :v :task.status/closed :op :assert}
+ ]}

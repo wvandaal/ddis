@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774533276/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P5-SEED-FROM-VIEWS: Refactor seed assembly to read from MaterializedViews entity sets — 15 scans to 1-2"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "25b65e01162c5a5b8f03e3a93f4f35b3a302431e89262042f2bf78ecd3b0d64d" :a :db/ident :v :task/t-930fd19f :op :assert}
+   {:e #blake3 "25b65e01162c5a5b8f03e3a93f4f35b3a302431e89262042f2bf78ecd3b0d64d" :a :task/created-at :v 1774533275 :op :assert}
+   {:e #blake3 "25b65e01162c5a5b8f03e3a93f4f35b3a302431e89262042f2bf78ecd3b0d64d" :a :task/description :v "CONTEXT: seed.rs has 15 datoms() scans and 7 entities() calls. assemble_seed scans for spec entities, task entities, observation entities, sessions — ALL of which the Universal Accumulator (UA-1) now maintains as materialized entity sets.\n\nAPPROACH: After UA-1, MaterializedViews contains:\n  isp_spec_entities: HashSet<EntityId>   — all spec element entities\n  isp_impl_entities: HashSet<EntityId>   — all impl entities  \n  task_status_live: BTreeMap<EntityId, String> — all tasks with live status\n  concept_centroids: BTreeMap<EntityId, Vec<f32>> — concept entities (from P8)\n\nassemble_seed can read these directly:\n  spec_context: iterate views.isp_spec_entities, load body via entity_datoms (O(1) per entity)\n  task_context: iterate views.task_status_live.keys(), load summary via entity_datoms\n  active_intentions: filter task_status_live for in_progress tasks\n  concept_context: iterate views.concept_centroids.keys()\n\nThe 15 full scans collapse to 0 full scans + O(entity_count) indexed lookups.\n\nONE REMAINING SCAN: verify_seed still needs a full scan to check seed integrity. This can be deferred or made opt-in (--verify flag).\n\nACCEPTANCE:\n(A) braid seed output is byte-identical before/after (content equivalence)\n(B) 0 store.datoms() calls in the hot path of assemble_seed\n(C) braid seed --inject latency < 2s at 105K datoms (down from ~5s)\n(D) verify_seed still works when explicitly requested\n\nFILE: crates/braid-kernel/src/seed.rs\nDEPENDS-ON: UA-1 (entity sets in views), P8-CONCEPT-INDEX (concept centroids in views)" :op :assert}
+   {:e #blake3 "25b65e01162c5a5b8f03e3a93f4f35b3a302431e89262042f2bf78ecd3b0d64d" :a :task/id :v "t-930fd19f" :op :assert}
+   {:e #blake3 "25b65e01162c5a5b8f03e3a93f4f35b3a302431e89262042f2bf78ecd3b0d64d" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "25b65e01162c5a5b8f03e3a93f4f35b3a302431e89262042f2bf78ecd3b0d64d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "25b65e01162c5a5b8f03e3a93f4f35b3a302431e89262042f2bf78ecd3b0d64d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "25b65e01162c5a5b8f03e3a93f4f35b3a302431e89262042f2bf78ecd3b0d64d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "25b65e01162c5a5b8f03e3a93f4f35b3a302431e89262042f2bf78ecd3b0d64d" :a :task/title :v "P5-SEED-FROM-VIEWS: Refactor seed assembly to read from MaterializedViews entity sets — 15 scans to 1-2" :op :assert}
+   {:e #blake3 "25b65e01162c5a5b8f03e3a93f4f35b3a302431e89262042f2bf78ecd3b0d64d" :a :task/title-l0 :v "P5-SEED-FROM-VIEWS" :op :assert}
+   {:e #blake3 "25b65e01162c5a5b8f03e3a93f4f35b3a302431e89262042f2bf78ecd3b0d64d" :a :task/title-l1 :v "P5-SEED-FROM-VIEWS: Refactor seed assembly to read from MaterializedViews ent..." :op :assert}
+   {:e #blake3 "25b65e01162c5a5b8f03e3a93f4f35b3a302431e89262042f2bf78ecd3b0d64d" :a :task/traces-to :v #blake3 "1becd9d6d843ecd8e4358ed6eb20f29ed260a22ec17f2aee0e9c40294e74cfb0" :op :assert}
+   {:e #blake3 "25b65e01162c5a5b8f03e3a93f4f35b3a302431e89262042f2bf78ecd3b0d64d" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "25b65e01162c5a5b8f03e3a93f4f35b3a302431e89262042f2bf78ecd3b0d64d" :a :task/type :v :task.type/task :op :assert}
+ ]}

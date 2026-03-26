@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774533229/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P8-CONCEPT-INDEX: Maintain concept centroid index in MaterializedViews — O(concepts) assignment not O(datoms)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cc451df361ead6b7e50d0718fee1095107dbd13a4fee91258ced16fe7be3f445" :a :db/ident :v :task/t-a85a963c :op :assert}
+   {:e #blake3 "cc451df361ead6b7e50d0718fee1095107dbd13a4fee91258ced16fe7be3f445" :a :task/created-at :v 1774533228 :op :assert}
+   {:e #blake3 "cc451df361ead6b7e50d0718fee1095107dbd13a4fee91258ced16fe7be3f445" :a :task/description :v "CONTEXT: concept.rs has 17 store.datoms() full scans. find_nearest_concept scans 105K datoms to find ~3 concept centroids. assign_to_concepts does another full scan. With the model2vec embedder active, every braid observe pays this cost. At 105K datoms with 3 concepts, this is 35,000x over-read.\n\nDEEPER FIX (beyond attribute_datoms replacement): Maintain a ConceptIndex in MaterializedViews:\n  concept_centroids: BTreeMap<EntityId, Vec<f32>>  // concept entity → centroid embedding\n  concept_member_counts: BTreeMap<EntityId, u64>    // concept entity → member count\n\nOn each datom:\n  :concept/embedding Assert → update concept_centroids (latest-wins per entity)\n  :concept/member-count Assert → update concept_member_counts\n\nThen find_nearest_concept becomes:\n  fn find_nearest_concept_from_index(index: &BTreeMap<EntityId, Vec<f32>>, embedding: &[f32]) -> Option<(EntityId, f32)>\n  // O(|concepts|) ≈ O(3-10), not O(105K)\n\nassign_to_concepts similarly reads from the index.\n\nALSO: Replace remaining datoms() calls with attribute_datoms() for functions not covered by the index (concept_inventory, co_occurrence_matrix, format_concept_status). The attribute_index is already O(1) per attribute lookup.\n\nACCEPTANCE:\n(A) find_nearest_concept from index == find_nearest_concept from full scan for ALL test stores\n(B) No store.datoms() calls remain in concept.rs (only attribute_datoms, entity_datoms, or views accessors)\n(C) braid observe latency decreases measurably (benchmark before/after)\n(D) ConceptIndex in views matches batch-computed concept inventory\n\nFILE: crates/braid-kernel/src/store.rs (ConceptIndex in MaterializedViews), crates/braid-kernel/src/concept.rs (all 17 scan sites)\nDEPENDS-ON: UA-1 (adds to the same observe_datom fold)" :op :assert}
+   {:e #blake3 "cc451df361ead6b7e50d0718fee1095107dbd13a4fee91258ced16fe7be3f445" :a :task/id :v "t-a85a963c" :op :assert}
+   {:e #blake3 "cc451df361ead6b7e50d0718fee1095107dbd13a4fee91258ced16fe7be3f445" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "cc451df361ead6b7e50d0718fee1095107dbd13a4fee91258ced16fe7be3f445" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "cc451df361ead6b7e50d0718fee1095107dbd13a4fee91258ced16fe7be3f445" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cc451df361ead6b7e50d0718fee1095107dbd13a4fee91258ced16fe7be3f445" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cc451df361ead6b7e50d0718fee1095107dbd13a4fee91258ced16fe7be3f445" :a :task/title :v "P8-CONCEPT-INDEX: Maintain concept centroid index in MaterializedViews — O(concepts) assignment not O(datoms)" :op :assert}
+   {:e #blake3 "cc451df361ead6b7e50d0718fee1095107dbd13a4fee91258ced16fe7be3f445" :a :task/title-l0 :v "P8-CONCEPT-INDEX" :op :assert}
+   {:e #blake3 "cc451df361ead6b7e50d0718fee1095107dbd13a4fee91258ced16fe7be3f445" :a :task/title-l1 :v "P8-CONCEPT-INDEX: Maintain concept centroid index in MaterializedViews — O(..." :op :assert}
+   {:e #blake3 "cc451df361ead6b7e50d0718fee1095107dbd13a4fee91258ced16fe7be3f445" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "cc451df361ead6b7e50d0718fee1095107dbd13a4fee91258ced16fe7be3f445" :a :task/traces-to :v #blake3 "fd00a7254b7645334d1058a6047b9dcdc3b3dfbc8f5bbd715971933e1f04f7af" :op :assert}
+   {:e #blake3 "cc451df361ead6b7e50d0718fee1095107dbd13a4fee91258ced16fe7be3f445" :a :task/type :v :task.type/task :op :assert}
+ ]}
