@@ -156,6 +156,58 @@ else
 fi
 
 # ===================================================================
+# (7) Online calibration: threshold exists BEFORE harvest (after 3+ obs)
+# ===================================================================
+log "Check 7: Online calibration fired (threshold written before harvest)"
+# The calibration datoms should already exist from the observations above.
+CAL_COUNT=$($BRAID config -q 2>/dev/null 2>&1 | grep "calibration.similarity-count" | head -1 | awk -F'=' '{print $2}' | tr -d ' ' | cut -d'(' -f1)
+if [ -n "$CAL_COUNT" ] && [ "$CAL_COUNT" -ge 3 ] 2>/dev/null; then
+    check "online calibration count >= 3 after observations" "PASS"
+    log "    calibration count: $CAL_COUNT"
+else
+    check "online calibration count >= 3 after observations" "FAIL"
+    log "    got: '$CAL_COUNT'"
+fi
+
+# ===================================================================
+# (8) Online calibrated threshold differs from bootstrap default
+# ===================================================================
+log "Check 8: Calibrated threshold differs from bootstrap default"
+CAL_THRESH=$($BRAID config -q 2>/dev/null 2>&1 | grep "concept.join-threshold" | head -1 | awk -F'=' '{print $2}' | tr -d ' ' | cut -d'(' -f1)
+if [ -n "$CAL_THRESH" ]; then
+    # Check it's not 0.2000 (model2vec default) or 0.6500 (hash default)
+    if [ "$CAL_THRESH" != "0.2000" ] && [ "$CAL_THRESH" != "0.6500" ] && [ "$CAL_THRESH" != "0.20" ] && [ "$CAL_THRESH" != "0.65" ]; then
+        check "online threshold != bootstrap default" "PASS"
+        log "    calibrated threshold: $CAL_THRESH"
+    else
+        check "online threshold != bootstrap default" "FAIL"
+        log "    threshold still at default: $CAL_THRESH"
+    fi
+else
+    check "online threshold != bootstrap default (no value)" "FAIL"
+fi
+
+# ===================================================================
+# (9) Concept member counts are NOT all identical (discrimination)
+# ===================================================================
+log "Check 9: Concept member counts show discrimination"
+# After harvest, check that not all concepts have identical member counts
+MEMBER_COUNTS=$($BRAID query -q 2>/dev/null -- '[:find ?count :where [?c :concept/member-count ?count] [?c :concept/innate true]]' 2>/dev/null | grep -v "^?" | grep -v "^-" | grep -v "^$" | sort -u)
+NUM_UNIQUE=$(echo "$MEMBER_COUNTS" | wc -l)
+if [ "$NUM_UNIQUE" -gt 1 ]; then
+    check "concept member counts differ (discrimination)" "PASS"
+    log "    unique count values: $NUM_UNIQUE"
+else
+    # Even if all same, check if any concept has 0 members (some filtered out)
+    if echo "$MEMBER_COUNTS" | grep -q "^0$"; then
+        check "concept member counts show filtering (some at 0)" "PASS"
+    else
+        check "concept member counts differ" "FAIL"
+        log "    all concepts have same count"
+    fi
+fi
+
+# ===================================================================
 # Results
 # ===================================================================
 echo ""

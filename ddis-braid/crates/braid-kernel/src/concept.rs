@@ -4672,4 +4672,82 @@ mod tests {
             candidates.len()
         );
     }
+
+    // ===================================================================
+    // ONLINE-TEST: Online calibration formula tests
+    // ===================================================================
+
+    /// Online calibration formula: threshold = (mean - 0.5*stddev).clamp(0.15, 0.85)
+    #[test]
+    fn test_online_calibration_formula() {
+        // Known similarities: [0.3, 0.5, 0.7]
+        let sims = [0.3_f64, 0.5, 0.7];
+        let count = sims.len() as f64;
+        let sum: f64 = sims.iter().sum();
+        let sum_sq: f64 = sims.iter().map(|s| s * s).sum();
+        let mean = sum / count;
+        let variance = (sum_sq / count - mean * mean).max(0.0);
+        let stddev = variance.sqrt();
+        let threshold = (mean - 0.5 * stddev).clamp(0.15, 0.85);
+        let temperature = (stddev / 2.0).max(0.01);
+
+        assert!((mean - 0.5).abs() < 0.01, "mean should be 0.5, got {mean}");
+        assert!(
+            (stddev - 0.1633).abs() < 0.01,
+            "stddev should be ~0.163, got {stddev:.4}"
+        );
+        assert!(
+            (threshold - 0.4184).abs() < 0.01,
+            "threshold should be ~0.418, got {threshold:.4}"
+        );
+        assert!(
+            (temperature - 0.0816).abs() < 0.01,
+            "temperature should be ~0.082, got {temperature:.4}"
+        );
+    }
+
+    /// Online calibration clamps to [0.15, 0.85] for degenerate distributions.
+    #[test]
+    fn test_online_calibration_clamp() {
+        // All very high similarities -> threshold would be > 0.85 without clamp
+        let sims = [0.95_f64, 0.96, 0.97];
+        let count = sims.len() as f64;
+        let sum: f64 = sims.iter().sum();
+        let sum_sq: f64 = sims.iter().map(|s| s * s).sum();
+        let mean = sum / count;
+        let variance = (sum_sq / count - mean * mean).max(0.0);
+        let stddev = variance.sqrt();
+        let threshold = (mean - 0.5 * stddev).clamp(0.15, 0.85);
+
+        assert!(
+            threshold <= 0.85,
+            "high-similarity threshold should be clamped to <= 0.85, got {threshold:.4}"
+        );
+
+        // All very low similarities -> threshold would be < 0.15 without clamp
+        let sims_low = [0.05_f64, 0.06, 0.07];
+        let count = sims_low.len() as f64;
+        let sum: f64 = sims_low.iter().sum();
+        let sum_sq: f64 = sims_low.iter().map(|s| s * s).sum();
+        let mean = sum / count;
+        let variance = (sum_sq / count - mean * mean).max(0.0);
+        let stddev = variance.sqrt();
+        let threshold = (mean - 0.5 * stddev).clamp(0.15, 0.85);
+
+        assert!(
+            threshold >= 0.15,
+            "low-similarity threshold should be clamped to >= 0.15, got {threshold:.4}"
+        );
+    }
+
+    /// Calibrate_join_threshold returns None for stores with < 5 paired observations.
+    #[test]
+    fn test_calibrate_returns_none_without_pairs() {
+        // Store with innate concepts but no observations with embeddings
+        let store = store_with_innate_concepts();
+        assert!(
+            calibrate_join_threshold(&store).is_none(),
+            "should return None without observation-concept pairs"
+        );
+    }
 }

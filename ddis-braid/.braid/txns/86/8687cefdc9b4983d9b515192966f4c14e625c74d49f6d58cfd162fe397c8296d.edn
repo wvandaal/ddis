@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774491442/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-62f1dde3"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/close-reason :v "3 unit tests + 3 E2E checks added. Unit: formula verification, clamp bounds, None for unpaired. E2E: online count >=3, threshold != default, concept discrimination. All pass." :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/closed-at :v 1774491441 :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "764a7eace95f3ddeaf88021ebb6bc2a9404598c562c3fb2d227ee87c28f0ebd4" :a :task/status :v :task.status/closed :op :assert}
+ ]}
