@@ -159,6 +159,14 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Source**: SEED §4 Axiom 1, C2
 **Formalized as**: ADR-STORE-014 in `spec/01-store.md`
 
+### FD-015: Self-Calibrating Parameters
+
+**Decision**: All numerical parameters influencing system behavior (thresholds, weights, decay rates, coefficients) are first-class knowledge — datoms in the store, not constants in source code. Each parameter must have: (a) a store-backed value as `:policy/*` or `:config/*` datom, (b) a bootstrap default from the embedder or domain (the prior), (c) a calibration function invoked at harvest that updates the value from predicted-vs-actual outcomes (the posterior update), (d) queryability and inspectability via standard Datalog.
+**Rationale**: In a formal epistemology runtime, every decision boundary is a claim about reality. A hardcoded constant is a claim exempt from the system's own verification — an axiom in a system whose purpose is to question axioms. This is a self-referential contradiction and an open loop (NEG-010). Parameters are datoms subject to the same observe → reconcile → calibrate cycle as any other claim. The bootstrap default is the Bayesian prior; the calibration function is the posterior update; the converged value is the MAP estimate.
+**Rejected**: (1) Hardcoded constants with manual tuning — violates C9 and NEG-010. (2) Config files outside the store — violates C3 (schema-as-data). (3) Calibration without bootstrap — cold-start problem.
+**Source**: Session 045 DOGFOOD-2 analysis (concept collapse from hardcoded join_threshold=0.20); ADR-FOUNDATION-014 (convergence thesis); OBSERVER-4 (weight calibration loop); C9 (parameter substrate independence)
+**Formalized as**: ADR-FOUNDATION-031
+
 ---
 
 ## Algebraic Structure Decisions

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774485531/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e10ea7ca"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/close-reason :v "ADR-FOUNDATION-031 formalized: observation in store + FD-015 entry in docs/design/ADRS.md. Traces to ADR-FOUNDATION-014, OBSERVER-4, C9, NEG-010." :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/closed-at :v 1774485530 :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/status :v :task.status/closed :op :assert}
+ ]}
