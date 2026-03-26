@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774491724/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Heavy *sql.DB coupling: 63 Go files across 30+ packages import database/sql directly. Nearly every analysis function takes *sql.DB as its first argument (Analyze, Record, Check, ComputeState etc). There are only 3 interfaces in the entire codebase (Provider, Check, Applier) — almost no abstraction boundaries. The storage package is not a proper data access layer; it is a bag of SQL query functions that every other package calls directly. This creates a deeply coupled architecture where every package depends on the concrete SQLite schema."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "350a33113bd57c2dd439f04be3f28b83d659b663b4d31638be49ea7f9b47f0d2" :a :db/doc :v "Heavy *sql.DB coupling: 63 Go files across 30+ packages import database/sql directly. Nearly every analysis function takes *sql.DB as its first argument (Analyze, Record, Check, ComputeState etc). There are only 3 interfaces in the entire codebase (Provider, Check, Applier) — almost no abstraction boundaries. The storage package is not a proper data access layer; it is a bag of SQL query functions that every other package calls directly. This creates a deeply coupled architecture where every package depends on the concrete SQLite schema." :op :assert}
+   {:e #blake3 "350a33113bd57c2dd439f04be3f28b83d659b663b4d31638be49ea7f9b47f0d2" :a :db/ident :v :observation/heavy-sqldb-coupling-63-go-files-across-30-packages-impo :op :assert}
+   {:e #blake3 "350a33113bd57c2dd439f04be3f28b83d659b663b4d31638be49ea7f9b47f0d2" :a :exploration/body :v "Heavy *sql.DB coupling: 63 Go files across 30+ packages import database/sql directly. Nearly every analysis function takes *sql.DB as its first argument (Analyze, Record, Check, ComputeState etc). There are only 3 interfaces in the entire codebase (Provider, Check, Applier) — almost no abstraction boundaries. The storage package is not a proper data access layer; it is a bag of SQL query functions that every other package calls directly. This creates a deeply coupled architecture where every package depends on the concrete SQLite schema." :op :assert}
+   {:e #blake3 "350a33113bd57c2dd439f04be3f28b83d659b663b4d31638be49ea7f9b47f0d2" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "350a33113bd57c2dd439f04be3f28b83d659b663b4d31638be49ea7f9b47f0d2" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "350a33113bd57c2dd439f04be3f28b83d659b663b4d31638be49ea7f9b47f0d2" :a :exploration/content-hash :v #bytes "b6a43dd33e4b663643f9e4c934fafc2cff81110dccdbabec83de375a44cbdd3d" :op :assert}
+   {:e #blake3 "350a33113bd57c2dd439f04be3f28b83d659b663b4d31638be49ea7f9b47f0d2" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "350a33113bd57c2dd439f04be3f28b83d659b663b4d31638be49ea7f9b47f0d2" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "350a33113bd57c2dd439f04be3f28b83d659b663b4d31638be49ea7f9b47f0d2" :a :exploration/source-session :v #blake3 "78613bebe0dbb8b928b01f2fd3dfc34f8edf7463f7143969d527f51065a369b9" :op :assert}
+ ]}

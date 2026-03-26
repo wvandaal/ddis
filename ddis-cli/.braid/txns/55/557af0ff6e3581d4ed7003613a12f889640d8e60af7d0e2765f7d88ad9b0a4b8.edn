@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774491581/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The parser package (20 files, ~90KB) handles DDIS spec parsing with monolith/modular polymorphism (APP-ADR-010). ManifestData struct defines the spec shape: modules with cross-references (maintains, interfaces, implements, adjacent), an invariant_registry, context_budget with reasoning_reserve, and constitution system/domains. Each spec element type (invariants, ADRs, negspecs, gates, performance, verification, whynot, glossary, examples, xref) has its own parser file — highly modular. The patterns.go file suggests regex-based extraction of structured blocks from markdown."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bf7dd3e67b7bace84cd06c5ea3e38e3e0ce771ed4819c6f8c58110024f927680" :a :db/doc :v "The parser package (20 files, ~90KB) handles DDIS spec parsing with monolith/modular polymorphism (APP-ADR-010). ManifestData struct defines the spec shape: modules with cross-references (maintains, interfaces, implements, adjacent), an invariant_registry, context_budget with reasoning_reserve, and constitution system/domains. Each spec element type (invariants, ADRs, negspecs, gates, performance, verification, whynot, glossary, examples, xref) has its own parser file — highly modular. The patterns.go file suggests regex-based extraction of structured blocks from markdown." :op :assert}
+   {:e #blake3 "bf7dd3e67b7bace84cd06c5ea3e38e3e0ce771ed4819c6f8c58110024f927680" :a :db/ident :v :observation/the-parser-package-20-files-90kb-handles-ddis-spec-parsi :op :assert}
+   {:e #blake3 "bf7dd3e67b7bace84cd06c5ea3e38e3e0ce771ed4819c6f8c58110024f927680" :a :exploration/body :v "The parser package (20 files, ~90KB) handles DDIS spec parsing with monolith/modular polymorphism (APP-ADR-010). ManifestData struct defines the spec shape: modules with cross-references (maintains, interfaces, implements, adjacent), an invariant_registry, context_budget with reasoning_reserve, and constitution system/domains. Each spec element type (invariants, ADRs, negspecs, gates, performance, verification, whynot, glossary, examples, xref) has its own parser file — highly modular. The patterns.go file suggests regex-based extraction of structured blocks from markdown." :op :assert}
+   {:e #blake3 "bf7dd3e67b7bace84cd06c5ea3e38e3e0ce771ed4819c6f8c58110024f927680" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "bf7dd3e67b7bace84cd06c5ea3e38e3e0ce771ed4819c6f8c58110024f927680" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "bf7dd3e67b7bace84cd06c5ea3e38e3e0ce771ed4819c6f8c58110024f927680" :a :exploration/content-hash :v #bytes "1571c484b99f23feb9c74d71b61b69bb649df61e589241743ceaac0c53ec01ce" :op :assert}
+   {:e #blake3 "bf7dd3e67b7bace84cd06c5ea3e38e3e0ce771ed4819c6f8c58110024f927680" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "bf7dd3e67b7bace84cd06c5ea3e38e3e0ce771ed4819c6f8c58110024f927680" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "bf7dd3e67b7bace84cd06c5ea3e38e3e0ce771ed4819c6f8c58110024f927680" :a :exploration/source-session :v #blake3 "78613bebe0dbb8b928b01f2fd3dfc34f8edf7463f7143969d527f51065a369b9" :op :assert}
+ ]}

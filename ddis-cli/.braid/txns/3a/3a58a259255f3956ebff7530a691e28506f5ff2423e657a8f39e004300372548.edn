@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774491555/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The storage package (internal/storage/) uses a 30-table normalized SQLite schema (APP-ADR-005) with 5 core files totaling ~125KB. Models map 1:1 to tables: SpecIndex, SourceFile, Section, Invariant, ADR. The schema.go file defines all CREATE TABLE statements as a const string SchemaSQL, with CHECK constraints for enums (source_type, file_role) and proper FK references. Content-addressable hashing (SHA-256) is used for deduplication on sections and invariants."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3477eb3c3dbe8ebfb8ed027dddbefc5077033649d8c43dcae0f220bd416b0e5f" :a :db/doc :v "The storage package (internal/storage/) uses a 30-table normalized SQLite schema (APP-ADR-005) with 5 core files totaling ~125KB. Models map 1:1 to tables: SpecIndex, SourceFile, Section, Invariant, ADR. The schema.go file defines all CREATE TABLE statements as a const string SchemaSQL, with CHECK constraints for enums (source_type, file_role) and proper FK references. Content-addressable hashing (SHA-256) is used for deduplication on sections and invariants." :op :assert}
+   {:e #blake3 "3477eb3c3dbe8ebfb8ed027dddbefc5077033649d8c43dcae0f220bd416b0e5f" :a :db/ident :v :observation/the-storage-package-internalstorage-uses-a-30-table-norm :op :assert}
+   {:e #blake3 "3477eb3c3dbe8ebfb8ed027dddbefc5077033649d8c43dcae0f220bd416b0e5f" :a :exploration/body :v "The storage package (internal/storage/) uses a 30-table normalized SQLite schema (APP-ADR-005) with 5 core files totaling ~125KB. Models map 1:1 to tables: SpecIndex, SourceFile, Section, Invariant, ADR. The schema.go file defines all CREATE TABLE statements as a const string SchemaSQL, with CHECK constraints for enums (source_type, file_role) and proper FK references. Content-addressable hashing (SHA-256) is used for deduplication on sections and invariants." :op :assert}
+   {:e #blake3 "3477eb3c3dbe8ebfb8ed027dddbefc5077033649d8c43dcae0f220bd416b0e5f" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "3477eb3c3dbe8ebfb8ed027dddbefc5077033649d8c43dcae0f220bd416b0e5f" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "3477eb3c3dbe8ebfb8ed027dddbefc5077033649d8c43dcae0f220bd416b0e5f" :a :exploration/content-hash :v #bytes "ddc07e5b6b167873afdd11d832f69018040a862b5f8bba03b61bf28b12031277" :op :assert}
+   {:e #blake3 "3477eb3c3dbe8ebfb8ed027dddbefc5077033649d8c43dcae0f220bd416b0e5f" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "3477eb3c3dbe8ebfb8ed027dddbefc5077033649d8c43dcae0f220bd416b0e5f" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "3477eb3c3dbe8ebfb8ed027dddbefc5077033649d8c43dcae0f220bd416b0e5f" :a :exploration/source-session :v #blake3 "78613bebe0dbb8b928b01f2fd3dfc34f8edf7463f7143969d527f51065a369b9" :op :assert}
+ ]}

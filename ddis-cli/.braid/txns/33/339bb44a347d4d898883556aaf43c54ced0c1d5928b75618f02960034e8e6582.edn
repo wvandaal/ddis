@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774491644/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The autoprompt/budget.go implements attention budget decay (APP-INV-035): k*_eff starts at BaseBudget=12 and decreases by 1 for every Step=5 conversation turns, with Floor=3 as minimum. Token target linearly interpolates from 2000 tokens at k*=12 to 300 tokens at k*=3. Attenuation ranges 0.0 (full guidance) to 0.75 (max attenuation at depth>=45). The package has tests (9.5KB) but only 2 source files (budget.go + types.go) — the actual prompt assembly appears to have been extracted or never implemented here."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1d5bb3f41016f51e018c46d70eaf32a219cdf96052851350cfe8d1ff036ca092" :a :db/doc :v "The autoprompt/budget.go implements attention budget decay (APP-INV-035): k*_eff starts at BaseBudget=12 and decreases by 1 for every Step=5 conversation turns, with Floor=3 as minimum. Token target linearly interpolates from 2000 tokens at k*=12 to 300 tokens at k*=3. Attenuation ranges 0.0 (full guidance) to 0.75 (max attenuation at depth>=45). The package has tests (9.5KB) but only 2 source files (budget.go + types.go) — the actual prompt assembly appears to have been extracted or never implemented here." :op :assert}
+   {:e #blake3 "1d5bb3f41016f51e018c46d70eaf32a219cdf96052851350cfe8d1ff036ca092" :a :db/ident :v :observation/the-autopromptbudgetgo-implements-attention-budget-decay :op :assert}
+   {:e #blake3 "1d5bb3f41016f51e018c46d70eaf32a219cdf96052851350cfe8d1ff036ca092" :a :exploration/body :v "The autoprompt/budget.go implements attention budget decay (APP-INV-035): k*_eff starts at BaseBudget=12 and decreases by 1 for every Step=5 conversation turns, with Floor=3 as minimum. Token target linearly interpolates from 2000 tokens at k*=12 to 300 tokens at k*=3. Attenuation ranges 0.0 (full guidance) to 0.75 (max attenuation at depth>=45). The package has tests (9.5KB) but only 2 source files (budget.go + types.go) — the actual prompt assembly appears to have been extracted or never implemented here." :op :assert}
+   {:e #blake3 "1d5bb3f41016f51e018c46d70eaf32a219cdf96052851350cfe8d1ff036ca092" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "1d5bb3f41016f51e018c46d70eaf32a219cdf96052851350cfe8d1ff036ca092" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "1d5bb3f41016f51e018c46d70eaf32a219cdf96052851350cfe8d1ff036ca092" :a :exploration/content-hash :v #bytes "985bb04459eba33b9f6bbebb3f1f923e5a01d71f48871d7f1e51c4bef6bd7cda" :op :assert}
+   {:e #blake3 "1d5bb3f41016f51e018c46d70eaf32a219cdf96052851350cfe8d1ff036ca092" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "1d5bb3f41016f51e018c46d70eaf32a219cdf96052851350cfe8d1ff036ca092" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "1d5bb3f41016f51e018c46d70eaf32a219cdf96052851350cfe8d1ff036ca092" :a :exploration/source-session :v #blake3 "78613bebe0dbb8b928b01f2fd3dfc34f8edf7463f7143969d527f51065a369b9" :op :assert}
+ ]}

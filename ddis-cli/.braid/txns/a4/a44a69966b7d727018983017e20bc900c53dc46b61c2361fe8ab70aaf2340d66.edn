@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774491564/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The events package implements a three-stream event sourcing architecture (APP-ADR-015). Stream 1=Discovery (ideas, questions), Stream 2=Specification (parse, validate, drift), Stream 3=Implementation (issues, status). Events use an immutable append-only envelope (APP-INV-020) with SHA-256 content hashing, causal predecessor tracking (Causes field, APP-INV-074), and schema versioning (APP-INV-072). Event IDs are date-prefixed random hex for collision avoidance."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4ed4a5fe8abf3733c558f810f1127700765fa84ce9fab32876862ef2f8e276d1" :a :db/doc :v "The events package implements a three-stream event sourcing architecture (APP-ADR-015). Stream 1=Discovery (ideas, questions), Stream 2=Specification (parse, validate, drift), Stream 3=Implementation (issues, status). Events use an immutable append-only envelope (APP-INV-020) with SHA-256 content hashing, causal predecessor tracking (Causes field, APP-INV-074), and schema versioning (APP-INV-072). Event IDs are date-prefixed random hex for collision avoidance." :op :assert}
+   {:e #blake3 "4ed4a5fe8abf3733c558f810f1127700765fa84ce9fab32876862ef2f8e276d1" :a :db/ident :v :observation/the-events-package-implements-a-three-stream-event-sourcing :op :assert}
+   {:e #blake3 "4ed4a5fe8abf3733c558f810f1127700765fa84ce9fab32876862ef2f8e276d1" :a :exploration/body :v "The events package implements a three-stream event sourcing architecture (APP-ADR-015). Stream 1=Discovery (ideas, questions), Stream 2=Specification (parse, validate, drift), Stream 3=Implementation (issues, status). Events use an immutable append-only envelope (APP-INV-020) with SHA-256 content hashing, causal predecessor tracking (Causes field, APP-INV-074), and schema versioning (APP-INV-072). Event IDs are date-prefixed random hex for collision avoidance." :op :assert}
+   {:e #blake3 "4ed4a5fe8abf3733c558f810f1127700765fa84ce9fab32876862ef2f8e276d1" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "4ed4a5fe8abf3733c558f810f1127700765fa84ce9fab32876862ef2f8e276d1" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "4ed4a5fe8abf3733c558f810f1127700765fa84ce9fab32876862ef2f8e276d1" :a :exploration/content-hash :v #bytes "d22d1c0fb318ca24c91156d58726b4d3cf9e806a73a5614dd8a643a3b64daeb1" :op :assert}
+   {:e #blake3 "4ed4a5fe8abf3733c558f810f1127700765fa84ce9fab32876862ef2f8e276d1" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "4ed4a5fe8abf3733c558f810f1127700765fa84ce9fab32876862ef2f8e276d1" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "4ed4a5fe8abf3733c558f810f1127700765fa84ce9fab32876862ef2f8e276d1" :a :exploration/source-session :v #blake3 "78613bebe0dbb8b928b01f2fd3dfc34f8edf7463f7143969d527f51065a369b9" :op :assert}
+ ]}

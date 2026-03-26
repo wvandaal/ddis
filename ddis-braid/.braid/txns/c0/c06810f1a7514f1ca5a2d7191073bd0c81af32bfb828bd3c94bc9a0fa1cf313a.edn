@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774491857/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-48bbcf75"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/close-reason :v "Score 4.1/10. Online calibration works (threshold 0.20->0.57). Concept collapse persists due to tightly clustered model2vec similarities — multi-membership assigns to all concepts even with calibrated threshold. Next fix: top-K or max-gap assignment heuristic instead of pure threshold." :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/closed-at :v 1774491856 :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "15980d0dcf78f38de3617f4161b6e593f45ccd899849010665e2c674b88681fb" :a :task/status :v :task.status/closed :op :assert}
+ ]}

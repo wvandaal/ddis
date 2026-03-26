@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774491654/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The cascade package performs change-impact analysis: given a spec element ID, it traces through module_relationships (maintains/interfaces/implements/adjacent) to find all affected modules and domains. It uses a cascading type-probe pattern (try invariant, then ADR, then gate) rather than a polymorphic lookup. The depth parameter (1-5, default 3) is accepted but unused — reserved for future multi-hop cascade. The invariant_registry provides ownership mapping. This is single-hop blast radius analysis, not true transitive closure."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7a3f8c2b1dd3a8867eac4396431f3c84d80c438c0035b8e256a8e246397e11aa" :a :db/doc :v "The cascade package performs change-impact analysis: given a spec element ID, it traces through module_relationships (maintains/interfaces/implements/adjacent) to find all affected modules and domains. It uses a cascading type-probe pattern (try invariant, then ADR, then gate) rather than a polymorphic lookup. The depth parameter (1-5, default 3) is accepted but unused — reserved for future multi-hop cascade. The invariant_registry provides ownership mapping. This is single-hop blast radius analysis, not true transitive closure." :op :assert}
+   {:e #blake3 "7a3f8c2b1dd3a8867eac4396431f3c84d80c438c0035b8e256a8e246397e11aa" :a :db/ident :v :observation/the-cascade-package-performs-change-impact-analysis-given-a :op :assert}
+   {:e #blake3 "7a3f8c2b1dd3a8867eac4396431f3c84d80c438c0035b8e256a8e246397e11aa" :a :exploration/body :v "The cascade package performs change-impact analysis: given a spec element ID, it traces through module_relationships (maintains/interfaces/implements/adjacent) to find all affected modules and domains. It uses a cascading type-probe pattern (try invariant, then ADR, then gate) rather than a polymorphic lookup. The depth parameter (1-5, default 3) is accepted but unused — reserved for future multi-hop cascade. The invariant_registry provides ownership mapping. This is single-hop blast radius analysis, not true transitive closure." :op :assert}
+   {:e #blake3 "7a3f8c2b1dd3a8867eac4396431f3c84d80c438c0035b8e256a8e246397e11aa" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "7a3f8c2b1dd3a8867eac4396431f3c84d80c438c0035b8e256a8e246397e11aa" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "7a3f8c2b1dd3a8867eac4396431f3c84d80c438c0035b8e256a8e246397e11aa" :a :exploration/content-hash :v #bytes "0723da1746596e7dc92abb9d5aa3b9b95b7b2fe760913896dc43d05ee096f593" :op :assert}
+   {:e #blake3 "7a3f8c2b1dd3a8867eac4396431f3c84d80c438c0035b8e256a8e246397e11aa" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7a3f8c2b1dd3a8867eac4396431f3c84d80c438c0035b8e256a8e246397e11aa" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7a3f8c2b1dd3a8867eac4396431f3c84d80c438c0035b8e256a8e246397e11aa" :a :exploration/source-session :v #blake3 "78613bebe0dbb8b928b01f2fd3dfc34f8edf7463f7143969d527f51065a369b9" :op :assert}
+ ]}

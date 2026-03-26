@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774491743/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Naming anomaly: two near-identical packages — internal/discover (6 files, classify/context/thread/record) and internal/discovery (4 files, events/tasks/models). Both deal with the discovery phase of the bilateral cycle but split inconsistently. discover handles recording and context assembly for the discovery session, while discovery handles issue/task management (18KB tasks.go) and event emission. This is a code-smell indicating incomplete domain decomposition — the bounded context for the discovery phase leaked across two packages with overlapping models.go files."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "87b7b1e3751d8abb79eeababf32f98ac8c76cbe5ee1877bc2238098e14f94a0a" :a :db/doc :v "Naming anomaly: two near-identical packages — internal/discover (6 files, classify/context/thread/record) and internal/discovery (4 files, events/tasks/models). Both deal with the discovery phase of the bilateral cycle but split inconsistently. discover handles recording and context assembly for the discovery session, while discovery handles issue/task management (18KB tasks.go) and event emission. This is a code-smell indicating incomplete domain decomposition — the bounded context for the discovery phase leaked across two packages with overlapping models.go files." :op :assert}
+   {:e #blake3 "87b7b1e3751d8abb79eeababf32f98ac8c76cbe5ee1877bc2238098e14f94a0a" :a :db/ident :v :observation/naming-anomaly-two-near-identical-packages-internaldisco :op :assert}
+   {:e #blake3 "87b7b1e3751d8abb79eeababf32f98ac8c76cbe5ee1877bc2238098e14f94a0a" :a :exploration/body :v "Naming anomaly: two near-identical packages — internal/discover (6 files, classify/context/thread/record) and internal/discovery (4 files, events/tasks/models). Both deal with the discovery phase of the bilateral cycle but split inconsistently. discover handles recording and context assembly for the discovery session, while discovery handles issue/task management (18KB tasks.go) and event emission. This is a code-smell indicating incomplete domain decomposition — the bounded context for the discovery phase leaked across two packages with overlapping models.go files." :op :assert}
+   {:e #blake3 "87b7b1e3751d8abb79eeababf32f98ac8c76cbe5ee1877bc2238098e14f94a0a" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "87b7b1e3751d8abb79eeababf32f98ac8c76cbe5ee1877bc2238098e14f94a0a" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "87b7b1e3751d8abb79eeababf32f98ac8c76cbe5ee1877bc2238098e14f94a0a" :a :exploration/content-hash :v #bytes "638a795569b325368dfb071732130b8489d0db7c1ba413dd83c3e580fc195d70" :op :assert}
+   {:e #blake3 "87b7b1e3751d8abb79eeababf32f98ac8c76cbe5ee1877bc2238098e14f94a0a" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "87b7b1e3751d8abb79eeababf32f98ac8c76cbe5ee1877bc2238098e14f94a0a" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "87b7b1e3751d8abb79eeababf32f98ac8c76cbe5ee1877bc2238098e14f94a0a" :a :exploration/source-session :v #blake3 "78613bebe0dbb8b928b01f2fd3dfc34f8edf7463f7143969d527f51065a369b9" :op :assert}
+ ]}

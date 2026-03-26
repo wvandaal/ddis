@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774491634/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The triage package implements the spec fitness function F(S) as a weighted 6-signal combination (APP-INV-069). Weights are hardcoded constants (not configurable) to prevent gaming: validation=0.20, coverage=0.20, drift=0.20, challenge_hp=0.15, contradictions=0.15, issue_backlog=0.10. RankDeficiencies computes steepest-descent direction by sorting gaps by estimated delta-F. IsFixpointFitness checks for F(S)=1.0. This is a direct precursor to braids acquisition function alpha=E[delta-F(S)]/cost."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7d953b74d0f6a4fdccd6cd393aee649ea3d4e311c7054fca3117e69640986ba8" :a :db/doc :v "The triage package implements the spec fitness function F(S) as a weighted 6-signal combination (APP-INV-069). Weights are hardcoded constants (not configurable) to prevent gaming: validation=0.20, coverage=0.20, drift=0.20, challenge_hp=0.15, contradictions=0.15, issue_backlog=0.10. RankDeficiencies computes steepest-descent direction by sorting gaps by estimated delta-F. IsFixpointFitness checks for F(S)=1.0. This is a direct precursor to braids acquisition function alpha=E[delta-F(S)]/cost." :op :assert}
+   {:e #blake3 "7d953b74d0f6a4fdccd6cd393aee649ea3d4e311c7054fca3117e69640986ba8" :a :db/ident :v :observation/the-triage-package-implements-the-spec-fitness-function-fs :op :assert}
+   {:e #blake3 "7d953b74d0f6a4fdccd6cd393aee649ea3d4e311c7054fca3117e69640986ba8" :a :exploration/body :v "The triage package implements the spec fitness function F(S) as a weighted 6-signal combination (APP-INV-069). Weights are hardcoded constants (not configurable) to prevent gaming: validation=0.20, coverage=0.20, drift=0.20, challenge_hp=0.15, contradictions=0.15, issue_backlog=0.10. RankDeficiencies computes steepest-descent direction by sorting gaps by estimated delta-F. IsFixpointFitness checks for F(S)=1.0. This is a direct precursor to braids acquisition function alpha=E[delta-F(S)]/cost." :op :assert}
+   {:e #blake3 "7d953b74d0f6a4fdccd6cd393aee649ea3d4e311c7054fca3117e69640986ba8" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "7d953b74d0f6a4fdccd6cd393aee649ea3d4e311c7054fca3117e69640986ba8" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "7d953b74d0f6a4fdccd6cd393aee649ea3d4e311c7054fca3117e69640986ba8" :a :exploration/content-hash :v #bytes "6685184fad2c9fcdb1178e36c6a2b764371a6db3bb3e745f6ac9f7ed0344b742" :op :assert}
+   {:e #blake3 "7d953b74d0f6a4fdccd6cd393aee649ea3d4e311c7054fca3117e69640986ba8" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7d953b74d0f6a4fdccd6cd393aee649ea3d4e311c7054fca3117e69640986ba8" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7d953b74d0f6a4fdccd6cd393aee649ea3d4e311c7054fca3117e69640986ba8" :a :exploration/source-session :v #blake3 "78613bebe0dbb8b928b01f2fd3dfc34f8edf7463f7143969d527f51065a369b9" :op :assert}
+ ]}

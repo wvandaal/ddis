@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774491624/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The consistency package implements a 5-tier contradiction detection engine (Tiers 2-6): graph-based (typed edges, governance overlap), SAT (gophersat propositional encoding), heuristic (polarity/quantifier/numeric rules + LSI), SMT (Z3 subprocess, APP-ADR-038), and LLM-as-judge (Anthropic API). Each tier produces Contradiction structs with confidence scores, evidence, and resolution hints. The zero-false-positive invariant (APP-INV-019) governs all tiers. Notable: 9 distinct ConflictTypes from governance_overlap to semantic_tension."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bb057f2d1742574680ca6f7fead43a967bfccf2321f362156d15ca9c3be86617" :a :db/doc :v "The consistency package implements a 5-tier contradiction detection engine (Tiers 2-6): graph-based (typed edges, governance overlap), SAT (gophersat propositional encoding), heuristic (polarity/quantifier/numeric rules + LSI), SMT (Z3 subprocess, APP-ADR-038), and LLM-as-judge (Anthropic API). Each tier produces Contradiction structs with confidence scores, evidence, and resolution hints. The zero-false-positive invariant (APP-INV-019) governs all tiers. Notable: 9 distinct ConflictTypes from governance_overlap to semantic_tension." :op :assert}
+   {:e #blake3 "bb057f2d1742574680ca6f7fead43a967bfccf2321f362156d15ca9c3be86617" :a :db/ident :v :observation/the-consistency-package-implements-a-5-tier-contradiction-de :op :assert}
+   {:e #blake3 "bb057f2d1742574680ca6f7fead43a967bfccf2321f362156d15ca9c3be86617" :a :exploration/body :v "The consistency package implements a 5-tier contradiction detection engine (Tiers 2-6): graph-based (typed edges, governance overlap), SAT (gophersat propositional encoding), heuristic (polarity/quantifier/numeric rules + LSI), SMT (Z3 subprocess, APP-ADR-038), and LLM-as-judge (Anthropic API). Each tier produces Contradiction structs with confidence scores, evidence, and resolution hints. The zero-false-positive invariant (APP-INV-019) governs all tiers. Notable: 9 distinct ConflictTypes from governance_overlap to semantic_tension." :op :assert}
+   {:e #blake3 "bb057f2d1742574680ca6f7fead43a967bfccf2321f362156d15ca9c3be86617" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "bb057f2d1742574680ca6f7fead43a967bfccf2321f362156d15ca9c3be86617" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "bb057f2d1742574680ca6f7fead43a967bfccf2321f362156d15ca9c3be86617" :a :exploration/content-hash :v #bytes "37185518ff5e6ac9b75cccfd93c79f252c61965785f8fc072611b1edd2a078f3" :op :assert}
+   {:e #blake3 "bb057f2d1742574680ca6f7fead43a967bfccf2321f362156d15ca9c3be86617" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "bb057f2d1742574680ca6f7fead43a967bfccf2321f362156d15ca9c3be86617" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "bb057f2d1742574680ca6f7fead43a967bfccf2321f362156d15ca9c3be86617" :a :exploration/source-session :v #blake3 "78613bebe0dbb8b928b01f2fd3dfc34f8edf7463f7143969d527f51065a369b9" :op :assert}
+ ]}
