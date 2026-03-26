@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774537234/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "P0-SCHEMA perf test"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1beed0fcdc4bf4b798c8c65d7aa88eeaf6114b5b4a9592ef4944b5227f97d246" :a :db/doc :v "P0-SCHEMA perf test" :op :assert}
+   {:e #blake3 "1beed0fcdc4bf4b798c8c65d7aa88eeaf6114b5b4a9592ef4944b5227f97d246" :a :db/ident :v :observation/p0-schema-perf-test :op :assert}
+   {:e #blake3 "1beed0fcdc4bf4b798c8c65d7aa88eeaf6114b5b4a9592ef4944b5227f97d246" :a :exploration/body :v "P0-SCHEMA perf test" :op :assert}
+   {:e #blake3 "1beed0fcdc4bf4b798c8c65d7aa88eeaf6114b5b4a9592ef4944b5227f97d246" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "1beed0fcdc4bf4b798c8c65d7aa88eeaf6114b5b4a9592ef4944b5227f97d246" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "1beed0fcdc4bf4b798c8c65d7aa88eeaf6114b5b4a9592ef4944b5227f97d246" :a :exploration/content-hash :v #bytes "a09d1a8f8325c8662085d6fcb5fd4edd438f1507108b3af1dd1cb696e819d2bd" :op :assert}
+   {:e #blake3 "1beed0fcdc4bf4b798c8c65d7aa88eeaf6114b5b4a9592ef4944b5227f97d246" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "1beed0fcdc4bf4b798c8c65d7aa88eeaf6114b5b4a9592ef4944b5227f97d246" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "1beed0fcdc4bf4b798c8c65d7aa88eeaf6114b5b4a9592ef4944b5227f97d246" :a :exploration/source-session :v #blake3 "3225e440e9cc3bf24b0abd90593795b5bf70e1ee18449bf65befe74d6783e1f9" :op :assert}
+ ]}

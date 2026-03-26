@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774537265/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c24663f1"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/close-reason :v "Acceptance verified by full test suite (2040 pass). The guard is proven correct: schema datoms trigger rebuild, non-schema datoms skip it." :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/closed-at :v 1774537264 :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "df8125d0b577af41b37949cd7f9df2c5f0243b2fa83d920e530af98ce464e5ef" :a :task/status :v :task.status/closed :op :assert}
+ ]}

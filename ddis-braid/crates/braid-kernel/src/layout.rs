@@ -505,15 +505,20 @@ impl<'a> EdnParser<'a> {
             )));
         }
         let start = self.pos;
-        self.pos += 1; // skip ':'
+        self.pos += 1; // skip leading ':'
         while self.pos < self.input.len() {
             let ch = self.input.as_bytes()[self.pos];
+            // EDN keywords: alphanumeric, '/', '-', '_', '.', '*', and ':'
+            // (interior ':' occurs in malformed scope keywords like
+            // :config.scope/:config.scope/project — must be consumed as
+            // part of the keyword to avoid orphaned fragments).
             if ch.is_ascii_alphanumeric()
                 || ch == b'/'
                 || ch == b'-'
                 || ch == b'_'
                 || ch == b'.'
                 || ch == b'*'
+                || ch == b':'
             {
                 self.pos += 1;
             } else {

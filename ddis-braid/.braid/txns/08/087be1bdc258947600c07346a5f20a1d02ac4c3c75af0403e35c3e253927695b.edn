@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774542008/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "50f7226e3eb08d499a48e93e07ab2934c2c5dae784912c54da8b8ce22f9716cc" :a :db/ident :v :recon/trace-bf3209041297fd21 :op :assert}
+   {:e #blake3 "50f7226e3eb08d499a48e93e07ab2934c2c5dae784912c54da8b8ce22f9716cc" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "50f7226e3eb08d499a48e93e07ab2934c2c5dae784912c54da8b8ce22f9716cc" :a :recon/trace-neighborhood :v "INTERFACE" :op :assert}
+   {:e #blake3 "50f7226e3eb08d499a48e93e07ab2934c2c5dae784912c54da8b8ce22f9716cc" :a :recon/trace-neighbors :v ":impl/braid.src.mcp.neg-interface-004" :op :assert}
+   {:e #blake3 "50f7226e3eb08d499a48e93e07ab2934c2c5dae784912c54da8b8ce22f9716cc" :a :recon/trace-refs :v "NEG-INTERFACE-004" :op :assert}
+ ]}

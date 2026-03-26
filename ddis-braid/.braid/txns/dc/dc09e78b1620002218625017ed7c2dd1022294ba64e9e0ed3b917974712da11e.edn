@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774543066/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :db/ident :v :recon/trace-4552dc1b4f3e09d4 :op :assert}
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :recon/trace-neighborhood :v "FOUNDATION" :op :assert}
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.routing.inv-guidance-010" :op :assert}
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :recon/trace-neighbors :v ":task/t-0eb806ab" :op :assert}
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :recon/trace-neighbors :v ":task/t-0f5418b3" :op :assert}
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :recon/trace-neighbors :v ":task/t-3610a861" :op :assert}
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :recon/trace-neighbors :v ":task/t-4a5a2e48" :op :assert}
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :recon/trace-neighbors :v ":task/t-59196416" :op :assert}
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :recon/trace-neighbors :v ":task/t-641dd8a6" :op :assert}
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :recon/trace-neighbors :v ":task/t-920174ac" :op :assert}
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :recon/trace-neighbors :v ":task/t-b394164e" :op :assert}
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :recon/trace-neighbors :v ":task/t-c3d9f38c" :op :assert}
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :recon/trace-refs :v "ADR-FOUNDATION-017" :op :assert}
+   {:e #blake3 "c0dced48268a7c949d8c2dd37fbaffa95168efd0f8480cfa69b096689be66f18" :a :recon/trace-refs :v "INV-GUIDANCE-010" :op :assert}
+ ]}

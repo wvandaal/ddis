@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774542165/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5846ab6e811430ccdb7e26c28c21fc82ddce69f589423f2d4c5094f29cc6ccf3" :a :db/ident :v :recon/trace-e3dacaaa065cb24f :op :assert}
+   {:e #blake3 "5846ab6e811430ccdb7e26c28c21fc82ddce69f589423f2d4c5094f29cc6ccf3" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "5846ab6e811430ccdb7e26c28c21fc82ddce69f589423f2d4c5094f29cc6ccf3" :a :recon/trace-neighborhood :v "TRILATERAL" :op :assert}
+   {:e #blake3 "5846ab6e811430ccdb7e26c28c21fc82ddce69f589423f2d4c5094f29cc6ccf3" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.trilateral.adr-trilateral-004" :op :assert}
+   {:e #blake3 "5846ab6e811430ccdb7e26c28c21fc82ddce69f589423f2d4c5094f29cc6ccf3" :a :recon/trace-refs :v "ADR-TRILATERAL-004" :op :assert}
+ ]}

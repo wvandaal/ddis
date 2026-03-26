@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774539824/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7bbb3de9"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/close-reason :v "Implemented: extracted index_datom() method to Store. Replaced 4 copy-paste sites (apply_datoms, transact agent/user/meta datoms, inject_metadata_datom) with single call. 2040+ tests pass, 0 failures." :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/closed-at :v 1774539823 :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "908ab6429fd6425ea5216d41544dfa0e839c0ed0a9baedc486a1095ab8b4d5e4" :a :task/status :v :task.status/closed :op :assert}
+ ]}

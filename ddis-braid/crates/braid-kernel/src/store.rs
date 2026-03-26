@@ -601,6 +601,43 @@ pub struct MaterializedViews {
     // -- Entity count for Phi normalization --
     /// Total distinct entities (for Phi_max = entity_count).
     pub entity_count_for_phi: u64,
+
+    // ===================================================================
+    // UA-1: Universal Accumulator — four new accumulator domains
+    // ===================================================================
+
+    // -- (A) ISP Entity Sets: for check_coherence_fast O(1) --
+    /// Intent-namespace entities (explorations, sessions, harvests, actions).
+    pub isp_intent_entities: HashSet<EntityId>,
+    /// Spec-namespace entities (spec elements, formal elements).
+    pub isp_spec_entities: HashSet<EntityId>,
+    /// Impl-namespace entities (implementations, tasks).
+    pub isp_impl_entities: HashSet<EntityId>,
+    /// ISP intent datom count (exact, via classify_attribute — matches live_projections).
+    pub isp_intent_datom_count: usize,
+    /// ISP spec datom count (exact, via classify_attribute — matches live_projections).
+    pub isp_spec_datom_count: usize,
+    /// ISP impl datom count (exact, via classify_attribute — matches live_projections).
+    pub isp_impl_datom_count: usize,
+
+    // -- (B) Task Index: accurate live status tracking --
+    /// Live task status map: entity → current status keyword.
+    /// Updated via LIVE semantics (latest-wins per entity).
+    pub task_status_live: BTreeMap<EntityId, String>,
+
+    // -- (C) Telemetry Counters --
+    /// Count of session entities (entities with :session/status Assert).
+    pub session_count: u64,
+    /// Most recent harvest transaction ID (for count_txns_since_last_harvest).
+    pub last_harvest_wall: u64,
+    /// Count of tasks with :task/traces-to references (spec-linked tasks).
+    pub task_with_spec_ref_count: u64,
+
+    // -- (D) Incremental Beta_1 via Euler Characteristic --
+    /// Count of Ref-valued edges in the entity graph.
+    pub ref_edge_count: u64,
+    /// Set of entities participating in Ref edges (both source and target).
+    pub ref_vertex_set: HashSet<EntityId>,
 }
 
 impl MaterializedViews {
@@ -643,7 +680,7 @@ impl MaterializedViews {
             }
         }
 
-        // D: Namespace classification for drift/Phi
+        // D: Namespace classification for drift/Phi (broad prefix-based)
         if attr.starts_with(":exploration/")
             || attr.starts_with(":session/")
             || attr.starts_with(":harvest/")
@@ -655,7 +692,23 @@ impl MaterializedViews {
         } else if attr.starts_with(":impl/") || attr.starts_with(":task/") {
             self.impl_datom_count += 1;
         }
-        // :db/*, :tx/*, :routing/*, etc. = Meta (not counted for ISP projections)
+        // UA-1(A): ISP entity sets + datom counts using trilateral::classify_attribute.
+        // Must match live_projections exactly (INV-TRILATERAL-001).
+        match crate::trilateral::classify_attribute(&d.attribute) {
+            crate::trilateral::AttrNamespace::Intent => {
+                self.isp_intent_entities.insert(d.entity);
+                self.isp_intent_datom_count += 1;
+            }
+            crate::trilateral::AttrNamespace::Spec => {
+                self.isp_spec_entities.insert(d.entity);
+                self.isp_spec_datom_count += 1;
+            }
+            crate::trilateral::AttrNamespace::Impl => {
+                self.isp_impl_entities.insert(d.entity);
+                self.isp_impl_datom_count += 1;
+            }
+            crate::trilateral::AttrNamespace::Meta => {}
+        }
 
         // I: Falsification tracking
         if attr == ":spec/falsification" {
@@ -686,7 +739,7 @@ impl MaterializedViews {
             self.observation_count += 1;
         }
 
-        // Task counts
+        // Task counts (historical — approximate, kept for backward compat)
         if attr == ":task/status" {
             if let Value::Keyword(kw) = &d.value {
                 if kw.contains("open") {
@@ -695,14 +748,37 @@ impl MaterializedViews {
                     self.task_in_progress += 1;
                 } else if kw.contains("closed") {
                     self.task_closed += 1;
-                    // A close assertion means the task WAS open/in-progress.
-                    // But since we're counting all Assert datoms, we need the
-                    // live_view to determine CURRENT status. Task counts from
-                    // the batch function use live status, not datom counts.
-                    // For now, these are approximate — CE-4 will wire callers
-                    // to use the exact computation path.
                 }
+                // UA-1(B): Task index — live status tracking.
+                // Insert/update the live status for this task entity.
+                // In a single-pass from_datoms build, the last Assert for each
+                // (entity, :task/status) wins (EAVT ordering ensures later txns
+                // overwrite earlier ones in BTreeMap::insert).
+                self.task_status_live
+                    .insert(d.entity, kw.clone());
             }
+        }
+
+        // UA-1(C): Telemetry counters
+        if attr == ":session/status" {
+            self.session_count += 1;
+        }
+        if attr.starts_with(":harvest/") || attr.starts_with(":h/") {
+            // Track latest harvest wall time for count_txns_since_last_harvest
+            let wall = d.tx.wall_time();
+            if wall > self.last_harvest_wall {
+                self.last_harvest_wall = wall;
+            }
+        }
+        if attr == ":task/traces-to" {
+            self.task_with_spec_ref_count += 1;
+        }
+
+        // UA-1(D): Ref edge tracking for incremental beta_1
+        if let Value::Ref(target) = &d.value {
+            self.ref_edge_count += 1;
+            self.ref_vertex_set.insert(d.entity);
+            self.ref_vertex_set.insert(*target);
         }
     }
 
@@ -881,6 +957,45 @@ impl MaterializedViews {
             incompleteness: after.components.incompleteness - before.components.incompleteness,
             uncertainty: after.components.uncertainty - before.components.uncertainty,
         }
+    }
+
+    // ===================================================================
+    // UA-1: Accessor methods for consumers
+    // ===================================================================
+
+    /// Task counts from the LIVE task index (accurate, not historical).
+    ///
+    /// Returns (open, in_progress, closed) counts based on the latest
+    /// status assertion per task entity.
+    pub fn task_counts_live(&self) -> (usize, usize, usize) {
+        let mut open = 0usize;
+        let mut in_progress = 0usize;
+        let mut closed = 0usize;
+        for status in self.task_status_live.values() {
+            if status.contains("open") {
+                open += 1;
+            } else if status.contains("in-progress") {
+                in_progress += 1;
+            } else if status.contains("closed") {
+                closed += 1;
+            }
+        }
+        (open, in_progress, closed)
+    }
+
+    /// Approximate beta_1 from Euler characteristic.
+    ///
+    /// beta_1 = |edges| - |vertices| + |components|.
+    /// Without Union-Find, we approximate components = |vertices| (upper bound),
+    /// giving beta_1_approx = |edges| - |vertices| + |vertices| = |edges|... which
+    /// is wrong. Instead, use the simpler formula: beta_1 >= |edges| - |vertices| + 1
+    /// for a connected graph. For disconnected graphs, this is a lower bound.
+    ///
+    /// The exact beta_1 requires Union-Find or eigendecomposition — deferred to
+    /// a future task. The materialized ref_edge_count and ref_vertex_set enable
+    /// check_coherence_fast to skip the full datoms() scan for graph construction.
+    pub fn ref_graph_stats(&self) -> (u64, usize) {
+        (self.ref_edge_count, self.ref_vertex_set.len())
     }
 }
 

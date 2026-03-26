@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774542087/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "de0711d57aee5f10852ec9378cfcb9c8ba79eca77cff0f3185575a6dc6090a44" :a :db/ident :v :recon/trace-1677ae9405e88d87 :op :assert}
+   {:e #blake3 "de0711d57aee5f10852ec9378cfcb9c8ba79eca77cff0f3185575a6dc6090a44" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "de0711d57aee5f10852ec9378cfcb9c8ba79eca77cff0f3185575a6dc6090a44" :a :recon/trace-neighborhood :v "BILATERAL" :op :assert}
+   {:e #blake3 "de0711d57aee5f10852ec9378cfcb9c8ba79eca77cff0f3185575a6dc6090a44" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.bilateral.inv-bilateral-005" :op :assert}
+   {:e #blake3 "de0711d57aee5f10852ec9378cfcb9c8ba79eca77cff0f3185575a6dc6090a44" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.compiler.inv-bilateral-005" :op :assert}
+   {:e #blake3 "de0711d57aee5f10852ec9378cfcb9c8ba79eca77cff0f3185575a6dc6090a44" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.e2e_distillation.inv-bilateral-005" :op :assert}
+   {:e #blake3 "de0711d57aee5f10852ec9378cfcb9c8ba79eca77cff0f3185575a6dc6090a44" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.wave_gates.inv-bilateral-005" :op :assert}
+   {:e #blake3 "de0711d57aee5f10852ec9378cfcb9c8ba79eca77cff0f3185575a6dc6090a44" :a :recon/trace-neighbors :v ":impl/braid.src.commands.verify.inv-bilateral-005" :op :assert}
+   {:e #blake3 "de0711d57aee5f10852ec9378cfcb9c8ba79eca77cff0f3185575a6dc6090a44" :a :recon/trace-refs :v "INV-BILATERAL-005" :op :assert}
+ ]}

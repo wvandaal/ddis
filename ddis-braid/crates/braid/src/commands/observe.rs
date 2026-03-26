@@ -805,13 +805,13 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         let cal_tx = super::write::next_tx_id(store, cal_agent);
         let mut cal_datoms = Vec::new();
         cal_datoms.extend(braid_kernel::config::set_config_datoms(
-            "calibration.similarity-count", &new_count.to_string(), ":config.scope/project", cal_tx,
+            "calibration.similarity-count", &new_count.to_string(), "project", cal_tx,
         ));
         cal_datoms.extend(braid_kernel::config::set_config_datoms(
-            "calibration.similarity-sum", &format!("{new_sum:.8}"), ":config.scope/project", cal_tx,
+            "calibration.similarity-sum", &format!("{new_sum:.8}"), "project", cal_tx,
         ));
         cal_datoms.extend(braid_kernel::config::set_config_datoms(
-            "calibration.similarity-sum-sq", &format!("{new_sum_sq:.8}"), ":config.scope/project", cal_tx,
+            "calibration.similarity-sum-sq", &format!("{new_sum_sq:.8}"), "project", cal_tx,
         ));
 
         // After 3+ observations, compute and write calibrated threshold + temperature.
@@ -823,10 +823,10 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             let cal_temperature = (stddev / 2.0).max(0.01) as f32;
 
             cal_datoms.extend(braid_kernel::config::set_config_datoms(
-                "concept.join-threshold", &format!("{cal_threshold:.4}"), ":config.scope/project", cal_tx,
+                "concept.join-threshold", &format!("{cal_threshold:.4}"), "project", cal_tx,
             ));
             cal_datoms.extend(braid_kernel::config::set_config_datoms(
-                "concept.sigmoid-temperature", &format!("{cal_temperature:.4}"), ":config.scope/project", cal_tx,
+                "concept.sigmoid-temperature", &format!("{cal_temperature:.4}"), "project", cal_tx,
             ));
         }
 

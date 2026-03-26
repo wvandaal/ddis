@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774537260/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ea070fea"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/close-reason :v "Implemented: 3-line guard in apply_datoms. Status 11s→6.6s (40% improvement). 2040 tests pass, 0 failures." :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/closed-at :v 1774537259 :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "6b3162138fa215596035cb42a9d8c2539edfd4a697be542c20ff5c41c99a766d" :a :task/status :v :task.status/closed :op :assert}
+ ]}
