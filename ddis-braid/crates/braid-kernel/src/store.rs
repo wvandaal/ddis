@@ -937,6 +937,65 @@ impl std::fmt::Debug for Store {
 }
 
 impl Store {
+    /// P6-INDEX-REFACTOR: Single insertion point for all index updates.
+    ///
+    /// Maintains: entity_index, attribute_index, vaet_index, avet_index,
+    /// live_view (LWW for Assert, removal for Retract), and MaterializedViews.
+    /// Called after `self.datoms.insert(d)` succeeds (datom is new).
+    ///
+    /// Traces to: ADR-STORE-005 (four indexes + LIVE), INV-STORE-012 (LIVE correctness),
+    /// INV-STORE-IDX-003 (VAET), INV-STORE-IDX-004 (AVET).
+    fn index_datom(&mut self, d: &Datom) {
+        // CE-2: Update materialized views incrementally
+        self.views.observe_datom(d);
+        // EAVT secondary: entity → datoms
+        self.entity_index
+            .entry(d.entity)
+            .or_default()
+            .push(d.clone());
+        // AEVT secondary: attribute → datoms
+        self.attribute_index
+            .entry(d.attribute.clone())
+            .or_default()
+            .push(d.clone());
+        // VAET: index Ref-valued datoms (ADR-STORE-005, INV-STORE-IDX-003)
+        if let Value::Ref(target) = &d.value {
+            self.vaet_index
+                .entry(*target)
+                .or_default()
+                .push(d.clone());
+        }
+        // AVET + LIVE: index Assert datoms (ADR-STORE-005, INV-STORE-IDX-004)
+        if d.op == Op::Assert {
+            self.avet_index
+                .entry((d.attribute.clone(), d.value.clone()))
+                .or_default()
+                .push(d.clone());
+            // LIVE: LWW — highest tx wins per (entity, attribute) (INV-STORE-012)
+            let key = (d.entity, d.attribute.clone());
+            self.live_view
+                .entry(key)
+                .and_modify(|(v, tx)| {
+                    if d.tx > *tx {
+                        *v = d.value.clone();
+                        *tx = d.tx;
+                    }
+                })
+                .or_insert((d.value.clone(), d.tx));
+        }
+        // SOUND-LIVE-v2: Handle retractions in LIVE view.
+        // Remove the live_view entry if the retracted value matches and
+        // the retract tx >= the entry's tx (no ghost values).
+        if d.op == Op::Retract {
+            let key = (d.entity, d.attribute.clone());
+            if let Some((existing_val, existing_tx)) = self.live_view.get(&key) {
+                if *existing_val == d.value && d.tx >= *existing_tx {
+                    self.live_view.remove(&key);
+                }
+            }
+        }
+    }
+
     /// Create a new store with the genesis transaction.
     ///
     /// Genesis is deterministic: same output every call (INV-STORE-008).
@@ -1115,54 +1174,8 @@ impl Store {
     pub fn apply_datoms(&mut self, datoms: &[Datom]) {
         for d in datoms {
             if self.datoms.insert(d.clone()) {
-                // CE-2: Update materialized views incrementally
-                self.views.observe_datom(d);
-                // Maintain entity index
-                self.entity_index
-                    .entry(d.entity)
-                    .or_default()
-                    .push(d.clone());
-                // Maintain attribute index
-                self.attribute_index
-                    .entry(d.attribute.clone())
-                    .or_default()
-                    .push(d.clone());
-                // VAET: index Ref-valued datoms (ADR-STORE-005, INV-STORE-IDX-003)
-                if let Value::Ref(target) = &d.value {
-                    self.vaet_index
-                        .entry(*target)
-                        .or_default()
-                        .push(d.clone());
-                }
-                // AVET + LIVE: index Assert datoms (ADR-STORE-005, INV-STORE-IDX-004)
-                if d.op == Op::Assert {
-                    self.avet_index
-                        .entry((d.attribute.clone(), d.value.clone()))
-                        .or_default()
-                        .push(d.clone());
-                    // LIVE: LWW — highest tx wins per (entity, attribute)
-                    let key = (d.entity, d.attribute.clone());
-                    self.live_view
-                        .entry(key)
-                        .and_modify(|(v, tx)| {
-                            if d.tx > *tx {
-                                *v = d.value.clone();
-                                *tx = d.tx;
-                            }
-                        })
-                        .or_insert((d.value.clone(), d.tx));
-                }
-                // SOUND-LIVE-v2: Handle retractions in LIVE view.
-                // Remove the live_view entry if the retracted value matches and
-                // the retract tx >= the entry's tx (no ghost values).
-                if d.op == Op::Retract {
-                    let key = (d.entity, d.attribute.clone());
-                    if let Some((existing_val, existing_tx)) = self.live_view.get(&key) {
-                        if *existing_val == d.value && d.tx >= *existing_tx {
-                            self.live_view.remove(&key);
-                        }
-                    }
-                }
+                // P6-INDEX-REFACTOR: Single insertion point for all indexes
+                self.index_datom(d);
                 // Update frontier
                 let agent = d.tx.agent();
                 self.frontier
@@ -1179,8 +1192,16 @@ impl Store {
             }
         }
 
-        // Rebuild schema to discover any new attributes in the applied datoms.
-        self.schema = Schema::from_datoms(&self.datoms);
+        // P0-SCHEMA: Only rebuild schema when the batch contains :db/* attributes.
+        // Schema::from_datoms is O(N) over ALL datoms. 99% of transactions don't
+        // touch schema attributes, so this guard eliminates the dominant write-path cost.
+        // Correctness: if no :db/* attributes are in the batch, the schema is unchanged.
+        let has_schema_datoms = datoms
+            .iter()
+            .any(|d| d.attribute.as_str().starts_with(":db/"));
+        if has_schema_datoms {
+            self.schema = Schema::from_datoms(&self.datoms);
+        }
         // Update entity count for Phi normalization.
         self.views.entity_count_for_phi = self.entity_index.len() as u64;
     }
@@ -1252,38 +1273,7 @@ impl Store {
             for d in [ident_datom, doc_datom] {
                 if self.datoms.insert(d.clone()) {
                     datom_count += 1;
-                    // CE-2: Update materialized views incrementally
-                    self.views.observe_datom(&d);
-                    self.entity_index
-                        .entry(d.entity)
-                        .or_default()
-                        .push(d.clone());
-                    self.attribute_index
-                        .entry(d.attribute.clone())
-                        .or_default()
-                        .push(d.clone());
-                    // VAET: index Ref-valued datoms (ADR-STORE-005, INV-STORE-IDX-003)
-                    if let Value::Ref(target) = &d.value {
-                        self.vaet_index.entry(*target).or_default().push(d.clone());
-                    }
-                    // AVET + LIVE: index Assert datoms (ADR-STORE-005, INV-STORE-IDX-004)
-                    if d.op == Op::Assert {
-                        self.avet_index
-                            .entry((d.attribute.clone(), d.value.clone()))
-                            .or_default()
-                            .push(d.clone());
-                        // LIVE: LWW — highest tx wins (INV-STORE-012)
-                        let key = (d.entity, d.attribute.clone());
-                        self.live_view
-                            .entry(key)
-                            .and_modify(|(v, tx)| {
-                                if d.tx > *tx {
-                                    *v = d.value.clone();
-                                    *tx = d.tx;
-                                }
-                            })
-                            .or_insert((d.value.clone(), d.tx));
-                    }
+                    self.index_datom(&d);
                 }
             }
             if !new_entities.contains(&agent_entity_id) {
@@ -1295,52 +1285,7 @@ impl Store {
         for datom in tx.datoms() {
             if self.datoms.insert(datom.clone()) {
                 datom_count += 1;
-                // CE-2: Update materialized views incrementally
-                self.views.observe_datom(datom);
-                // Maintain entity index
-                self.entity_index
-                    .entry(datom.entity)
-                    .or_default()
-                    .push(datom.clone());
-                // Maintain attribute index
-                self.attribute_index
-                    .entry(datom.attribute.clone())
-                    .or_default()
-                    .push(datom.clone());
-                // VAET: index Ref-valued datoms (ADR-STORE-005, INV-STORE-IDX-003)
-                if let Value::Ref(target) = &datom.value {
-                    self.vaet_index
-                        .entry(*target)
-                        .or_default()
-                        .push(datom.clone());
-                }
-                // AVET + LIVE: index Assert datoms (ADR-STORE-005, INV-STORE-IDX-004)
-                if datom.op == Op::Assert {
-                    self.avet_index
-                        .entry((datom.attribute.clone(), datom.value.clone()))
-                        .or_default()
-                        .push(datom.clone());
-                    // LIVE: LWW — highest tx wins (INV-STORE-012)
-                    let key = (datom.entity, datom.attribute.clone());
-                    self.live_view
-                        .entry(key)
-                        .and_modify(|(v, tx)| {
-                            if datom.tx > *tx {
-                                *v = datom.value.clone();
-                                *tx = datom.tx;
-                            }
-                        })
-                        .or_insert((datom.value.clone(), datom.tx));
-                }
-                // SOUND-LIVE-v2: Handle retractions in LIVE view.
-                if datom.op == Op::Retract {
-                    let key = (datom.entity, datom.attribute.clone());
-                    if let Some((existing_val, existing_tx)) = self.live_view.get(&key) {
-                        if *existing_val == datom.value && datom.tx >= *existing_tx {
-                            self.live_view.remove(&key);
-                        }
-                    }
-                }
+                self.index_datom(datom);
                 // Check if this entity is new (not in pre-existing set)
                 if !pre_existing.contains(&datom.entity) && !new_entities.contains(&datom.entity) {
                     new_entities.push(datom.entity);
@@ -1360,45 +1305,11 @@ impl Store {
         let tx_meta_datoms = self.make_tx_metadata(tx_entity, tx_id, &tx_data);
         for d in tx_meta_datoms {
             if self.datoms.insert(d.clone()) {
-                // CE-2: Update materialized views incrementally
-                self.views.observe_datom(&d);
-                self.entity_index
-                    .entry(d.entity)
-                    .or_default()
-                    .push(d.clone());
-                self.attribute_index
-                    .entry(d.attribute.clone())
-                    .or_default()
-                    .push(d.clone());
-                // VAET: index Ref-valued datoms (ADR-STORE-005, INV-STORE-IDX-003)
-                if let Value::Ref(target) = &d.value {
-                    self.vaet_index.entry(*target).or_default().push(d.clone());
-                }
-                // AVET + LIVE: index Assert datoms (ADR-STORE-005, INV-STORE-IDX-004)
-                if d.op == Op::Assert {
-                    self.avet_index
-                        .entry((d.attribute.clone(), d.value.clone()))
-                        .or_default()
-                        .push(d.clone());
-                    // LIVE: LWW — highest tx wins (INV-STORE-012)
-                    let key = (d.entity, d.attribute.clone());
-                    self.live_view
-                        .entry(key)
-                        .and_modify(|(v, tx)| {
-                            if d.tx > *tx {
-                                *v = d.value.clone();
-                                *tx = d.tx;
-                            }
-                        })
-                        .or_insert((d.value.clone(), d.tx));
-                }
+                self.index_datom(&d);
             }
         }
 
         // Metabolic transaction annotation: delta-crystallization (INV-STORE-014, INV-BILATERAL-001).
-        // Compute coherence delta at the Intent↔Spec boundary for this transaction.
-        // Positive = observations crystallized into spec. Negative = unanchored intent.
-        // Zero = transaction doesn't touch intent-layer entities (task mgmt, impl, etc).
         let delta_cryst = compute_delta_crystallization(tx.datoms(), self);
         if delta_cryst.abs() > f64::EPSILON {
             let delta_datom = Datom::new(
@@ -1409,32 +1320,7 @@ impl Store {
                 Op::Assert,
             );
             if self.datoms.insert(delta_datom.clone()) {
-                // CE-2: Update materialized views incrementally
-                self.views.observe_datom(&delta_datom);
-                self.entity_index
-                    .entry(delta_datom.entity)
-                    .or_default()
-                    .push(delta_datom.clone());
-                self.attribute_index
-                    .entry(delta_datom.attribute.clone())
-                    .or_default()
-                    .push(delta_datom.clone());
-                if delta_datom.op == Op::Assert {
-                    self.avet_index
-                        .entry((delta_datom.attribute.clone(), delta_datom.value.clone()))
-                        .or_default()
-                        .push(delta_datom.clone());
-                    let key = (delta_datom.entity, delta_datom.attribute.clone());
-                    self.live_view
-                        .entry(key)
-                        .and_modify(|(v, tx)| {
-                            if delta_datom.tx > *tx {
-                                *v = delta_datom.value.clone();
-                                *tx = delta_datom.tx;
-                            }
-                        })
-                        .or_insert((delta_datom.value.clone(), delta_datom.tx));
-                }
+                self.index_datom(&delta_datom);
             }
         }
 
@@ -1845,41 +1731,7 @@ impl Store {
     /// has been applied.
     pub(crate) fn inject_metadata_datom(&mut self, datom: Datom) {
         if self.datoms.insert(datom.clone()) {
-            // CE-2: Update materialized views incrementally
-            self.views.observe_datom(&datom);
-            self.entity_index
-                .entry(datom.entity)
-                .or_default()
-                .push(datom.clone());
-            self.attribute_index
-                .entry(datom.attribute.clone())
-                .or_default()
-                .push(datom.clone());
-            // VAET: index Ref-valued datoms (ADR-STORE-005)
-            if let Value::Ref(target) = &datom.value {
-                self.vaet_index
-                    .entry(*target)
-                    .or_default()
-                    .push(datom.clone());
-            }
-            // AVET + LIVE: index Assert datoms (ADR-STORE-005, INV-STORE-012)
-            if datom.op == Op::Assert {
-                self.avet_index
-                    .entry((datom.attribute.clone(), datom.value.clone()))
-                    .or_default()
-                    .push(datom.clone());
-                // LIVE: LWW — highest tx wins
-                let key = (datom.entity, datom.attribute.clone());
-                self.live_view
-                    .entry(key)
-                    .and_modify(|(v, tx)| {
-                        if datom.tx > *tx {
-                            *v = datom.value.clone();
-                            *tx = datom.tx;
-                        }
-                    })
-                    .or_insert((datom.value.clone(), datom.tx));
-            }
+            self.index_datom(&datom);
         }
     }
 
