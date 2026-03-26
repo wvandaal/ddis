@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774486338/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ff060f5a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/close-reason :v "Implemented: membership_strength sigmoid function, assign_to_concepts_soft, ConceptAssignment::Joined strength field, observe.rs uses soft assignment with configurable temperature. 2024 tests pass." :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/closed-at :v 1774486337 :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/status :v :task.status/closed :op :assert}
+ ]}

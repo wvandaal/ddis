@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774486344/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-6f58c3a4"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/close-reason :v "Implemented: FrontierKind::Narrow with narrow_candidates (jaccard>0.8 detection), content-aware compute_steering_question (entity-specific > surprise-boundary > generic). 2024 tests pass." :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/closed-at :v 1774486343 :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774486341/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b7c191a4"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/close-reason :v "Implemented: 5 innate descriptions revised with distinct lead phrases, minimal vocabulary overlap. 2024 tests pass." :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/closed-at :v 1774486340 :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/status :v :task.status/closed :op :assert}
+ ]}

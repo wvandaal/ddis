@@ -75,6 +75,9 @@ pub enum ConceptAssignment {
         similarity: f32,
         /// Surprise = 1.0 - similarity. Range [0.0, 1.0].
         surprise: f32,
+        /// Sigmoid membership strength [0.0, 1.0] (ADR-FOUNDATION-031).
+        /// 1.0 = strong member, 0.5 = at threshold boundary, 0.0 = non-member.
+        strength: f32,
     },
     /// Observation did not match any existing concept.
     Uncategorized,
@@ -148,6 +151,7 @@ pub fn assign_to_concept(
             concept,
             similarity,
             surprise: 1.0 - similarity,
+            strength: 1.0, // Legacy API: hard cutoff always gives full strength
         },
         _ => ConceptAssignment::Uncategorized,
     }
@@ -191,6 +195,7 @@ pub fn assign_to_concepts(
                     concept: *entity,
                     similarity: sim,
                     surprise: 1.0 - sim,
+                    strength: 1.0, // Hard cutoff: full strength for all matches
                 });
             }
         }
@@ -208,6 +213,63 @@ pub fn assign_to_concepts(
             _ => 0.0,
         };
         sim_b.partial_cmp(&sim_a).unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    matches
+}
+
+/// Assign with sigmoid soft membership (ADR-FOUNDATION-031).
+///
+/// Like [`assign_to_concepts`] but uses sigmoid membership strength instead
+/// of hard cutoff. Returns all concepts with strength > `min_strength` (default 0.1),
+/// sorted by strength descending.
+pub fn assign_to_concepts_soft(
+    store: &Store,
+    observation_embedding: &[f32],
+    threshold: f32,
+    temperature: f32,
+    min_strength: f32,
+) -> Vec<ConceptAssignment> {
+    let concept_attr = Attribute::from_keyword(":concept/embedding");
+
+    // Phase 1: Collect latest embedding per concept entity.
+    let mut latest: BTreeMap<EntityId, Vec<f32>> = BTreeMap::new();
+    for d in store.datoms() {
+        if d.op == Op::Assert && d.attribute == concept_attr {
+            if let Value::Bytes(ref bytes) = d.value {
+                latest.insert(d.entity, bytes_to_embedding(bytes));
+            }
+        }
+    }
+
+    // Phase 2: Compute sigmoid membership for all concepts.
+    let mut matches: Vec<ConceptAssignment> = Vec::new();
+    for (entity, concept_emb) in &latest {
+        if concept_emb.len() == observation_embedding.len() {
+            let sim = cosine_similarity(concept_emb, observation_embedding);
+            let strength = membership_strength(sim, threshold, temperature);
+            if strength >= min_strength {
+                matches.push(ConceptAssignment::Joined {
+                    concept: *entity,
+                    similarity: sim,
+                    surprise: 1.0 - sim,
+                    strength,
+                });
+            }
+        }
+    }
+
+    // Sort by strength descending (strongest membership first).
+    matches.sort_by(|a, b| {
+        let str_a = match a {
+            ConceptAssignment::Joined { strength, .. } => *strength,
+            _ => 0.0,
+        };
+        let str_b = match b {
+            ConceptAssignment::Joined { strength, .. } => *strength,
+            _ => 0.0,
+        };
+        str_b.partial_cmp(&str_a).unwrap_or(std::cmp::Ordering::Equal)
     });
 
     matches
@@ -512,6 +574,9 @@ pub enum FrontierKind {
     Deepen,
     /// A concept pair with zero co-occurrence but structural connection.
     Bridge,
+    /// Concepts are collapsing — all concepts have high jaccard overlap.
+    /// Diagnostic: suggests more specific observations to differentiate concepts.
+    Narrow,
 }
 
 impl std::fmt::Display for FrontierKind {
@@ -520,6 +585,7 @@ impl std::fmt::Display for FrontierKind {
             FrontierKind::Explore => write!(f, "explore"),
             FrontierKind::Deepen => write!(f, "deepen"),
             FrontierKind::Bridge => write!(f, "bridge"),
+            FrontierKind::Narrow => write!(f, "narrow"),
         }
     }
 }
@@ -564,6 +630,9 @@ pub fn frontier_recommendation(
 
     // --- Candidate 3: Bridge (zero co-occurrence concept pairs) ---
     candidates.extend(bridge_candidates(store));
+
+    // --- Candidate 4: Narrow (concept collapse diagnostic) ---
+    candidates.extend(narrow_candidates(store));
 
     // Select the highest-scoring candidate.
     candidates.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
@@ -737,6 +806,34 @@ fn bridge_candidates(store: &Store) -> Vec<FrontierRec> {
     candidates
 }
 
+/// Detect concept collapse: all concepts have high co-occurrence overlap.
+///
+/// Fires when mean Jaccard across concept pairs > 0.8, indicating that
+/// concepts are not differentiating observations. Recommends more specific
+/// observations to break the symmetry.
+fn narrow_candidates(store: &Store) -> Vec<FrontierRec> {
+    let co_occ = co_occurrence_matrix(store);
+    if co_occ.is_empty() {
+        return Vec::new();
+    }
+
+    let mean_jaccard: f64 = co_occ.iter().map(|p| p.jaccard).sum::<f64>() / co_occ.len() as f64;
+
+    if mean_jaccard > 0.8 {
+        vec![FrontierRec {
+            kind: FrontierKind::Narrow,
+            target: "observation specificity".to_string(),
+            score: 1.0 - mean_jaccard, // Higher collapse = higher urgency but lower absolute score
+            rationale: format!(
+                "concepts are converging (mean jaccard={mean_jaccard:.2}) \u{2014} \
+                 try observing a specific file, function, or error message rather than a whole package"
+            ),
+        }]
+    } else {
+        Vec::new()
+    }
+}
+
 /// Generate datoms for a new concept entity.
 ///
 /// Returns datoms that the caller should transact into the store.
@@ -821,6 +918,28 @@ pub fn surprise_weight(surprise: f32, alpha: f32) -> f32 {
     1.0 + alpha * surprise
 }
 
+/// Sigmoid soft membership strength (ADR-FOUNDATION-031).
+///
+/// Replaces binary threshold comparison with a smooth gradient.
+/// A hard cutoff claims infinite confidence in the threshold value.
+/// A sigmoid encodes finite precision: membership near the boundary is uncertain.
+///
+/// `membership_strength(threshold, threshold, any_t) == 0.5` (midpoint property).
+/// `lim_{temperature -> 0} membership_strength = Heaviside` (backward compatible).
+///
+/// The temperature parameter encodes threshold confidence:
+/// - Low temperature (0.01) → sharp boundary, high confidence
+/// - High temperature (0.1) → gradual transition, low confidence
+///
+/// INV-EMBEDDING-004: Same inputs always produce same output (deterministic).
+pub fn membership_strength(similarity: f32, threshold: f32, temperature: f32) -> f32 {
+    let t = temperature.max(1e-6); // Guard against division by zero
+    let x = (similarity - threshold) / t;
+    // Clamp x to prevent overflow in exp for very large negative values
+    let x_clamped = x.clamp(-20.0, 20.0);
+    1.0 / (1.0 + (-x_clamped).exp())
+}
+
 /// Surprise-weighted centroid update (CCE-2b).
 ///
 /// new_centroid = (old_centroid * old_total_weight + new_embedding * new_weight) / new_total_weight
@@ -856,23 +975,23 @@ pub fn update_centroid_weighted(
 pub const INNATE_CONCEPTS: &[(&str, &str)] = &[
     (
         "components",
-        "Parts of the system and their boundaries — packages, modules, crates, files, services",
+        "Discrete isolated parts: individual packages, modules, files as bounded units",
     ),
     (
         "dependencies",
-        "How parts relate to each other — imports, calls, data flow, coupling, interfaces",
+        "Relationships and connections: imports, function calls, data flow paths between modules",
     ),
     (
         "invariants",
-        "What should hold true — rules, constraints, assertions, contracts, specifications",
+        "Rules and constraints: assertions that must hold, contracts to verify, specifications to enforce",
     ),
     (
         "patterns",
-        "Recurring regularities — idioms, conventions, architectures, protocols, templates",
+        "Recurring structures: repeated idioms, architectural conventions, protocol templates",
     ),
     (
         "anomalies",
-        "Deviations from expectations — bugs, inconsistencies, violations, surprises, gaps",
+        "Defects and surprises: bugs, violations, inconsistencies, unexpected behaviors, test failures",
     ),
 ];
 
@@ -1110,8 +1229,8 @@ pub fn compute_observe_steering_multi(
     let mut concept_line = match primary_assignment {
         ConceptAssignment::Joined {
             concept,
-            similarity: _,
             surprise,
+            ..
         } => {
             let name = concept_name_from_entity(store, *concept);
             let count = concept_member_count(store, *concept);
@@ -1350,14 +1469,39 @@ fn concept_member_count(store: &Store, entity: EntityId) -> usize {
 }
 
 /// Compute steering question based on concept assignment and entity matches.
+///
+/// Content-aware: uses entity matches and surprise level to generate specific
+/// questions rather than generic "what connects X to Y?" templates.
 fn compute_steering_question(
     store: &Store,
     assignment: &ConceptAssignment,
     entity_matches: &[EntityMatch],
 ) -> Option<String> {
     match assignment {
-        ConceptAssignment::Joined { concept, .. } => {
-            // Find the nearest OTHER concept (different from current).
+        ConceptAssignment::Joined { concept, surprise, .. } => {
+            // Priority 1: If entity matches exist, suggest investigating specific entities.
+            if entity_matches.len() >= 2 {
+                return Some(format!(
+                    "how does {} interact with {}?",
+                    entity_matches[0].match_name, entity_matches[1].match_name
+                ));
+            }
+            if !entity_matches.is_empty() {
+                return Some(format!(
+                    "what other parts of the codebase depend on {}?",
+                    entity_matches[0].match_name
+                ));
+            }
+
+            // Priority 2: High surprise — at concept boundary.
+            if *surprise > 0.3 {
+                let current_name = concept_name_from_entity(store, *concept);
+                return Some(format!(
+                    "this is at the boundary of {current_name} \u{2014} what distinguishes it from typical {current_name} observations?"
+                ));
+            }
+
+            // Priority 3: Generic concept connection (lowest priority).
             let inventory = concept_inventory(store);
             let current_name = concept_name_from_entity(store, *concept);
             let other = inventory
@@ -1368,11 +1512,6 @@ fn compute_steering_question(
                 Some(format!(
                     "what connects {} to {}?",
                     current_name, other_concept.name
-                ))
-            } else if !entity_matches.is_empty() {
-                Some(format!(
-                    "what other aspects of {} are worth investigating?",
-                    entity_matches[0].match_name
                 ))
             } else {
                 None
@@ -2043,6 +2182,7 @@ mod tests {
             concept: EntityId::from_content(b"concept-test"),
             similarity: 0.8,
             surprise: 0.2,
+            strength: 1.0,
         };
         let matches = vec![EntityMatch {
             entity: EntityId::from_content(b"pkg"),
@@ -2160,6 +2300,7 @@ mod tests {
                 concept: EntityId::from_content(b"concept-test"),
                 similarity: cosine,
                 surprise: 1.0 - cosine,
+                strength: 1.0,
             }
         } else {
             ConceptAssignment::Uncategorized
@@ -2312,6 +2453,7 @@ mod tests {
             concept: EntityId::from_content(b"c"),
             similarity: 0.95,
             surprise: 0.05,
+            strength: 1.0,
         };
         let steering_low = compute_observe_steering(&store, &low, entity_matches);
         let line_low = steering_low.concept_line.unwrap();
@@ -2325,6 +2467,7 @@ mod tests {
             concept: EntityId::from_content(b"c"),
             similarity: 0.80,
             surprise: 0.20,
+            strength: 1.0,
         };
         let steering_mid = compute_observe_steering(&store, &mid, entity_matches);
         let line_mid = steering_mid.concept_line.unwrap();
@@ -2342,6 +2485,7 @@ mod tests {
             concept: EntityId::from_content(b"c"),
             similarity: 0.60,
             surprise: 0.40,
+            strength: 1.0,
         };
         let steering_high = compute_observe_steering(&store, &high, entity_matches);
         let line_high = steering_high.concept_line.unwrap();

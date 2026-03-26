@@ -615,11 +615,16 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     let join_threshold: f32 = braid_kernel::config::get_config(store, "concept.join-threshold")
         .and_then(|v| v.parse().ok())
         .unwrap_or_else(|| embedder.join_threshold());
-    // CONCEPT-MULTI: Multi-membership assignment — all concepts above threshold.
-    let multi_assignments = braid_kernel::concept::assign_to_concepts(
+    // CONCEPT-MULTI + ADR-FOUNDATION-031: Sigmoid soft membership.
+    let sigmoid_temperature: f32 = braid_kernel::config::get_config(store, "concept.sigmoid-temperature")
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(0.05); // Bootstrap default temperature
+    let multi_assignments = braid_kernel::concept::assign_to_concepts_soft(
         store,
         &obs_embedding,
         join_threshold,
+        sigmoid_temperature,
+        0.1, // min_strength: filter out noise below 10%
     );
     // Backward-compatible single assignment: first match or Uncategorized.
     let concept_assignment = multi_assignments
@@ -692,7 +697,11 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
                 .live_value(*concept, &emb_attr)
                 .and_then(|v| if let Value::Bytes(b) = v { Some(braid_kernel::embedding::bytes_to_embedding(b)) } else { None });
 
-            let sw = braid_kernel::concept::surprise_weight(*surprise, braid_kernel::concept::DEFAULT_ALPHA);
+            let strength = match assignment {
+                braid_kernel::concept::ConceptAssignment::Joined { strength, .. } => *strength,
+                _ => 1.0,
+            };
+            let sw = braid_kernel::concept::surprise_weight(*surprise, braid_kernel::concept::DEFAULT_ALPHA) * strength;
 
             if let Some(old_cent) = old_centroid {
                 let (mut new_centroid, new_total_weight) =

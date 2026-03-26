@@ -102,11 +102,12 @@ pub use compiler::{
     TestProperty,
 };
 pub use concept::{
-    assign_to_concept, assign_to_concepts, co_occurrence_matrix, compute_observe_steering,
-    compute_observe_steering_multi, concept_inventory, concept_to_datoms, crystallize_concepts,
-    entity_auto_link, find_nearest_concept, format_concept_status, frontier_recommendation,
-    innate_concept_datoms, is_innate, membership_datoms, mention_datoms, should_merge,
-    should_split, surprise_weight, update_centroid, update_centroid_weighted, ConceptAssignment,
+    assign_to_concept, assign_to_concepts, assign_to_concepts_soft, co_occurrence_matrix,
+    compute_observe_steering, compute_observe_steering_multi, concept_inventory,
+    concept_to_datoms, crystallize_concepts, entity_auto_link, find_nearest_concept,
+    format_concept_status, frontier_recommendation, innate_concept_datoms, is_innate,
+    membership_datoms, membership_strength, mention_datoms, should_merge, should_split,
+    surprise_weight, update_centroid, update_centroid_weighted, ConceptAssignment,
     ConceptCoOccurrence, ConceptSummary, EntityMatch, FrontierKind, FrontierRec, NewConcept,
     ObserveSteering, DEFAULT_ALPHA, INNATE_CONCEPTS, JOIN_THRESHOLD, MERGE_THRESHOLD,
     MIN_CLUSTER_SIZE, SPLIT_THRESHOLD,
