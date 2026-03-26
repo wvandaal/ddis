@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774535035/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-919802a3"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/close-reason :v "Superseded: replaced by P11-SUB1S with <1s target for ALL commands" :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/closed-at :v 1774535034 :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "ead388e4f07e2716e74a28fe1cae3a125a8f47edab5cdb3cd0b5b38825395e0a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

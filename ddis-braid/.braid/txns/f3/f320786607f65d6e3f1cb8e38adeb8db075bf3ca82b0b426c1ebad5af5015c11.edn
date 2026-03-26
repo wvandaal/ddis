@@ -1,0 +1,13 @@
+{:tx/id #hlc "1774535069/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "101360c42a22cc97f8b623f410438d53b0c481097400ef732e9f08f681f90df6" :a :db/ident :v :recon/trace-53a44b238a34bc82 :op :assert}
+   {:e #blake3 "101360c42a22cc97f8b623f410438d53b0c481097400ef732e9f08f681f90df6" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "101360c42a22cc97f8b623f410438d53b0c481097400ef732e9f08f681f90df6" :a :recon/trace-neighborhood :v "STORE" :op :assert}
+   {:e #blake3 "101360c42a22cc97f8b623f410438d53b0c481097400ef732e9f08f681f90df6" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.store.adr-store-006" :op :assert}
+   {:e #blake3 "101360c42a22cc97f8b623f410438d53b0c481097400ef732e9f08f681f90df6" :a :recon/trace-refs :v "ADR-STORE-006" :op :assert}
+   {:e #blake3 "101360c42a22cc97f8b623f410438d53b0c481097400ef732e9f08f681f90df6" :a :recon/trace-refs :v "INV-PERF-001" :op :assert}
+ ]}

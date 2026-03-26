@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774535067/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P11-SUB1S: ALL braid commands complete in <1s at 500K datoms — INV-PERF-001"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6e4802510d3dcf7c41962bbfe2762182f0d65b48289c8d80bfa8edef674ec393" :a :db/ident :v :task/t-913277ad :op :assert}
+   {:e #blake3 "6e4802510d3dcf7c41962bbfe2762182f0d65b48289c8d80bfa8edef674ec393" :a :task/created-at :v 1774535066 :op :assert}
+   {:e #blake3 "6e4802510d3dcf7c41962bbfe2762182f0d65b48289c8d80bfa8edef674ec393" :a :task/description :v "TARGET: Every braid command completes in <1s wall-clock at up to 500K datoms. Current baselines at 108K datoms: status=11s, seed=5.8s, task ready=3.6s, task list=3.4s, observe=3.3s.\n\nINVARIANT: INV-PERF-001: For stores up to 500K datoms, all CLI commands complete in <1000ms wall-clock (measured as median of 3 runs). Falsification: any command exceeding 1000ms.\n\nWHAT MAKES THIS ACHIEVABLE: After UA-1 (Universal Accumulator), the only O(N) cost is store.bin deserialization (~300ms for 92MB). All derived computations (fitness, coherence, telemetry, task counts, beta_1) are O(1) reads from MaterializedViews. With daemon (P4-DAEMON-V2), even deserialization is eliminated — the store is already in memory. The daemon path should achieve <100ms for all commands.\n\nSPEC ELEMENTS TO CRYSTALLIZE:\n  INV-PERF-001: All CLI commands < 1s at 500K datoms (embedded mode)\n  INV-PERF-002: All CLI commands < 100ms with daemon running\n  INV-PERF-003: store.bin deserialization < 500ms at 500K datoms\n  NEG-PERF-001: No command performs more than 2 full datom scans (after UA-1)\n\nE2E GUARD: scripts/e2e_sub1s_guard.sh\n  - Measures all 5 baseline commands (status, observe, task list, task ready, seed)\n  - 3 runs each, takes median\n  - PASS: all < 1s\n  - Reports: command, median_ms, p95_ms, store_datoms, PASS/FAIL\n\nDEPENDS-ON: UA-1, P0-SCHEMA, P4-DAEMON-V2, P8-CONCEPT-INDEX, P5-SEED-FROM-VIEWS" :op :assert}
+   {:e #blake3 "6e4802510d3dcf7c41962bbfe2762182f0d65b48289c8d80bfa8edef674ec393" :a :task/id :v "t-913277ad" :op :assert}
+   {:e #blake3 "6e4802510d3dcf7c41962bbfe2762182f0d65b48289c8d80bfa8edef674ec393" :a :task/labels :v :label/PERF-REGRESSION :op :assert}
+   {:e #blake3 "6e4802510d3dcf7c41962bbfe2762182f0d65b48289c8d80bfa8edef674ec393" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "6e4802510d3dcf7c41962bbfe2762182f0d65b48289c8d80bfa8edef674ec393" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6e4802510d3dcf7c41962bbfe2762182f0d65b48289c8d80bfa8edef674ec393" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6e4802510d3dcf7c41962bbfe2762182f0d65b48289c8d80bfa8edef674ec393" :a :task/title :v "P11-SUB1S: ALL braid commands complete in <1s at 500K datoms — INV-PERF-001" :op :assert}
+   {:e #blake3 "6e4802510d3dcf7c41962bbfe2762182f0d65b48289c8d80bfa8edef674ec393" :a :task/title-l0 :v "P11-SUB1S" :op :assert}
+   {:e #blake3 "6e4802510d3dcf7c41962bbfe2762182f0d65b48289c8d80bfa8edef674ec393" :a :task/title-l1 :v "P11-SUB1S: ALL braid commands complete in <1s at 500K datoms — INV-PERF-001" :op :assert}
+   {:e #blake3 "6e4802510d3dcf7c41962bbfe2762182f0d65b48289c8d80bfa8edef674ec393" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "6e4802510d3dcf7c41962bbfe2762182f0d65b48289c8d80bfa8edef674ec393" :a :task/type :v :task.type/task :op :assert}
+ ]}
