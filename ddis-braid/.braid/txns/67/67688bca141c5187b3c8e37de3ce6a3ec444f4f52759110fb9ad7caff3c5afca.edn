@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774488632/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ff108cb0"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/close-reason :v "10 new tests passing + E2E script created. 2034 total tests, 0 failures. Sigmoid properties (midpoint, monotonic, bounds, sharpness), Otsu calibration (insufficient data, bimodal), soft assignment (filtering, sorting), narrow diagnostic (collapsed, healthy)." :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/closed-at :v 1774488631 :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -4394,4 +4394,282 @@ mod tests {
             );
         }
     }
+
+    // ===================================================================
+    // CAL-TEST: Self-calibrating threshold tests (ADR-FOUNDATION-031)
+    // ===================================================================
+
+    /// Sigmoid midpoint property: membership_strength(T, T, any_temp) == 0.5
+    #[test]
+    fn test_membership_strength_midpoint() {
+        for threshold in [0.1, 0.3, 0.5, 0.7, 0.9] {
+            for temp in [0.01, 0.05, 0.1, 0.5] {
+                let s = membership_strength(threshold as f32, threshold as f32, temp as f32);
+                assert!(
+                    (s - 0.5).abs() < 0.01,
+                    "midpoint property violated: strength({threshold}, {threshold}, {temp}) = {s}, expected 0.5"
+                );
+            }
+        }
+    }
+
+    /// Sigmoid monotonicity: higher similarity -> higher strength
+    #[test]
+    fn test_membership_strength_monotonic() {
+        let threshold = 0.5_f32;
+        let temperature = 0.05_f32;
+        let mut prev = 0.0_f32;
+        for sim_int in 0..=100 {
+            let sim = sim_int as f32 / 100.0;
+            let s = membership_strength(sim, threshold, temperature);
+            assert!(
+                s >= prev - 1e-6,
+                "monotonicity violated: strength({sim}) = {s} < strength({}) = {prev}",
+                (sim_int - 1) as f32 / 100.0
+            );
+            prev = s;
+        }
+    }
+
+    /// Sigmoid bounds: output always in [0.0, 1.0]
+    #[test]
+    fn test_membership_strength_bounds() {
+        for sim_int in 0..=100 {
+            for thresh_int in 0..=100 {
+                for temp in [0.001, 0.01, 0.05, 0.1, 1.0] {
+                    let sim = sim_int as f32 / 100.0;
+                    let thresh = thresh_int as f32 / 100.0;
+                    let s = membership_strength(sim, thresh, temp as f32);
+                    assert!(
+                        (0.0..=1.0).contains(&s),
+                        "bounds violated: strength({sim}, {thresh}, {temp}) = {s}"
+                    );
+                }
+            }
+        }
+    }
+
+    /// Lower temperature -> sharper transition around threshold
+    #[test]
+    fn test_membership_strength_temperature_sharpness() {
+        let threshold = 0.5_f32;
+        let near_above = 0.52_f32; // Just above threshold
+
+        let sharp = membership_strength(near_above, threshold, 0.01);
+        let gradual = membership_strength(near_above, threshold, 0.1);
+
+        assert!(
+            sharp > gradual,
+            "lower temperature should give sharper (higher) response near threshold: \
+             sharp(t=0.01)={sharp:.4} should > gradual(t=0.1)={gradual:.4}"
+        );
+
+        // At the threshold itself, both should be ~0.5 regardless of temperature
+        let at_threshold_sharp = membership_strength(threshold, threshold, 0.01);
+        let at_threshold_gradual = membership_strength(threshold, threshold, 0.1);
+        assert!((at_threshold_sharp - 0.5).abs() < 0.01);
+        assert!((at_threshold_gradual - 0.5).abs() < 0.01);
+    }
+
+    /// Otsu calibration returns None for insufficient data (<5 observations)
+    #[test]
+    fn test_calibrate_threshold_insufficient_data() {
+        let store = store_with_innate_concepts();
+        // No observations — just innate concepts
+        let result = calibrate_join_threshold(&store);
+        assert!(
+            result.is_none(),
+            "should return None with 0 observations, got {:?}",
+            result
+        );
+    }
+
+    /// Otsu calibration finds threshold between two clusters
+    #[test]
+    fn test_calibrate_threshold_bimodal() {
+        let mut store = store_with_innate_concepts();
+        let emb = make_embedder();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(100, 0, agent);
+
+        let concept = EntityId::from_content(b"concept:test-calibrate");
+        let concept_emb = emb.embed("specific topic about testing");
+        store.apply_datoms(&[Datom::new(
+            concept,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("test-calibrate".into()),
+            tx,
+            Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept,
+            Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(embedding_to_bytes(&concept_emb)),
+            tx,
+            Op::Assert,
+        )]);
+
+        let concept_ref_attr = Attribute::from_keyword(":exploration/concept");
+        let obs_emb_attr = Attribute::from_keyword(":exploration/embedding");
+
+        // Create 10 observations: 5 similar to concept, 5 dissimilar but still assigned
+        for i in 0..5 {
+            let obs = EntityId::from_content(format!("obs-close-{i}").as_bytes());
+            let obs_emb = emb.embed(&format!("specific topic about testing verification {i}"));
+            store.apply_datoms(&[Datom::new(
+                obs, concept_ref_attr.clone(), Value::Ref(concept), tx, Op::Assert,
+            )]);
+            store.apply_datoms(&[Datom::new(
+                obs, obs_emb_attr.clone(),
+                Value::Bytes(embedding_to_bytes(&obs_emb)), tx, Op::Assert,
+            )]);
+        }
+        for i in 0..5 {
+            let obs = EntityId::from_content(format!("obs-far-{i}").as_bytes());
+            let obs_emb = emb.embed(&format!("completely different unrelated words {i}"));
+            store.apply_datoms(&[Datom::new(
+                obs, concept_ref_attr.clone(), Value::Ref(concept), tx, Op::Assert,
+            )]);
+            store.apply_datoms(&[Datom::new(
+                obs, obs_emb_attr.clone(),
+                Value::Bytes(embedding_to_bytes(&obs_emb)), tx, Op::Assert,
+            )]);
+        }
+
+        let result = calibrate_join_threshold(&store);
+        assert!(result.is_some(), "should calibrate with 10 observations");
+        let (threshold, temperature) = result.unwrap();
+        assert!(
+            threshold >= 0.1 && threshold <= 0.9,
+            "threshold should be in Otsu sweep range [0.10, 0.90], got {threshold}"
+        );
+        assert!(
+            temperature > 0.001 && temperature < 1.0,
+            "temperature should be in reasonable range, got {temperature}"
+        );
+    }
+
+    /// assign_to_concepts_soft filters by min_strength
+    #[test]
+    fn test_assign_to_concepts_soft_filtering() {
+        let store = store_with_innate_concepts();
+        let emb = make_embedder();
+        let obs_emb = emb.embed("packages modules files services boundaries");
+
+        // With very low min_strength, should get many matches
+        let loose = assign_to_concepts_soft(&store, &obs_emb, 0.5, 0.1, 0.01);
+        // With high min_strength, should get fewer matches
+        let tight = assign_to_concepts_soft(&store, &obs_emb, 0.5, 0.1, 0.9);
+
+        assert!(
+            loose.len() >= tight.len(),
+            "lower min_strength should give >= matches: loose={} vs tight={}",
+            loose.len(), tight.len()
+        );
+
+        // All returned assignments should have strength >= min_strength
+        for a in &tight {
+            if let ConceptAssignment::Joined { strength, .. } = a {
+                assert!(
+                    *strength >= 0.9,
+                    "tight filter: strength {strength} should be >= 0.9"
+                );
+            }
+        }
+    }
+
+    /// assign_to_concepts_soft returns strengths sorted descending
+    #[test]
+    fn test_assign_to_concepts_soft_sorted() {
+        let store = store_with_innate_concepts();
+        let emb = make_embedder();
+        let obs_emb = emb.embed("packages modules imports coupling boundaries");
+
+        let assignments = assign_to_concepts_soft(&store, &obs_emb, 0.3, 0.1, 0.01);
+        for w in assignments.windows(2) {
+            let s_a = match &w[0] { ConceptAssignment::Joined { strength, .. } => *strength, _ => 0.0 };
+            let s_b = match &w[1] { ConceptAssignment::Joined { strength, .. } => *strength, _ => 0.0 };
+            assert!(
+                s_a >= s_b - 1e-6,
+                "should be sorted by strength desc: {s_a} < {s_b}"
+            );
+        }
+    }
+
+    /// Narrow candidates fire when concepts are collapsed (high jaccard)
+    #[test]
+    fn test_narrow_candidates_collapsed() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(10, 0, agent);
+
+        // Create 3 concepts with IDENTICAL member sets (jaccard = 1.0)
+        let concepts: Vec<EntityId> = (0..3)
+            .map(|i| {
+                let e = EntityId::from_content(format!("concept:narrow-{i}").as_bytes());
+                store.apply_datoms(&[Datom::new(
+                    e, Attribute::from_keyword(":concept/name"),
+                    Value::String(format!("narrow-{i}")), tx, Op::Assert,
+                )]);
+                e
+            })
+            .collect();
+
+        let concept_attr = Attribute::from_keyword(":exploration/concept");
+        // Same 5 observations in ALL 3 concepts
+        for i in 0..5 {
+            let obs = EntityId::from_content(format!("obs-narrow-{i}").as_bytes());
+            for concept in &concepts {
+                store.apply_datoms(&[Datom::new(
+                    obs, concept_attr.clone(), Value::Ref(*concept), tx, Op::Assert,
+                )]);
+            }
+        }
+
+        let candidates = narrow_candidates(&store);
+        assert!(
+            !candidates.is_empty(),
+            "should detect concept collapse (all jaccard = 1.0)"
+        );
+        assert_eq!(candidates[0].kind, FrontierKind::Narrow);
+    }
+
+    /// Narrow candidates do NOT fire when concepts are healthy (low jaccard)
+    #[test]
+    fn test_narrow_candidates_healthy() {
+        let mut store = store_with_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(10, 0, agent);
+
+        let concept_a = EntityId::from_content(b"concept:healthy-a");
+        let concept_b = EntityId::from_content(b"concept:healthy-b");
+        store.apply_datoms(&[Datom::new(
+            concept_a, Attribute::from_keyword(":concept/name"),
+            Value::String("healthy-a".into()), tx, Op::Assert,
+        )]);
+        store.apply_datoms(&[Datom::new(
+            concept_b, Attribute::from_keyword(":concept/name"),
+            Value::String("healthy-b".into()), tx, Op::Assert,
+        )]);
+
+        let concept_attr = Attribute::from_keyword(":exploration/concept");
+        // Disjoint observations: 5 in A, 5 in B, no overlap
+        for i in 0..5 {
+            let obs_a = EntityId::from_content(format!("obs-ha-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs_a, concept_attr.clone(), Value::Ref(concept_a), tx, Op::Assert,
+            )]);
+            let obs_b = EntityId::from_content(format!("obs-hb-{i}").as_bytes());
+            store.apply_datoms(&[Datom::new(
+                obs_b, concept_attr.clone(), Value::Ref(concept_b), tx, Op::Assert,
+            )]);
+        }
+
+        let candidates = narrow_candidates(&store);
+        assert!(
+            candidates.is_empty(),
+            "healthy concepts (jaccard=0) should NOT trigger narrow, got {} candidates",
+            candidates.len()
+        );
+    }
 }
