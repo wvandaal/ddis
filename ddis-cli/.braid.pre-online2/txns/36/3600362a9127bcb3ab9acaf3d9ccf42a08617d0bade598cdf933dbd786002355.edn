@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774490339/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "82c9bbe796a087908db36cc169662519"
+ :tx/provenance :derived
+ :tx/rationale "ADR-FOUNDATION-031: online calibration (n=2, mean=0.2866, threshold=pending)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "74a8271327ee5531f27b613de0ce588c40206a7b57d9f213d2f2277daa1b7aa0" :a :config/key :v "calibration.similarity-sum-sq" :op :assert}
+   {:e #blake3 "74a8271327ee5531f27b613de0ce588c40206a7b57d9f213d2f2277daa1b7aa0" :a :config/scope :v :config.scope/:config.scope/project :op :assert}
+   {:e #blake3 "74a8271327ee5531f27b613de0ce588c40206a7b57d9f213d2f2277daa1b7aa0" :a :config/value :v "0.16508225" :op :assert}
+   {:e #blake3 "74a8271327ee5531f27b613de0ce588c40206a7b57d9f213d2f2277daa1b7aa0" :a :db/ident :v :config/calibration-similarity-sum-sq :op :assert}
+   {:e #blake3 "f3d1d3113e21a84234967254f1719bfec2e161520eb461393106d5b3f95f397f" :a :config/key :v "calibration.similarity-count" :op :assert}
+   {:e #blake3 "f3d1d3113e21a84234967254f1719bfec2e161520eb461393106d5b3f95f397f" :a :config/scope :v :config.scope/:config.scope/project :op :assert}
+   {:e #blake3 "f3d1d3113e21a84234967254f1719bfec2e161520eb461393106d5b3f95f397f" :a :config/value :v "2" :op :assert}
+   {:e #blake3 "f3d1d3113e21a84234967254f1719bfec2e161520eb461393106d5b3f95f397f" :a :db/ident :v :config/calibration-similarity-count :op :assert}
+   {:e #blake3 "f7e98ec747af1f8413799c0a2af116915ef4ff7a8fc495f96b7f8b080e8ad12a" :a :config/key :v "calibration.similarity-sum" :op :assert}
+   {:e #blake3 "f7e98ec747af1f8413799c0a2af116915ef4ff7a8fc495f96b7f8b080e8ad12a" :a :config/scope :v :config.scope/:config.scope/project :op :assert}
+   {:e #blake3 "f7e98ec747af1f8413799c0a2af116915ef4ff7a8fc495f96b7f8b080e8ad12a" :a :config/value :v "0.57318637" :op :assert}
+   {:e #blake3 "f7e98ec747af1f8413799c0a2af116915ef4ff7a8fc495f96b7f8b080e8ad12a" :a :db/ident :v :config/calibration-similarity-sum :op :assert}
+ ]}

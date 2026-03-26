@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774490341/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Parser handles both monolith and modular spec formats with strict validation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3e9d32657521afc5e3379cd53cc5b915c835bd757e619f6742488e565986ea60" :a :db/doc :v "Parser handles both monolith and modular spec formats with strict validation" :op :assert}
+   {:e #blake3 "3e9d32657521afc5e3379cd53cc5b915c835bd757e619f6742488e565986ea60" :a :db/ident :v :observation/parser-handles-both-monolith-and-modular-spec-formats-with-s :op :assert}
+   {:e #blake3 "3e9d32657521afc5e3379cd53cc5b915c835bd757e619f6742488e565986ea60" :a :exploration/body :v "Parser handles both monolith and modular spec formats with strict validation" :op :assert}
+   {:e #blake3 "3e9d32657521afc5e3379cd53cc5b915c835bd757e619f6742488e565986ea60" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "3e9d32657521afc5e3379cd53cc5b915c835bd757e619f6742488e565986ea60" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "3e9d32657521afc5e3379cd53cc5b915c835bd757e619f6742488e565986ea60" :a :exploration/content-hash :v #bytes "e2bf272106cb1853308c643b8a19679bc765ad0e8e4c5758d63af9e8362e984a" :op :assert}
+   {:e #blake3 "3e9d32657521afc5e3379cd53cc5b915c835bd757e619f6742488e565986ea60" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "3e9d32657521afc5e3379cd53cc5b915c835bd757e619f6742488e565986ea60" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "3e9d32657521afc5e3379cd53cc5b915c835bd757e619f6742488e565986ea60" :a :exploration/source-session :v #blake3 "b0977d5a61565d1cb1c71a8aa057203bd9d92b124d8ea4b17824d0e33c5b02bd" :op :assert}
+ ]}

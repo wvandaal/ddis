@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774490149/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "82c9bbe796a087908db36cc169662519"
+ :tx/provenance :derived
+ :tx/rationale "ADR-FOUNDATION-031: online calibration (n=1, mean=0.5449, threshold=pending)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "727a76bd2ed5e74ad82cb08d67d5dbc821b3953766d1f9ff8dea6b0361ca7abd" :a :config/value :v "0.54491639" :op :assert}
+   {:e #blake3 "d13cd67f9e4aade4665bbce8c4e5daedb91abcfc1131d707a97484bf3d00bd9d" :a :config/value :v "1" :op :assert}
+   {:e #blake3 "fea7bee9b96997827237cda48c95c98423705d629402728081c7d13a675fdbbe" :a :config/value :v "0.29693387" :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774490347/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Test coverage concentrated in parser and storage, sparse in witness and challenge"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f792ee00444cef780c534d27d5fa5b3c1a2d8b6dfe39c6a265ef4627171fc274" :a :db/doc :v "Test coverage concentrated in parser and storage, sparse in witness and challenge" :op :assert}
+   {:e #blake3 "f792ee00444cef780c534d27d5fa5b3c1a2d8b6dfe39c6a265ef4627171fc274" :a :db/ident :v :observation/test-coverage-concentrated-in-parser-and-storage-sparse-in :op :assert}
+   {:e #blake3 "f792ee00444cef780c534d27d5fa5b3c1a2d8b6dfe39c6a265ef4627171fc274" :a :exploration/body :v "Test coverage concentrated in parser and storage, sparse in witness and challenge" :op :assert}
+   {:e #blake3 "f792ee00444cef780c534d27d5fa5b3c1a2d8b6dfe39c6a265ef4627171fc274" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "f792ee00444cef780c534d27d5fa5b3c1a2d8b6dfe39c6a265ef4627171fc274" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "f792ee00444cef780c534d27d5fa5b3c1a2d8b6dfe39c6a265ef4627171fc274" :a :exploration/content-hash :v #bytes "95dd0fcf8e31a47f347795a15c15f1e0e901d9512b2719afb3b58c1bf0a42b82" :op :assert}
+   {:e #blake3 "f792ee00444cef780c534d27d5fa5b3c1a2d8b6dfe39c6a265ef4627171fc274" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f792ee00444cef780c534d27d5fa5b3c1a2d8b6dfe39c6a265ef4627171fc274" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f792ee00444cef780c534d27d5fa5b3c1a2d8b6dfe39c6a265ef4627171fc274" :a :exploration/source-session :v #blake3 "b0977d5a61565d1cb1c71a8aa057203bd9d92b124d8ea4b17824d0e33c5b02bd" :op :assert}
+ ]}

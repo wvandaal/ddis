@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774490780/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The storage package uses normalized SQLite tables with content hashing"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1865cc6151a9c44eacd4daff573e1a6def36b97912a20db405d6eba3ac8e492c" :a :db/doc :v "The storage package uses normalized SQLite tables with content hashing" :op :assert}
+   {:e #blake3 "1865cc6151a9c44eacd4daff573e1a6def36b97912a20db405d6eba3ac8e492c" :a :db/ident :v :observation/the-storage-package-uses-normalized-sqlite-tables-with-conte :op :assert}
+   {:e #blake3 "1865cc6151a9c44eacd4daff573e1a6def36b97912a20db405d6eba3ac8e492c" :a :exploration/body :v "The storage package uses normalized SQLite tables with content hashing" :op :assert}
+   {:e #blake3 "1865cc6151a9c44eacd4daff573e1a6def36b97912a20db405d6eba3ac8e492c" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "1865cc6151a9c44eacd4daff573e1a6def36b97912a20db405d6eba3ac8e492c" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "1865cc6151a9c44eacd4daff573e1a6def36b97912a20db405d6eba3ac8e492c" :a :exploration/content-hash :v #bytes "b1ae7e52025ec8d96d8df98a21446d0f24d62c9bb505757f13a8f76125d6b0aa" :op :assert}
+   {:e #blake3 "1865cc6151a9c44eacd4daff573e1a6def36b97912a20db405d6eba3ac8e492c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "1865cc6151a9c44eacd4daff573e1a6def36b97912a20db405d6eba3ac8e492c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "1865cc6151a9c44eacd4daff573e1a6def36b97912a20db405d6eba3ac8e492c" :a :exploration/source-session :v #blake3 "128439d61a882215a1a9d6e17d12c6ac4c512eafd2d7c1b26125fd0b92b18bfe" :op :assert}
+ ]}

@@ -639,6 +639,85 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         &entity_matches,
     );
 
+    // --- ADR-FOUNDATION-031: Online threshold calibration ---
+    // Update running sufficient statistics after each observation.
+    // The posterior after observation N becomes the prior for observation N+1.
+    // Sufficient statistics (count, sum, sum_sq) form a commutative monoid.
+    let primary_similarity = match &concept_assignment {
+        braid_kernel::concept::ConceptAssignment::Joined { similarity, .. } => Some(*similarity),
+        _ => None,
+    };
+    if let Some(sim) = primary_similarity {
+        let cal_count: i64 = braid_kernel::config::get_config(store, "calibration.similarity-count")
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(0);
+        let cal_sum: f64 = braid_kernel::config::get_config(store, "calibration.similarity-sum")
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(0.0);
+        let cal_sum_sq: f64 = braid_kernel::config::get_config(store, "calibration.similarity-sum-sq")
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(0.0);
+
+        let new_count = cal_count + 1;
+        let new_sum = cal_sum + sim as f64;
+        let new_sum_sq = cal_sum_sq + (sim as f64) * (sim as f64);
+
+        // Write updated sufficient statistics using set_config_datoms (3 datoms per key:
+        // :db/ident, :config/key, :config/value — matches what get_config reads).
+        let cal_agent = AgentId::from_name("braid:cal");
+        let cal_tx = super::write::next_tx_id(store, cal_agent);
+        let mut cal_datoms = Vec::new();
+        cal_datoms.extend(braid_kernel::config::set_config_datoms(
+            "calibration.similarity-count", &new_count.to_string(), ":config.scope/project", cal_tx,
+        ));
+        cal_datoms.extend(braid_kernel::config::set_config_datoms(
+            "calibration.similarity-sum", &format!("{new_sum:.8}"), ":config.scope/project", cal_tx,
+        ));
+        cal_datoms.extend(braid_kernel::config::set_config_datoms(
+            "calibration.similarity-sum-sq", &format!("{new_sum_sq:.8}"), ":config.scope/project", cal_tx,
+        ));
+
+        // After 3+ observations, compute and write calibrated threshold + temperature.
+        if new_count >= 3 {
+            let mean = new_sum / new_count as f64;
+            let variance = (new_sum_sq / new_count as f64 - mean * mean).max(0.0);
+            let stddev = variance.sqrt();
+            let cal_threshold = (mean - 0.5 * stddev).clamp(0.15, 0.85) as f32;
+            let cal_temperature = (stddev / 2.0).max(0.01) as f32;
+
+            cal_datoms.extend(braid_kernel::config::set_config_datoms(
+                "concept.join-threshold", &format!("{cal_threshold:.4}"), ":config.scope/project", cal_tx,
+            ));
+            cal_datoms.extend(braid_kernel::config::set_config_datoms(
+                "concept.sigmoid-temperature", &format!("{cal_temperature:.4}"), ":config.scope/project", cal_tx,
+            ));
+        }
+
+        let cal_tx_file = TxFile {
+            tx_id: cal_tx,
+            agent: cal_agent,
+            provenance: ProvenanceType::Derived,
+            rationale: format!(
+                "ADR-FOUNDATION-031: online calibration (n={new_count}, mean={:.4}, threshold={})",
+                new_sum / new_count as f64,
+                if new_count >= 3 {
+                    let mean = new_sum / new_count as f64;
+                    let var = (new_sum_sq / new_count as f64 - mean * mean).max(0.0);
+                    format!("{:.4}", (mean - 0.5 * var.sqrt()).clamp(0.15, 0.85))
+                } else {
+                    "pending".to_string()
+                }
+            ),
+            causal_predecessors: vec![],
+            datoms: cal_datoms,
+        };
+        if let Err(e) = live.write_tx(&cal_tx_file) {
+            eprintln!("warning: online calibration write failed: {e}");
+        }
+        let _ = live.store(); // Refresh after calibration write.
+    }
+    let store = live.store();
+
     // Write CCE datoms as a follow-up transaction if there's concept/entity info to record.
     let mut cce_datoms = Vec::new();
     // Embedding datom.

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774490609/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "test calibration debug"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c20e0a36f7934ae8460efc12f694700717eafb694a5f9a17ea104a652a6b5b62" :a :db/doc :v "test calibration debug" :op :assert}
+   {:e #blake3 "c20e0a36f7934ae8460efc12f694700717eafb694a5f9a17ea104a652a6b5b62" :a :db/ident :v :observation/test-calibration-debug :op :assert}
+   {:e #blake3 "c20e0a36f7934ae8460efc12f694700717eafb694a5f9a17ea104a652a6b5b62" :a :exploration/body :v "test calibration debug" :op :assert}
+   {:e #blake3 "c20e0a36f7934ae8460efc12f694700717eafb694a5f9a17ea104a652a6b5b62" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "c20e0a36f7934ae8460efc12f694700717eafb694a5f9a17ea104a652a6b5b62" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "c20e0a36f7934ae8460efc12f694700717eafb694a5f9a17ea104a652a6b5b62" :a :exploration/content-hash :v #bytes "564a20d8e95dc05be39f5c6baea31d7aac02955bcd7f218ff87cbe6b0fd4da72" :op :assert}
+   {:e #blake3 "c20e0a36f7934ae8460efc12f694700717eafb694a5f9a17ea104a652a6b5b62" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "c20e0a36f7934ae8460efc12f694700717eafb694a5f9a17ea104a652a6b5b62" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "c20e0a36f7934ae8460efc12f694700717eafb694a5f9a17ea104a652a6b5b62" :a :exploration/source-session :v #blake3 "f3ea11980f3448ad2e57e1265688df985f2e8f0d8e0cc7203b16fc8fb39f8f6b" :op :assert}
+ ]}

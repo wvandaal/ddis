@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774490353/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The drift package measures spec-implementation alignment"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7a32c0da83c08d0cf7411144bca0691cb5cda0e6ee150d426d379cded6431a59" :a :db/doc :v "The drift package measures spec-implementation alignment" :op :assert}
+   {:e #blake3 "7a32c0da83c08d0cf7411144bca0691cb5cda0e6ee150d426d379cded6431a59" :a :db/ident :v :observation/the-drift-package-measures-spec-implementation-alignment :op :assert}
+   {:e #blake3 "7a32c0da83c08d0cf7411144bca0691cb5cda0e6ee150d426d379cded6431a59" :a :exploration/body :v "The drift package measures spec-implementation alignment" :op :assert}
+   {:e #blake3 "7a32c0da83c08d0cf7411144bca0691cb5cda0e6ee150d426d379cded6431a59" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "7a32c0da83c08d0cf7411144bca0691cb5cda0e6ee150d426d379cded6431a59" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "7a32c0da83c08d0cf7411144bca0691cb5cda0e6ee150d426d379cded6431a59" :a :exploration/content-hash :v #bytes "fa63ac4cb13b24673fd13e9b27ffcfac60a024129f78506fc8fdf027f42b2fe6" :op :assert}
+   {:e #blake3 "7a32c0da83c08d0cf7411144bca0691cb5cda0e6ee150d426d379cded6431a59" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7a32c0da83c08d0cf7411144bca0691cb5cda0e6ee150d426d379cded6431a59" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7a32c0da83c08d0cf7411144bca0691cb5cda0e6ee150d426d379cded6431a59" :a :exploration/source-session :v #blake3 "b0977d5a61565d1cb1c71a8aa057203bd9d92b124d8ea4b17824d0e33c5b02bd" :op :assert}
+ ]}

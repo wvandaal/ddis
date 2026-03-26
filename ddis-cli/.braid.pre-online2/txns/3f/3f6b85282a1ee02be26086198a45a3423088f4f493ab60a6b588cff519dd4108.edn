@@ -1,0 +1,35 @@
+{:tx/id #hlc "1774490330/0/a8051a4199c533255d65831c3f863f43"
+ :tx/agent "a8051a4199c533255d65831c3f863f43"
+ :tx/provenance :observed
+ :tx/rationale "init: environment detection"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1b79f27901511117d7df1ea9440cbdfc0fac7f77637be6b8b961c4565b1b8e8e" :a :config/key :v "tools.go" :op :assert}
+   {:e #blake3 "1b79f27901511117d7df1ea9440cbdfc0fac7f77637be6b8b961c4565b1b8e8e" :a :config/scope :v :config.scope/project :op :assert}
+   {:e #blake3 "1b79f27901511117d7df1ea9440cbdfc0fac7f77637be6b8b961c4565b1b8e8e" :a :config/value :v "available" :op :assert}
+   {:e #blake3 "1b79f27901511117d7df1ea9440cbdfc0fac7f77637be6b8b961c4565b1b8e8e" :a :db/ident :v :config/tools-go :op :assert}
+   {:e #blake3 "2e53e7662a7f92830ce7bda9b943a59ad77d43852270973a70015993b799fd4f" :a :config/key :v "tools.cargo" :op :assert}
+   {:e #blake3 "2e53e7662a7f92830ce7bda9b943a59ad77d43852270973a70015993b799fd4f" :a :config/scope :v :config.scope/project :op :assert}
+   {:e #blake3 "2e53e7662a7f92830ce7bda9b943a59ad77d43852270973a70015993b799fd4f" :a :config/value :v "not-found" :op :assert}
+   {:e #blake3 "2e53e7662a7f92830ce7bda9b943a59ad77d43852270973a70015993b799fd4f" :a :db/ident :v :config/tools-cargo :op :assert}
+   {:e #blake3 "3b4c29e55db6cfccc8bfd37a155def61495f950546397f00ca75edd075a58d8a" :a :config/key :v "git.enabled" :op :assert}
+   {:e #blake3 "3b4c29e55db6cfccc8bfd37a155def61495f950546397f00ca75edd075a58d8a" :a :config/scope :v :config.scope/project :op :assert}
+   {:e #blake3 "3b4c29e55db6cfccc8bfd37a155def61495f950546397f00ca75edd075a58d8a" :a :config/value :v "never" :op :assert}
+   {:e #blake3 "3b4c29e55db6cfccc8bfd37a155def61495f950546397f00ca75edd075a58d8a" :a :db/ident :v :config/git-enabled :op :assert}
+   {:e #blake3 "423b023ddcf5ab0592775f756efd27794f2fe703d8eae79154daaae6f9b12f6a" :a :config/key :v "project.language" :op :assert}
+   {:e #blake3 "423b023ddcf5ab0592775f756efd27794f2fe703d8eae79154daaae6f9b12f6a" :a :config/scope :v :config.scope/project :op :assert}
+   {:e #blake3 "423b023ddcf5ab0592775f756efd27794f2fe703d8eae79154daaae6f9b12f6a" :a :config/value :v "go" :op :assert}
+   {:e #blake3 "423b023ddcf5ab0592775f756efd27794f2fe703d8eae79154daaae6f9b12f6a" :a :db/ident :v :config/project-language :op :assert}
+   {:e #blake3 "5faf64ff54402bc3029442998553c2fa738371c9b312bd3974280bc07baa2639" :a :config/key :v "tools.bun" :op :assert}
+   {:e #blake3 "5faf64ff54402bc3029442998553c2fa738371c9b312bd3974280bc07baa2639" :a :config/scope :v :config.scope/project :op :assert}
+   {:e #blake3 "5faf64ff54402bc3029442998553c2fa738371c9b312bd3974280bc07baa2639" :a :config/value :v "not-found" :op :assert}
+   {:e #blake3 "5faf64ff54402bc3029442998553c2fa738371c9b312bd3974280bc07baa2639" :a :db/ident :v :config/tools-bun :op :assert}
+   {:e #blake3 "6bf58a19a091be9979a3d9d7187b5b214d7eb854a15494134dbc0c0f904663fe" :a :config/key :v "tools.git" :op :assert}
+   {:e #blake3 "6bf58a19a091be9979a3d9d7187b5b214d7eb854a15494134dbc0c0f904663fe" :a :config/scope :v :config.scope/project :op :assert}
+   {:e #blake3 "6bf58a19a091be9979a3d9d7187b5b214d7eb854a15494134dbc0c0f904663fe" :a :config/value :v "available" :op :assert}
+   {:e #blake3 "6bf58a19a091be9979a3d9d7187b5b214d7eb854a15494134dbc0c0f904663fe" :a :db/ident :v :config/tools-git :op :assert}
+   {:e #blake3 "a1d172bbd940c90aee30197cec6d9ec5d68b6453723a1502ba28e09a9911620e" :a :config/key :v "tools.npm" :op :assert}
+   {:e #blake3 "a1d172bbd940c90aee30197cec6d9ec5d68b6453723a1502ba28e09a9911620e" :a :config/scope :v :config.scope/project :op :assert}
+   {:e #blake3 "a1d172bbd940c90aee30197cec6d9ec5d68b6453723a1502ba28e09a9911620e" :a :config/value :v "not-found" :op :assert}
+   {:e #blake3 "a1d172bbd940c90aee30197cec6d9ec5d68b6453723a1502ba28e09a9911620e" :a :db/ident :v :config/tools-npm :op :assert}
+ ]}

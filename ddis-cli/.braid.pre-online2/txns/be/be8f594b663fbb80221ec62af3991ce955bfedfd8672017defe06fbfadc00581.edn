@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774490344/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The consistency engine implements 5-tier contradiction detection"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9acabff691ae051a95c2a07495350d6b1b4def08fb39f09f69d205031aae9e7e" :a :db/doc :v "The consistency engine implements 5-tier contradiction detection" :op :assert}
+   {:e #blake3 "9acabff691ae051a95c2a07495350d6b1b4def08fb39f09f69d205031aae9e7e" :a :db/ident :v :observation/the-consistency-engine-implements-5-tier-contradiction-detec :op :assert}
+   {:e #blake3 "9acabff691ae051a95c2a07495350d6b1b4def08fb39f09f69d205031aae9e7e" :a :exploration/body :v "The consistency engine implements 5-tier contradiction detection" :op :assert}
+   {:e #blake3 "9acabff691ae051a95c2a07495350d6b1b4def08fb39f09f69d205031aae9e7e" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "9acabff691ae051a95c2a07495350d6b1b4def08fb39f09f69d205031aae9e7e" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "9acabff691ae051a95c2a07495350d6b1b4def08fb39f09f69d205031aae9e7e" :a :exploration/content-hash :v #bytes "092d8b2114a7f82fca631a7db2e34054dd6637bbd0afb1eff8336c8d0ea7939d" :op :assert}
+   {:e #blake3 "9acabff691ae051a95c2a07495350d6b1b4def08fb39f09f69d205031aae9e7e" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "9acabff691ae051a95c2a07495350d6b1b4def08fb39f09f69d205031aae9e7e" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "9acabff691ae051a95c2a07495350d6b1b4def08fb39f09f69d205031aae9e7e" :a :exploration/source-session :v #blake3 "b0977d5a61565d1cb1c71a8aa057203bd9d92b124d8ea4b17824d0e33c5b02bd" :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774490786/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Parser validates YAML manifests against the spec ontology"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b4eb8da92f8f6ccb21d0d5682617d27a64e79c248b432c6afe01b0787f7b254c" :a :db/doc :v "Parser validates YAML manifests against the spec ontology" :op :assert}
+   {:e #blake3 "b4eb8da92f8f6ccb21d0d5682617d27a64e79c248b432c6afe01b0787f7b254c" :a :db/ident :v :observation/parser-validates-yaml-manifests-against-the-spec-ontology :op :assert}
+   {:e #blake3 "b4eb8da92f8f6ccb21d0d5682617d27a64e79c248b432c6afe01b0787f7b254c" :a :exploration/body :v "Parser validates YAML manifests against the spec ontology" :op :assert}
+   {:e #blake3 "b4eb8da92f8f6ccb21d0d5682617d27a64e79c248b432c6afe01b0787f7b254c" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "b4eb8da92f8f6ccb21d0d5682617d27a64e79c248b432c6afe01b0787f7b254c" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "b4eb8da92f8f6ccb21d0d5682617d27a64e79c248b432c6afe01b0787f7b254c" :a :exploration/content-hash :v #bytes "aa55a3cf37e3d905b388a8b465a79e615bd0b39fe6ff2daa00abc822adced55a" :op :assert}
+   {:e #blake3 "b4eb8da92f8f6ccb21d0d5682617d27a64e79c248b432c6afe01b0787f7b254c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b4eb8da92f8f6ccb21d0d5682617d27a64e79c248b432c6afe01b0787f7b254c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b4eb8da92f8f6ccb21d0d5682617d27a64e79c248b432c6afe01b0787f7b254c" :a :exploration/source-session :v #blake3 "128439d61a882215a1a9d6e17d12c6ac4c512eafd2d7c1b26125fd0b92b18bfe" :op :assert}
+ ]}

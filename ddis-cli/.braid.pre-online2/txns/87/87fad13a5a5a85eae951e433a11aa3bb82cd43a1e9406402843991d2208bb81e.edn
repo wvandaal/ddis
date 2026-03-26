@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774490338/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Event sourcing with three-stream architecture for crystallize materialize project"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6e36ecca84285d5d527d050b7d0df2098da49fda756c31b025f4603752733f30" :a :db/doc :v "Event sourcing with three-stream architecture for crystallize materialize project" :op :assert}
+   {:e #blake3 "6e36ecca84285d5d527d050b7d0df2098da49fda756c31b025f4603752733f30" :a :db/ident :v :observation/event-sourcing-with-three-stream-architecture-for-crystalliz :op :assert}
+   {:e #blake3 "6e36ecca84285d5d527d050b7d0df2098da49fda756c31b025f4603752733f30" :a :exploration/body :v "Event sourcing with three-stream architecture for crystallize materialize project" :op :assert}
+   {:e #blake3 "6e36ecca84285d5d527d050b7d0df2098da49fda756c31b025f4603752733f30" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "6e36ecca84285d5d527d050b7d0df2098da49fda756c31b025f4603752733f30" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "6e36ecca84285d5d527d050b7d0df2098da49fda756c31b025f4603752733f30" :a :exploration/content-hash :v #bytes "e18652eb6f7d08a8b8e4ee924df5185455a2125979107242c8007b0fc61e5360" :op :assert}
+   {:e #blake3 "6e36ecca84285d5d527d050b7d0df2098da49fda756c31b025f4603752733f30" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "6e36ecca84285d5d527d050b7d0df2098da49fda756c31b025f4603752733f30" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "6e36ecca84285d5d527d050b7d0df2098da49fda756c31b025f4603752733f30" :a :exploration/source-session :v #blake3 "b0977d5a61565d1cb1c71a8aa057203bd9d92b124d8ea4b17824d0e33c5b02bd" :op :assert}
+ ]}

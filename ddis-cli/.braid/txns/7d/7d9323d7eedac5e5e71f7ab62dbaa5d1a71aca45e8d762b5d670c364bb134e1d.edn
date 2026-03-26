@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774490776/0/a8051a4199c533255d65831c3f863f43"
+ :tx/agent "a8051a4199c533255d65831c3f863f43"
+ :tx/provenance :derived
+ :tx/rationale "braid trace: 0 impl links, 0 witness marks"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d65d3c512f9a12dca961dc9df6712cf85704af788af978931a4c7ffa6a26d498" :a :trace/last-scan-mtime :v 1774490774 :op :assert}
+ ]}

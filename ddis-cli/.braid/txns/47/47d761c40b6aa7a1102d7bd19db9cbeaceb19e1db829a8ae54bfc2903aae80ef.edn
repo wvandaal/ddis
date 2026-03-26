@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774490783/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Event sourcing architecture with three separate streams"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6300bee5f5f303943a44e378d1a00d3e1835fdf13496bcc8de0ae3a5aa244883" :a :db/doc :v "Event sourcing architecture with three separate streams" :op :assert}
+   {:e #blake3 "6300bee5f5f303943a44e378d1a00d3e1835fdf13496bcc8de0ae3a5aa244883" :a :db/ident :v :observation/event-sourcing-architecture-with-three-separate-streams :op :assert}
+   {:e #blake3 "6300bee5f5f303943a44e378d1a00d3e1835fdf13496bcc8de0ae3a5aa244883" :a :exploration/body :v "Event sourcing architecture with three separate streams" :op :assert}
+   {:e #blake3 "6300bee5f5f303943a44e378d1a00d3e1835fdf13496bcc8de0ae3a5aa244883" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "6300bee5f5f303943a44e378d1a00d3e1835fdf13496bcc8de0ae3a5aa244883" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "6300bee5f5f303943a44e378d1a00d3e1835fdf13496bcc8de0ae3a5aa244883" :a :exploration/content-hash :v #bytes "6a6b89eee9cec81cc3a21dcde65023562cd401aa3ad430989f89f751451e46c9" :op :assert}
+   {:e #blake3 "6300bee5f5f303943a44e378d1a00d3e1835fdf13496bcc8de0ae3a5aa244883" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "6300bee5f5f303943a44e378d1a00d3e1835fdf13496bcc8de0ae3a5aa244883" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "6300bee5f5f303943a44e378d1a00d3e1835fdf13496bcc8de0ae3a5aa244883" :a :exploration/source-session :v #blake3 "128439d61a882215a1a9d6e17d12c6ac4c512eafd2d7c1b26125fd0b92b18bfe" :op :assert}
+ ]}

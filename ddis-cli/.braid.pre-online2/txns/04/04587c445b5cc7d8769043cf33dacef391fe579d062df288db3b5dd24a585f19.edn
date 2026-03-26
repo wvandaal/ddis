@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774490335/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "The storage package uses 30 SQLite tables with content hashing"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5ae397ab6e1636bec87570c26b3092fb8e29b42d617162ad9a24941fbcea6d60" :a :db/doc :v "The storage package uses 30 SQLite tables with content hashing" :op :assert}
+   {:e #blake3 "5ae397ab6e1636bec87570c26b3092fb8e29b42d617162ad9a24941fbcea6d60" :a :db/ident :v :observation/the-storage-package-uses-30-sqlite-tables-with-content-hashi :op :assert}
+   {:e #blake3 "5ae397ab6e1636bec87570c26b3092fb8e29b42d617162ad9a24941fbcea6d60" :a :exploration/body :v "The storage package uses 30 SQLite tables with content hashing" :op :assert}
+   {:e #blake3 "5ae397ab6e1636bec87570c26b3092fb8e29b42d617162ad9a24941fbcea6d60" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "5ae397ab6e1636bec87570c26b3092fb8e29b42d617162ad9a24941fbcea6d60" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "5ae397ab6e1636bec87570c26b3092fb8e29b42d617162ad9a24941fbcea6d60" :a :exploration/content-hash :v #bytes "f1da76be53493a941a07bb8b67765d32b59b5f1241e6a4d7c48e2e8469761ffb" :op :assert}
+   {:e #blake3 "5ae397ab6e1636bec87570c26b3092fb8e29b42d617162ad9a24941fbcea6d60" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "5ae397ab6e1636bec87570c26b3092fb8e29b42d617162ad9a24941fbcea6d60" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "5ae397ab6e1636bec87570c26b3092fb8e29b42d617162ad9a24941fbcea6d60" :a :exploration/source-session :v #blake3 "b0977d5a61565d1cb1c71a8aa057203bd9d92b124d8ea4b17824d0e33c5b02bd" :op :assert}
+ ]}

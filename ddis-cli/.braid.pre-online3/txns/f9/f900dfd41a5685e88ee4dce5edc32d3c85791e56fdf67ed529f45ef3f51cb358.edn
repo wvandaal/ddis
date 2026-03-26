@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774490504/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Event sourcing architecture in events package"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7d5e96cbafc9e0c096baaf99445478909f3177c4136c93af7f72df8c952d62dc" :a :db/doc :v "Event sourcing architecture in events package" :op :assert}
+   {:e #blake3 "7d5e96cbafc9e0c096baaf99445478909f3177c4136c93af7f72df8c952d62dc" :a :db/ident :v :observation/event-sourcing-architecture-in-events-package :op :assert}
+   {:e #blake3 "7d5e96cbafc9e0c096baaf99445478909f3177c4136c93af7f72df8c952d62dc" :a :exploration/body :v "Event sourcing architecture in events package" :op :assert}
+   {:e #blake3 "7d5e96cbafc9e0c096baaf99445478909f3177c4136c93af7f72df8c952d62dc" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "7d5e96cbafc9e0c096baaf99445478909f3177c4136c93af7f72df8c952d62dc" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "7d5e96cbafc9e0c096baaf99445478909f3177c4136c93af7f72df8c952d62dc" :a :exploration/content-hash :v #bytes "ae8312d2b349fc2a07da2b2cc7cd069c6b8f1ecfb854588ea111904483f714bc" :op :assert}
+   {:e #blake3 "7d5e96cbafc9e0c096baaf99445478909f3177c4136c93af7f72df8c952d62dc" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7d5e96cbafc9e0c096baaf99445478909f3177c4136c93af7f72df8c952d62dc" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7d5e96cbafc9e0c096baaf99445478909f3177c4136c93af7f72df8c952d62dc" :a :exploration/source-session :v #blake3 "f3ea11980f3448ad2e57e1265688df985f2e8f0d8e0cc7203b16fc8fb39f8f6b" :op :assert}
+ ]}

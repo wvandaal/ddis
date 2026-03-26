@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774490145/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Event sourcing with three-stream architecture"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "de4f9ce8e39b183ac38e2dfcc7a414d2798ddbc93176e3f5f92f5b3c611310cb" :a :db/doc :v "Event sourcing with three-stream architecture" :op :assert}
+   {:e #blake3 "de4f9ce8e39b183ac38e2dfcc7a414d2798ddbc93176e3f5f92f5b3c611310cb" :a :db/ident :v :observation/event-sourcing-with-three-stream-architecture :op :assert}
+   {:e #blake3 "de4f9ce8e39b183ac38e2dfcc7a414d2798ddbc93176e3f5f92f5b3c611310cb" :a :exploration/body :v "Event sourcing with three-stream architecture" :op :assert}
+   {:e #blake3 "de4f9ce8e39b183ac38e2dfcc7a414d2798ddbc93176e3f5f92f5b3c611310cb" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "de4f9ce8e39b183ac38e2dfcc7a414d2798ddbc93176e3f5f92f5b3c611310cb" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "de4f9ce8e39b183ac38e2dfcc7a414d2798ddbc93176e3f5f92f5b3c611310cb" :a :exploration/content-hash :v #bytes "b186ff86deb506c2cafa5820396aa9559fa18ff615ce163757925588936cc3f4" :op :assert}
+   {:e #blake3 "de4f9ce8e39b183ac38e2dfcc7a414d2798ddbc93176e3f5f92f5b3c611310cb" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "de4f9ce8e39b183ac38e2dfcc7a414d2798ddbc93176e3f5f92f5b3c611310cb" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "de4f9ce8e39b183ac38e2dfcc7a414d2798ddbc93176e3f5f92f5b3c611310cb" :a :exploration/source-session :v #blake3 "ef3e8cd159bb1d46db13fac82350a3cc55b377cd4f5a736f6fdb01d857e122d5" :op :assert}
+ ]}
