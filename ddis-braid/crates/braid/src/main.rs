@@ -116,13 +116,20 @@ fn main() {
     };
 
     // LIVESTORE-5a: ST-1 session auto-detect using the single LiveStore.
-    // L1-SINGLE: Skip session detection for read-only commands to avoid
-    // marking the store dirty (which triggers 110MB store.bin serialization on drop).
-    let is_read_only_cmd = matches!(
-        cmd_name,
-        "status" | "query" | "log" | "schema" | "task" | "witness" | "analyze" | "topology"
-    );
-    if cmd_name != "init" && cmd_name != "session" && !is_read_only_cmd {
+    //
+    // CRITICAL SAFETY INVARIANT: Session detection must ONLY write through the
+    // pre-opened LiveStore for commands that USE that store (via pre_opened parameter).
+    // For commands that open their OWN LiveStore (observe, task create, harvest, etc.),
+    // writing session datoms through main's LiveStore creates a stale-overwrite race:
+    //   1. main's LiveStore is marked dirty (session write)
+    //   2. Command's LiveStore writes + flushes store.bin with command data
+    //   3. main's LiveStore drops and OVERWRITES store.bin with stale state
+    //   4. Command's writes become invisible through the cache
+    //
+    // Fix: Only do session detection for commands that use the pre-opened store.
+    // Currently: only "status" uses pre_opened. Other commands handle their own stores.
+    let uses_pre_opened = matches!(cmd_name, "status");
+    if cmd_name != "init" && cmd_name != "session" && uses_pre_opened {
         if let Some(ref mut live) = live {
             if braid_kernel::guidance::detect_session_start(live.store()) {
                 let agent = braid_kernel::datom::AgentId::from_name("braid:session");

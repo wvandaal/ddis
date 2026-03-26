@@ -274,9 +274,21 @@ impl LiveStore {
     /// by commands that need the cache fresh for other processes (e.g.,
     /// `braid status` returning to an agent), and by `Drop` on process exit.
     ///
+    /// SAFETY: If another process has written to store.bin since we opened
+    /// (detected by txns/ directory mtime change + new unknown hashes),
+    /// we skip the flush to avoid overwriting newer state with stale data.
+    /// The next open() will rebuild incrementally from the EDN txn files.
+    ///
     /// Cost: ~100ms for a 74K datom store (bincode serialization + fsync).
     pub fn flush(&mut self) -> Result<(), BraidError> {
         if self.dirty {
+            // Defensive: if another LiveStore instance (from a command that opened
+            // its own) has written new transactions since we opened, our in-memory
+            // state may be stale. Don't overwrite their newer store.bin.
+            if self.has_new_external_txns() {
+                self.dirty = false; // Silently skip — txn EDN files are durable (C1).
+                return Ok(());
+            }
             self.layout.write_index_cache(&self.store)?;
             self.dirty = false;
         }
