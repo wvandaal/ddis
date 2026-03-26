@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774483076/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC S045-CCE-FIX: Three surgical fixes for concept collapse (threshold + frontier wiring + descriptions)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :db/ident :v :task/t-10d8d937 :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/created-at :v 1774483075 :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/description :v "CONTEXT: DOGFOOD-2 Session 3 retry scored 3.48/10 with model2vec embeddings. Root cause: concept collapse — all observations assigned to all concepts simultaneously. Three targeted fixes address the three failure dimensions: (1) model2vec join_threshold too low (0.20 vs 0.34-0.74 observed range), (2) frontier steering bypassed when concepts match (falls through to generic 'what connects X to Y?' template), (3) innate concept descriptions too semantically broad for model2vec.\n\nThese are surgical fixes — 3 small changes totaling ~30 lines. No architectural changes needed. The CCE pipeline is architecturally sound; the parameters and wiring are miscalibrated.\n\nDELIVERABLES: 3 implementation tasks + 1 E2E verification + 1 dogfood retest." :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/id :v "t-10d8d937" :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/labels :v :label/S045-CCE-FIX :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/title :v "EPIC S045-CCE-FIX: Three surgical fixes for concept collapse (threshold + frontier wiring + descriptions)" :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/title-l0 :v "EPIC S045-CCE-FIX" :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/title-l1 :v "EPIC S045-CCE-FIX: Three surgical fixes for concept collapse (threshold + fro..." :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/traces-to :v #blake3 "791ce65b20564279d064cb37745fcdd4b9e31f36804346447a413c2befbb9709" :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/traces-to :v #blake3 "bb68771c0f403c927260336945dceada87933be4981b2fe81d8ec63e5430a4dd" :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/type :v :task.type/epic :op :assert}
+ ]}

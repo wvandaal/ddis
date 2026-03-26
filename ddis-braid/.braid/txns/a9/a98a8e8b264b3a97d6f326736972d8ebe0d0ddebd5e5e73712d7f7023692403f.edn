@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774483149/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CCE-FIX-TEST: Tests for threshold + narrow frontier + descriptions (5 unit + E2E)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :db/ident :v :task/t-f08cbd87 :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/created-at :v 1774483148 :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/description :v "CONTEXT: Tests for all 3 CCE-FIX implementations.\n\nUNIT TESTS (5 new tests):\n\n1. test_model2vec_join_threshold_value (CCE-FIX-1):\n   - Verify Embedder::join_threshold() returns 0.50.\n   - If cfg(feature=embeddings) not available, skip.\n\n2. test_narrow_candidates_collapsed (CCE-FIX-2):\n   - Setup: Store with 5 concepts, all with jaccard=1.00 (same member sets).\n   - Assert: narrow_candidates returns a FrontierRec with kind=Narrow and score > 0.\n   - Failure diagnostic: Log jaccard matrix and narrow candidate computation.\n\n3. test_narrow_candidates_healthy (CCE-FIX-2):\n   - Setup: Store with 3 concepts, jaccard < 0.3 between all pairs.\n   - Assert: narrow_candidates returns empty vec (no collapse detected).\n\n4. test_frontier_narrow_wins_over_generic (CCE-FIX-2):\n   - Setup: Store with collapsed concepts (jaccard > 0.8).\n   - Assert: frontier_recommendation returns Narrow, not Deepen/Bridge/Explore.\n\n5. test_innate_descriptions_no_shared_lead_words (CCE-FIX-3):\n   - Property: No two innate descriptions start with the same word.\n   - Iterate INNATE_CONCEPTS, collect first word of each description.\n   - Assert all first words are unique.\n\nE2E VERIFICATION:\n- Clear Go CLI store, fresh init, make 5 observations, verify:\n  (a) NOT all observations in all concepts (some should be uncategorized at threshold 0.50)\n  (b) Frontier recommendation shows Narrow or specific kind, not generic template\n  (c) Concept distribution has entropy > 0 after harvest\n\nDEPENDS-ON: CCE-FIX-1, CCE-FIX-2, CCE-FIX-3." :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/id :v "t-f08cbd87" :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/labels :v :label/S045-CCE-FIX :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/title :v "CCE-FIX-TEST: Tests for threshold + narrow frontier + descriptions (5 unit + E2E)" :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/title-l0 :v "CCE-FIX-TEST" :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/title-l1 :v "CCE-FIX-TEST: Tests for threshold + narrow frontier + descriptions (5 unit +..." :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/traces-to :v #blake3 "bb68771c0f403c927260336945dceada87933be4981b2fe81d8ec63e5430a4dd" :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/type :v :task.type/task :op :assert}
+ ]}

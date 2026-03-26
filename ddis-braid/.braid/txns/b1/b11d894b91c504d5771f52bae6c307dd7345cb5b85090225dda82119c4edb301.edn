@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774483152/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CCE-FIX-RETEST: Dogfood retest after three surgical fixes"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "41bb044fee19665485a1ffe4c615eabf99e2386d9a2936060ad99384956751c3" :a :db/ident :v :task/t-f3642e8c :op :assert}
+   {:e #blake3 "41bb044fee19665485a1ffe4c615eabf99e2386d9a2936060ad99384956751c3" :a :task/created-at :v 1774483151 :op :assert}
+   {:e #blake3 "41bb044fee19665485a1ffe4c615eabf99e2386d9a2936060ad99384956751c3" :a :task/description :v "CONTEXT: After CCE-FIX-1/2/3 + tests pass, re-run the dogfood to measure improvement. Same protocol as DF2-REV: fresh init, 10 observations via subagent, 8-dimension scoring.\n\nAPPROACH: Rename .braid -> .braid.pre-fix, fresh init, launch same subagent prompt as DF2-REV. Compare composite score to 3.48/10 baseline.\n\nTARGET: >= 6/10 (concept differentiation + actionable frontier). If still < 6, the innate concept approach itself may be flawed for model2vec and we need purely emergent clustering.\n\nDEPENDS-ON: CCE-FIX-TEST." :op :assert}
+   {:e #blake3 "41bb044fee19665485a1ffe4c615eabf99e2386d9a2936060ad99384956751c3" :a :task/id :v "t-f3642e8c" :op :assert}
+   {:e #blake3 "41bb044fee19665485a1ffe4c615eabf99e2386d9a2936060ad99384956751c3" :a :task/labels :v :label/S045-CCE-FIX :op :assert}
+   {:e #blake3 "41bb044fee19665485a1ffe4c615eabf99e2386d9a2936060ad99384956751c3" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "41bb044fee19665485a1ffe4c615eabf99e2386d9a2936060ad99384956751c3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "41bb044fee19665485a1ffe4c615eabf99e2386d9a2936060ad99384956751c3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "41bb044fee19665485a1ffe4c615eabf99e2386d9a2936060ad99384956751c3" :a :task/title :v "CCE-FIX-RETEST: Dogfood retest after three surgical fixes" :op :assert}
+   {:e #blake3 "41bb044fee19665485a1ffe4c615eabf99e2386d9a2936060ad99384956751c3" :a :task/title-l0 :v "CCE-FIX-RETEST" :op :assert}
+   {:e #blake3 "41bb044fee19665485a1ffe4c615eabf99e2386d9a2936060ad99384956751c3" :a :task/title-l1 :v "CCE-FIX-RETEST: Dogfood retest after three surgical fixes" :op :assert}
+   {:e #blake3 "41bb044fee19665485a1ffe4c615eabf99e2386d9a2936060ad99384956751c3" :a :task/traces-to :v #blake3 "791ce65b20564279d064cb37745fcdd4b9e31f36804346447a413c2befbb9709" :op :assert}
+   {:e #blake3 "41bb044fee19665485a1ffe4c615eabf99e2386d9a2936060ad99384956751c3" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "41bb044fee19665485a1ffe4c615eabf99e2386d9a2936060ad99384956751c3" :a :task/type :v :task.type/task :op :assert}
+ ]}

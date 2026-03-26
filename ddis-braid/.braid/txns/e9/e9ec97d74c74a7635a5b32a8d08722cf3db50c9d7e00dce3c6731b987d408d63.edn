@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774483117/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CCE-FIX-1: Raise model2vec join_threshold from 0.20 to 0.50"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "382c881510beb5008a7828914bcbb0eba08ed872a8831429acdbb47ca9d63da3" :a :db/ident :v :task/t-95e79718 :op :assert}
+   {:e #blake3 "382c881510beb5008a7828914bcbb0eba08ed872a8831429acdbb47ca9d63da3" :a :task/created-at :v 1774483116 :op :assert}
+   {:e #blake3 "382c881510beb5008a7828914bcbb0eba08ed872a8831429acdbb47ca9d63da3" :a :task/description :v "CONTEXT: Model2vec join_threshold is 0.20 (embedding.rs:227). DOGFOOD-2 showed cosine similarity between observations and innate concepts ranges 0.34-0.74, all above 0.20. Every observation matches every concept.\n\nAPPROACH: Change the model2vec Embedder's join_threshold() return value from 0.20 to 0.50 at embedding.rs:228. Update the doc comment (line 225-226) from 'Model2vec cosine distribution is dense [0.15-0.40]' to 'Model2vec cosine between observations and concept descriptions ranges [0.30-0.75]. Threshold 0.50 provides ~50% selectivity — strong matches join, weak matches are uncategorized.'\n\nThe 0.50 threshold is the empirical midpoint of the 0.34-0.74 range observed in DOGFOOD-2. This means ~50% of concept similarities will be above threshold (strong match) and ~50% below (no match), achieving actual concept discrimination.\n\nACCEPTANCE: (A) Embedder.join_threshold() returns 0.50. (B) HashEmbedder trait default 0.65 unchanged. (C) All existing concept tests pass (they use store config override or HashEmbedder). (D) cargo test -p braid-kernel passes.\n\nFILE: crates/braid-kernel/src/embedding.rs (line 225-228)" :op :assert}
+   {:e #blake3 "382c881510beb5008a7828914bcbb0eba08ed872a8831429acdbb47ca9d63da3" :a :task/id :v "t-95e79718" :op :assert}
+   {:e #blake3 "382c881510beb5008a7828914bcbb0eba08ed872a8831429acdbb47ca9d63da3" :a :task/labels :v :label/S045-CCE-FIX :op :assert}
+   {:e #blake3 "382c881510beb5008a7828914bcbb0eba08ed872a8831429acdbb47ca9d63da3" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "382c881510beb5008a7828914bcbb0eba08ed872a8831429acdbb47ca9d63da3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "382c881510beb5008a7828914bcbb0eba08ed872a8831429acdbb47ca9d63da3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "382c881510beb5008a7828914bcbb0eba08ed872a8831429acdbb47ca9d63da3" :a :task/title :v "CCE-FIX-1: Raise model2vec join_threshold from 0.20 to 0.50" :op :assert}
+   {:e #blake3 "382c881510beb5008a7828914bcbb0eba08ed872a8831429acdbb47ca9d63da3" :a :task/title-l0 :v "CCE-FIX-1" :op :assert}
+   {:e #blake3 "382c881510beb5008a7828914bcbb0eba08ed872a8831429acdbb47ca9d63da3" :a :task/title-l1 :v "CCE-FIX-1: Raise model2vec join_threshold from 0.20 to 0.50" :op :assert}
+   {:e #blake3 "382c881510beb5008a7828914bcbb0eba08ed872a8831429acdbb47ca9d63da3" :a :task/traces-to :v #blake3 "bb68771c0f403c927260336945dceada87933be4981b2fe81d8ec63e5430a4dd" :op :assert}
+   {:e #blake3 "382c881510beb5008a7828914bcbb0eba08ed872a8831429acdbb47ca9d63da3" :a :task/type :v :task.type/bug :op :assert}
+ ]}
