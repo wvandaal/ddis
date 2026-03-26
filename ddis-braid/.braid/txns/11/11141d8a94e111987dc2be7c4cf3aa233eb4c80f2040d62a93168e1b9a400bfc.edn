@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774497385/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: INQ-CONVERGE: Three-session convergence test — prove braid learns across sessions"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :db/ident :v :task/t-7ec50e93 :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/created-at :v 1774497384 :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/description :v "CONTEXT: The definitive test of braid's core hypothesis: does the system learn across sessions?\n\nPROTOCOL:\nSession 1 (Agent 1 — cold start):\n- Fresh braid init on Go CLI (no concepts)\n- 10 observations exploring freely, no guidance\n- Harvest -> concepts crystallize\n- Record: packages covered, surprise per observation, concepts formed\n\nSession 2 (Agent 2 — seeded):\n- New agent. braid seed from Session 1's harvest\n- 10 observations, following emergent concept structure + frontier recs\n- Harvest -> concepts refine\n- Record: same metrics. Compare to Session 1.\n\nSession 3 (Agent 3 — twice-seeded):\n- New agent. braid seed from Session 2's harvest\n- 10 observations, following refined concepts + discrepancy steering\n- Record: same metrics. Compare to Sessions 1 and 2.\n\nCONVERGENCE METRICS:\n(A) Surprise trajectory: mean surprise per session should DECREASE (Agent 3 < Agent 2 < Agent 1 for familiar territory).\n(B) Coverage rate: unique packages observed / total observations should INCREASE (guidance directs to unexplored areas).\n(C) Silence ratio: fraction of observations with one-line confirms should INCREASE (model matches reality).\n(D) Qualitative: does Agent 3 report 'the seed helped me skip rediscovery'?\n\nSCORING:\n- Converging on all 4 metrics = PASS. Braid learns.\n- Flat = harvest/seed broken.\n- Diverging = system harmful.\n\nThe subagent prompts must be IDENTICAL across all 3 sessions except for the seed. This controls for agent variability.\n\nDEPENDS-ON: INQ-TEST (all tests must pass first).\n\nACCEPTANCE: (A) 3 sessions executed sequentially with harvest/seed between. (B) All 4 convergence metrics computed. (C) Results recorded as braid observations. (D) Verdict: converging/flat/diverging." :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/id :v "t-7ec50e93" :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/labels :v :label/INQUIRY-ENGINE :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/title :v "INQ-CONVERGE: Three-session convergence test — prove braid learns across sessions" :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/title-l0 :v "INQ-CONVERGE" :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/title-l1 :v "INQ-CONVERGE: Three-session convergence test — prove braid learns across se..." :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/traces-to :v #blake3 "34dd39f5f7431d4e07662778dde90ed594fca3bfa77af0a983e24029fa3a8ca3" :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/traces-to :v #blake3 "44b01037f650e23ce40cea6697d5ab1639fb17d9b54b418bf8ddf9fe26ee2057" :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/traces-to :v #blake3 "9e58bf66fbe9a770927c24f388c5a5363fb79dffb7e8b5ab329f96b1714c7b48" :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/traces-to :v #blake3 "fc36cfaec45b26060556261b430b5ee322374981b8189fc490a27467b1c51439" :op :assert}
+   {:e #blake3 "51b7173280e39fcf3e7ea14c035c024dc0ac1cdf8c0762e72d4c6fa2d3674fd1" :a :task/type :v :task.type/task :op :assert}
+ ]}

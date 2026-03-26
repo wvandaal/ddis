@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774497283/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC INQUIRY-ENGINE: From categorization to confrontation — emergent concepts + discrepancy steering + convergence test"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :db/ident :v :task/t-b18a3acd :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/created-at :v 1774497282 :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/description :v "THE SHIFT: Braid is an inquiry engine, not a categorization engine. The value is in knowledge CONFRONTATION — showing the agent where the system's model disagrees with their observation. Four deliverables: (1) Remove innate concepts — pure emergence, (2) Discrepancy-driven steering — articulate what the model expected vs what was found, (3) Graduated situational brief — scale verbosity with surprise, (4) Three-session convergence test — prove the system learns across sessions. ~100 lines of new code + deletion of innate seeding + 3-session dogfood." :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/id :v "t-b18a3acd" :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/labels :v :label/INQUIRY-ENGINE :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/title :v "EPIC INQUIRY-ENGINE: From categorization to confrontation — emergent concepts + discrepancy steering + convergence test" :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/title-l0 :v "EPIC INQUIRY-ENGINE" :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/title-l1 :v "EPIC INQUIRY-ENGINE: From categorization to confrontation — emergent concep..." :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/traces-to :v #blake3 "44b01037f650e23ce40cea6697d5ab1639fb17d9b54b418bf8ddf9fe26ee2057" :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/traces-to :v #blake3 "64fd07e990ba4c4d1808ca7acebaced935c9d0ee19a065c77ecf8a00d1763bd9" :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/traces-to :v #blake3 "791ce65b20564279d064cb37745fcdd4b9e31f36804346447a413c2befbb9709" :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/traces-to :v #blake3 "fc36cfaec45b26060556261b430b5ee322374981b8189fc490a27467b1c51439" :op :assert}
+   {:e #blake3 "1ea88e590cfea5a383881561c3808a083d83ce0538df75812510e698d6b8e45d" :a :task/type :v :task.type/epic :op :assert}
+ ]}

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774497322/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: INQ-1: Remove innate concept seeding from default init (pure emergent concepts)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :db/ident :v :task/t-96c7bb0d :op :assert}
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :task/created-at :v 1774497321 :op :assert}
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :task/description :v "CONTEXT: Innate concepts (components, dependencies, invariants, patterns, anomalies) are a priori ontology that collapses under model2vec embeddings. 4 dogfood runs proved this: all concepts converge to jaccard 0.90-1.00 regardless of threshold.\n\nAPPROACH: In crates/braid/src/commands/init.rs, find the block that calls innate_concept_datoms_typed (~line 295). Make it CONDITIONAL on a policy flag. The default policy has no innate concepts. Steps:\n\n1. In init.rs, wrap the innate concept block in: if braid_kernel::config::get_config(store, 'policy.innate-concepts') != Some('false') — WAIT, wrong direction. The DEFAULT should be OFF. So: only seed innate concepts if get_config returns Some('true') for 'policy.innate-concepts'. Since a fresh store has no config, this means no innate concepts by default.\n\n2. Keep the INNATE_CONCEPTS constant and innate_concept_datoms functions — they're available for policy manifests that want them. Just don't call them during default init.\n\n3. Update the init output from 'schemas: components | dependencies | ...' to 'concepts: emergent (crystallize after 3+ observations)'.\n\n4. The cold-start UX: when braid status runs on a store with 0 concepts, show: 'concepts: none yet (emerge from observations after harvest)' instead of listing 5 empty innate concepts.\n\nACCEPTANCE: (A) braid init on fresh store creates 0 concepts. (B) braid status shows 'concepts: none yet'. (C) After 3+ observations + harvest, concepts crystallize from observation clusters. (D) INNATE_CONCEPTS constant still exists (for opt-in policy). (E) All existing tests pass (they create concepts explicitly, not via init). (F) braid init --with-innate-concepts (or config flag) still seeds them for backward compat.\n\nFILE: crates/braid/src/commands/init.rs + crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :task/id :v "t-96c7bb0d" :op :assert}
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :task/labels :v :label/INQUIRY-ENGINE :op :assert}
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :task/title :v "INQ-1: Remove innate concept seeding from default init (pure emergent concepts)" :op :assert}
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :task/title-l0 :v "INQ-1" :op :assert}
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :task/title-l1 :v "INQ-1: Remove innate concept seeding from default init (pure emergent concepts)" :op :assert}
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :task/traces-to :v #blake3 "2c76d75fd8b371d9bc9603abfc40d6ac0049a8d75bb643ed7ca4334f41c23e45" :op :assert}
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :task/traces-to :v #blake3 "64fd07e990ba4c4d1808ca7acebaced935c9d0ee19a065c77ecf8a00d1763bd9" :op :assert}
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :task/traces-to :v #blake3 "fc36cfaec45b26060556261b430b5ee322374981b8189fc490a27467b1c51439" :op :assert}
+   {:e #blake3 "cecc8a3e072f5d79e6540293e39ebaaa965b9d40d9559e475ebf31545e907f0a" :a :task/type :v :task.type/task :op :assert}
+ ]}

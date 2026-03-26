@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774497364/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: INQ-TEST: Tests for inquiry engine (6 unit + E2E script)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :db/ident :v :task/t-f17ddc45 :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/created-at :v 1774497363 :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/description :v "CONTEXT: Tests for INQ-1 (emergent concepts), INQ-2 (discrepancy steering), INQ-3 (graduated brief).\n\nUNIT TESTS (6):\n\n1. test_init_no_innate_concepts: Fresh store has 0 concept entities.\n2. test_crystallize_from_observations: 5 similar observations + crystallize -> at least 1 emergent concept with a domain-specific name (not 'components'/'patterns'/etc).\n3. test_compute_discrepancy_brief_novel_keywords: Observation about 'events streaming pipeline' in a concept dominated by 'storage tables schema' -> brief contains 'events' or 'streaming' in novel set.\n4. test_compute_discrepancy_brief_confirming: Low-surprise observation -> returns None (no brief for confirmations).\n5. test_situational_brief_graduated: Low surprise -> contains checkmark. High surprise -> contains 'NEW TERRITORY'. Topo event -> contains 'TOPOLOGY SHIFT'.\n6. test_find_nearest_observation: Store with 5 observations -> nearest to a query vector returns the correct one.\n\nE2E: scripts/e2e_inquiry_engine.sh:\n- Fresh init (no innate concepts)\n- 5 observations -> verify 'uncategorized' or emergent concept, NOT innate names\n- Harvest -> verify concepts crystallized\n- 5 more observations -> verify steering references emergent concept names and shows discrepancy keywords\n- One deliberately off-topic observation -> verify high surprise + 'NEW TERRITORY'\n\nDEPENDS-ON: INQ-1, INQ-2, INQ-3." :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/id :v "t-f17ddc45" :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/labels :v :label/INQUIRY-ENGINE :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/title :v "INQ-TEST: Tests for inquiry engine (6 unit + E2E script)" :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/title-l0 :v "INQ-TEST" :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/title-l1 :v "INQ-TEST: Tests for inquiry engine (6 unit + E2E script)" :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/traces-to :v #blake3 "44b01037f650e23ce40cea6697d5ab1639fb17d9b54b418bf8ddf9fe26ee2057" :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/traces-to :v #blake3 "bb68771c0f403c927260336945dceada87933be4981b2fe81d8ec63e5430a4dd" :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "c918533b4fa9adfc628a4e66623c366922888e0ca09a2c6aa1168aba35f82d83" :a :task/type :v :task.type/task :op :assert}
+ ]}
