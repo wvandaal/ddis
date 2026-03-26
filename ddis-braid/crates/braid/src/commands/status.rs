@@ -1613,70 +1613,43 @@ fn run_deep(
 ) -> Result<String, BraidError> {
     let layout = DiskLayout::open(path)?;
 
-    // L3-BILATERAL: Check cache before expensive computation.
+    // L3-BILATERAL + L3-SPECTRAL (INV-PERF-001): Cache bilateral cycle result
+    // (including spectral certificate) per txn_fingerprint. Both bilateral and
+    // spectral results are pure functions of store state — deterministic and cacheable.
+    // Two cache files: bilateral.json (without spectral) and spectral.json (with spectral).
     let hashes = layout.list_tx_hashes().unwrap_or_default();
     let fingerprint = layout.txn_fingerprint(&hashes);
     let cache_dir = path.join(".cache");
-    let bilateral_cache_path = cache_dir.join("bilateral.json");
-
-    let state = if let Ok(cached_bytes) = std::fs::read(&bilateral_cache_path) {
-        if let Ok(cached) = serde_json::from_slice::<serde_json::Value>(&cached_bytes) {
-            if cached.get("fingerprint").and_then(|v| v.as_str()) == Some(&fingerprint)
-                && !spectral  // spectral results not cached yet
-            {
-                // Cache hit: deserialize the bilateral state
-                if let Ok(state) = serde_json::from_value::<BilateralState>(
-                    cached.get("state").cloned().unwrap_or_default(),
-                ) {
-                    state
-                } else {
-                    // Cache corrupt, recompute
-                    let history = load_trajectory(store);
-                    run_cycle(store, &history, spectral)
-                }
-            } else {
-                // Cache stale or spectral requested, recompute
-                let history = load_trajectory(store);
-                let state = run_cycle(store, &history, spectral);
-                // Write cache (best-effort)
-                if !spectral {
-                    let cache_val = serde_json::json!({
-                        "fingerprint": fingerprint,
-                        "state": state,
-                    });
-                    let _ = std::fs::create_dir_all(&cache_dir);
-                    let _ = std::fs::write(&bilateral_cache_path,
-                        serde_json::to_string(&cache_val).unwrap_or_default());
-                }
-                state
-            }
-        } else {
-            let history = load_trajectory(store);
-            let state = run_cycle(store, &history, spectral);
-            if !spectral {
-                let cache_val = serde_json::json!({
-                    "fingerprint": fingerprint,
-                    "state": state,
-                });
-                let _ = std::fs::create_dir_all(&cache_dir);
-                let _ = std::fs::write(&bilateral_cache_path,
-                    serde_json::to_string(&cache_val).unwrap_or_default());
-            }
-            state
-        }
+    let cache_path = if spectral {
+        cache_dir.join("spectral.json")
     } else {
-        // No cache exists, compute and cache
+        cache_dir.join("bilateral.json")
+    };
+
+    let state = 'cache: {
+        // Try to read from cache
+        if let Ok(cached_bytes) = std::fs::read(&cache_path) {
+            if let Ok(cached) = serde_json::from_slice::<serde_json::Value>(&cached_bytes) {
+                if cached.get("fingerprint").and_then(|v| v.as_str()) == Some(&fingerprint) {
+                    if let Ok(state) = serde_json::from_value::<BilateralState>(
+                        cached.get("state").cloned().unwrap_or_default(),
+                    ) {
+                        break 'cache state;
+                    }
+                }
+            }
+        }
+
+        // Cache miss: compute and cache
         let history = load_trajectory(store);
         let state = run_cycle(store, &history, spectral);
-        if !spectral {
-            let cache_val = serde_json::json!({
-                "fingerprint": fingerprint,
-                "state": state,
-            });
-            let _ = std::fs::create_dir_all(&cache_dir);
-            let _ = std::fs::write(&bilateral_cache_path,
-                serde_json::to_string(&cache_val).unwrap_or_default());
-        }
+        let cache_val = serde_json::json!({
+            "fingerprint": fingerprint,
+            "state": state,
+        });
+        let _ = std::fs::create_dir_all(&cache_dir);
+        let _ = std::fs::write(&cache_path,
+            serde_json::to_string(&cache_val).unwrap_or_default());
         state
     };
 
