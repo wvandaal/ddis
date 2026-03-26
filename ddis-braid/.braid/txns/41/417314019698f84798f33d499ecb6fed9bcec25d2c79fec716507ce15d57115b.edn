@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774483494/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-86cb4d01"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "46daeec3c0657630db76cd47c694c31861a70f662dea45a12c9e4c65b50a5e75" :a :task/close-reason :v "REVISED: frontier_recommendation IS called unconditionally (line 813). It returns None because (a) no :pkg/* entities exist (Explore dead in production), (b) innate concepts have 0 members/variance (Deepen needs member_count>=3), (c) all concepts have same members (Bridge needs disjoint sets). The real fix is CCE-FIX-1 (threshold) which prevents concept collapse, enabling Deepen and Bridge to fire. Replacing with lighter CCE-FIX-2-REV that adds Narrow as diagnostic safety net only." :op :assert}
+   {:e #blake3 "46daeec3c0657630db76cd47c694c31861a70f662dea45a12c9e4c65b50a5e75" :a :task/closed-at :v 1774483493 :op :assert}
+   {:e #blake3 "46daeec3c0657630db76cd47c694c31861a70f662dea45a12c9e4c65b50a5e75" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "46daeec3c0657630db76cd47c694c31861a70f662dea45a12c9e4c65b50a5e75" :a :task/status :v :task.status/closed :op :assert}
+ ]}
