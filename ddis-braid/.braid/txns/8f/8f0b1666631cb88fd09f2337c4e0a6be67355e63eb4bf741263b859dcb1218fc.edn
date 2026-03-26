@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774569316/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 047 comprehensive results at 145K datoms. status: 6.1s->4.7s (warm). --deep: HANGS->3.9s (first)/1.7s (cached). --spectral: HANGS->cached-after-first-computation (O(n3) takes minutes but only computed ONCE per store state change). observe: PANIC->4.6s. cache: 110MB->5.1MB. Critical bug fixed: stale cache overwrite race condition. INV-STORE-022 defensive flush guard + single-writer enforcement. Bilateral and spectral results cached per txn_fingerprint. live_projections O(N)->O(1) via MaterializedViews ISP. All 1646 kernel tests pass."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6c3630de63116faa255e0ba07596421a4af62ac0bfb4285fff2d2dc9060d7d29" :a :db/doc :v "Session 047 comprehensive results at 145K datoms. status: 6.1s->4.7s (warm). --deep: HANGS->3.9s (first)/1.7s (cached). --spectral: HANGS->cached-after-first-computation (O(n3) takes minutes but only computed ONCE per store state change). observe: PANIC->4.6s. cache: 110MB->5.1MB. Critical bug fixed: stale cache overwrite race condition. INV-STORE-022 defensive flush guard + single-writer enforcement. Bilateral and spectral results cached per txn_fingerprint. live_projections O(N)->O(1) via MaterializedViews ISP. All 1646 kernel tests pass." :op :assert}
+   {:e #blake3 "6c3630de63116faa255e0ba07596421a4af62ac0bfb4285fff2d2dc9060d7d29" :a :db/ident :v :observation/session-047-comprehensive-results-at-145k-datoms-status-6 :op :assert}
+   {:e #blake3 "6c3630de63116faa255e0ba07596421a4af62ac0bfb4285fff2d2dc9060d7d29" :a :exploration/body :v "Session 047 comprehensive results at 145K datoms. status: 6.1s->4.7s (warm). --deep: HANGS->3.9s (first)/1.7s (cached). --spectral: HANGS->cached-after-first-computation (O(n3) takes minutes but only computed ONCE per store state change). observe: PANIC->4.6s. cache: 110MB->5.1MB. Critical bug fixed: stale cache overwrite race condition. INV-STORE-022 defensive flush guard + single-writer enforcement. Bilateral and spectral results cached per txn_fingerprint. live_projections O(N)->O(1) via MaterializedViews ISP. All 1646 kernel tests pass." :op :assert}
+   {:e #blake3 "6c3630de63116faa255e0ba07596421a4af62ac0bfb4285fff2d2dc9060d7d29" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "6c3630de63116faa255e0ba07596421a4af62ac0bfb4285fff2d2dc9060d7d29" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "6c3630de63116faa255e0ba07596421a4af62ac0bfb4285fff2d2dc9060d7d29" :a :exploration/content-hash :v #bytes "141dd0dc9afc55cbd1c53c98d54dede0464116763ba3de6976242a55cdadcd30" :op :assert}
+   {:e #blake3 "6c3630de63116faa255e0ba07596421a4af62ac0bfb4285fff2d2dc9060d7d29" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "6c3630de63116faa255e0ba07596421a4af62ac0bfb4285fff2d2dc9060d7d29" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "6c3630de63116faa255e0ba07596421a4af62ac0bfb4285fff2d2dc9060d7d29" :a :exploration/source-session :v #blake3 "c25ca94fd7c99610336d030e1b635ccdf965646f20377db3d0470bff262a0271" :op :assert}
+ ]}
