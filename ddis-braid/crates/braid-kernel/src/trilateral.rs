@@ -462,10 +462,36 @@ pub fn check_coherence(store: &Store) -> CoherenceReport {
 /// Use this when latency matters more than entropy metrics (e.g., budget mode,
 /// guidance, seed briefings).
 pub fn check_coherence_fast(store: &Store) -> CoherenceReport {
-    let (phi, components) = compute_phi_default(store);
-    let beta_1 = compute_beta_1(store);
-    let (live_i, live_s, live_p) = live_projections(store);
+    // UA-1: Read ISP entity sets from MaterializedViews instead of scanning.
+    let views = store.views();
+    let intent_entities = &views.isp_intent_entities;
+    let spec_entities = &views.isp_spec_entities;
+    let impl_entities = &views.isp_impl_entities;
 
+    // Compute Phi from materialized ISP entity sets (was: 2 x O(N) scans via live_projections)
+    let d_is = intent_entities
+        .iter()
+        .filter(|e| !spec_entities.contains(e))
+        .count();
+    let d_sp = spec_entities
+        .iter()
+        .filter(|e| !impl_entities.contains(e))
+        .count();
+    let n = intent_entities.len() + spec_entities.len() + impl_entities.len();
+    let n_max = n.max(1) as f64;
+    let w_is = 0.4;
+    let w_sp = 0.6;
+    let phi = (w_is * d_is as f64 + w_sp * d_sp as f64) / n_max;
+    let components = DivergenceComponents {
+        d_is,
+        d_sp,
+    };
+
+    // Beta_1: still O(N) — requires graph structure.
+    // TODO(UA-1 future): maintain adjacency incrementally for O(1) beta_1.
+    let beta_1 = compute_beta_1(store);
+
+    // ISP bypasses: O(entities) via indexed lookups (not O(N) datom scan)
     let all_entities: Vec<EntityId> = store.entities().into_iter().collect();
     let isp_bypasses = all_entities
         .iter()
@@ -485,9 +511,9 @@ pub fn check_coherence_fast(store: &Store) -> CoherenceReport {
         components,
         beta_1,
         quadrant,
-        live_intent: live_i.datom_count,
-        live_spec: live_s.datom_count,
-        live_impl: live_p.datom_count,
+        live_intent: views.isp_intent_datom_count,
+        live_spec: views.isp_spec_datom_count,
+        live_impl: views.isp_impl_datom_count,
         isp_bypasses,
         entropy: CoherenceEntropy {
             entropy: 0.0,

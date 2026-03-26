@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774552007/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f02f15bb"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dcfc4f2a9f7b4fc7475455528ffed70b3010ad69ce177a194c7bfef19ea608f5" :a :task/close-reason :v "Partial: ISP entity sets, task index, telemetry counters, ref graph stats added to MaterializedViews. check_coherence_fast wired. Remaining consumer wiring deferred to rebuilt task tree." :op :assert}
+   {:e #blake3 "dcfc4f2a9f7b4fc7475455528ffed70b3010ad69ce177a194c7bfef19ea608f5" :a :task/closed-at :v 1774552006 :op :assert}
+   {:e #blake3 "dcfc4f2a9f7b4fc7475455528ffed70b3010ad69ce177a194c7bfef19ea608f5" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "dcfc4f2a9f7b4fc7475455528ffed70b3010ad69ce177a194c7bfef19ea608f5" :a :task/status :v :task.status/closed :op :assert}
+ ]}

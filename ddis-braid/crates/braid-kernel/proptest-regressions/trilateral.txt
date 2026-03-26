@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc dc05b9d37a1a81fd9c14315a0237a0731ce0bd4390c71c8264adccfa97410425 # shrinks to store = Store { datom_count: 286, frontier: Frontier { inner: {AgentId([75, 171, 77, 141, 195, 62, 50, 25, 216, 231, 124, 201, 78, 6, 20, 238]): TxId { wall_time: 0, logical: 0, agent: AgentId([75, 171, 77, 141, 195, 62, 50, 25, 216, 231, 124, 201, 78, 6, 20, 238]) }, AgentId([174, 130, 10, 181, 232, 119, 44, 65, 89, 51, 246, 219, 10, 46, 47, 102]): TxId { wall_time: 1, logical: 0, agent: AgentId([174, 130, 10, 181, 232, 119, 44, 65, 89, 51, 246, 219, 10, 46, 47, 102]) }} } }
