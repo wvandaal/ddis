@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774565876/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-cb855c27"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/close-reason :v "Implemented: Store::from_primary() + clock() accessor. 1646 kernel tests pass." :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/closed-at :v 1774565875 :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "11ed3066e8c5dd7f1bd5aa00a1992888b7b5ee59132439e3b723291669a033f5" :a :task/status :v :task.status/closed :op :assert}
+ ]}

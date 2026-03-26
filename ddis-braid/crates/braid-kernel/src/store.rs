@@ -1273,6 +1273,76 @@ impl Store {
         }
     }
 
+    /// Reconstruct a Store from its primary state, rebuilding derived indexes.
+    ///
+    /// INV-CACHE-001 (Primary Sufficiency): `from_primary(primary(S)) = S` for all valid S.
+    /// INV-CACHE-004 (Rebuild Isomorphism): The index-building loop is identical to
+    /// `from_datoms()` except schema and views are passed in (not rebuilt).
+    ///
+    /// Cost: O(N log N) where N = |datoms| — single pass over datoms rebuilding
+    /// entity_index, attribute_index, vaet_index, avet_index, and live_view.
+    pub fn from_primary(
+        datoms: BTreeSet<Datom>,
+        frontier: Frontier,
+        schema: Schema,
+        clock: TxId,
+        views: MaterializedViews,
+    ) -> Self {
+        let mut entity_index: BTreeMap<EntityId, Vec<Datom>> = BTreeMap::new();
+        let mut attribute_index: BTreeMap<Attribute, Vec<Datom>> = BTreeMap::new();
+        let mut vaet_index: BTreeMap<EntityId, Vec<Datom>> = BTreeMap::new();
+        let mut avet_index: BTreeMap<(Attribute, Value), Vec<Datom>> = BTreeMap::new();
+        let mut live_view: BTreeMap<(EntityId, Attribute), (Value, TxId)> = BTreeMap::new();
+
+        for d in &datoms {
+            entity_index.entry(d.entity).or_default().push(d.clone());
+            attribute_index
+                .entry(d.attribute.clone())
+                .or_default()
+                .push(d.clone());
+            if let Value::Ref(target) = &d.value {
+                vaet_index.entry(*target).or_default().push(d.clone());
+            }
+            if d.op == Op::Assert {
+                avet_index
+                    .entry((d.attribute.clone(), d.value.clone()))
+                    .or_default()
+                    .push(d.clone());
+                let key = (d.entity, d.attribute.clone());
+                live_view
+                    .entry(key)
+                    .and_modify(|(v, tx)| {
+                        if d.tx > *tx {
+                            *v = d.value.clone();
+                            *tx = d.tx;
+                        }
+                    })
+                    .or_insert((d.value.clone(), d.tx));
+            }
+            if d.op == Op::Retract {
+                let key = (d.entity, d.attribute.clone());
+                if let Some((existing_val, existing_tx)) = live_view.get(&key) {
+                    if *existing_val == d.value && d.tx >= *existing_tx {
+                        live_view.remove(&key);
+                    }
+                }
+            }
+        }
+
+        Store {
+            datoms,
+            frontier,
+            schema,
+            clock,
+            entity_index,
+            attribute_index,
+            vaet_index,
+            avet_index,
+            live_view,
+            views,
+        }
+    }
+
     /// Incrementally apply raw datoms without schema validation.
     ///
     /// ADR-STORE-011: This is the incremental analog of [`from_datoms`].
@@ -1650,6 +1720,11 @@ impl Store {
     /// The schema derived from store datoms.
     pub fn schema(&self) -> &Schema {
         &self.schema
+    }
+
+    /// The current clock state (max TxId seen).
+    pub fn clock(&self) -> TxId {
+        self.clock
     }
 
     /// Access the materialized views (CE-1).

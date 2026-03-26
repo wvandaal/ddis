@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774568160/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 047 SLIM-3 + L3-BILATERAL results: cache 110MB->5.1MB (21.5x), --deep HANGS->3.8s (first)/1.6s (cached), status 6.1s->4.8s. --spectral still O(n3) at 120s+. Index rebuild adds ~1s vs direct deserialize. live_projections optimized to use MaterializedViews ISP. Remaining: status target <1s needs faster index rebuild or daemon. Spectral needs incremental computation."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4f1a29b4d6c50cadbd8a116b3b0432e729f77c907cef88863ec2815051a6e59e" :a :db/doc :v "Session 047 SLIM-3 + L3-BILATERAL results: cache 110MB->5.1MB (21.5x), --deep HANGS->3.8s (first)/1.6s (cached), status 6.1s->4.8s. --spectral still O(n3) at 120s+. Index rebuild adds ~1s vs direct deserialize. live_projections optimized to use MaterializedViews ISP. Remaining: status target <1s needs faster index rebuild or daemon. Spectral needs incremental computation." :op :assert}
+   {:e #blake3 "4f1a29b4d6c50cadbd8a116b3b0432e729f77c907cef88863ec2815051a6e59e" :a :db/ident :v :observation/session-047-slim-3-l3-bilateral-results-cache-110mb-51m :op :assert}
+   {:e #blake3 "4f1a29b4d6c50cadbd8a116b3b0432e729f77c907cef88863ec2815051a6e59e" :a :exploration/body :v "Session 047 SLIM-3 + L3-BILATERAL results: cache 110MB->5.1MB (21.5x), --deep HANGS->3.8s (first)/1.6s (cached), status 6.1s->4.8s. --spectral still O(n3) at 120s+. Index rebuild adds ~1s vs direct deserialize. live_projections optimized to use MaterializedViews ISP. Remaining: status target <1s needs faster index rebuild or daemon. Spectral needs incremental computation." :op :assert}
+   {:e #blake3 "4f1a29b4d6c50cadbd8a116b3b0432e729f77c907cef88863ec2815051a6e59e" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "4f1a29b4d6c50cadbd8a116b3b0432e729f77c907cef88863ec2815051a6e59e" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "4f1a29b4d6c50cadbd8a116b3b0432e729f77c907cef88863ec2815051a6e59e" :a :exploration/content-hash :v #bytes "bb4aa5e99b3f54549f04596ce5f477c9c4deaf79d2ffcd73047cfe9d80c1c1fa" :op :assert}
+   {:e #blake3 "4f1a29b4d6c50cadbd8a116b3b0432e729f77c907cef88863ec2815051a6e59e" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "4f1a29b4d6c50cadbd8a116b3b0432e729f77c907cef88863ec2815051a6e59e" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "4f1a29b4d6c50cadbd8a116b3b0432e729f77c907cef88863ec2815051a6e59e" :a :exploration/source-session :v #blake3 "c25ca94fd7c99610336d030e1b635ccdf965646f20377db3d0470bff262a0271" :op :assert}
+ ]}

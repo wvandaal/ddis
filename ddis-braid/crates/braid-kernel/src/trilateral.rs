@@ -124,46 +124,22 @@ pub struct LiveView {
 /// Each projection filters datoms by attribute namespace.
 /// Projections are monotone: adding datoms to the store can only grow a projection.
 pub fn live_projections(store: &Store) -> (LiveView, LiveView, LiveView) {
-    let mut intent_set = BTreeSet::new();
-    let mut spec_set = BTreeSet::new();
-    let mut impl_set = BTreeSet::new();
-    let mut intent_count = 0usize;
-    let mut spec_count = 0usize;
-    let mut impl_count = 0usize;
-
-    for datom in store.datoms() {
-        if datom.op != Op::Assert {
-            continue;
-        }
-        match classify_attribute(&datom.attribute) {
-            AttrNamespace::Intent => {
-                intent_count += 1;
-                intent_set.insert(datom.entity);
-            }
-            AttrNamespace::Spec => {
-                spec_count += 1;
-                spec_set.insert(datom.entity);
-            }
-            AttrNamespace::Impl => {
-                impl_count += 1;
-                impl_set.insert(datom.entity);
-            }
-            AttrNamespace::Meta => {} // Cross-cutting, not projected
-        }
-    }
+    // L2-FITNESS (INV-PERF-001): Use MaterializedViews ISP accumulators instead of
+    // full O(N) datom scan. Views already track ISP entity sets incrementally.
+    let views = store.views();
 
     (
         LiveView {
-            entities: intent_set.into_iter().collect(),
-            datom_count: intent_count,
+            entities: views.isp_intent_entities.iter().copied().collect(),
+            datom_count: views.isp_intent_datom_count,
         },
         LiveView {
-            entities: spec_set.into_iter().collect(),
-            datom_count: spec_count,
+            entities: views.isp_spec_entities.iter().copied().collect(),
+            datom_count: views.isp_spec_datom_count,
         },
         LiveView {
-            entities: impl_set.into_iter().collect(),
-            datom_count: impl_count,
+            entities: views.isp_impl_entities.iter().copied().collect(),
+            datom_count: views.isp_impl_datom_count,
         },
     )
 }

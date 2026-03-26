@@ -16,6 +16,7 @@ use std::path::Path;
 use braid_kernel::bilateral::{
     cycle_to_datoms, format_terse as bilateral_format_terse,
     format_verbose as bilateral_format_verbose, load_trajectory, observation_boundary, run_cycle,
+    BilateralState,
 };
 use braid_kernel::datom::{AgentId, Attribute, Op, ProvenanceType, Value};
 use braid_kernel::guidance::{
@@ -1597,6 +1598,11 @@ fn build_verbose(
 }
 
 /// Deep mode: bilateral F(S) + graph analytics + convergence.
+///
+/// L3-BILATERAL (INV-PERF-001): Caches bilateral cycle result per txn_fingerprint.
+/// The bilateral result is a pure function of the store state — deterministic and
+/// cacheable. First run computes and caches. Subsequent runs with same store state
+/// read from cache (0ms vs ~30s).
 fn run_deep(
     path: &Path,
     store: &braid_kernel::Store,
@@ -1607,9 +1613,72 @@ fn run_deep(
 ) -> Result<String, BraidError> {
     let layout = DiskLayout::open(path)?;
 
-    // Bilateral cycle
-    let history = load_trajectory(store);
-    let state = run_cycle(store, &history, spectral);
+    // L3-BILATERAL: Check cache before expensive computation.
+    let hashes = layout.list_tx_hashes().unwrap_or_default();
+    let fingerprint = layout.txn_fingerprint(&hashes);
+    let cache_dir = path.join(".cache");
+    let bilateral_cache_path = cache_dir.join("bilateral.json");
+
+    let state = if let Ok(cached_bytes) = std::fs::read(&bilateral_cache_path) {
+        if let Ok(cached) = serde_json::from_slice::<serde_json::Value>(&cached_bytes) {
+            if cached.get("fingerprint").and_then(|v| v.as_str()) == Some(&fingerprint)
+                && !spectral  // spectral results not cached yet
+            {
+                // Cache hit: deserialize the bilateral state
+                if let Ok(state) = serde_json::from_value::<BilateralState>(
+                    cached.get("state").cloned().unwrap_or_default(),
+                ) {
+                    state
+                } else {
+                    // Cache corrupt, recompute
+                    let history = load_trajectory(store);
+                    run_cycle(store, &history, spectral)
+                }
+            } else {
+                // Cache stale or spectral requested, recompute
+                let history = load_trajectory(store);
+                let state = run_cycle(store, &history, spectral);
+                // Write cache (best-effort)
+                if !spectral {
+                    let cache_val = serde_json::json!({
+                        "fingerprint": fingerprint,
+                        "state": state,
+                    });
+                    let _ = std::fs::create_dir_all(&cache_dir);
+                    let _ = std::fs::write(&bilateral_cache_path,
+                        serde_json::to_string(&cache_val).unwrap_or_default());
+                }
+                state
+            }
+        } else {
+            let history = load_trajectory(store);
+            let state = run_cycle(store, &history, spectral);
+            if !spectral {
+                let cache_val = serde_json::json!({
+                    "fingerprint": fingerprint,
+                    "state": state,
+                });
+                let _ = std::fs::create_dir_all(&cache_dir);
+                let _ = std::fs::write(&bilateral_cache_path,
+                    serde_json::to_string(&cache_val).unwrap_or_default());
+            }
+            state
+        }
+    } else {
+        // No cache exists, compute and cache
+        let history = load_trajectory(store);
+        let state = run_cycle(store, &history, spectral);
+        if !spectral {
+            let cache_val = serde_json::json!({
+                "fingerprint": fingerprint,
+                "state": state,
+            });
+            let _ = std::fs::create_dir_all(&cache_dir);
+            let _ = std::fs::write(&bilateral_cache_path,
+                serde_json::to_string(&cache_val).unwrap_or_default());
+        }
+        state
+    };
 
     let mut out = if full {
         bilateral_format_verbose(&state)

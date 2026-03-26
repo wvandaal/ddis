@@ -13,6 +13,7 @@
 
 use std::collections::BTreeSet;
 use std::fs;
+use std::io::Read as IoRead;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
@@ -48,6 +49,19 @@ struct CacheMeta {
     /// When present, enables incremental loading: only new transactions are parsed.
     #[serde(default)]
     tx_hashes: Vec<String>,
+}
+
+/// Slim cache format: primary state only (INV-CACHE-001, ADR-CACHE-001).
+///
+/// Indexes are derived via Store::from_primary() on load.
+/// Compressed with zstd (INV-CACHE-003).
+#[derive(serde::Serialize, serde::Deserialize)]
+struct SlimCache {
+    datoms: std::collections::BTreeSet<braid_kernel::datom::Datom>,
+    frontier: braid_kernel::Frontier,
+    schema: braid_kernel::schema::Schema,
+    clock: braid_kernel::datom::TxId,
+    views: braid_kernel::store::MaterializedViews,
 }
 
 /// On-disk layout handle.
@@ -445,7 +459,7 @@ impl DiskLayout {
     /// The fingerprint is the BLAKE3 hash of the sorted, newline-joined tx hashes.
     /// Any change to the set of transaction files (add, remove, rename) changes
     /// the fingerprint and invalidates the cache.
-    fn txn_fingerprint(&self, hashes: &[String]) -> String {
+    pub fn txn_fingerprint(&self, hashes: &[String]) -> String {
         let joined = hashes.join("\n");
         ContentHash::of(joined.as_bytes()).to_hex()
     }
@@ -504,6 +518,162 @@ impl DiskLayout {
         }
 
         Ok(())
+    }
+
+    /// Write slim cache: primary state only, zstd compressed (ADR-CACHE-001).
+    ///
+    /// Serializes only (datoms, frontier, schema, clock, views) — no indexes.
+    /// Compressed with zstd level 3. ~6x smaller than full index cache.
+    /// Indexes rebuilt on load via Store::from_primary() (INV-CACHE-001).
+    pub fn write_slim_cache(&self, store: &braid_kernel::Store) -> Result<(), BraidError> {
+        let cache_dir = self.cache_dir();
+        fs::create_dir_all(&cache_dir)?;
+
+        let datom_count = store.len();
+
+        let slim = SlimCache {
+            datoms: store.datom_set().clone(),
+            frontier: store.frontier().clone(),
+            schema: store.schema().clone(),
+            clock: store.clock(),
+            views: store.views().clone(),
+        };
+
+        let encoded = bincode::serialize(&slim)
+            .map_err(|e| BraidError::Parse(format!("bincode serialize slim: {e}")))?;
+
+        let compressed = zstd::encode_all(std::io::Cursor::new(&encoded), 3)
+            .map_err(|e| BraidError::Io(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("zstd compress: {e}"),
+            )))?;
+
+        // Atomic write: tmp + rename
+        let store_bin_path = cache_dir.join("store.bin");
+        let store_tmp_path = cache_dir.join("store.bin.tmp");
+        fs::write(&store_tmp_path, &compressed)?;
+        fs::rename(&store_tmp_path, &store_bin_path)?;
+
+        // Write meta.json (unchanged format)
+        let hashes = self.list_tx_hashes()?;
+        let fingerprint = self.txn_fingerprint(&hashes);
+        let now = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
+        let meta = CacheMeta {
+            txn_fingerprint: fingerprint,
+            datom_count,
+            created_at: now,
+            tx_hashes: hashes,
+        };
+        let meta_json =
+            serde_json::to_string_pretty(&meta).map_err(|e| BraidError::Parse(e.to_string()))?;
+        let meta_path = cache_dir.join("meta.json");
+        let meta_tmp = cache_dir.join("meta.json.tmp");
+        fs::write(&meta_tmp, meta_json)?;
+        fs::rename(&meta_tmp, &meta_path)?;
+
+        // Clean up legacy datoms.bin if present
+        let legacy_path = cache_dir.join("datoms.bin");
+        if legacy_path.exists() {
+            let _ = fs::remove_file(&legacy_path);
+        }
+
+        Ok(())
+    }
+
+    /// Read slim cache: decompress + deserialize primary, rebuild indexes.
+    ///
+    /// Backward compatible: detects old format (raw bincode of full Store)
+    /// vs new format (zstd-compressed SlimCache) via magic number check.
+    /// Zstd magic number: 0xFD2FB528 (little-endian: bytes [0x28, 0xB5, 0x2F, 0xFD]).
+    fn read_slim_cache(&self, current_fingerprint: &str) -> Option<braid_kernel::Store> {
+        let cache_dir = self.cache_dir();
+
+        let meta_bytes = fs::read(cache_dir.join("meta.json")).ok()?;
+        let meta: CacheMeta = serde_json::from_slice(&meta_bytes).ok()?;
+
+        if meta.txn_fingerprint != current_fingerprint {
+            return None;
+        }
+
+        let bin_bytes = fs::read(cache_dir.join("store.bin")).ok()?;
+
+        // Detect format: zstd magic number = [0x28, 0xB5, 0x2F, 0xFD]
+        let is_zstd = bin_bytes.len() >= 4
+            && bin_bytes[0] == 0x28
+            && bin_bytes[1] == 0xB5
+            && bin_bytes[2] == 0x2F
+            && bin_bytes[3] == 0xFD;
+
+        if is_zstd {
+            // New slim format: decompress + deserialize SlimCache + rebuild indexes
+            let mut decoder = zstd::Decoder::new(std::io::Cursor::new(&bin_bytes)).ok()?;
+            let mut decoded = Vec::new();
+            decoder.read_to_end(&mut decoded).ok()?;
+            let slim: SlimCache = bincode::deserialize(&decoded).ok()?;
+
+            if slim.datoms.len() != meta.datom_count {
+                return None; // Corrupt
+            }
+
+            Some(braid_kernel::Store::from_primary(
+                slim.datoms,
+                slim.frontier,
+                slim.schema,
+                slim.clock,
+                slim.views,
+            ))
+        } else {
+            // Legacy format: raw bincode of full Store
+            let store: braid_kernel::Store = bincode::deserialize(&bin_bytes).ok()?;
+            if store.len() != meta.datom_count {
+                return None;
+            }
+            Some(store)
+        }
+    }
+
+    /// POLICY-6: Read slim cache WITH the hash list for incremental loading.
+    fn read_slim_cache_with_hashes(&self) -> Option<(braid_kernel::Store, Vec<String>)> {
+        let cache_dir = self.cache_dir();
+        let meta_bytes = fs::read(cache_dir.join("meta.json")).ok()?;
+        let meta: CacheMeta = serde_json::from_slice(&meta_bytes).ok()?;
+
+        if meta.tx_hashes.is_empty() {
+            return None;
+        }
+
+        let bin_bytes = fs::read(cache_dir.join("store.bin")).ok()?;
+
+        let is_zstd = bin_bytes.len() >= 4
+            && bin_bytes[0] == 0x28
+            && bin_bytes[1] == 0xB5
+            && bin_bytes[2] == 0x2F
+            && bin_bytes[3] == 0xFD;
+
+        let store = if is_zstd {
+            let mut decoder = zstd::Decoder::new(std::io::Cursor::new(&bin_bytes)).ok()?;
+            let mut decoded = Vec::new();
+            decoder.read_to_end(&mut decoded).ok()?;
+            let slim: SlimCache = bincode::deserialize(&decoded).ok()?;
+            if slim.datoms.len() != meta.datom_count {
+                return None;
+            }
+            braid_kernel::Store::from_primary(
+                slim.datoms, slim.frontier, slim.schema, slim.clock, slim.views,
+            )
+        } else {
+            let s: braid_kernel::Store = bincode::deserialize(&bin_bytes).ok()?;
+            if s.len() != meta.datom_count {
+                return None;
+            }
+            s
+        };
+
+        Some((store, meta.tx_hashes))
     }
 
     /// Try to read the cached full Store from `.braid/.cache/store.bin`.
@@ -584,16 +754,15 @@ impl DiskLayout {
         let hashes = self.list_tx_hashes()?;
         let fingerprint = self.txn_fingerprint(&hashes);
 
-        // Fast path: exact cache hit (skips from_datoms rebuild).
-        if let Some(store) = self.read_index_cache(&fingerprint) {
+        // SLIM-3 (INV-CACHE-001): Use slim cache (primary-only + zstd) for fast path.
+        // Backward compatible: read_slim_cache detects old format via magic number.
+        if let Some(store) = self.read_slim_cache(&fingerprint) {
             return Ok(store);
         }
 
         // POLICY-6: Incremental path — try loading cached store + delta.
-        // If a cached store exists with a SUBSET of the current hashes,
-        // load it and apply only the new transactions via Store::transact().
-        // This is O(k) where k = new transactions since last cache, typically 1-5.
-        if let Some((cached_store, cached_hashes)) = self.read_index_cache_with_hashes() {
+        // Uses slim cache with hash list for incremental loading.
+        if let Some((cached_store, cached_hashes)) = self.read_slim_cache_with_hashes() {
             let cached_set: std::collections::HashSet<&str> =
                 cached_hashes.iter().map(|s| s.as_str()).collect();
             let delta_hashes: Vec<&String> = hashes
@@ -622,7 +791,7 @@ impl DiskLayout {
                 // Verify: datom count should be >= cached (monotonic growth, C1)
                 // If it is, cache the result and return
                 if store.len() >= cached_hashes.len() {
-                    let _ = self.write_index_cache(&store);
+                    let _ = self.write_slim_cache(&store);
                     return Ok(store);
                 }
                 // Otherwise fall through to full rebuild
@@ -643,8 +812,8 @@ impl DiskLayout {
 
         let store = Store::from_datoms(all_datoms);
 
-        // Write cache for next time (best-effort — do not fail the load on cache write error).
-        let _ = self.write_index_cache(&store);
+        // SLIM-3: Write slim cache for next time (primary only + zstd compressed).
+        let _ = self.write_slim_cache(&store);
 
         Ok(store)
     }

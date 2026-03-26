@@ -22,6 +22,7 @@ libc = "0.2"
 ordered-float = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+zstd = "0.13"
 
 [dev-dependencies]
 proptest = { workspace = true }

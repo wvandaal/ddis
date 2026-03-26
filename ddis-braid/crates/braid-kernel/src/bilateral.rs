@@ -99,7 +99,7 @@ const CC5_METHODOLOGY_THRESHOLD: f64 = 0.5;
 // ===========================================================================
 
 /// The boundary between two ISP layers.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum Boundary {
     /// Intent ↔ Specification boundary.
     IntentSpec,
@@ -108,7 +108,7 @@ pub enum Boundary {
 }
 
 /// Severity of a coverage gap, derived from formality level.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum GapSeverity {
     /// No cross-boundary links at all — completely disconnected.
     Critical,
@@ -119,7 +119,7 @@ pub enum GapSeverity {
 }
 
 /// A coverage gap: a spec or impl entity missing its counterpart.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct Gap {
     /// The entity with the gap.
     pub entity: EntityId,
@@ -132,7 +132,7 @@ pub struct Gap {
 }
 
 /// Result of a single-direction bilateral scan.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct ScanResult {
     /// Entities that have coverage across the boundary.
     pub covered: Vec<EntityId>,
@@ -143,7 +143,7 @@ pub struct ScanResult {
 }
 
 /// Combined bilateral scan (forward + backward).
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct BilateralScan {
     /// Forward scan: Spec → Impl (what spec elements lack implementation?).
     pub forward: ScanResult,
@@ -182,7 +182,7 @@ pub struct FitnessScore {
 }
 
 /// Result of evaluating a single coherence condition.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct ConditionResult {
     /// Whether the condition is satisfied.
     pub satisfied: bool,
@@ -195,7 +195,7 @@ pub struct ConditionResult {
 }
 
 /// The five coherence conditions CC-1 through CC-5.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct CoherenceConditions {
     /// CC-1: No contradiction in spec (machine-evaluable).
     pub cc1_no_contradictions: ConditionResult,
@@ -219,7 +219,7 @@ pub struct CoherenceConditions {
 /// - α = 1: von Neumann entropy (standard)
 /// - α = 2: Collision entropy (-log₂ purity)
 /// - α → ∞: Min-entropy (-log₂ λ_max)
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct RenyiSpectrum {
     /// S₀ = log₂(effective_rank): diversity of occupied dimensions.
     pub s0_hartley: f64,
@@ -234,7 +234,7 @@ pub struct RenyiSpectrum {
 }
 
 /// Entropy decomposition: S₃ = S₁ + ΔS_boundary + ΔS_ISP.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct EntropyDecomposition {
     /// Total von Neumann entropy of the full entity graph.
     pub s_total: f64,
@@ -255,7 +255,7 @@ pub struct EntropyDecomposition {
 /// Combines algebraic connectivity, isoperimetric ratio, topological
 /// persistence, discrete Ricci curvature, and the Rényi entropy spectrum
 /// into a single certificate that bounds convergence behavior.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct SpectralCertificate {
     /// Fiedler value λ₂: algebraic connectivity.
     /// λ₂ > 0 ⟺ graph is connected.
@@ -285,7 +285,7 @@ pub struct SpectralCertificate {
 }
 
 /// Convergence analysis from F(S) trajectory using Lyapunov theory.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct ConvergenceAnalysis {
     /// F(S) trajectory over time.
     pub trajectory: Vec<f64>,
@@ -301,7 +301,8 @@ pub struct ConvergenceAnalysis {
 }
 
 /// The full state of a bilateral cycle.
-#[derive(Clone, Debug)]
+/// L3-BILATERAL: Serde for disk caching per txn_fingerprint.
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct BilateralState {
     /// F(S) fitness score with 7 components.
     pub fitness: FitnessScore,

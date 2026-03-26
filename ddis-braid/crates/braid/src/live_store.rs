@@ -289,7 +289,7 @@ impl LiveStore {
                 self.dirty = false; // Silently skip — txn EDN files are durable (C1).
                 return Ok(());
             }
-            self.layout.write_index_cache(&self.store)?;
+            self.layout.write_slim_cache(&self.store)?;
             self.dirty = false;
         }
         Ok(())

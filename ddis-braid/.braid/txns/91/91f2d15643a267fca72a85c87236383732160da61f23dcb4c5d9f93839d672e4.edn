@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774565880/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8970c83b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/close-reason :v "Implemented: SlimCache struct + write_slim_cache + read_slim_cache + read_slim_cache_with_hashes. Backward compat via zstd magic detection. zstd 0.13 added to Cargo.toml." :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/closed-at :v 1774565879 :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "7b29cd212d6c491d682acde658ec66ca476c142e23ff08673a9dc740d08bf529" :a :task/status :v :task.status/closed :op :assert}
+ ]}

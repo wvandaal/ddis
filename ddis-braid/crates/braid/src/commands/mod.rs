@@ -2318,9 +2318,10 @@ pub fn run(
             agent,
             commit,
         } => {
-            // --deep implies --full and --spectral (progressive disclosure).
-            let full = full || deep;
-            let spectral = spectral || deep;
+            // --deep runs bilateral scans only. Neither --full nor --spectral
+            // are implied: --full runs graph analytics (O(E²)), --spectral runs
+            // eigendecomposition (O(n³)). Both must be explicitly requested.
+            // INV-PERF-001: --deep must complete in <1s.
             // L1-SINGLE: Status receives the pre-opened LiveStore (zero deserialization).
             let cmd_output = status::run(
                 &path, &agent, json, verbose, deep, spectral, full, verify, commit, pre_opened, quiet,
