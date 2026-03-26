@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774484491/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CAL-5: Add Narrow collapse diagnostic + content-aware steering fallback"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :db/ident :v :task/t-6f58c3a4 :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/created-at :v 1774484490 :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/description :v "CONTEXT: Even with self-calibrating threshold, the system needs collapse detection and content-aware steering.\n\nAPPROACH — two changes in concept.rs:\n\n1. Add FrontierKind::Narrow variant:\n   - Display impl: 'narrow'\n   - fn narrow_candidates(store: &Store) -> Vec<FrontierRec>\n   - Compute mean jaccard across all concept pairs from co_occurrence_matrix\n   - If mean jaccard > 0.8: produce FrontierRec with kind=Narrow, score=1.0-mean_jaccard\n   - Rationale text: 'concepts are converging (mean jaccard={:.2}) — try observing a specific file, function, or error message'\n   - Wire into frontier_recommendation after bridge_candidates\n\n2. Improve compute_steering_question (concept.rs:1358):\n   - If entity_matches non-empty: 'investigate how {matched_entity} interacts with {other_matched_entity}'\n   - If surprise > 0.3: 'this is at the boundary of {concept} — what distinguishes it?'\n   - Only fall back to generic 'what connects X to Y?' if no entity matches AND low surprise\n\nACCEPTANCE: (A) FrontierKind::Narrow exists with Display. (B) narrow_candidates fires when mean jaccard > 0.8. (C) Steering produces content-aware questions when entity matches exist. (D) All existing frontier tests pass. (E) New tests for narrow_candidates.\n\nFILE: crates/braid-kernel/src/concept.rs" :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/id :v "t-6f58c3a4" :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/labels :v :label/S045-CALIBRATE :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/title :v "CAL-5: Add Narrow collapse diagnostic + content-aware steering fallback" :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/title-l0 :v "CAL-5" :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/title-l1 :v "CAL-5: Add Narrow collapse diagnostic + content-aware steering fallback" :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/traces-to :v #blake3 "791ce65b20564279d064cb37745fcdd4b9e31f36804346447a413c2befbb9709" :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "be97fe1920ea88e771c14a919ca8a9c1333f02282f58b4ae35bb62125b2c7a39" :a :task/type :v :task.type/task :op :assert}
+ ]}

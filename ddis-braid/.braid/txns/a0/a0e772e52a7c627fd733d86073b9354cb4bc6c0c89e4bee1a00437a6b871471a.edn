@@ -1,0 +1,14 @@
+{:tx/id #hlc "1774484463/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "abd9b84dbb878f87dafeb874f5ebc7ba0abaaeffdaf05afb581280a46abf7be7" :a :db/ident :v :recon/trace-3bb7b5cc20c3a240 :op :assert}
+   {:e #blake3 "abd9b84dbb878f87dafeb874f5ebc7ba0abaaeffdaf05afb581280a46abf7be7" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "abd9b84dbb878f87dafeb874f5ebc7ba0abaaeffdaf05afb581280a46abf7be7" :a :recon/trace-neighborhood :v "FOUNDATION" :op :assert}
+   {:e #blake3 "abd9b84dbb878f87dafeb874f5ebc7ba0abaaeffdaf05afb581280a46abf7be7" :a :recon/trace-neighbors :v ":task/t-378b7136" :op :assert}
+   {:e #blake3 "abd9b84dbb878f87dafeb874f5ebc7ba0abaaeffdaf05afb581280a46abf7be7" :a :recon/trace-neighbors :v ":task/t-9df08f11" :op :assert}
+   {:e #blake3 "abd9b84dbb878f87dafeb874f5ebc7ba0abaaeffdaf05afb581280a46abf7be7" :a :recon/trace-refs :v "ADR-FOUNDATION-031" :op :assert}
+   {:e #blake3 "abd9b84dbb878f87dafeb874f5ebc7ba0abaaeffdaf05afb581280a46abf7be7" :a :recon/trace-refs :v "INV-EMBEDDING-004" :op :assert}
+ ]}

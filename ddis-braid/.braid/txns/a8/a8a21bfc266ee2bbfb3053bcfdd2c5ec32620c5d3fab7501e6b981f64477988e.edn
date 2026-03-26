@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774484462/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CAL-4: Revise innate concept descriptions for better initial centroid separation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :db/ident :v :task/t-b7c191a4 :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/created-at :v 1774484461 :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/description :v "CONTEXT: Better innate concept descriptions produce better initial centroids — the PRIOR in Bayesian terms. A better prior converges faster under auto-calibration (CAL-3).\n\nAPPROACH: Revise INNATE_CONCEPTS (concept.rs:861) string literals:\n  components -> 'Discrete isolated parts: individual packages, modules, files as bounded units'\n  dependencies -> 'Relationships and connections: imports, function calls, data flow paths between modules'\n  invariants -> 'Rules and constraints: assertions that must hold, contracts to verify, specifications to enforce'\n  patterns -> 'Recurring structures: repeated idioms, architectural conventions, protocol templates'\n  anomalies -> 'Defects and surprises: bugs, violations, inconsistencies, unexpected behaviors, test failures'\n\nKey changes: (1) Remove shared vocabulary. (2) Lead with distinguishing noun phrase. (3) Remove identical em-dash syntax pattern.\n\nACCEPTANCE: (A) New descriptions have minimal vocabulary overlap. (B) C8: descriptions still work for non-software domains. (C) All existing tests pass (use HashEmbedder which is vocabulary-insensitive).\n\nFILE: crates/braid-kernel/src/concept.rs (INNATE_CONCEPTS, line 861)" :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/id :v "t-b7c191a4" :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/labels :v :label/S045-CALIBRATE :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/title :v "CAL-4: Revise innate concept descriptions for better initial centroid separation" :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/title-l0 :v "CAL-4" :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/title-l1 :v "CAL-4: Revise innate concept descriptions for better initial centroid separation" :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/traces-to :v #blake3 "5ee8f32d89f3ab426040c00c49df650205e9c498a13759b72b17fb01b167a80e" :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/traces-to :v #blake3 "64fd07e990ba4c4d1808ca7acebaced935c9d0ee19a065c77ecf8a00d1763bd9" :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/traces-to :v #blake3 "bb68771c0f403c927260336945dceada87933be4981b2fe81d8ec63e5430a4dd" :op :assert}
+   {:e #blake3 "5f5c32fdcff3bc192a1453d61ee5dded601c7500c2edf2ae8f58388e2ab3ea64" :a :task/type :v :task.type/task :op :assert}
+ ]}

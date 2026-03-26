@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774484388/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC S045-CALIBRATE: Self-calibrating concept threshold (ADR-FOUNDATION-031)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :db/ident :v :task/t-2dcd3622 :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/created-at :v 1774484387 :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/description :v "CONTEXT: DOGFOOD-2 scored 3.48/10 due to concept collapse. Root cause: hardcoded join_threshold=0.20 is a C9 violation — a claim about the embedding space exempt from the system's own verification. ADR-FOUNDATION-031 establishes that parameters are first-class knowledge, subject to the same observe-reconcile-calibrate loop as any other claim.\n\nThis EPIC implements ADR-FOUNDATION-031 for the concept join threshold as the first instance: (1) formalize the ADR as a spec element, (2) replace the hard cutoff with sigmoid soft membership, (3) add Otsu auto-calibration at harvest, (4) revise innate descriptions for better initial centroids, (5) add Narrow collapse diagnostic, (6) test, (7) dogfood retest.\n\nALGEBRAIC STRUCTURE: The threshold is a point in the unit interval [0,1]. The calibration function is a map calibrate: Store -> [0,1] that computes the optimal split from the observed cosine distribution. The sigmoid is a smooth approximation to the Heaviside step function parameterized by (threshold, temperature). Bootstrap defaults are the prior; calibrated values are the posterior.\n\nDELIVERABLES: 1 ADR + 5 implementation tasks + 1 test task + 1 dogfood retest = 8 tasks." :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/id :v "t-2dcd3622" :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/labels :v :label/S045-CALIBRATE :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/title :v "EPIC S045-CALIBRATE: Self-calibrating concept threshold (ADR-FOUNDATION-031)" :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/title-l0 :v "EPIC S045-CALIBRATE" :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/title-l1 :v "EPIC S045-CALIBRATE: Self-calibrating concept threshold (ADR-FOUNDATION-031)" :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/traces-to :v #blake3 "2c76d75fd8b371d9bc9603abfc40d6ac0049a8d75bb643ed7ca4334f41c23e45" :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/traces-to :v #blake3 "44b01037f650e23ce40cea6697d5ab1639fb17d9b54b418bf8ddf9fe26ee2057" :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/traces-to :v #blake3 "5ee8f32d89f3ab426040c00c49df650205e9c498a13759b72b17fb01b167a80e" :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/traces-to :v #blake3 "bb68771c0f403c927260336945dceada87933be4981b2fe81d8ec63e5430a4dd" :op :assert}
+   {:e #blake3 "e499beb4afdb72e85a2637abaa6a0aa568714964053b2e3bdf0b5826bd5c130a" :a :task/type :v :task.type/epic :op :assert}
+ ]}

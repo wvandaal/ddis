@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774484421/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CAL-1: Formalize ADR-FOUNDATION-031 (self-calibrating parameters) as spec element"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :db/ident :v :task/t-e10ea7ca :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/created-at :v 1774484420 :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/description :v "CONTEXT: ADR-FOUNDATION-031 needs to be formalized as a spec element in the braid store and documented in docs/design/ADRS.md.\n\nAPPROACH:\n1. braid observe the ADR with spec-element structure (ID, type, statement, rationale, alternatives rejected, traces-to).\n2. Add entry to docs/design/ADRS.md in the Foundational Decisions section.\n\nSTATEMENT: All numerical parameters influencing system behavior (thresholds, weights, decay rates, coefficients) are first-class knowledge — datoms in the store, not constants in source code. Each parameter must have: (a) a store-backed value as :policy/* or :config/* datom, (b) a bootstrap default from the embedder or domain (the prior), (c) a calibration function invoked at harvest that updates the value from predicted-vs-actual outcomes (the posterior update), (d) queryability and inspectability via standard Datalog.\n\nALTERNATIVES REJECTED: (1) Hardcoded constants with manual tuning — violates C9 and NEG-010 (open loop). (2) Config file outside the store — violates C3 (schema-as-data) and loses traceability. (3) Calibration without bootstrap — cold-start problem, first observations have no threshold.\n\nACCEPTANCE: (A) ADR-FOUNDATION-031 exists as a datom in the store. (B) docs/design/ADRS.md updated. (C) The ADR traces to ADR-FOUNDATION-014 and OBSERVER-4." :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/id :v "t-e10ea7ca" :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/labels :v :label/S045-CALIBRATE :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/title :v "CAL-1: Formalize ADR-FOUNDATION-031 (self-calibrating parameters) as spec element" :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/title-l0 :v "CAL-1" :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/title-l1 :v "CAL-1: Formalize ADR-FOUNDATION-031 (self-calibrating parameters) as spec ele..." :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/traces-to :v #blake3 "44b01037f650e23ce40cea6697d5ab1639fb17d9b54b418bf8ddf9fe26ee2057" :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/traces-to :v #blake3 "5ee8f32d89f3ab426040c00c49df650205e9c498a13759b72b17fb01b167a80e" :op :assert}
+   {:e #blake3 "63e8c5092a1c2f5e2caa76ed43de3793ac6b3dc561bb5a0d2e136616bbc1dd80" :a :task/type :v :task.type/task :op :assert}
+ ]}

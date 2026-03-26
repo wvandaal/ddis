@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774484249/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f08cbd87"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/close-reason :v "SUPERSEDED: Tests redesigned for self-calibrating threshold approach." :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/closed-at :v 1774484248 :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "b5ef5a72405b3d1d9dda113e331931c3c38ecaf2190b8ab5d5036d185d155fcb" :a :task/status :v :task.status/closed :op :assert}
+ ]}

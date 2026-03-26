@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774484257/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-10d8d937"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/close-reason :v "SUPERSEDED: CCE-FIX epic redesigned around ADR-FOUNDATION-031 (parameters are first-class knowledge)." :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/closed-at :v 1774484256 :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "40ead2e6453c42ca3057548358fb317ec9d32c2a8debc70b2c2b58ff548e25ef" :a :task/status :v :task.status/closed :op :assert}
+ ]}

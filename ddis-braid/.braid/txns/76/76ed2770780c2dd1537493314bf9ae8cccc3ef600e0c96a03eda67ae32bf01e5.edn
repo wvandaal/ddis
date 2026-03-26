@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774484513/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CAL-RETEST: Dogfood retest with self-calibrating threshold (target >=6/10)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :db/ident :v :task/t-b76c998f :op :assert}
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :task/created-at :v 1774484512 :op :assert}
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :task/description :v "CONTEXT: After CAL-1 through CAL-5 + tests pass, retest on Go CLI with fresh init. Same 8-dimension protocol as DF2-REV. The self-calibrating threshold should produce concept discrimination without manual tuning.\n\nAPPROACH:\n1. Rename Go CLI .braid -> .braid.pre-calibrate\n2. Fresh braid init with calibration-enabled binary\n3. Launch subagent with same DF2-REV prompt (10 observations, 8-dimension scoring)\n4. Score using DF3-REV protocol (entropy, actionability, multi-rate, holistic)\n5. ADDITIONALLY verify: :policy/concept-join-threshold datom exists after harvest, and its value differs from the embedder default (evidence of self-calibration)\n\nTARGET: >= 6/10 composite. The auto-calibrating threshold should prevent concept collapse. The sigmoid should produce meaningful multi-membership (partial strengths, not all-or-nothing).\n\nCRITICAL ADDITION: After the 10 observations but BEFORE harvest, run braid observe with a deliberately off-topic observation ('quantum chromodynamics baryon asymmetry') and verify it gets LOW membership strength to all concepts (< 0.3). This tests that the system discriminates, not just accepts everything.\n\nDEPENDS-ON: CAL-TEST (all tests must pass first).\n\nACCEPTANCE: (A) 10 observations with diverse coverage. (B) Concept distribution has entropy > 1.0. (C) :policy/concept-join-threshold datom exists after harvest. (D) Off-topic observation has max concept strength < 0.3. (E) Composite score >= 6/10." :op :assert}
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :task/id :v "t-b76c998f" :op :assert}
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :task/labels :v :label/S045-CALIBRATE :op :assert}
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :task/title :v "CAL-RETEST: Dogfood retest with self-calibrating threshold (target >=6/10)" :op :assert}
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :task/title-l0 :v "CAL-RETEST" :op :assert}
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :task/title-l1 :v "CAL-RETEST: Dogfood retest with self-calibrating threshold (target >=6/10)" :op :assert}
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :task/traces-to :v #blake3 "5ee8f32d89f3ab426040c00c49df650205e9c498a13759b72b17fb01b167a80e" :op :assert}
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :task/traces-to :v #blake3 "791ce65b20564279d064cb37745fcdd4b9e31f36804346447a413c2befbb9709" :op :assert}
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "13749210d90cad190aca64909c536cdbd0afbd613fa2263207645b4c671a5fb0" :a :task/type :v :task.type/task :op :assert}
+ ]}

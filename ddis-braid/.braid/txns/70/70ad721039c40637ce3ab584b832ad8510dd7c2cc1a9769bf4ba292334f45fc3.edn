@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774484494/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CAL-TEST: Tests for self-calibrating threshold (8 unit + 2 proptest + E2E)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :db/ident :v :task/t-ff108cb0 :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/created-at :v 1774484493 :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/description :v "CONTEXT: Comprehensive tests for all CAL tasks.\n\nUNIT TESTS (8 new):\n\n1. test_membership_strength_midpoint: membership_strength(0.5, 0.5, any_t) == 0.5\n2. test_membership_strength_monotonic: for sim1 > sim2, strength(sim1) > strength(sim2)\n3. test_membership_strength_bounds: for all inputs, result in [0.0, 1.0]\n4. test_membership_strength_temperature_sharpness: lower temperature -> sharper transition\n5. test_calibrate_threshold_insufficient_data: <5 observations returns None\n6. test_calibrate_threshold_bimodal: 10 observations in two clusters -> threshold between clusters\n7. test_calibrate_threshold_writes_policy_datom: after calibration, :policy/concept-join-threshold exists in store\n8. test_narrow_candidates_collapsed: mean jaccard > 0.8 -> FrontierKind::Narrow returned\n\nPROPERTY TESTS (2):\n9. proptest_membership_strength_in_unit_interval: for random sim, threshold, temperature, result in [0, 1]\n10. proptest_calibrate_monotonic: adding more observations to the same cluster doesn't move threshold toward that cluster\n\nE2E VERIFICATION:\n- scripts/e2e_calibrating_threshold.sh:\n  Fresh init, make 10 diverse observations, harvest, verify:\n  (a) :policy/concept-join-threshold datom exists with value != embedder default\n  (b) Concept distribution has entropy > 0 (not all in one concept)\n  (c) NOT all observations in all concepts (some have strength < 0.5)\n  (d) Frontier recommendation is not the generic 'what connects X to Y?' template\n\nDEPENDS-ON: CAL-2, CAL-3, CAL-4, CAL-5.\n\nFILE: crates/braid-kernel/src/concept.rs (tests) + scripts/e2e_calibrating_threshold.sh" :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/id :v "t-ff108cb0" :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/labels :v :label/S045-CALIBRATE :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/title :v "CAL-TEST: Tests for self-calibrating threshold (8 unit + 2 proptest + E2E)" :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/title-l0 :v "CAL-TEST" :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/title-l1 :v "CAL-TEST: Tests for self-calibrating threshold (8 unit + 2 proptest + E2E)" :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/traces-to :v #blake3 "5ee8f32d89f3ab426040c00c49df650205e9c498a13759b72b17fb01b167a80e" :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/traces-to :v #blake3 "bb68771c0f403c927260336945dceada87933be4981b2fe81d8ec63e5430a4dd" :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/traces-to :v #blake3 "f5ff162898e848b5856f57b2f977a184c343f678d44137ae35a6b08a79bbfaae" :op :assert}
+   {:e #blake3 "60c04a4bc848efa769ffda950d8f3d1a259c23a51ae774486f5c093380c10996" :a :task/type :v :task.type/task :op :assert}
+ ]}

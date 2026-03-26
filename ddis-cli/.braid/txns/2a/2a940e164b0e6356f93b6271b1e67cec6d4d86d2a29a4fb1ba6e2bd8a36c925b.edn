@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774483770/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "test probe for embedder type detection"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9f8bc7487ad8ecc7567a0bca7d16f72351fed4652711d735db2ef99197fb9834" :a :db/doc :v "test probe for embedder type detection" :op :assert}
+   {:e #blake3 "9f8bc7487ad8ecc7567a0bca7d16f72351fed4652711d735db2ef99197fb9834" :a :db/ident :v :observation/test-probe-for-embedder-type-detection :op :assert}
+   {:e #blake3 "9f8bc7487ad8ecc7567a0bca7d16f72351fed4652711d735db2ef99197fb9834" :a :exploration/body :v "test probe for embedder type detection" :op :assert}
+   {:e #blake3 "9f8bc7487ad8ecc7567a0bca7d16f72351fed4652711d735db2ef99197fb9834" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "9f8bc7487ad8ecc7567a0bca7d16f72351fed4652711d735db2ef99197fb9834" :a :exploration/confidence :v 0.3 :op :assert}
+   {:e #blake3 "9f8bc7487ad8ecc7567a0bca7d16f72351fed4652711d735db2ef99197fb9834" :a :exploration/content-hash :v #bytes "3cc31a292569dbc68fb6f8694de17d78d5e5bea6f3b03349f2dc9f7488680100" :op :assert}
+   {:e #blake3 "9f8bc7487ad8ecc7567a0bca7d16f72351fed4652711d735db2ef99197fb9834" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "9f8bc7487ad8ecc7567a0bca7d16f72351fed4652711d735db2ef99197fb9834" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "9f8bc7487ad8ecc7567a0bca7d16f72351fed4652711d735db2ef99197fb9834" :a :exploration/source-session :v #blake3 "cd0a20e5a4cc49d3ee526d3f6915a1794032fc697650e962e4e96e83a83b9be2" :op :assert}
+ ]}

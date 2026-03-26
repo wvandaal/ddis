@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774484424/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CAL-2: Replace hard threshold cutoff with sigmoid soft membership"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :db/ident :v :task/t-ff060f5a :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/created-at :v 1774484423 :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/description :v "CONTEXT: The hard cutoff (sim >= threshold -> binary) claims infinite confidence in the threshold. Replace with sigmoid soft membership that encodes finite precision.\n\nAPPROACH: Add to concept.rs:\n\npub fn membership_strength(similarity: f32, threshold: f32, temperature: f32) -> f32 {\n    // sigmoid((sim - threshold) / temperature)\n    // At temperature -> 0: recovers hard cutoff\n    // At temperature = 0.05: smooth transition over +/- 0.05\n    let x = (similarity - threshold) / temperature.max(1e-6);\n    1.0 / (1.0 + (-x).exp())\n}\n\nModify assign_to_concepts (concept.rs:167) to return membership_strength instead of binary in/out. The ConceptAssignment::Joined struct gets a new field 'strength: f32' (0.0 to 1.0). Filter: only return assignments with strength > 0.1 (below this is noise). Sort by strength descending.\n\nModify observe.rs multi-membership loop (line 654): multiply surprise_weight by membership_strength for the centroid update. Weaker memberships pull the centroid less.\n\nThe temperature parameter is read from store config 'concept.sigmoid-temperature', defaulting to 0.05 (calibrated from observed stddev in future task CAL-3).\n\nALGEBRAIC PROPERTIES:\n- membership_strength is monotonically increasing in similarity\n- membership_strength(threshold, threshold, t) = 0.5 for any t (midpoint is always at threshold)\n- lim_{t->0} membership_strength = Heaviside step function (backward compatible)\n- membership_strength * surprise_weight composes correctly (both in [0, inf))\n\nACCEPTANCE: (A) membership_strength function exists and is pure. (B) assign_to_concepts returns strength field. (C) Observations at threshold get strength ~0.5. (D) Observations far above threshold get strength ~1.0. (E) Centroid updates weighted by strength. (F) All existing concept tests pass (they use threshold 0.01 or 0.65 where sigmoid ≈ hard cutoff). (G) Property test: for any similarity and threshold, strength is in [0, 1].\n\nFILE: crates/braid-kernel/src/concept.rs + crates/braid/src/commands/observe.rs" :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/id :v "t-ff060f5a" :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/labels :v :label/S045-CALIBRATE :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/title :v "CAL-2: Replace hard threshold cutoff with sigmoid soft membership" :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/title-l0 :v "CAL-2" :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/title-l1 :v "CAL-2: Replace hard threshold cutoff with sigmoid soft membership" :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/traces-to :v #blake3 "5ee8f32d89f3ab426040c00c49df650205e9c498a13759b72b17fb01b167a80e" :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/traces-to :v #blake3 "bb68771c0f403c927260336945dceada87933be4981b2fe81d8ec63e5430a4dd" :op :assert}
+   {:e #blake3 "39e9289bf365c15fbcbad6065cc035d3cb2f26ad164636e9572d4d4ddae6bbaf" :a :task/type :v :task.type/task :op :assert}
+ ]}
