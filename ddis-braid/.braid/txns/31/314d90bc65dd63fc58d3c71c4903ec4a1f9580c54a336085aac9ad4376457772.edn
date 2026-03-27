@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774576092/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PROPOSAL: Wire approximate spectral into F(S) as structural_coherence boundary and into guidance as fragmentation detector. Closes Type 9 reflexive loop at zero cost."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "168d1babcac95cc68716afee736778b34e6057cb40c898e58be4919ea522a2f8" :a :db/doc :v "PROPOSAL: Wire approximate spectral into F(S) as structural_coherence boundary and into guidance as fragmentation detector. Closes Type 9 reflexive loop at zero cost." :op :assert}
+   {:e #blake3 "168d1babcac95cc68716afee736778b34e6057cb40c898e58be4919ea522a2f8" :a :db/ident :v :observation/proposal-wire-approximate-spectral-into-fs-as-structural :op :assert}
+   {:e #blake3 "168d1babcac95cc68716afee736778b34e6057cb40c898e58be4919ea522a2f8" :a :exploration/body :v "PROPOSAL: Wire approximate spectral into F(S) as structural_coherence boundary and into guidance as fragmentation detector. Closes Type 9 reflexive loop at zero cost." :op :assert}
+   {:e #blake3 "168d1babcac95cc68716afee736778b34e6057cb40c898e58be4919ea522a2f8" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "168d1babcac95cc68716afee736778b34e6057cb40c898e58be4919ea522a2f8" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "168d1babcac95cc68716afee736778b34e6057cb40c898e58be4919ea522a2f8" :a :exploration/content-hash :v #bytes "3744310b246c7ec8a83666f4bd9ea1dabdd7f933ad1fc5307581adac205ea9cc" :op :assert}
+   {:e #blake3 "168d1babcac95cc68716afee736778b34e6057cb40c898e58be4919ea522a2f8" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "168d1babcac95cc68716afee736778b34e6057cb40c898e58be4919ea522a2f8" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "168d1babcac95cc68716afee736778b34e6057cb40c898e58be4919ea522a2f8" :a :exploration/source-session :v #blake3 "450fb7c7b8b08d515f0f01e48871de4505f67c2e2e0a0c0ce5625633ec7831f9" :op :assert}
+   {:e #blake3 "b0f016c123a9eb643162ef1848538ed58d5f29e275690c0584c187cc6a2ab31e" :a :db/ident :v :task/t-0fa34ed5 :op :assert}
+   {:e #blake3 "b0f016c123a9eb643162ef1848538ed58d5f29e275690c0584c187cc6a2ab31e" :a :task/body :v "PROPOSAL: Wire approximate spectral into F(S) as structural_coherence boundary and into guidance as fragmentation detector. Closes Type 9 reflexive loop at zero cost." :op :assert}
+   {:e #blake3 "b0f016c123a9eb643162ef1848538ed58d5f29e275690c0584c187cc6a2ab31e" :a :task/created-at :v 1774576091 :op :assert}
+   {:e #blake3 "b0f016c123a9eb643162ef1848538ed58d5f29e275690c0584c187cc6a2ab31e" :a :task/id :v "t-0fa34ed5" :op :assert}
+   {:e #blake3 "b0f016c123a9eb643162ef1848538ed58d5f29e275690c0584c187cc6a2ab31e" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "b0f016c123a9eb643162ef1848538ed58d5f29e275690c0584c187cc6a2ab31e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b0f016c123a9eb643162ef1848538ed58d5f29e275690c0584c187cc6a2ab31e" :a :task/title :v "PROPOSAL: Wire approximate spectral into F(S) as structural_coherence boundary" :op :assert}
+   {:e #blake3 "b0f016c123a9eb643162ef1848538ed58d5f29e275690c0584c187cc6a2ab31e" :a :task/type :v :task.type/task :op :assert}
+ ]}

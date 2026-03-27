@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774576062/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Spectral certificate is decorative. 20 datom attrs written never read. Zero consumers in routing guidance F(S). Type 9 reflexive divergence."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b10f3cca3dd1ea977645123978261d38a7f727bb733f10431d8f91bfeac80808" :a :db/doc :v "Spectral certificate is decorative. 20 datom attrs written never read. Zero consumers in routing guidance F(S). Type 9 reflexive divergence." :op :assert}
+   {:e #blake3 "b10f3cca3dd1ea977645123978261d38a7f727bb733f10431d8f91bfeac80808" :a :db/ident :v :observation/spectral-certificate-is-decorative-20-datom-attrs-written-n :op :assert}
+   {:e #blake3 "b10f3cca3dd1ea977645123978261d38a7f727bb733f10431d8f91bfeac80808" :a :exploration/body :v "Spectral certificate is decorative. 20 datom attrs written never read. Zero consumers in routing guidance F(S). Type 9 reflexive divergence." :op :assert}
+   {:e #blake3 "b10f3cca3dd1ea977645123978261d38a7f727bb733f10431d8f91bfeac80808" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "b10f3cca3dd1ea977645123978261d38a7f727bb733f10431d8f91bfeac80808" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "b10f3cca3dd1ea977645123978261d38a7f727bb733f10431d8f91bfeac80808" :a :exploration/content-hash :v #bytes "f4c994b90bc15f36f7a4644d2e43fb6b0aa5e7c5bf179861ad6c55d06fd1b74b" :op :assert}
+   {:e #blake3 "b10f3cca3dd1ea977645123978261d38a7f727bb733f10431d8f91bfeac80808" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b10f3cca3dd1ea977645123978261d38a7f727bb733f10431d8f91bfeac80808" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b10f3cca3dd1ea977645123978261d38a7f727bb733f10431d8f91bfeac80808" :a :exploration/source-session :v #blake3 "450fb7c7b8b08d515f0f01e48871de4505f67c2e2e0a0c0ce5625633ec7831f9" :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774576087/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PROPOSAL: O(1) approximate spectral gap from MaterializedViews via Cheeger inequality. ISP boundary stats give bounded lambda2 approximation. Replaces exact eigendecomposition for decisions."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "816729b2e399b2b5b06e492f68f1271f037794a2aacb333add56b705484d25b1" :a :db/doc :v "PROPOSAL: O(1) approximate spectral gap from MaterializedViews via Cheeger inequality. ISP boundary stats give bounded lambda2 approximation. Replaces exact eigendecomposition for decisions." :op :assert}
+   {:e #blake3 "816729b2e399b2b5b06e492f68f1271f037794a2aacb333add56b705484d25b1" :a :db/ident :v :observation/proposal-o1-approximate-spectral-gap-from-materializedvie :op :assert}
+   {:e #blake3 "816729b2e399b2b5b06e492f68f1271f037794a2aacb333add56b705484d25b1" :a :exploration/body :v "PROPOSAL: O(1) approximate spectral gap from MaterializedViews via Cheeger inequality. ISP boundary stats give bounded lambda2 approximation. Replaces exact eigendecomposition for decisions." :op :assert}
+   {:e #blake3 "816729b2e399b2b5b06e492f68f1271f037794a2aacb333add56b705484d25b1" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "816729b2e399b2b5b06e492f68f1271f037794a2aacb333add56b705484d25b1" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "816729b2e399b2b5b06e492f68f1271f037794a2aacb333add56b705484d25b1" :a :exploration/content-hash :v #bytes "e1b47e349631174375b9ec53e4a69ad67be33699108498fef9c0050449928451" :op :assert}
+   {:e #blake3 "816729b2e399b2b5b06e492f68f1271f037794a2aacb333add56b705484d25b1" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "816729b2e399b2b5b06e492f68f1271f037794a2aacb333add56b705484d25b1" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "816729b2e399b2b5b06e492f68f1271f037794a2aacb333add56b705484d25b1" :a :exploration/source-session :v #blake3 "450fb7c7b8b08d515f0f01e48871de4505f67c2e2e0a0c0ce5625633ec7831f9" :op :assert}
+ ]}

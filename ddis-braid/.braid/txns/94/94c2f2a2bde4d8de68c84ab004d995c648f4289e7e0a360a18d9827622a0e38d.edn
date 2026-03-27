@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774576178/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPECTRAL-TEST: Verification suite for approximate spectral. UNIT: (1) Empty store returns spectral_gap=1.0. (2) Single-partition store (all intent, no spec/impl) returns low gap. (3) Well-connected store (balanced ISP with cross-links) returns high gap. (4) Proptest: random stores, approximate gap within 10x of exact Fiedler (when computable). INTEGRATION: (5) braid status shows connectivity metric. (6) Fragmented store triggers guidance warning. (7) Threshold respects config datom override. DIAGNOSTICS: Log exact vs approximate gap, ISP partition sizes, cross-boundary count. DEPENDS-ON: SPECTRAL-1, SPECTRAL-2. TRACES: INV-SPECTRAL-010, INV-DIVERGENCE-009."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :a :db/ident :v :task/t-f12bff46 :op :assert}
+   {:e #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :a :task/created-at :v 1774576177 :op :assert}
+   {:e #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :a :task/id :v "t-f12bff46" :op :assert}
+   {:e #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :a :task/title :v "SPECTRAL-TEST: Verification suite for approximate spectral. UNIT: (1) Empty store returns spectral_gap=1.0. (2) Single-partition store (all intent, no spec/impl) returns low gap. (3) Well-connected store (balanced ISP with cross-links) returns high gap. (4) Proptest: random stores, approximate gap within 10x of exact Fiedler (when computable). INTEGRATION: (5) braid status shows connectivity metric. (6) Fragmented store triggers guidance warning. (7) Threshold respects config datom override. DIAGNOSTICS: Log exact vs approximate gap, ISP partition sizes, cross-boundary count. DEPENDS-ON: SPECTRAL-1, SPECTRAL-2. TRACES: INV-SPECTRAL-010, INV-DIVERGENCE-009." :op :assert}
+   {:e #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :a :task/title-l0 :v "SPECTRAL-TEST" :op :assert}
+   {:e #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :a :task/title-l1 :v "SPECTRAL-TEST: Verification suite for approximate spectral" :op :assert}
+   {:e #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774576123/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-SPECTRAL-001 \"Approximate Spectral for Decisions, Exact for Diagnostics\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "01818fc9ae4ac56cf92d3a3732d75d729525b00ca3af222fa09a3aa2ae1bca6d" :a :adr/decision :v "Replace exact spectral with O(1) approximate spectral gap from Cheeger inequality on MaterializedViews ISP stats for all decision-making. Exact spectral remains as optional --spectral diagnostic. Rejected: removing spectral entirely (violates ADR-FOUNDATION-014), keeping exact as default (110s unacceptable)." :op :assert}
+   {:e #blake3 "01818fc9ae4ac56cf92d3a3732d75d729525b00ca3af222fa09a3aa2ae1bca6d" :a :adr/problem :v "Exact spectral certificate costs 110s with Lanczos, computed 20 attrs never read by any decision system. Type 9 reflexive divergence: system has convergence data and ignores it." :op :assert}
+   {:e #blake3 "01818fc9ae4ac56cf92d3a3732d75d729525b00ca3af222fa09a3aa2ae1bca6d" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "01818fc9ae4ac56cf92d3a3732d75d729525b00ca3af222fa09a3aa2ae1bca6d" :a :db/doc :v "Approximate Spectral for Decisions, Exact for Diagnostics" :op :assert}
+   {:e #blake3 "01818fc9ae4ac56cf92d3a3732d75d729525b00ca3af222fa09a3aa2ae1bca6d" :a :db/ident :v :spec/adr-spectral-001 :op :assert}
+   {:e #blake3 "01818fc9ae4ac56cf92d3a3732d75d729525b00ca3af222fa09a3aa2ae1bca6d" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "01818fc9ae4ac56cf92d3a3732d75d729525b00ca3af222fa09a3aa2ae1bca6d" :a :spec/id :v "ADR-SPECTRAL-001" :op :assert}
+   {:e #blake3 "01818fc9ae4ac56cf92d3a3732d75d729525b00ca3af222fa09a3aa2ae1bca6d" :a :spec/namespace :v :spec.ns/SPECTRAL :op :assert}
+   {:e #blake3 "d7f4938882951688a4628824521a6807ee852cec7f31c380d7b17ed54b98c317" :a :db/ident :v :task/t-23f46700 :op :assert}
+   {:e #blake3 "d7f4938882951688a4628824521a6807ee852cec7f31c380d7b17ed54b98c317" :a :task/created-at :v 1774576122 :op :assert}
+   {:e #blake3 "d7f4938882951688a4628824521a6807ee852cec7f31c380d7b17ed54b98c317" :a :task/id :v "t-23f46700" :op :assert}
+   {:e #blake3 "d7f4938882951688a4628824521a6807ee852cec7f31c380d7b17ed54b98c317" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "d7f4938882951688a4628824521a6807ee852cec7f31c380d7b17ed54b98c317" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d7f4938882951688a4628824521a6807ee852cec7f31c380d7b17ed54b98c317" :a :task/title :v "Implement ADR-SPECTRAL-001: Approximate Spectral for Decisions, Exact for Diagnostics" :op :assert}
+   {:e #blake3 "d7f4938882951688a4628824521a6807ee852cec7f31c380d7b17ed54b98c317" :a :task/traces-to :v #blake3 "01818fc9ae4ac56cf92d3a3732d75d729525b00ca3af222fa09a3aa2ae1bca6d" :op :assert}
+   {:e #blake3 "d7f4938882951688a4628824521a6807ee852cec7f31c380d7b17ed54b98c317" :a :task/type :v :task.type/task :op :assert}
+ ]}

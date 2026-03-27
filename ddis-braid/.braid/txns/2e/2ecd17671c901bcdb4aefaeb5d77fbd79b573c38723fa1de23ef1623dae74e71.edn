@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774576097/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PROPOSAL: Exact spectral becomes optional diagnostic via --spectral flag. O(1) approximate replaces it for all decision-making. Already decoupled from --deep this session."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "96479432a71936fb3414e40050b7559befbae13e1d035b3e67cb0494098868c2" :a :db/doc :v "PROPOSAL: Exact spectral becomes optional diagnostic via --spectral flag. O(1) approximate replaces it for all decision-making. Already decoupled from --deep this session." :op :assert}
+   {:e #blake3 "96479432a71936fb3414e40050b7559befbae13e1d035b3e67cb0494098868c2" :a :db/ident :v :observation/proposal-exact-spectral-becomes-optional-diagnostic-via-s :op :assert}
+   {:e #blake3 "96479432a71936fb3414e40050b7559befbae13e1d035b3e67cb0494098868c2" :a :exploration/body :v "PROPOSAL: Exact spectral becomes optional diagnostic via --spectral flag. O(1) approximate replaces it for all decision-making. Already decoupled from --deep this session." :op :assert}
+   {:e #blake3 "96479432a71936fb3414e40050b7559befbae13e1d035b3e67cb0494098868c2" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "96479432a71936fb3414e40050b7559befbae13e1d035b3e67cb0494098868c2" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "96479432a71936fb3414e40050b7559befbae13e1d035b3e67cb0494098868c2" :a :exploration/content-hash :v #bytes "80659a991e0dd29f18d0d65068b2cb70597584a0b3b7e71315a8881e5ef42a48" :op :assert}
+   {:e #blake3 "96479432a71936fb3414e40050b7559befbae13e1d035b3e67cb0494098868c2" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "96479432a71936fb3414e40050b7559befbae13e1d035b3e67cb0494098868c2" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "96479432a71936fb3414e40050b7559befbae13e1d035b3e67cb0494098868c2" :a :exploration/source-session :v #blake3 "450fb7c7b8b08d515f0f01e48871de4505f67c2e2e0a0c0ce5625633ec7831f9" :op :assert}
+ ]}

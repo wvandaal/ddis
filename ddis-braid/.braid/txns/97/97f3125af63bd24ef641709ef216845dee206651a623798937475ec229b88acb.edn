@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774576166/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: SPECTRAL-REFORM — O(1) approximate spectral replaces exact for decisions (ADR-SPECTRAL-001). Three tasks: approximate computation in views, wire into F(S) and guidance, reclassify exact as diagnostic. Closes Type 9 reflexive divergence loop."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b01ab20f9fafb85113ef9f9a48f7661792098900e80d6abf722b81795a05ac34" :a :db/ident :v :task/t-22480dc0 :op :assert}
+   {:e #blake3 "b01ab20f9fafb85113ef9f9a48f7661792098900e80d6abf722b81795a05ac34" :a :task/created-at :v 1774576165 :op :assert}
+   {:e #blake3 "b01ab20f9fafb85113ef9f9a48f7661792098900e80d6abf722b81795a05ac34" :a :task/id :v "t-22480dc0" :op :assert}
+   {:e #blake3 "b01ab20f9fafb85113ef9f9a48f7661792098900e80d6abf722b81795a05ac34" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b01ab20f9fafb85113ef9f9a48f7661792098900e80d6abf722b81795a05ac34" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b01ab20f9fafb85113ef9f9a48f7661792098900e80d6abf722b81795a05ac34" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b01ab20f9fafb85113ef9f9a48f7661792098900e80d6abf722b81795a05ac34" :a :task/title :v "EPIC: SPECTRAL-REFORM — O(1) approximate spectral replaces exact for decisions (ADR-SPECTRAL-001). Three tasks: approximate computation in views, wire into F(S) and guidance, reclassify exact as diagnostic. Closes Type 9 reflexive divergence loop." :op :assert}
+   {:e #blake3 "b01ab20f9fafb85113ef9f9a48f7661792098900e80d6abf722b81795a05ac34" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "b01ab20f9fafb85113ef9f9a48f7661792098900e80d6abf722b81795a05ac34" :a :task/title-l1 :v "EPIC: SPECTRAL-REFORM — O(1) approximate spectral replaces exact for decisi..." :op :assert}
+   {:e #blake3 "b01ab20f9fafb85113ef9f9a48f7661792098900e80d6abf722b81795a05ac34" :a :task/type :v :task.type/epic :op :assert}
+ ]}

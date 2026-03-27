@@ -1,0 +1,14 @@
+{:tx/id #hlc "1774575857/0/c3d89db29683c1a81cb5f0a24f045b16"
+ :tx/agent "c3d89db29683c1a81cb5f0a24f045b16"
+ :tx/provenance :derived
+ :tx/rationale "runtime observation: braid_observe"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "10210d7233c2279891bae7372e833bd510577e61719d8424dca794e240fc0774" :a :db/ident :v :runtime/req-824d7c01b248634b :op :assert}
+   {:e #blake3 "10210d7233c2279891bae7372e833bd510577e61719d8424dca794e240fc0774" :a :runtime/cache-hit :v true :op :assert}
+   {:e #blake3 "10210d7233c2279891bae7372e833bd510577e61719d8424dca794e240fc0774" :a :runtime/command :v "braid_observe" :op :assert}
+   {:e #blake3 "10210d7233c2279891bae7372e833bd510577e61719d8424dca794e240fc0774" :a :runtime/datom-count :v 147205 :op :assert}
+   {:e #blake3 "10210d7233c2279891bae7372e833bd510577e61719d8424dca794e240fc0774" :a :runtime/latency-ms :v 0 :op :assert}
+   {:e #blake3 "10210d7233c2279891bae7372e833bd510577e61719d8424dca794e240fc0774" :a :runtime/outcome :v "error" :op :assert}
+   {:e #blake3 "10210d7233c2279891bae7372e833bd510577e61719d8424dca794e240fc0774" :a :runtime/request-id :v "1" :op :assert}
+ ]}

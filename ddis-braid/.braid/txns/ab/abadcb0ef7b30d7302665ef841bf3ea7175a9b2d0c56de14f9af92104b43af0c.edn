@@ -1,0 +1,13 @@
+{:tx/id #hlc "1774576213/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4440514b2da42b58017aab04de231ab53e2933af578c7a91a2d7766ce6b8fc09" :a :db/ident :v :recon/trace-0c07fd654f2ad662 :op :assert}
+   {:e #blake3 "4440514b2da42b58017aab04de231ab53e2933af578c7a91a2d7766ce6b8fc09" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "4440514b2da42b58017aab04de231ab53e2933af578c7a91a2d7766ce6b8fc09" :a :recon/trace-neighborhood :v "SEED" :op :assert}
+   {:e #blake3 "4440514b2da42b58017aab04de231ab53e2933af578c7a91a2d7766ce6b8fc09" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.seed.inv-seed-006" :op :assert}
+   {:e #blake3 "4440514b2da42b58017aab04de231ab53e2933af578c7a91a2d7766ce6b8fc09" :a :recon/trace-neighbors :v ":task/t-af645d8c" :op :assert}
+   {:e #blake3 "4440514b2da42b58017aab04de231ab53e2933af578c7a91a2d7766ce6b8fc09" :a :recon/trace-refs :v "INV-SEED-006" :op :assert}
+ ]}

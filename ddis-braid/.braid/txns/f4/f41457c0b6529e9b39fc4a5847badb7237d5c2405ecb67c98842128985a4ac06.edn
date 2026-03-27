@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774576101/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "BUG FIX: Daemon routes observe/task/harvest with empty args causing parse errors. Fixed: only status and query are daemon-routable until arg marshaling implemented."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0187c0a1b34028cb2d53bfb3202fb8d4a8334658b3716a194051b93a0e53c3f9" :a :db/doc :v "BUG FIX: Daemon routes observe/task/harvest with empty args causing parse errors. Fixed: only status and query are daemon-routable until arg marshaling implemented." :op :assert}
+   {:e #blake3 "0187c0a1b34028cb2d53bfb3202fb8d4a8334658b3716a194051b93a0e53c3f9" :a :db/ident :v :observation/bug-fix-daemon-routes-observetaskharvest-with-empty-args :op :assert}
+   {:e #blake3 "0187c0a1b34028cb2d53bfb3202fb8d4a8334658b3716a194051b93a0e53c3f9" :a :exploration/body :v "BUG FIX: Daemon routes observe/task/harvest with empty args causing parse errors. Fixed: only status and query are daemon-routable until arg marshaling implemented." :op :assert}
+   {:e #blake3 "0187c0a1b34028cb2d53bfb3202fb8d4a8334658b3716a194051b93a0e53c3f9" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "0187c0a1b34028cb2d53bfb3202fb8d4a8334658b3716a194051b93a0e53c3f9" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "0187c0a1b34028cb2d53bfb3202fb8d4a8334658b3716a194051b93a0e53c3f9" :a :exploration/content-hash :v #bytes "39c51010e333a5034f3afd8e2e39cead7bfb495e47d7981f8f158f79e3072cbf" :op :assert}
+   {:e #blake3 "0187c0a1b34028cb2d53bfb3202fb8d4a8334658b3716a194051b93a0e53c3f9" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "0187c0a1b34028cb2d53bfb3202fb8d4a8334658b3716a194051b93a0e53c3f9" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "0187c0a1b34028cb2d53bfb3202fb8d4a8334658b3716a194051b93a0e53c3f9" :a :exploration/source-session :v #blake3 "450fb7c7b8b08d515f0f01e48871de4505f67c2e2e0a0c0ce5625633ec7831f9" :op :assert}
+ ]}

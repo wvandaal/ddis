@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774576270/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-cbab3387"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/close-reason :v "Superseded by SPECTRAL-REFORM epic. Lanczos already wired this session. Remaining work decomposed into SPECTRAL-1/2/TEST with O(1) approximate approach." :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/closed-at :v 1774576269 :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/status :v :task.status/closed :op :assert}
+ ]}

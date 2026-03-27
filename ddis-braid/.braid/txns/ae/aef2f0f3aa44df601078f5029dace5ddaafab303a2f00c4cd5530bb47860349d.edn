@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774576131/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-DIVERGENCE-009 \"Type 9 Reflexive Divergence Detection\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "263603d68ec5816a65864e7bdf93a4e5caeaae0a998f03dfb2123464bb8609cf" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "263603d68ec5816a65864e7bdf93a4e5caeaae0a998f03dfb2123464bb8609cf" :a :comonad/falsification :v #blake3 "43b4ab536ac82ecd746eca2bf4b8b76ad38d590de67ab694789ba2d6375a97af" :op :assert}
+   {:e #blake3 "263603d68ec5816a65864e7bdf93a4e5caeaae0a998f03dfb2123464bb8609cf" :a :db/doc :v "Type 9 Reflexive Divergence Detection" :op :assert}
+   {:e #blake3 "263603d68ec5816a65864e7bdf93a4e5caeaae0a998f03dfb2123464bb8609cf" :a :db/ident :v :spec/inv-divergence-009 :op :assert}
+   {:e #blake3 "263603d68ec5816a65864e7bdf93a4e5caeaae0a998f03dfb2123464bb8609cf" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "263603d68ec5816a65864e7bdf93a4e5caeaae0a998f03dfb2123464bb8609cf" :a :spec/falsification :v "F(S) stagnant for 5+ sessions AND approximate spectral gap below threshold AND no guidance warning emitted" :op :assert}
+   {:e #blake3 "263603d68ec5816a65864e7bdf93a4e5caeaae0a998f03dfb2123464bb8609cf" :a :spec/id :v "INV-DIVERGENCE-009" :op :assert}
+   {:e #blake3 "263603d68ec5816a65864e7bdf93a4e5caeaae0a998f03dfb2123464bb8609cf" :a :spec/namespace :v :spec.ns/DIVERGENCE :op :assert}
+   {:e #blake3 "263603d68ec5816a65864e7bdf93a4e5caeaae0a998f03dfb2123464bb8609cf" :a :spec/statement :v "The system detects its own structural divergence via approximate spectral gap. When spectral_gap < configurable threshold, guidance emits fragmentation warning. When F(S) is flat for N sessions, guidance emits stagnation warning." :op :assert}
+   {:e #blake3 "43b4ab536ac82ecd746eca2bf4b8b76ad38d590de67ab694789ba2d6375a97af" :a :db/doc :v "F(S) stagnant for 5+ sessions AND approximate spectral gap below threshold AND no guidance warning emitted" :op :assert}
+   {:e #blake3 "772c0ca353e0a247bd6319eb691ff03d5850a2da1445b65c870b2290e974750e" :a :db/ident :v :task/t-e9b70884 :op :assert}
+   {:e #blake3 "772c0ca353e0a247bd6319eb691ff03d5850a2da1445b65c870b2290e974750e" :a :task/created-at :v 1774576130 :op :assert}
+   {:e #blake3 "772c0ca353e0a247bd6319eb691ff03d5850a2da1445b65c870b2290e974750e" :a :task/id :v "t-e9b70884" :op :assert}
+   {:e #blake3 "772c0ca353e0a247bd6319eb691ff03d5850a2da1445b65c870b2290e974750e" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "772c0ca353e0a247bd6319eb691ff03d5850a2da1445b65c870b2290e974750e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "772c0ca353e0a247bd6319eb691ff03d5850a2da1445b65c870b2290e974750e" :a :task/title :v "Implement INV-DIVERGENCE-009: Type 9 Reflexive Divergence Detection" :op :assert}
+   {:e #blake3 "772c0ca353e0a247bd6319eb691ff03d5850a2da1445b65c870b2290e974750e" :a :task/traces-to :v #blake3 "263603d68ec5816a65864e7bdf93a4e5caeaae0a998f03dfb2123464bb8609cf" :op :assert}
+   {:e #blake3 "772c0ca353e0a247bd6319eb691ff03d5850a2da1445b65c870b2290e974750e" :a :task/type :v :task.type/task :op :assert}
+ ]}

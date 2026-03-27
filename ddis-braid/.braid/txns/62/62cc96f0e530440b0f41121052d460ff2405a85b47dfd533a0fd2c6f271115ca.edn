@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774576127/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-SPECTRAL-010 \"O(1) Approximate Spectral Gap\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0260ad253b80521bfb9402acbb0be439a88c8c79a7f7979efa7ff90aa6a52940" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "0260ad253b80521bfb9402acbb0be439a88c8c79a7f7979efa7ff90aa6a52940" :a :comonad/falsification :v #blake3 "211ce5055404f97edc8bc14ddc4d336f9924cdfebb150450ff4e280809b56541" :op :assert}
+   {:e #blake3 "0260ad253b80521bfb9402acbb0be439a88c8c79a7f7979efa7ff90aa6a52940" :a :db/doc :v "O(1) Approximate Spectral Gap" :op :assert}
+   {:e #blake3 "0260ad253b80521bfb9402acbb0be439a88c8c79a7f7979efa7ff90aa6a52940" :a :db/ident :v :spec/inv-spectral-010 :op :assert}
+   {:e #blake3 "0260ad253b80521bfb9402acbb0be439a88c8c79a7f7979efa7ff90aa6a52940" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "0260ad253b80521bfb9402acbb0be439a88c8c79a7f7979efa7ff90aa6a52940" :a :spec/falsification :v "approximate_spectral_gap diverges from exact Fiedler value by more than one order of magnitude on a graph with 1000+ entities" :op :assert}
+   {:e #blake3 "0260ad253b80521bfb9402acbb0be439a88c8c79a7f7979efa7ff90aa6a52940" :a :spec/id :v "INV-SPECTRAL-010" :op :assert}
+   {:e #blake3 "0260ad253b80521bfb9402acbb0be439a88c8c79a7f7979efa7ff90aa6a52940" :a :spec/namespace :v :spec.ns/SPECTRAL :op :assert}
+   {:e #blake3 "0260ad253b80521bfb9402acbb0be439a88c8c79a7f7979efa7ff90aa6a52940" :a :spec/statement :v "MaterializedViews provides approximate_spectral_gap() computed incrementally from ISP boundary statistics. Bounded by Cheeger inequality: lambda2/2 <= h(G) <= sqrt(2*lambda2). Cost O(1) read, O(1) per datom update." :op :assert}
+   {:e #blake3 "13047be2cccdb669d1a9b62f3848c4982ac580ee31da53d8231eaa7519a7aaa5" :a :db/ident :v :task/t-3fff3a98 :op :assert}
+   {:e #blake3 "13047be2cccdb669d1a9b62f3848c4982ac580ee31da53d8231eaa7519a7aaa5" :a :task/created-at :v 1774576126 :op :assert}
+   {:e #blake3 "13047be2cccdb669d1a9b62f3848c4982ac580ee31da53d8231eaa7519a7aaa5" :a :task/id :v "t-3fff3a98" :op :assert}
+   {:e #blake3 "13047be2cccdb669d1a9b62f3848c4982ac580ee31da53d8231eaa7519a7aaa5" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "13047be2cccdb669d1a9b62f3848c4982ac580ee31da53d8231eaa7519a7aaa5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "13047be2cccdb669d1a9b62f3848c4982ac580ee31da53d8231eaa7519a7aaa5" :a :task/title :v "Implement INV-SPECTRAL-010: O(1) Approximate Spectral Gap" :op :assert}
+   {:e #blake3 "13047be2cccdb669d1a9b62f3848c4982ac580ee31da53d8231eaa7519a7aaa5" :a :task/traces-to :v #blake3 "0260ad253b80521bfb9402acbb0be439a88c8c79a7f7979efa7ff90aa6a52940" :op :assert}
+   {:e #blake3 "13047be2cccdb669d1a9b62f3848c4982ac580ee31da53d8231eaa7519a7aaa5" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "211ce5055404f97edc8bc14ddc4d336f9924cdfebb150450ff4e280809b56541" :a :db/doc :v "approximate_spectral_gap diverges from exact Fiedler value by more than one order of magnitude on a graph with 1000+ entities" :op :assert}
+ ]}

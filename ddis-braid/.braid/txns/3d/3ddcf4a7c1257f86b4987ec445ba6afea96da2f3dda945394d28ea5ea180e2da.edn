@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774576182/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DAEMON-ARGS: Fix daemon arg marshaling for write commands. CONTEXT: try_route_through_daemon passes empty JSON args for all commands. Write commands (observe, task, harvest, spec) fail with parse error. Currently fixed by routing only status/query through daemon. APPROACH: Marshal CLI args into JSON-RPC params. For observe: pass text and confidence. For task: pass action and args. For harvest/seed: pass path and flags. ACCEPTANCE: (A) braid observe routes through daemon successfully. (B) braid task create routes through daemon. (C) All commands produce identical results in daemon vs direct mode. TRACES: INV-DAEMON-004 (semantic equivalence). FILE: crates/braid/src/daemon.rs, crates/braid/src/main.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :db/ident :v :task/t-4ebf7442 :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/acceptance :v "(A) braid observe routes through daemon successfully. (B) braid task create routes through daemon. (C) All commands produce identical results in daemon vs direct mode. TRACES: INV-DAEMON-004 (semantic equivalence)." :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/approach :v "Marshal CLI args into JSON-RPC params. For observe: pass text and confidence. For task: pass action and args. For harvest/seed: pass path and flags." :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/body :v "APPROACH: Marshal CLI args into JSON-RPC params. For observe: pass text and confidence. For task: pass action and args. For harvest/seed: pass path and flags. ACCEPTANCE: (A) braid observe routes through daemon successfully. (B) braid task create routes through daemon. (C) All commands produce identical results in daemon vs direct mode. TRACES: INV-DAEMON-004 (semantic equivalence). FILE: crates/braid/src/daemon.rs, crates/braid/src/main.rs" :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/created-at :v 1774576181 :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/files :v "crates/braid/src/daemon.rs" :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/files :v "crates/braid/src/main.rs" :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/id :v "t-4ebf7442" :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/title :v "DAEMON-ARGS: Fix daemon arg marshaling for write commands. CONTEXT: try_route_through_daemon passes empty JSON args for all commands. Write commands (observe, task, harvest, spec) fail with parse error. Currently fixed by routing only status/query through daemon" :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/title-l0 :v "DAEMON-ARGS" :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/title-l1 :v "DAEMON-ARGS: Fix daemon arg marshaling for write commands" :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/traces-to :v #blake3 "18eb0a843926b7421e50fbb6464bb6a341b918b2c4b4f022d0d6fa6e333bfa84" :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/type :v :task.type/task :op :assert}
+ ]}

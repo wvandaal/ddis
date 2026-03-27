@@ -769,13 +769,12 @@ pub fn try_route_through_daemon(
     stream.set_write_timeout(Some(std::time::Duration::from_secs(2))).ok()?;
 
     // Map CLI command to JSON-RPC tools/call.
+    // ONLY read-only commands that need no args are daemon-routable.
+    // Write commands (observe, harvest, task, spec) need argument marshaling
+    // which is not yet implemented — they use direct mode.
     let tool_name = match cmd_name {
         "status" => "braid_status",
         "query" => "braid_query",
-        "observe" => "braid_observe",
-        "harvest" => "braid_harvest",
-        "seed" => "braid_seed",
-        "guidance" => "braid_guidance",
         _ => return None, // Not yet mapped — use direct mode.
     };
 
