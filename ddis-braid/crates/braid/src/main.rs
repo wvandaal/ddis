@@ -101,12 +101,30 @@ fn main() {
     let skip_exit_warning = commands::is_harvest_command(&cmd);
     let budget_exempt = is_budget_exempt(&cmd);
 
-    // L1-SINGLE (INV-PERF-001): Resolve store path and open LiveStore ONCE for entire process.
-    // Previously opened 2-3x per command (session detect, command, post-command hooks),
-    // each deserializing 110MB bincode at ~2-3s. Now: one open, zero redundant deserializations.
+    // Resolve store path (needed by both daemon routing and direct mode).
     let resolved_path = commands::store_path(&cmd)
         .map(|p| commands::resolve_store_path(p.to_path_buf()));
 
+    // INV-DAEMON-007: Try daemon routing FIRST, BEFORE opening LiveStore.
+    // If the daemon is running, the CLI sends the request over the Unix socket
+    // and the daemon's warm in-memory store handles it — zero deserialization.
+    // Previously this was AFTER LiveStore::open(), defeating the purpose:
+    // the CLI paid the full ~3s store load before even checking the daemon.
+    if cmd_name != "init" && cmd_name != "daemon" {
+        if let Some(ref store_path) = resolved_path {
+            if let Some(text) = daemon::try_route_through_daemon(
+                store_path,
+                cmd_name,
+                &serde_json::json!({}),
+            ) {
+                println!("{text}");
+                return;
+            }
+        }
+    }
+
+    // Direct mode: daemon not running or command not routable.
+    // L1-SINGLE: Open LiveStore ONCE for entire process.
     let mut live = if cmd_name != "init" {
         resolved_path
             .as_ref()
@@ -115,19 +133,7 @@ fn main() {
         None
     };
 
-    // LIVESTORE-5a: ST-1 session auto-detect using the single LiveStore.
-    //
-    // CRITICAL SAFETY INVARIANT: Session detection must ONLY write through the
-    // pre-opened LiveStore for commands that USE that store (via pre_opened parameter).
-    // For commands that open their OWN LiveStore (observe, task create, harvest, etc.),
-    // writing session datoms through main's LiveStore creates a stale-overwrite race:
-    //   1. main's LiveStore is marked dirty (session write)
-    //   2. Command's LiveStore writes + flushes store.bin with command data
-    //   3. main's LiveStore drops and OVERWRITES store.bin with stale state
-    //   4. Command's writes become invisible through the cache
-    //
-    // Fix: Only do session detection for commands that use the pre-opened store.
-    // Currently: only "status" uses pre_opened. Other commands handle their own stores.
+    // Session auto-detect (only for commands using pre_opened store).
     let uses_pre_opened = matches!(cmd_name, "status");
     if cmd_name != "init" && cmd_name != "session" && uses_pre_opened {
         if let Some(ref mut live) = live {
@@ -149,21 +155,6 @@ fn main() {
                 };
                 let _ = live.write_tx(&tx_file);
             }
-            // LiveStore stays alive — reused by command and post-command hooks.
-        }
-    }
-
-    // D4-8: Try daemon routing before direct execution (INV-DAEMON-007).
-    // If the daemon is running, route supported commands through the socket.
-    // Falls back silently to direct mode on any failure.
-    if let Some(ref store_path) = resolved_path {
-        if let Some(text) = daemon::try_route_through_daemon(
-            store_path,
-            cmd_name,
-            &serde_json::json!({}), // Minimal args for daemon-routed commands
-        ) {
-            println!("{text}");
-            return;
         }
     }
 

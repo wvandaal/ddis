@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774574615/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DAEMON-FIRST RESULT: CLI CPU 4.5s->0.02s (99.6% reduction). Wall time 3.0s = daemon computation (not CLI load). Observe through daemon: 0.16s. The daemon-first routing works — CLI skips store load entirely. Remaining wall time is daemon-side computation which can be optimized independently. INV-DAEMON-010 verified."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "335e5620629cd263c81c1d2c8ccc6655aabfa10f827fbe2c67ff68fa9482350a" :a :db/doc :v "DAEMON-FIRST RESULT: CLI CPU 4.5s->0.02s (99.6% reduction). Wall time 3.0s = daemon computation (not CLI load). Observe through daemon: 0.16s. The daemon-first routing works — CLI skips store load entirely. Remaining wall time is daemon-side computation which can be optimized independently. INV-DAEMON-010 verified." :op :assert}
+   {:e #blake3 "335e5620629cd263c81c1d2c8ccc6655aabfa10f827fbe2c67ff68fa9482350a" :a :db/ident :v :observation/daemon-first-result-cli-cpu-45s-002s-996-reduction :op :assert}
+   {:e #blake3 "335e5620629cd263c81c1d2c8ccc6655aabfa10f827fbe2c67ff68fa9482350a" :a :exploration/body :v "DAEMON-FIRST RESULT: CLI CPU 4.5s->0.02s (99.6% reduction). Wall time 3.0s = daemon computation (not CLI load). Observe through daemon: 0.16s. The daemon-first routing works — CLI skips store load entirely. Remaining wall time is daemon-side computation which can be optimized independently. INV-DAEMON-010 verified." :op :assert}
+   {:e #blake3 "335e5620629cd263c81c1d2c8ccc6655aabfa10f827fbe2c67ff68fa9482350a" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "335e5620629cd263c81c1d2c8ccc6655aabfa10f827fbe2c67ff68fa9482350a" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "335e5620629cd263c81c1d2c8ccc6655aabfa10f827fbe2c67ff68fa9482350a" :a :exploration/content-hash :v #bytes "5aeddbedb4be092a3a7d0d66b3b0eab6e2f048bcf38094baa55423cb466b0174" :op :assert}
+   {:e #blake3 "335e5620629cd263c81c1d2c8ccc6655aabfa10f827fbe2c67ff68fa9482350a" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "335e5620629cd263c81c1d2c8ccc6655aabfa10f827fbe2c67ff68fa9482350a" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "335e5620629cd263c81c1d2c8ccc6655aabfa10f827fbe2c67ff68fa9482350a" :a :exploration/source-session :v #blake3 "450fb7c7b8b08d515f0f01e48871de4505f67c2e2e0a0c0ce5625633ec7831f9" :op :assert}
+ ]}

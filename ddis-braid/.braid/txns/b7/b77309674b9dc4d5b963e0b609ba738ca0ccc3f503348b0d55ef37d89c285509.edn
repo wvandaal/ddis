@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774574045/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VERIFY-CACHE: test task visibility across CLI invocations"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c8ad4d53ccde6309c22c5d453342b94e84d5536a73ba16b97985afdb2a19b53d" :a :db/ident :v :task/t-012225fa :op :assert}
+   {:e #blake3 "c8ad4d53ccde6309c22c5d453342b94e84d5536a73ba16b97985afdb2a19b53d" :a :task/created-at :v 1774574044 :op :assert}
+   {:e #blake3 "c8ad4d53ccde6309c22c5d453342b94e84d5536a73ba16b97985afdb2a19b53d" :a :task/description :v "Cache fix verification — delete after confirming" :op :assert}
+   {:e #blake3 "c8ad4d53ccde6309c22c5d453342b94e84d5536a73ba16b97985afdb2a19b53d" :a :task/id :v "t-012225fa" :op :assert}
+   {:e #blake3 "c8ad4d53ccde6309c22c5d453342b94e84d5536a73ba16b97985afdb2a19b53d" :a :task/priority :v 4 :op :assert}
+   {:e #blake3 "c8ad4d53ccde6309c22c5d453342b94e84d5536a73ba16b97985afdb2a19b53d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c8ad4d53ccde6309c22c5d453342b94e84d5536a73ba16b97985afdb2a19b53d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c8ad4d53ccde6309c22c5d453342b94e84d5536a73ba16b97985afdb2a19b53d" :a :task/title :v "VERIFY-CACHE: test task visibility across CLI invocations" :op :assert}
+   {:e #blake3 "c8ad4d53ccde6309c22c5d453342b94e84d5536a73ba16b97985afdb2a19b53d" :a :task/title-l0 :v "VERIFY-CACHE" :op :assert}
+   {:e #blake3 "c8ad4d53ccde6309c22c5d453342b94e84d5536a73ba16b97985afdb2a19b53d" :a :task/title-l1 :v "VERIFY-CACHE: test task visibility across CLI invocations" :op :assert}
+   {:e #blake3 "c8ad4d53ccde6309c22c5d453342b94e84d5536a73ba16b97985afdb2a19b53d" :a :task/type :v :task.type/task :op :assert}
+ ]}

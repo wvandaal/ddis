@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774574540/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "CRITICAL FINDING: Daemon is 85% complete (1925 LOC) but CLI opens LiveStore BEFORE trying daemon route. main.rs line 110 opens store (~3s), then line 156 tries daemon. If daemon is running, the 3s load is wasted. Fix: move daemon routing before LiveStore::open. Expected: daemon-routed status goes from 6-10s to ~500ms (socket RTT + daemon computation, zero deserialization on CLI side). This is the single highest-impact change remaining for INV-PERF-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f368b5a533fea715bbcebdf4b021bcad0ad68d45eca4902902d0224bdded3501" :a :db/doc :v "CRITICAL FINDING: Daemon is 85% complete (1925 LOC) but CLI opens LiveStore BEFORE trying daemon route. main.rs line 110 opens store (~3s), then line 156 tries daemon. If daemon is running, the 3s load is wasted. Fix: move daemon routing before LiveStore::open. Expected: daemon-routed status goes from 6-10s to ~500ms (socket RTT + daemon computation, zero deserialization on CLI side). This is the single highest-impact change remaining for INV-PERF-001." :op :assert}
+   {:e #blake3 "f368b5a533fea715bbcebdf4b021bcad0ad68d45eca4902902d0224bdded3501" :a :db/ident :v :observation/critical-finding-daemon-is-85-complete-1925-loc-but-cli :op :assert}
+   {:e #blake3 "f368b5a533fea715bbcebdf4b021bcad0ad68d45eca4902902d0224bdded3501" :a :exploration/body :v "CRITICAL FINDING: Daemon is 85% complete (1925 LOC) but CLI opens LiveStore BEFORE trying daemon route. main.rs line 110 opens store (~3s), then line 156 tries daemon. If daemon is running, the 3s load is wasted. Fix: move daemon routing before LiveStore::open. Expected: daemon-routed status goes from 6-10s to ~500ms (socket RTT + daemon computation, zero deserialization on CLI side). This is the single highest-impact change remaining for INV-PERF-001." :op :assert}
+   {:e #blake3 "f368b5a533fea715bbcebdf4b021bcad0ad68d45eca4902902d0224bdded3501" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "f368b5a533fea715bbcebdf4b021bcad0ad68d45eca4902902d0224bdded3501" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "f368b5a533fea715bbcebdf4b021bcad0ad68d45eca4902902d0224bdded3501" :a :exploration/content-hash :v #bytes "727d8d02ece554a24f842938efb4282a42bf469578c676e5aba660ea57b82ddc" :op :assert}
+   {:e #blake3 "f368b5a533fea715bbcebdf4b021bcad0ad68d45eca4902902d0224bdded3501" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f368b5a533fea715bbcebdf4b021bcad0ad68d45eca4902902d0224bdded3501" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f368b5a533fea715bbcebdf4b021bcad0ad68d45eca4902902d0224bdded3501" :a :exploration/source-session :v #blake3 "450fb7c7b8b08d515f0f01e48871de4505f67c2e2e0a0c0ce5625633ec7831f9" :op :assert}
+ ]}

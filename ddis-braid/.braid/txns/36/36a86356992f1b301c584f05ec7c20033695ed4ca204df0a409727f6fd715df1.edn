@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774574545/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-DAEMON-010 \"Daemon-First Routing Order\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "31e4450b42317c3db6db164491ae3f5302c7514a055854e2bf50044c447f3998" :a :db/doc :v "CLI opens LiveStore before checking daemon availability, paying the full deserialization cost even when daemon handles the request" :op :assert}
+   {:e #blake3 "c270bf12b4ce111b2b5424b606e6eaedaf62b7e2d515087a82d35ee86eff647a" :a :db/ident :v :task/t-994167b6 :op :assert}
+   {:e #blake3 "c270bf12b4ce111b2b5424b606e6eaedaf62b7e2d515087a82d35ee86eff647a" :a :task/created-at :v 1774574544 :op :assert}
+   {:e #blake3 "c270bf12b4ce111b2b5424b606e6eaedaf62b7e2d515087a82d35ee86eff647a" :a :task/id :v "t-994167b6" :op :assert}
+   {:e #blake3 "c270bf12b4ce111b2b5424b606e6eaedaf62b7e2d515087a82d35ee86eff647a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "c270bf12b4ce111b2b5424b606e6eaedaf62b7e2d515087a82d35ee86eff647a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c270bf12b4ce111b2b5424b606e6eaedaf62b7e2d515087a82d35ee86eff647a" :a :task/title :v "Implement INV-DAEMON-010: Daemon-First Routing Order" :op :assert}
+   {:e #blake3 "c270bf12b4ce111b2b5424b606e6eaedaf62b7e2d515087a82d35ee86eff647a" :a :task/traces-to :v #blake3 "fa053d8f27d19fd1a2742121281c1755a2f4dae606784a32f3d37dff230920ed" :op :assert}
+   {:e #blake3 "c270bf12b4ce111b2b5424b606e6eaedaf62b7e2d515087a82d35ee86eff647a" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "fa053d8f27d19fd1a2742121281c1755a2f4dae606784a32f3d37dff230920ed" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "fa053d8f27d19fd1a2742121281c1755a2f4dae606784a32f3d37dff230920ed" :a :comonad/falsification :v #blake3 "31e4450b42317c3db6db164491ae3f5302c7514a055854e2bf50044c447f3998" :op :assert}
+   {:e #blake3 "fa053d8f27d19fd1a2742121281c1755a2f4dae606784a32f3d37dff230920ed" :a :db/doc :v "Daemon-First Routing Order" :op :assert}
+   {:e #blake3 "fa053d8f27d19fd1a2742121281c1755a2f4dae606784a32f3d37dff230920ed" :a :db/ident :v :spec/inv-daemon-010 :op :assert}
+   {:e #blake3 "fa053d8f27d19fd1a2742121281c1755a2f4dae606784a32f3d37dff230920ed" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "fa053d8f27d19fd1a2742121281c1755a2f4dae606784a32f3d37dff230920ed" :a :spec/falsification :v "CLI opens LiveStore before checking daemon availability, paying the full deserialization cost even when daemon handles the request" :op :assert}
+   {:e #blake3 "fa053d8f27d19fd1a2742121281c1755a2f4dae606784a32f3d37dff230920ed" :a :spec/id :v "INV-DAEMON-010" :op :assert}
+   {:e #blake3 "fa053d8f27d19fd1a2742121281c1755a2f4dae606784a32f3d37dff230920ed" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "fa053d8f27d19fd1a2742121281c1755a2f4dae606784a32f3d37dff230920ed" :a :spec/statement :v "When a daemon is running, the CLI must attempt daemon routing BEFORE opening LiveStore. The LiveStore open cost (3-5s) must not be paid when the daemon handles the request." :op :assert}
+ ]}

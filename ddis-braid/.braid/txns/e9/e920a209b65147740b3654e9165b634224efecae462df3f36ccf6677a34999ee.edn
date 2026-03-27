@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774574549/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DAEMON-FIRST: Move daemon routing before LiveStore::open in main.rs. INV-DAEMON-010. Daemon check is a fast socket probe (~1ms). If daemon handles the request, CLI returns immediately without paying the 3-5s store load cost. ACCEPTANCE: (A) With daemon running, braid status completes in <1s. (B) Without daemon, behavior unchanged (fallback to direct). FILE: crates/braid/src/main.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :db/ident :v :task/t-1ccb4e55 :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/acceptance :v "(A) With daemon running, braid status completes in <1s. (B) Without daemon, behavior unchanged (fallback to direct)." :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/body :v "ACCEPTANCE: (A) With daemon running, braid status completes in <1s. (B) Without daemon, behavior unchanged (fallback to direct). FILE: crates/braid/src/main.rs" :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/created-at :v 1774574548 :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/files :v "crates/braid/src/main.rs" :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/id :v "t-1ccb4e55" :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/title :v "DAEMON-FIRST: Move daemon routing before LiveStore::open in main.rs. INV-DAEMON-010. Daemon check is a fast socket probe (~1ms). If daemon handles the request, CLI returns immediately without paying the 3-5s store load cost" :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/title-l0 :v "DAEMON-FIRST" :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/title-l1 :v "DAEMON-FIRST: Move daemon routing before LiveStore::open in main.rs" :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/type :v :task.type/task :op :assert}
+ ]}
