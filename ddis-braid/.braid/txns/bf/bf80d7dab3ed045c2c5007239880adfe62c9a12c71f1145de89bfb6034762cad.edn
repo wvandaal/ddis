@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774581526/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-5dcc97ae"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e75198ac1a00ff8edb3b8c867e7c95eb84228de4471e15addb8a814955d58375" :a :task/close-reason :v "Implemented: score_entity() extended with corroboration_scores parameter (backward-compatible: empty map = original formula). assemble() computes agreement clusters via C9-P1 and builds corroboration map. All 1,665 kernel tests pass with zero regressions. The existing score_entity tests verify backward compat via BTreeMap::new()." :op :assert}
+   {:e #blake3 "e75198ac1a00ff8edb3b8c867e7c95eb84228de4471e15addb8a814955d58375" :a :task/closed-at :v 1774581525 :op :assert}
+   {:e #blake3 "e75198ac1a00ff8edb3b8c867e7c95eb84228de4471e15addb8a814955d58375" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "e75198ac1a00ff8edb3b8c867e7c95eb84228de4471e15addb8a814955d58375" :a :task/status :v :task.status/closed :op :assert}
+ ]}

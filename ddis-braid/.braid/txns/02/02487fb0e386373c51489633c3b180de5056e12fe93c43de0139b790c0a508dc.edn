@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774589206/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-GRAMMAR-SPEC: Define the target grammar as a formal language with INV-CLI-GRAMMAR through INV-CLI-PROGRESSIVE. The cardinality equation |GrammarSpace| = |ValidCommands|. Every command pattern-predicted must exist. Depends on CLI-AUDIT."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c4abbdf750f782d150df00a0791041cea03463000aa07c10f52390548684b1c0" :a :db/ident :v :task/t-d2554f52 :op :assert}
+   {:e #blake3 "c4abbdf750f782d150df00a0791041cea03463000aa07c10f52390548684b1c0" :a :task/created-at :v 1774589205 :op :assert}
+   {:e #blake3 "c4abbdf750f782d150df00a0791041cea03463000aa07c10f52390548684b1c0" :a :task/id :v "t-d2554f52" :op :assert}
+   {:e #blake3 "c4abbdf750f782d150df00a0791041cea03463000aa07c10f52390548684b1c0" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "c4abbdf750f782d150df00a0791041cea03463000aa07c10f52390548684b1c0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c4abbdf750f782d150df00a0791041cea03463000aa07c10f52390548684b1c0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c4abbdf750f782d150df00a0791041cea03463000aa07c10f52390548684b1c0" :a :task/title :v "CLI-GRAMMAR-SPEC: Define the target grammar as a formal language with INV-CLI-GRAMMAR through INV-CLI-PROGRESSIVE. The cardinality equation |GrammarSpace| = |ValidCommands|. Every command pattern-predicted must exist. Depends on CLI-AUDIT." :op :assert}
+   {:e #blake3 "c4abbdf750f782d150df00a0791041cea03463000aa07c10f52390548684b1c0" :a :task/title-l0 :v "CLI-GRAMMAR-SPEC" :op :assert}
+   {:e #blake3 "c4abbdf750f782d150df00a0791041cea03463000aa07c10f52390548684b1c0" :a :task/title-l1 :v "CLI-GRAMMAR-SPEC: Define the target grammar as a formal language with INV-CLI..." :op :assert}
+   {:e #blake3 "c4abbdf750f782d150df00a0791041cea03463000aa07c10f52390548684b1c0" :a :task/type :v :task.type/task :op :assert}
+ ]}

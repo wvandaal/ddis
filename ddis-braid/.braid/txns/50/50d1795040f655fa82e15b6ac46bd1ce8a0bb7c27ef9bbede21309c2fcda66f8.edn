@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774591920/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CLI-005 \"Response Steering: Every mutation response has what/changed/next\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4f62930ab74fa0979aaf30fafc14048ed549b930099eba600eb5b316c0b526f0" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "4f62930ab74fa0979aaf30fafc14048ed549b930099eba600eb5b316c0b526f0" :a :comonad/falsification :v #blake3 "f73401aa4b23e8f974fa1450c9ac767c16559fd6311be8232a0109e2b3aa1529" :op :assert}
+   {:e #blake3 "4f62930ab74fa0979aaf30fafc14048ed549b930099eba600eb5b316c0b526f0" :a :db/doc :v "Response Steering: Every mutation response has what/changed/next" :op :assert}
+   {:e #blake3 "4f62930ab74fa0979aaf30fafc14048ed549b930099eba600eb5b316c0b526f0" :a :db/ident :v :spec/inv-cli-005 :op :assert}
+   {:e #blake3 "4f62930ab74fa0979aaf30fafc14048ed549b930099eba600eb5b316c0b526f0" :a :element/traces-to :v "STEERING_MANIFOLD.md §2" :op :assert}
+   {:e #blake3 "4f62930ab74fa0979aaf30fafc14048ed549b930099eba600eb5b316c0b526f0" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "4f62930ab74fa0979aaf30fafc14048ed549b930099eba600eb5b316c0b526f0" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "4f62930ab74fa0979aaf30fafc14048ed549b930099eba600eb5b316c0b526f0" :a :spec/falsification :v "Any mutation response that omits any of the three components." :op :assert}
+   {:e #blake3 "4f62930ab74fa0979aaf30fafc14048ed549b930099eba600eb5b316c0b526f0" :a :spec/id :v "INV-CLI-005" :op :assert}
+   {:e #blake3 "4f62930ab74fa0979aaf30fafc14048ed549b930099eba600eb5b316c0b526f0" :a :spec/namespace :v :spec.ns/CLI :op :assert}
+   {:e #blake3 "4f62930ab74fa0979aaf30fafc14048ed549b930099eba600eb5b316c0b526f0" :a :spec/statement :v "Every create/close/claim response includes: (1) what happened, (2) what changed in the store, (3) what to do next." :op :assert}
+   {:e #blake3 "aa19b151d79e4477ca6961a5abe7374b3ee1816b421ff5e345b754cd573f1bab" :a :db/ident :v :task/t-8a40992d :op :assert}
+   {:e #blake3 "aa19b151d79e4477ca6961a5abe7374b3ee1816b421ff5e345b754cd573f1bab" :a :task/created-at :v 1774591919 :op :assert}
+   {:e #blake3 "aa19b151d79e4477ca6961a5abe7374b3ee1816b421ff5e345b754cd573f1bab" :a :task/id :v "t-8a40992d" :op :assert}
+   {:e #blake3 "aa19b151d79e4477ca6961a5abe7374b3ee1816b421ff5e345b754cd573f1bab" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "aa19b151d79e4477ca6961a5abe7374b3ee1816b421ff5e345b754cd573f1bab" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "aa19b151d79e4477ca6961a5abe7374b3ee1816b421ff5e345b754cd573f1bab" :a :task/title :v "Implement INV-CLI-005: Response Steering: Every mutation response has what/changed/next" :op :assert}
+   {:e #blake3 "aa19b151d79e4477ca6961a5abe7374b3ee1816b421ff5e345b754cd573f1bab" :a :task/traces-to :v #blake3 "4f62930ab74fa0979aaf30fafc14048ed549b930099eba600eb5b316c0b526f0" :op :assert}
+   {:e #blake3 "aa19b151d79e4477ca6961a5abe7374b3ee1816b421ff5e345b754cd573f1bab" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "f73401aa4b23e8f974fa1450c9ac767c16559fd6311be8232a0109e2b3aa1529" :a :db/doc :v "Any mutation response that omits any of the three components." :op :assert}
+ ]}

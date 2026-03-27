@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774592029/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-MIGRATE-5: store resource — group query + merge + log + write under braid store. CURRENT: query, merge, log, write are top-level commands. CHANGE: (1) Create braid store with subcommands: status (=current braid status --deep), query, merge, log, write. (2) Top-level braid query/merge/log/transact become shortcuts. (3) braid status remains top-level (the canonical first interaction) as a shortcut for braid store status with default verbosity. (4) All output uses OutputFormatter. ACCEPTANCE: (A) braid store query/merge/log/write all work. (B) Top-level shortcuts still work. (C) braid status unchanged (top-level, most important command). (D) 6+ unit tests. FILES: crates/braid/src/commands/{query,merge,log,write}.rs → grouped under store.rs. TRACES: INV-CLI-001, ADR-CLI-001"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f7e4d56f4c8a782342481aced91cd29849a293040c73916a91c12fba73d84b1d" :a :db/ident :v :task/t-7ce9aa7a :op :assert}
+   {:e #blake3 "f7e4d56f4c8a782342481aced91cd29849a293040c73916a91c12fba73d84b1d" :a :task/acceptance :v "(A) braid store query/merge/log/write all work. (B) Top-level shortcuts still work. (C) braid status unchanged (top-level, most important command). (D) 6+ unit tests." :op :assert}
+   {:e #blake3 "f7e4d56f4c8a782342481aced91cd29849a293040c73916a91c12fba73d84b1d" :a :task/body :v "ACCEPTANCE: (A) braid store query/merge/log/write all work. (B) Top-level shortcuts still work. (C) braid status unchanged (top-level, most important command). (D) 6+ unit tests. FILES: crates/braid/src/commands/{query,merge,log,write}.rs → grouped under store.rs. TRACES: INV-CLI-001, ADR-CLI-001" :op :assert}
+   {:e #blake3 "f7e4d56f4c8a782342481aced91cd29849a293040c73916a91c12fba73d84b1d" :a :task/created-at :v 1774592028 :op :assert}
+   {:e #blake3 "f7e4d56f4c8a782342481aced91cd29849a293040c73916a91c12fba73d84b1d" :a :task/files :v "crates/braid/src/commands/{query" :op :assert}
+   {:e #blake3 "f7e4d56f4c8a782342481aced91cd29849a293040c73916a91c12fba73d84b1d" :a :task/id :v "t-7ce9aa7a" :op :assert}
+   {:e #blake3 "f7e4d56f4c8a782342481aced91cd29849a293040c73916a91c12fba73d84b1d" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f7e4d56f4c8a782342481aced91cd29849a293040c73916a91c12fba73d84b1d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f7e4d56f4c8a782342481aced91cd29849a293040c73916a91c12fba73d84b1d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f7e4d56f4c8a782342481aced91cd29849a293040c73916a91c12fba73d84b1d" :a :task/title :v "CLI-MIGRATE-5: store resource — group query + merge + log + write under braid store. CURRENT: query, merge, log, write are top-level commands. CHANGE: (1) Create braid store with subcommands: status (=current braid status --deep), query, merge, log, write. (2) Top-level braid query/merge/log/transact become shortcuts. (3) braid status remains top-level (the canonical first interaction) as a shortcut for braid store status with default verbosity. (4) All output uses OutputFormatter" :op :assert}
+   {:e #blake3 "f7e4d56f4c8a782342481aced91cd29849a293040c73916a91c12fba73d84b1d" :a :task/title-l0 :v "CLI-MIGRATE-5" :op :assert}
+   {:e #blake3 "f7e4d56f4c8a782342481aced91cd29849a293040c73916a91c12fba73d84b1d" :a :task/title-l1 :v "CLI-MIGRATE-5: store resource — group query + merge + log + write under bra..." :op :assert}
+   {:e #blake3 "f7e4d56f4c8a782342481aced91cd29849a293040c73916a91c12fba73d84b1d" :a :task/type :v :task.type/task :op :assert}
+ ]}

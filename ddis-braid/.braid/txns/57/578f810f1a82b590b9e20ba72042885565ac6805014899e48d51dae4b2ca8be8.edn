@@ -1,0 +1,52 @@
+{:tx/id #hlc "1774578497/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 21 candidates from task 'Session 047: C9-5 stagnation detection IMPLEMENTED and tested (4/4 pass). C9 EPIC progress: 1/4 tasks complete. Remaining: C9-P1 (concept.rs), C9-P2 (concept.rs), C9-P3 (seed.rs), C9-TEST. Full audit with 57 observations crystallized. Revised from 5 tightly coupled to 3 composable primitives.'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2666c733dd79701dd138d9a3b749305bd4c27d570125e69835da3179bdaf16c8" :a :hypothesis/action :v #blake3 "11146360f74be633495a6342dd8200186db3c8cf4a9c36a3c12288606c58cf62" :op :assert}
+   {:e #blake3 "2666c733dd79701dd138d9a3b749305bd4c27d570125e69835da3179bdaf16c8" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "2666c733dd79701dd138d9a3b749305bd4c27d570125e69835da3179bdaf16c8" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "2666c733dd79701dd138d9a3b749305bd4c27d570125e69835da3179bdaf16c8" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "2666c733dd79701dd138d9a3b749305bd4c27d570125e69835da3179bdaf16c8" :a :hypothesis/predicted :v 0.778437151616013 :op :assert}
+   {:e #blake3 "2666c733dd79701dd138d9a3b749305bd4c27d570125e69835da3179bdaf16c8" :a :hypothesis/timestamp :v #inst 1774578774 :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :db/doc :v "Harvest session for task: Session 047: C9-5 stagnation detection IMPLEMENTED and tested (4/4 pass). C9 EPIC progress: 1/4 tasks complete. Remaining: C9-P1 (concept.rs), C9-P2 (concept.rs), C9-P3 (seed.rs), C9-TEST. Full audit with 57 observations crystallized. Revised from 5 tightly coupled to 3 composable primitives." :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :db/ident :v :harvest/session-braid-user-1774578497 :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/accomplishments :v "What connects thinking about topology and coupling for ... to t-420f?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; Session entity: :recon/trace-e0e4382241a662d6; What connects thinking about topology and coupling for ... to t-420f?; Session entity: :recon/trace-9762728eae9caaaf; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; Session entity: :recon/trace-7f9385567271362a; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?" :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/candidate-count :v 21 :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/codebase-snapshot :v "Codebase: 0 LOC across 0 source files\nTests: 2048 passing" :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/context-metrics :v "{\"candidates\":21,\"k_eff_estimated\":\"0.90\",\"observations\":0,\"output_tokens_est\":669,\"tasks_closed\":0,\"tx_count\":15,\"wall_elapsed_s\":1001}" :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/delta-summary :v "+149 datoms, +23 entities" :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/git-summary :v "branch=main, 1 commits, 3 files (+72/-0)\n  1a039af8 Session 047 final: harvest, seed inject, memory update\nHot files:\n  ddis-braid/.braid/txns/f0/f08104bf504e42ac24d22e88f598db08310a2ad38d8e3df7ea954dbbd144a3dd.edn (52 lines changed)\n  ddis-braid/.braid/txns/3c/3c986f88b4a5b5b7e4e689d5e4b9b527ff23e58b67d446d67ca613c5b23784f2.edn (11 lines changed)\n  ddis-braid/.braid/txns/4b/4b387884d1dfebaa8cc00c2b8fa8f48a81b47effe1065e5137de6d145f95be93.edn (9 lines changed)" :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/recommended-tasks :v "t-2594be01,t-d9536d87,t-56b8f57e" :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/store-datom-count :v 150257 :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/store-entity-count :v 11691 :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: Session 047: C9-5 stagnation detection IMPLEMENTED and tested (4/4 pass). C9 EPIC progress: 1/4 tasks complete. Remaining: C9-P1 (concept.rs), C9-P2 (concept.rs), C9-P3 (seed.rs), C9-TEST. Full audit with 57 observations crystallized. Revised from 5 tightly coupled to 3 composable primitives.\nRun: `braid seed --task \"continue: Session 047: C9-5 stagnation detection IMPLEMENTED and tested (4/4 pass). C9 EPIC progress: 1/4 tasks complete. Remaining: C9-P1 (concept.rs), C9-P2 (concept.rs), C9-P3 (seed.rs), C9-TEST. Full audit with 57 observations crystallized. Revised from 5 tightly coupled to 3 composable primitives.\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/task :v "Session 047: C9-5 stagnation detection IMPLEMENTED and tested (4/4 pass). C9 EPIC progress: 1/4 tasks complete. Remaining: C9-P1 (concept.rs), C9-P2 (concept.rs), C9-P3 (seed.rs), C9-TEST. Full audit with 57 observations crystallized. Revised from 5 tightly coupled to 3 composable primitives." :op :assert}
+   {:e #blake3 "5b2981f718a94cc85a35a88d2ed0f52dc270f875338d0bf5e12d0cd8f4d8e554" :a :harvest/tx-since-last :v 15 :op :assert}
+   {:e #blake3 "ae82c7fe64e95b870192c477be07f8d8717592f4f9ed9f2581a80067260ded7d" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "af039805a0bc17e7998b1bab2d4b75ee013c10485b6d430829bcf6be4ddcc402" :a :hypothesis/action :v #blake3 "9cb1c4c8737868a8d5b5d3615da98fb92d6a07fec66f277146ec214cb93023db" :op :assert}
+   {:e #blake3 "af039805a0bc17e7998b1bab2d4b75ee013c10485b6d430829bcf6be4ddcc402" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "af039805a0bc17e7998b1bab2d4b75ee013c10485b6d430829bcf6be4ddcc402" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "af039805a0bc17e7998b1bab2d4b75ee013c10485b6d430829bcf6be4ddcc402" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "af039805a0bc17e7998b1bab2d4b75ee013c10485b6d430829bcf6be4ddcc402" :a :hypothesis/predicted :v 1.0 :op :assert}
+   {:e #blake3 "af039805a0bc17e7998b1bab2d4b75ee013c10485b6d430829bcf6be4ddcc402" :a :hypothesis/timestamp :v #inst 1774578774 :op :assert}
+   {:e #blake3 "b10132d170629e1c9be0e1e13a6e047b570df301b005a773e978542f17fe0326" :a :db/ident :v :session/s-1774578774635 :op :assert}
+   {:e #blake3 "b10132d170629e1c9be0e1e13a6e047b570df301b005a773e978542f17fe0326" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "b10132d170629e1c9be0e1e13a6e047b570df301b005a773e978542f17fe0326" :a :session/current :v #blake3 "b10132d170629e1c9be0e1e13a6e047b570df301b005a773e978542f17fe0326" :op :assert}
+   {:e #blake3 "b10132d170629e1c9be0e1e13a6e047b570df301b005a773e978542f17fe0326" :a :session/start-datom-count :v 150293 :op :assert}
+   {:e #blake3 "b10132d170629e1c9be0e1e13a6e047b570df301b005a773e978542f17fe0326" :a :session/start-fitness :v 0.6138396541703881 :op :assert}
+   {:e #blake3 "b10132d170629e1c9be0e1e13a6e047b570df301b005a773e978542f17fe0326" :a :session/start-time :v "2026-03-27T02:32:54Z" :op :assert}
+   {:e #blake3 "b10132d170629e1c9be0e1e13a6e047b570df301b005a773e978542f17fe0326" :a :session/started-at :v 1774578774 :op :assert}
+   {:e #blake3 "b10132d170629e1c9be0e1e13a6e047b570df301b005a773e978542f17fe0326" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "b10132d170629e1c9be0e1e13a6e047b570df301b005a773e978542f17fe0326" :a :session/task :v "## Session Synthesis Directive\n\n**Next session task**: continue: Session 047: C9-5 stagnation detection IMPLEMENTED and tested (4/4 pass). C9 EPIC progress: 1/4 tasks complete. Remaining: C9-P1 (concept.rs), C9-P2 (concept.rs), C9-P3 (seed.rs), C9-TEST. Full audit with 57 observations crystallized. Revised from 5 tightly coupled to 3 composable primitives.\nRun: `braid seed --task \"continue: Session 047: C9-5 stagnation detection IMPLEMENTED and tested (4/4 pass). C9 EPIC progress: 1/4 tasks complete. Remaining: C9-P1 (concept.rs), C9-P2 (concept.rs), C9-P3 (seed.rs), C9-TEST. Full audit with 57 observations crystallized. Revised from 5 tightly coupled to 3 composable primitives.\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "dab06e0d6f9ed6ce2a2be4c74954774d8e4ecf8247c200b18e24adf8e4288cda" :a :hypothesis/action :v #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :op :assert}
+   {:e #blake3 "dab06e0d6f9ed6ce2a2be4c74954774d8e4ecf8247c200b18e24adf8e4288cda" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "dab06e0d6f9ed6ce2a2be4c74954774d8e4ecf8247c200b18e24adf8e4288cda" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "dab06e0d6f9ed6ce2a2be4c74954774d8e4ecf8247c200b18e24adf8e4288cda" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "dab06e0d6f9ed6ce2a2be4c74954774d8e4ecf8247c200b18e24adf8e4288cda" :a :hypothesis/predicted :v 0.335127606783381 :op :assert}
+   {:e #blake3 "dab06e0d6f9ed6ce2a2be4c74954774d8e4ecf8247c200b18e24adf8e4288cda" :a :hypothesis/timestamp :v #inst 1774578774 :op :assert}
+ ]}

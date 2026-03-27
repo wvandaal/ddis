@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774591466/0/de3b1c05d9c0ee1f359ae26f81ebfdf3"
+ :tx/agent "de3b1c05d9c0ee1f359ae26f81ebfdf3"
+ :tx/provenance :observed
+ :tx/rationale "explicit create subcommand test for C9-P5"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bbc16e29075df0ef615e8a73028837ae55f6f4cc2282263fe89bb5f17945f986" :a :db/doc :v "explicit create subcommand test for C9-P5" :op :assert}
+   {:e #blake3 "bbc16e29075df0ef615e8a73028837ae55f6f4cc2282263fe89bb5f17945f986" :a :db/ident :v :observation/explicit-create-subcommand-test-for-c9-p5 :op :assert}
+   {:e #blake3 "bbc16e29075df0ef615e8a73028837ae55f6f4cc2282263fe89bb5f17945f986" :a :exploration/body :v "explicit create subcommand test for C9-P5" :op :assert}
+   {:e #blake3 "bbc16e29075df0ef615e8a73028837ae55f6f4cc2282263fe89bb5f17945f986" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "bbc16e29075df0ef615e8a73028837ae55f6f4cc2282263fe89bb5f17945f986" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "bbc16e29075df0ef615e8a73028837ae55f6f4cc2282263fe89bb5f17945f986" :a :exploration/content-hash :v #bytes "27319c52b32a802101fea8411c611f0da0ea3f3cd929557e1463b0b8f6270300" :op :assert}
+   {:e #blake3 "bbc16e29075df0ef615e8a73028837ae55f6f4cc2282263fe89bb5f17945f986" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "bbc16e29075df0ef615e8a73028837ae55f6f4cc2282263fe89bb5f17945f986" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "bbc16e29075df0ef615e8a73028837ae55f6f4cc2282263fe89bb5f17945f986" :a :exploration/source-session :v #blake3 "d5623dbd02609c583a083ae155b8fd85ffbe6b46dae3891916fc25f6fc8ab4cc" :op :assert}
+ ]}

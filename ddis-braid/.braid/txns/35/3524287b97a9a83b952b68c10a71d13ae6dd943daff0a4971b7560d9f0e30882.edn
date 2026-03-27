@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774589201/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-AUDIT: Full surface audit of every command, flag, output format, error message. Test for: grammar consistency, vocabulary consistency, output shape consistency, error steering quality, response steering completeness. Known violations: no symmetric access (task list exists, observe list doesn't), vocabulary splits (note/observe, transact/write assert), ghost commands. Output: docs/design/CLI_AUDIT.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "50ffde310c3d4f2dd24d8c8d88ab701868a524835ed2fdf0a4e1c8b2c5efa61f" :a :db/ident :v :task/t-846ca3d7 :op :assert}
+   {:e #blake3 "50ffde310c3d4f2dd24d8c8d88ab701868a524835ed2fdf0a4e1c8b2c5efa61f" :a :task/created-at :v 1774589200 :op :assert}
+   {:e #blake3 "50ffde310c3d4f2dd24d8c8d88ab701868a524835ed2fdf0a4e1c8b2c5efa61f" :a :task/id :v "t-846ca3d7" :op :assert}
+   {:e #blake3 "50ffde310c3d4f2dd24d8c8d88ab701868a524835ed2fdf0a4e1c8b2c5efa61f" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "50ffde310c3d4f2dd24d8c8d88ab701868a524835ed2fdf0a4e1c8b2c5efa61f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "50ffde310c3d4f2dd24d8c8d88ab701868a524835ed2fdf0a4e1c8b2c5efa61f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "50ffde310c3d4f2dd24d8c8d88ab701868a524835ed2fdf0a4e1c8b2c5efa61f" :a :task/title :v "CLI-AUDIT: Full surface audit of every command, flag, output format, error message. Test for: grammar consistency, vocabulary consistency, output shape consistency, error steering quality, response steering completeness. Known violations: no symmetric access (task list exists, observe list doesn't), vocabulary splits (note/observe, transact/write assert), ghost commands. Output: docs/design/CLI_AUDIT.md" :op :assert}
+   {:e #blake3 "50ffde310c3d4f2dd24d8c8d88ab701868a524835ed2fdf0a4e1c8b2c5efa61f" :a :task/title-l0 :v "CLI-AUDIT" :op :assert}
+   {:e #blake3 "50ffde310c3d4f2dd24d8c8d88ab701868a524835ed2fdf0a4e1c8b2c5efa61f" :a :task/title-l1 :v "CLI-AUDIT: Full surface audit of every command, flag, output format, error me..." :op :assert}
+   {:e #blake3 "50ffde310c3d4f2dd24d8c8d88ab701868a524835ed2fdf0a4e1c8b2c5efa61f" :a :task/type :v :task.type/task :op :assert}
+ ]}

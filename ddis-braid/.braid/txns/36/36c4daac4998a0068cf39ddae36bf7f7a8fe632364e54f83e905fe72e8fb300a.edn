@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774586069/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-9821a10e"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "39a7eb9ffdb376e4113ba2c743c422e5188a4a8a49672f0128a2a218c4def9be" :a :task/close-reason :v "Superseded: recreating to reference revised C9-P5 (t-0217080c) with steering-optimized design." :op :assert}
+   {:e #blake3 "39a7eb9ffdb376e4113ba2c743c422e5188a4a8a49672f0128a2a218c4def9be" :a :task/closed-at :v 1774586068 :op :assert}
+   {:e #blake3 "39a7eb9ffdb376e4113ba2c743c422e5188a4a8a49672f0128a2a218c4def9be" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "39a7eb9ffdb376e4113ba2c743c422e5188a4a8a49672f0128a2a218c4def9be" :a :task/status :v :task.status/closed :op :assert}
+ ]}

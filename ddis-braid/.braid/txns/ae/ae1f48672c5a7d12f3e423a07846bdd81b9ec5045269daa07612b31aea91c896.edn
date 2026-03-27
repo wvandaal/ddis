@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774579742/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-455f1ee8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "550737b995e7d16e948630e5191907d816370c7fcd32430034118edfa8cb73db" :a :task/close-reason :v "Implemented: FragmentationSignal struct, methodology_gaps computes from approximate_spectral_gap with C9-configurable threshold, status surfaces in verbose/agent/JSON modes. 1650 kernel tests pass. Display governed by attention budget (correct — low-precedence signals shown when budget allows)." :op :assert}
+   {:e #blake3 "550737b995e7d16e948630e5191907d816370c7fcd32430034118edfa8cb73db" :a :task/closed-at :v 1774579741 :op :assert}
+   {:e #blake3 "550737b995e7d16e948630e5191907d816370c7fcd32430034118edfa8cb73db" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "550737b995e7d16e948630e5191907d816370c7fcd32430034118edfa8cb73db" :a :task/status :v :task.status/closed :op :assert}
+ ]}

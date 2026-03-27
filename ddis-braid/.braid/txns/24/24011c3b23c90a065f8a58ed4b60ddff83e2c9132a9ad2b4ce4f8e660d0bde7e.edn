@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774592025/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-MIGRATE-4: remaining resources — add list/show/search to trace, challenge, schema, topology, config, witness where missing. CURRENT: trace, challenge are standalone commands without list/show/search. schema has list but may lack show/search. CHANGE: For each resource, add missing universal actions (list, show, search) following the ResourceCommand trait from CLI-SCAFFOLD-2. All output uses OutputFormatter. ACCEPTANCE: (A) Every resource in CLI_COHERENCE_SPEC.md §3.1 has working list/show/search. (B) Grammar completeness test (INV-CLI-001) passes. (C) 4+ unit tests per newly added action. FILES: crates/braid/src/commands/{trace,challenge,schema,topology,config,witness}.rs. TRACES: INV-CLI-001, INV-CLI-003"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "43ecae52526782627fc02f23945ebf8a5aedc57665ba4dfe157179e857b7d3bc" :a :db/ident :v :task/t-a7f9efa8 :op :assert}
+   {:e #blake3 "43ecae52526782627fc02f23945ebf8a5aedc57665ba4dfe157179e857b7d3bc" :a :task/acceptance :v "(A) Every resource in CLI_COHERENCE_SPEC.md §3.1 has working list/show/search. (B) Grammar completeness test (INV-CLI-001) passes. (C) 4+ unit tests per newly added action." :op :assert}
+   {:e #blake3 "43ecae52526782627fc02f23945ebf8a5aedc57665ba4dfe157179e857b7d3bc" :a :task/body :v "ACCEPTANCE: (A) Every resource in CLI_COHERENCE_SPEC.md §3.1 has working list/show/search. (B) Grammar completeness test (INV-CLI-001) passes. (C) 4+ unit tests per newly added action. FILES: crates/braid/src/commands/{trace,challenge,schema,topology,config,witness}.rs. TRACES: INV-CLI-001, INV-CLI-003" :op :assert}
+   {:e #blake3 "43ecae52526782627fc02f23945ebf8a5aedc57665ba4dfe157179e857b7d3bc" :a :task/created-at :v 1774592024 :op :assert}
+   {:e #blake3 "43ecae52526782627fc02f23945ebf8a5aedc57665ba4dfe157179e857b7d3bc" :a :task/files :v "crates/braid/src/commands/{trace" :op :assert}
+   {:e #blake3 "43ecae52526782627fc02f23945ebf8a5aedc57665ba4dfe157179e857b7d3bc" :a :task/id :v "t-a7f9efa8" :op :assert}
+   {:e #blake3 "43ecae52526782627fc02f23945ebf8a5aedc57665ba4dfe157179e857b7d3bc" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "43ecae52526782627fc02f23945ebf8a5aedc57665ba4dfe157179e857b7d3bc" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "43ecae52526782627fc02f23945ebf8a5aedc57665ba4dfe157179e857b7d3bc" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "43ecae52526782627fc02f23945ebf8a5aedc57665ba4dfe157179e857b7d3bc" :a :task/title :v "CLI-MIGRATE-4: remaining resources — add list/show/search to trace, challenge, schema, topology, config, witness where missing. CURRENT: trace, challenge are standalone commands without list/show/search. schema has list but may lack show/search. CHANGE: For each resource, add missing universal actions (list, show, search) following the ResourceCommand trait from CLI-SCAFFOLD-2. All output uses OutputFormatter" :op :assert}
+   {:e #blake3 "43ecae52526782627fc02f23945ebf8a5aedc57665ba4dfe157179e857b7d3bc" :a :task/title-l0 :v "CLI-MIGRATE-4" :op :assert}
+   {:e #blake3 "43ecae52526782627fc02f23945ebf8a5aedc57665ba4dfe157179e857b7d3bc" :a :task/title-l1 :v "CLI-MIGRATE-4: remaining resources — add list/show/search to trace, challen..." :op :assert}
+   {:e #blake3 "43ecae52526782627fc02f23945ebf8a5aedc57665ba4dfe157179e857b7d3bc" :a :task/type :v :task.type/task :op :assert}
+ ]}

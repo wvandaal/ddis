@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774591908/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CLI-002 \"Vocabulary Consistency: One canonical term per concept across all CLI surfaces\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "236b3f4c375ecb7cd18cec9a28c78386e88e3fdfa0f6ac13412e298f02858a9c" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "236b3f4c375ecb7cd18cec9a28c78386e88e3fdfa0f6ac13412e298f02858a9c" :a :comonad/falsification :v #blake3 "be068ad8745e4a811085d85f14b9bdce651e61b458d9f168fd03deee37f64ae8" :op :assert}
+   {:e #blake3 "236b3f4c375ecb7cd18cec9a28c78386e88e3fdfa0f6ac13412e298f02858a9c" :a :db/doc :v "Vocabulary Consistency: One canonical term per concept across all CLI surfaces" :op :assert}
+   {:e #blake3 "236b3f4c375ecb7cd18cec9a28c78386e88e3fdfa0f6ac13412e298f02858a9c" :a :db/ident :v :spec/inv-cli-002 :op :assert}
+   {:e #blake3 "236b3f4c375ecb7cd18cec9a28c78386e88e3fdfa0f6ac13412e298f02858a9c" :a :element/traces-to :v "STEERING_MANIFOLD.md §14, ADR-FOUNDATION-014" :op :assert}
+   {:e #blake3 "236b3f4c375ecb7cd18cec9a28c78386e88e3fdfa0f6ac13412e298f02858a9c" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "236b3f4c375ecb7cd18cec9a28c78386e88e3fdfa0f6ac13412e298f02858a9c" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "236b3f4c375ecb7cd18cec9a28c78386e88e3fdfa0f6ac13412e298f02858a9c" :a :spec/falsification :v "Any surface using a non-canonical term for a lexicon concept (e.g., 'finding' instead of 'observation')." :op :assert}
+   {:e #blake3 "236b3f4c375ecb7cd18cec9a28c78386e88e3fdfa0f6ac13412e298f02858a9c" :a :spec/id :v "INV-CLI-002" :op :assert}
+   {:e #blake3 "236b3f4c375ecb7cd18cec9a28c78386e88e3fdfa0f6ac13412e298f02858a9c" :a :spec/namespace :v :spec.ns/CLI :op :assert}
+   {:e #blake3 "236b3f4c375ecb7cd18cec9a28c78386e88e3fdfa0f6ac13412e298f02858a9c" :a :spec/statement :v "Each concept in the canonical lexicon (CLI_COHERENCE_SPEC.md §6) uses exactly one term across all surfaces: command names, flag names, help text, error messages, output text, schema attribute namespaces, and documentation." :op :assert}
+   {:e #blake3 "8154eda13a768683b1b4cdb9cc971e80e23bc0f455668b8d50a22e41c6d13534" :a :db/ident :v :task/t-8cedc52e :op :assert}
+   {:e #blake3 "8154eda13a768683b1b4cdb9cc971e80e23bc0f455668b8d50a22e41c6d13534" :a :task/created-at :v 1774591907 :op :assert}
+   {:e #blake3 "8154eda13a768683b1b4cdb9cc971e80e23bc0f455668b8d50a22e41c6d13534" :a :task/id :v "t-8cedc52e" :op :assert}
+   {:e #blake3 "8154eda13a768683b1b4cdb9cc971e80e23bc0f455668b8d50a22e41c6d13534" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "8154eda13a768683b1b4cdb9cc971e80e23bc0f455668b8d50a22e41c6d13534" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8154eda13a768683b1b4cdb9cc971e80e23bc0f455668b8d50a22e41c6d13534" :a :task/title :v "Implement INV-CLI-002: Vocabulary Consistency: One canonical term per concept across all CLI surfaces" :op :assert}
+   {:e #blake3 "8154eda13a768683b1b4cdb9cc971e80e23bc0f455668b8d50a22e41c6d13534" :a :task/traces-to :v #blake3 "236b3f4c375ecb7cd18cec9a28c78386e88e3fdfa0f6ac13412e298f02858a9c" :op :assert}
+   {:e #blake3 "8154eda13a768683b1b4cdb9cc971e80e23bc0f455668b8d50a22e41c6d13534" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "be068ad8745e4a811085d85f14b9bdce651e61b458d9f168fd03deee37f64ae8" :a :db/doc :v "Any surface using a non-canonical term for a lexicon concept (e.g., 'finding' instead of 'observation')." :op :assert}
+ ]}

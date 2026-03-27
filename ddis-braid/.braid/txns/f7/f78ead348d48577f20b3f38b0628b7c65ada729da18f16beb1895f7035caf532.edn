@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774590156/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "C9 implementation plan: 5 tasks (SPEC, P4 agent identity, P6 TF-IDF names, P5 observe subcommands, TEST). Clap strategy: args_conflicts_with_subcommands for backward-compat braid observe TEXT alongside new list/search/show/recent subcommands. Steering question computed from co_occurrence_matrix + frontier_recommendation + concept_inventory. Zero LLM calls."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f19783a545274c2cf5602bbf9ea22438e1b3ca87f558db91c96e45f27b33e496" :a :db/doc :v "C9 implementation plan: 5 tasks (SPEC, P4 agent identity, P6 TF-IDF names, P5 observe subcommands, TEST). Clap strategy: args_conflicts_with_subcommands for backward-compat braid observe TEXT alongside new list/search/show/recent subcommands. Steering question computed from co_occurrence_matrix + frontier_recommendation + concept_inventory. Zero LLM calls." :op :assert}
+   {:e #blake3 "f19783a545274c2cf5602bbf9ea22438e1b3ca87f558db91c96e45f27b33e496" :a :db/ident :v :observation/c9-implementation-plan-5-tasks-spec-p4-agent-identity-p6 :op :assert}
+   {:e #blake3 "f19783a545274c2cf5602bbf9ea22438e1b3ca87f558db91c96e45f27b33e496" :a :exploration/body :v "C9 implementation plan: 5 tasks (SPEC, P4 agent identity, P6 TF-IDF names, P5 observe subcommands, TEST). Clap strategy: args_conflicts_with_subcommands for backward-compat braid observe TEXT alongside new list/search/show/recent subcommands. Steering question computed from co_occurrence_matrix + frontier_recommendation + concept_inventory. Zero LLM calls." :op :assert}
+   {:e #blake3 "f19783a545274c2cf5602bbf9ea22438e1b3ca87f558db91c96e45f27b33e496" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "f19783a545274c2cf5602bbf9ea22438e1b3ca87f558db91c96e45f27b33e496" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "f19783a545274c2cf5602bbf9ea22438e1b3ca87f558db91c96e45f27b33e496" :a :exploration/content-hash :v #bytes "68eb6d69165bc26f706a2f05a55ce13b99c6a74e3bfcd9eb00e05b137c6c0f7a" :op :assert}
+   {:e #blake3 "f19783a545274c2cf5602bbf9ea22438e1b3ca87f558db91c96e45f27b33e496" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f19783a545274c2cf5602bbf9ea22438e1b3ca87f558db91c96e45f27b33e496" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f19783a545274c2cf5602bbf9ea22438e1b3ca87f558db91c96e45f27b33e496" :a :exploration/source-session :v #blake3 "d5623dbd02609c583a083ae155b8fd85ffbe6b46dae3891916fc25f6fc8ab4cc" :op :assert}
+ ]}

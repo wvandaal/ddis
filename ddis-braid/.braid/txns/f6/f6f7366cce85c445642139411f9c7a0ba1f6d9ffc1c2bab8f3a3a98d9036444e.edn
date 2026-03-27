@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774583683/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C9-P4: Automatic agent identity — implicit per-process unique IDs for multi-agent provenance without ceremony"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :db/ident :v :task/t-266f06d5 :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/created-at :v 1774583682 :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/description :v "CONTEXT: C9 agreement detection is correct but inactive because all observations have the same AgentId (braid:user default). Parallel subagents that call braid observe all get the same identity. The store sees 1 agent, not 4. PROBLEM: Agent identity is set by the CLI --agent flag default, not by the actual cognitive source. Independent observers are indistinguishable. RESOLUTION: Make session creation implicit with unique-per-process agent IDs. The session auto-detect in main.rs:136-158 already fires on first command when no active session exists. APPROACH: (1) When session auto-detect fires in main.rs, derive session agent ID from PID + timestamp: format\\!('braid:pid-{}', std::process::id()). This is unique per process, stable within a session, requires zero ceremony. (2) In observe command dispatch (mod.rs:2633), when agent is still 'braid:user' default: check for BRAID_AGENT env var first, then check for active session agent ID via find_active_session(), then fall back to PID-derived ID. Resolution order: explicit --agent > BRAID_AGENT env > active session agent > PID-derived. (3) Same resolution for task create, write, harvest command dispatch sites. SUBSTRATE-INDEPENDENT: No provider-specific logic. Any orchestrator (shell scripts, CI, multi-agent frameworks) gets distinct agent IDs automatically via PID. Env var available for explicit control. ACCEPTANCE: (A) Two parallel braid observe commands from different PIDs produce observations with different AgentIds. (B) Sequential commands from same PID produce observations with same AgentId. (C) Explicit --agent flag overrides everything. (D) find_agreement_clusters returns non-empty when two PIDs observe the same finding. (E) Zero ceremony required — no env vars, no session start, just works. FILES: crates/braid/src/main.rs (session auto-detect), crates/braid/src/commands/mod.rs (observe dispatch + other command dispatches). EFFORT: 3h." :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/id :v "t-266f06d5" :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/labels :v :label/C9 :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/title :v "C9-P4: Automatic agent identity — implicit per-process unique IDs for multi-agent provenance without ceremony" :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/title-l0 :v "C9-P4" :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/title-l1 :v "C9-P4: Automatic agent identity — implicit per-process unique IDs for multi..." :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/traces-to :v #blake3 "1becd9d6d843ecd8e4358ed6eb20f29ed260a22ec17f2aee0e9c40294e74cfb0" :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/traces-to :v #blake3 "76efff1bdfaa1186570f0437d9e7fbb590f6e55d393a1e98fb7b77b4b50b9609" :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/type :v :task.type/task :op :assert}
+ ]}

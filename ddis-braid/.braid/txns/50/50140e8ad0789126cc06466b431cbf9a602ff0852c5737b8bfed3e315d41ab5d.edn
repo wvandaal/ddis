@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774592113/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-TEST-DOGFOOD: DOGFOOD-5 external validation on Go CLI project. 3 independent LLM agents, 30-minute sessions using the unified noun-verb grammar. Measure: (A) Overall usefulness target >8.0/10 (was 6.75). (B) Grammar convergence: AGCR >0.9 by turn 5 per agent. (C) Discovery assistance target >7.0/10. (D) Bidirectional Markov blanket: verify agents USE steering vectors (follow routing suggestions, respond to concept membership, explore structural gaps). (E) Compare against DOGFOOD-3 baseline (6.75/10). PROTOCOL: Same Go CLI project, same 3-agent parallel setup, same rubric. Store is fresh (not cumulative). Each agent gets only braid status as the first command. ACCEPTANCE: Overall >8.0/10. If <8.0: diagnose which invariant fails and create remediation tasks. FILE: docs/audits/DOGFOOD-5.md (new). TRACES: STEERING_MANIFOLD.md, ADR-CLI-001, ADR-FOUNDATION-034"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "67e392fe6693a16a703b507159c980bcd8b79609fb53f014da9511bc6d772499" :a :db/ident :v :task/t-09175981 :op :assert}
+   {:e #blake3 "67e392fe6693a16a703b507159c980bcd8b79609fb53f014da9511bc6d772499" :a :task/acceptance :v "Overall >8.0/10. If <8.0: diagnose which invariant fails and create remediation tasks." :op :assert}
+   {:e #blake3 "67e392fe6693a16a703b507159c980bcd8b79609fb53f014da9511bc6d772499" :a :task/body :v "ACCEPTANCE: Overall >8.0/10. If <8.0: diagnose which invariant fails and create remediation tasks. FILE: docs/audits/DOGFOOD-5.md (new). TRACES: STEERING_MANIFOLD.md, ADR-CLI-001, ADR-FOUNDATION-034" :op :assert}
+   {:e #blake3 "67e392fe6693a16a703b507159c980bcd8b79609fb53f014da9511bc6d772499" :a :task/created-at :v 1774592112 :op :assert}
+   {:e #blake3 "67e392fe6693a16a703b507159c980bcd8b79609fb53f014da9511bc6d772499" :a :task/files :v "docs/audits/DOGFOOD-5.md (new). TRACES: STEERING_MANIFOLD.md" :op :assert}
+   {:e #blake3 "67e392fe6693a16a703b507159c980bcd8b79609fb53f014da9511bc6d772499" :a :task/id :v "t-09175981" :op :assert}
+   {:e #blake3 "67e392fe6693a16a703b507159c980bcd8b79609fb53f014da9511bc6d772499" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "67e392fe6693a16a703b507159c980bcd8b79609fb53f014da9511bc6d772499" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "67e392fe6693a16a703b507159c980bcd8b79609fb53f014da9511bc6d772499" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "67e392fe6693a16a703b507159c980bcd8b79609fb53f014da9511bc6d772499" :a :task/title :v "CLI-TEST-DOGFOOD: DOGFOOD-5 external validation on Go CLI project. 3 independent LLM agents, 30-minute sessions using the unified noun-verb grammar. Measure: (A) Overall usefulness target >8.0/10 (was 6.75). (B) Grammar convergence: AGCR >0.9 by turn 5 per agent. (C) Discovery assistance target >7.0/10. (D) Bidirectional Markov blanket: verify agents USE steering vectors (follow routing suggestions, respond to concept membership, explore structural gaps). (E) Compare against DOGFOOD-3 baseline (6.75/10). PROTOCOL: Same Go CLI project, same 3-agent parallel setup, same rubric. Store is fresh (not cumulative). Each agent gets only braid status as the first command" :op :assert}
+   {:e #blake3 "67e392fe6693a16a703b507159c980bcd8b79609fb53f014da9511bc6d772499" :a :task/title-l0 :v "CLI-TEST-DOGFOOD" :op :assert}
+   {:e #blake3 "67e392fe6693a16a703b507159c980bcd8b79609fb53f014da9511bc6d772499" :a :task/title-l1 :v "CLI-TEST-DOGFOOD: DOGFOOD-5 external validation on Go CLI project" :op :assert}
+   {:e #blake3 "67e392fe6693a16a703b507159c980bcd8b79609fb53f014da9511bc6d772499" :a :task/traces-to :v #blake3 "ed3b10a7c6da67c326fbccd337ba0e240550819ce429a68e22fafffd1d2c2aba" :op :assert}
+   {:e #blake3 "67e392fe6693a16a703b507159c980bcd8b79609fb53f014da9511bc6d772499" :a :task/type :v :task.type/task :op :assert}
+ ]}

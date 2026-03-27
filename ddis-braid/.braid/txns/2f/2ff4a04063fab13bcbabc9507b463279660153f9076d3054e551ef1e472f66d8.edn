@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774591904/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CLI-001 \"Grammar Completeness: For every resource R, braid R list/show/search are valid\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "16704191053d64a4436d116b5be6efaf71a7f9fe89437aeb82362ebc4c41945f" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "16704191053d64a4436d116b5be6efaf71a7f9fe89437aeb82362ebc4c41945f" :a :comonad/falsification :v #blake3 "2e81bfccfa6798fed295c2ce0da6cd33dbdc4ed994e04c31a8c4c268c85f96b5" :op :assert}
+   {:e #blake3 "16704191053d64a4436d116b5be6efaf71a7f9fe89437aeb82362ebc4c41945f" :a :db/doc :v "Grammar Completeness: For every resource R, braid R list/show/search are valid" :op :assert}
+   {:e #blake3 "16704191053d64a4436d116b5be6efaf71a7f9fe89437aeb82362ebc4c41945f" :a :db/ident :v :spec/inv-cli-001 :op :assert}
+   {:e #blake3 "16704191053d64a4436d116b5be6efaf71a7f9fe89437aeb82362ebc4c41945f" :a :element/traces-to :v "STEERING_MANIFOLD.md §14, ADR-FOUNDATION-014" :op :assert}
+   {:e #blake3 "16704191053d64a4436d116b5be6efaf71a7f9fe89437aeb82362ebc4c41945f" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "16704191053d64a4436d116b5be6efaf71a7f9fe89437aeb82362ebc4c41945f" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "16704191053d64a4436d116b5be6efaf71a7f9fe89437aeb82362ebc4c41945f" :a :spec/falsification :v "Any resource that lacks list, show, or search subcommands." :op :assert}
+   {:e #blake3 "16704191053d64a4436d116b5be6efaf71a7f9fe89437aeb82362ebc4c41945f" :a :spec/id :v "INV-CLI-001" :op :assert}
+   {:e #blake3 "16704191053d64a4436d116b5be6efaf71a7f9fe89437aeb82362ebc4c41945f" :a :spec/namespace :v :spec.ns/CLI :op :assert}
+   {:e #blake3 "16704191053d64a4436d116b5be6efaf71a7f9fe89437aeb82362ebc4c41945f" :a :spec/statement :v "For every resource R in the CLI grammar, the commands braid R list, braid R show <id>, and braid R search <query> are valid and return exit code 0. |GrammarSpace| = |ValidCommands|." :op :assert}
+   {:e #blake3 "2e81bfccfa6798fed295c2ce0da6cd33dbdc4ed994e04c31a8c4c268c85f96b5" :a :db/doc :v "Any resource that lacks list, show, or search subcommands." :op :assert}
+   {:e #blake3 "82a12c951c0e7042f25a025c1eaebcbfdc4f2a5017d0894ba63c581f4792c8c7" :a :db/ident :v :task/t-0d11a6c6 :op :assert}
+   {:e #blake3 "82a12c951c0e7042f25a025c1eaebcbfdc4f2a5017d0894ba63c581f4792c8c7" :a :task/created-at :v 1774591903 :op :assert}
+   {:e #blake3 "82a12c951c0e7042f25a025c1eaebcbfdc4f2a5017d0894ba63c581f4792c8c7" :a :task/id :v "t-0d11a6c6" :op :assert}
+   {:e #blake3 "82a12c951c0e7042f25a025c1eaebcbfdc4f2a5017d0894ba63c581f4792c8c7" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "82a12c951c0e7042f25a025c1eaebcbfdc4f2a5017d0894ba63c581f4792c8c7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "82a12c951c0e7042f25a025c1eaebcbfdc4f2a5017d0894ba63c581f4792c8c7" :a :task/title :v "Implement INV-CLI-001: Grammar Completeness: For every resource R, braid R list/show/search are valid" :op :assert}
+   {:e #blake3 "82a12c951c0e7042f25a025c1eaebcbfdc4f2a5017d0894ba63c581f4792c8c7" :a :task/traces-to :v #blake3 "16704191053d64a4436d116b5be6efaf71a7f9fe89437aeb82362ebc4c41945f" :op :assert}
+   {:e #blake3 "82a12c951c0e7042f25a025c1eaebcbfdc4f2a5017d0894ba63c581f4792c8c7" :a :task/type :v :task.type/task :op :assert}
+ ]}

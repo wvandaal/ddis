@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774591974/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-SCAFFOLD-3: Shortcut dispatch layer — ShortcutRegistry mapping alias names to canonical (resource, action) pairs. When a shortcut is used, dispatch runs the canonical form. When a shortcut is MISUSED (e.g., braid observe list when observe is alias for observation create), emit a steering error: 'hint: observe is a shortcut for observation create. To list observations: braid observation list'. ACCEPTANCE: (A) All shortcuts in CLI_COHERENCE_SPEC.md §3.3 are registered. (B) Shortcut dispatch produces identical output to canonical form. (C) Shortcut misuse produces steering hint with canonical form. (D) Property test: for every shortcut S, output(S args) == output(canonical(S) args). FILE: crates/braid/src/commands/shortcuts.rs (new). TRACES: ADR-CLI-001, INV-CLI-004"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "92551d604beb22ed5c6e1add4bca6c7b545b0e2e17d0d94ae4ff04d4d713122b" :a :db/ident :v :task/t-181c34f5 :op :assert}
+   {:e #blake3 "92551d604beb22ed5c6e1add4bca6c7b545b0e2e17d0d94ae4ff04d4d713122b" :a :task/acceptance :v "(A) All shortcuts in CLI_COHERENCE_SPEC.md §3.3 are registered. (B) Shortcut dispatch produces identical output to canonical form. (C) Shortcut misuse produces steering hint with canonical form. (D) Property test: for every shortcut S, output(S args) == output(canonical(S) args)." :op :assert}
+   {:e #blake3 "92551d604beb22ed5c6e1add4bca6c7b545b0e2e17d0d94ae4ff04d4d713122b" :a :task/body :v "ACCEPTANCE: (A) All shortcuts in CLI_COHERENCE_SPEC.md §3.3 are registered. (B) Shortcut dispatch produces identical output to canonical form. (C) Shortcut misuse produces steering hint with canonical form. (D) Property test: for every shortcut S, output(S args) == output(canonical(S) args). FILE: crates/braid/src/commands/shortcuts.rs (new). TRACES: ADR-CLI-001, INV-CLI-004" :op :assert}
+   {:e #blake3 "92551d604beb22ed5c6e1add4bca6c7b545b0e2e17d0d94ae4ff04d4d713122b" :a :task/created-at :v 1774591973 :op :assert}
+   {:e #blake3 "92551d604beb22ed5c6e1add4bca6c7b545b0e2e17d0d94ae4ff04d4d713122b" :a :task/files :v "crates/braid/src/commands/shortcuts.rs (new). TRACES: ADR-CLI-001" :op :assert}
+   {:e #blake3 "92551d604beb22ed5c6e1add4bca6c7b545b0e2e17d0d94ae4ff04d4d713122b" :a :task/id :v "t-181c34f5" :op :assert}
+   {:e #blake3 "92551d604beb22ed5c6e1add4bca6c7b545b0e2e17d0d94ae4ff04d4d713122b" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "92551d604beb22ed5c6e1add4bca6c7b545b0e2e17d0d94ae4ff04d4d713122b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "92551d604beb22ed5c6e1add4bca6c7b545b0e2e17d0d94ae4ff04d4d713122b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "92551d604beb22ed5c6e1add4bca6c7b545b0e2e17d0d94ae4ff04d4d713122b" :a :task/title :v "CLI-SCAFFOLD-3: Shortcut dispatch layer — ShortcutRegistry mapping alias names to canonical (resource, action) pairs. When a shortcut is used, dispatch runs the canonical form. When a shortcut is MISUSED (e.g., braid observe list when observe is alias for observation create), emit a steering error: 'hint: observe is a shortcut for observation create. To list observations: braid observation list'" :op :assert}
+   {:e #blake3 "92551d604beb22ed5c6e1add4bca6c7b545b0e2e17d0d94ae4ff04d4d713122b" :a :task/title-l0 :v "CLI-SCAFFOLD-3" :op :assert}
+   {:e #blake3 "92551d604beb22ed5c6e1add4bca6c7b545b0e2e17d0d94ae4ff04d4d713122b" :a :task/title-l1 :v "CLI-SCAFFOLD-3: Shortcut dispatch layer — ShortcutRegistry mapping alias na..." :op :assert}
+   {:e #blake3 "92551d604beb22ed5c6e1add4bca6c7b545b0e2e17d0d94ae4ff04d4d713122b" :a :task/type :v :task.type/task :op :assert}
+ ]}

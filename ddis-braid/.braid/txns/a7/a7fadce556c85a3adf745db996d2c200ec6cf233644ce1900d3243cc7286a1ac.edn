@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774591391/0/24c13ff336273ce6a0db9f78295df4b6"
+ :tx/agent "24c13ff336273ce6a0db9f78295df4b6"
+ :tx/provenance :observed
+ :tx/rationale "C9-P5 observe subcommands implemented and tested — list, search, show, recent all return steering questions"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "624c85c1ea331de9217726b988651c56cca8b38f9db57c4c94c8766a02da6f2a" :a :db/doc :v "C9-P5 observe subcommands implemented and tested — list, search, show, recent all return steering questions" :op :assert}
+   {:e #blake3 "624c85c1ea331de9217726b988651c56cca8b38f9db57c4c94c8766a02da6f2a" :a :db/ident :v :observation/c9-p5-observe-subcommands-implemented-and-tested-list-sea :op :assert}
+   {:e #blake3 "624c85c1ea331de9217726b988651c56cca8b38f9db57c4c94c8766a02da6f2a" :a :exploration/body :v "C9-P5 observe subcommands implemented and tested — list, search, show, recent all return steering questions" :op :assert}
+   {:e #blake3 "624c85c1ea331de9217726b988651c56cca8b38f9db57c4c94c8766a02da6f2a" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "624c85c1ea331de9217726b988651c56cca8b38f9db57c4c94c8766a02da6f2a" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "624c85c1ea331de9217726b988651c56cca8b38f9db57c4c94c8766a02da6f2a" :a :exploration/content-hash :v #bytes "b15188e82614356caeef4e97353f99e4cb669f7543fef6465c64af680a39614f" :op :assert}
+   {:e #blake3 "624c85c1ea331de9217726b988651c56cca8b38f9db57c4c94c8766a02da6f2a" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "624c85c1ea331de9217726b988651c56cca8b38f9db57c4c94c8766a02da6f2a" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "624c85c1ea331de9217726b988651c56cca8b38f9db57c4c94c8766a02da6f2a" :a :exploration/source-session :v #blake3 "d5623dbd02609c583a083ae155b8fd85ffbe6b46dae3891916fc25f6fc8ab4cc" :op :assert}
+ ]}

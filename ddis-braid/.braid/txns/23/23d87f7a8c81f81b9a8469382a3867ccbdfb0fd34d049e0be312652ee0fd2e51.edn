@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774578437/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-2594be01"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9cb1c4c8737868a8d5b5d3615da98fb92d6a07fec66f277146ec214cb93023db" :a :task/close-reason :v "Implemented: approximate_spectral_gap() and estimated_sessions_to_convergence() on MaterializedViews. O(1) from existing ISP fields. 106 store tests pass." :op :assert}
+   {:e #blake3 "9cb1c4c8737868a8d5b5d3615da98fb92d6a07fec66f277146ec214cb93023db" :a :task/closed-at :v 1774578436 :op :assert}
+   {:e #blake3 "9cb1c4c8737868a8d5b5d3615da98fb92d6a07fec66f277146ec214cb93023db" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "9cb1c4c8737868a8d5b5d3615da98fb92d6a07fec66f277146ec214cb93023db" :a :task/status :v :task.status/closed :op :assert}
+ ]}

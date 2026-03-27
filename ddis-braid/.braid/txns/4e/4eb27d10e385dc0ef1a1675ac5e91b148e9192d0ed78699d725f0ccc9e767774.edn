@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774592017/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-MIGRATE-2: session resource — consolidate harvest + seed + session. CURRENT: braid harvest, braid seed, and braid session are three separate top-level commands. CHANGE: (1) Create braid session as unified resource with subcommands: start, end, harvest, seed, list, show, search. (2) braid harvest becomes shortcut for braid session harvest. (3) braid seed becomes shortcut for braid session seed. (4) session list shows past sessions. session show <id> shows session detail. session search <query> finds sessions by content. (5) All output uses OutputFormatter. ACCEPTANCE: (A) braid session harvest/seed/start/end/list/show/search all work. (B) braid harvest and braid seed still work as shortcuts. (C) session list shows chronological session history. (D) Help text shows canonical forms. (E) 8+ unit tests. FILES: crates/braid/src/commands/session.rs + harvest.rs + seed.rs. TRACES: INV-CLI-001, INV-CLI-003, ADR-CLI-001"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ab03fc1417db1fceebf7f6ca03a0faaa2f20661df134cc46b319ea784626dd1d" :a :db/ident :v :task/t-944e4ab1 :op :assert}
+   {:e #blake3 "ab03fc1417db1fceebf7f6ca03a0faaa2f20661df134cc46b319ea784626dd1d" :a :task/acceptance :v "(A) braid session harvest/seed/start/end/list/show/search all work. (B) braid harvest and braid seed still work as shortcuts. (C) session list shows chronological session history. (D) Help text shows canonical forms. (E) 8+ unit tests." :op :assert}
+   {:e #blake3 "ab03fc1417db1fceebf7f6ca03a0faaa2f20661df134cc46b319ea784626dd1d" :a :task/body :v "ACCEPTANCE: (A) braid session harvest/seed/start/end/list/show/search all work. (B) braid harvest and braid seed still work as shortcuts. (C) session list shows chronological session history. (D) Help text shows canonical forms. (E) 8+ unit tests. FILES: crates/braid/src/commands/session.rs + harvest.rs + seed.rs. TRACES: INV-CLI-001, INV-CLI-003, ADR-CLI-001" :op :assert}
+   {:e #blake3 "ab03fc1417db1fceebf7f6ca03a0faaa2f20661df134cc46b319ea784626dd1d" :a :task/created-at :v 1774592016 :op :assert}
+   {:e #blake3 "ab03fc1417db1fceebf7f6ca03a0faaa2f20661df134cc46b319ea784626dd1d" :a :task/files :v "crates/braid/src/commands/session.rs" :op :assert}
+   {:e #blake3 "ab03fc1417db1fceebf7f6ca03a0faaa2f20661df134cc46b319ea784626dd1d" :a :task/id :v "t-944e4ab1" :op :assert}
+   {:e #blake3 "ab03fc1417db1fceebf7f6ca03a0faaa2f20661df134cc46b319ea784626dd1d" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ab03fc1417db1fceebf7f6ca03a0faaa2f20661df134cc46b319ea784626dd1d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ab03fc1417db1fceebf7f6ca03a0faaa2f20661df134cc46b319ea784626dd1d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ab03fc1417db1fceebf7f6ca03a0faaa2f20661df134cc46b319ea784626dd1d" :a :task/title :v "CLI-MIGRATE-2: session resource — consolidate harvest + seed + session. CURRENT: braid harvest, braid seed, and braid session are three separate top-level commands. CHANGE: (1) Create braid session as unified resource with subcommands: start, end, harvest, seed, list, show, search. (2) braid harvest becomes shortcut for braid session harvest. (3) braid seed becomes shortcut for braid session seed. (4) session list shows past sessions. session show <id> shows session detail. session search <query> finds sessions by content. (5) All output uses OutputFormatter" :op :assert}
+   {:e #blake3 "ab03fc1417db1fceebf7f6ca03a0faaa2f20661df134cc46b319ea784626dd1d" :a :task/title-l0 :v "CLI-MIGRATE-2" :op :assert}
+   {:e #blake3 "ab03fc1417db1fceebf7f6ca03a0faaa2f20661df134cc46b319ea784626dd1d" :a :task/title-l1 :v "CLI-MIGRATE-2: session resource — consolidate harvest + seed + session" :op :assert}
+   {:e #blake3 "ab03fc1417db1fceebf7f6ca03a0faaa2f20661df134cc46b319ea784626dd1d" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774591966/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-SCAFFOLD-1: OutputFormatter types — ListFormatter, DetailFormatter, SearchFormatter, CreateFormatter, ErrorFormatter, SteeringFormatter. Each enforces its template (CLI_COHERENCE_SPEC.md §4). Rust types with Display impl. All commands use these instead of ad-hoc println. ACCEPTANCE: (A) Each formatter type compiles with the template structure enforced at type level. (B) SteeringFormatter includes concept_membership, structural_gap, steering_question fields. (C) ErrorFormatter requires what_wrong, how_to_fix, reference fields — cannot construct without all three. (D) Unit tests: each formatter produces output matching its template regex. FILE: crates/braid/src/output.rs (extend existing). TRACES: INV-CLI-003, INV-CLI-004, INV-CLI-005"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "605fe5d6a2f9702448c07117d3c911b0e4d6da7674b8773becb4d78341894ea2" :a :db/ident :v :task/t-a3a8084b :op :assert}
+   {:e #blake3 "605fe5d6a2f9702448c07117d3c911b0e4d6da7674b8773becb4d78341894ea2" :a :task/acceptance :v "(A) Each formatter type compiles with the template structure enforced at type level. (B) SteeringFormatter includes concept_membership, structural_gap, steering_question fields. (C) ErrorFormatter requires what_wrong, how_to_fix, reference fields — cannot construct without all three. (D) Unit tests: each formatter produces output matching its template regex." :op :assert}
+   {:e #blake3 "605fe5d6a2f9702448c07117d3c911b0e4d6da7674b8773becb4d78341894ea2" :a :task/body :v "ACCEPTANCE: (A) Each formatter type compiles with the template structure enforced at type level. (B) SteeringFormatter includes concept_membership, structural_gap, steering_question fields. (C) ErrorFormatter requires what_wrong, how_to_fix, reference fields — cannot construct without all three. (D) Unit tests: each formatter produces output matching its template regex. FILE: crates/braid/src/output.rs (extend existing). TRACES: INV-CLI-003, INV-CLI-004, INV-CLI-005" :op :assert}
+   {:e #blake3 "605fe5d6a2f9702448c07117d3c911b0e4d6da7674b8773becb4d78341894ea2" :a :task/created-at :v 1774591965 :op :assert}
+   {:e #blake3 "605fe5d6a2f9702448c07117d3c911b0e4d6da7674b8773becb4d78341894ea2" :a :task/files :v "crates/braid/src/output.rs (extend existing). TRACES: INV-CLI-003" :op :assert}
+   {:e #blake3 "605fe5d6a2f9702448c07117d3c911b0e4d6da7674b8773becb4d78341894ea2" :a :task/id :v "t-a3a8084b" :op :assert}
+   {:e #blake3 "605fe5d6a2f9702448c07117d3c911b0e4d6da7674b8773becb4d78341894ea2" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "605fe5d6a2f9702448c07117d3c911b0e4d6da7674b8773becb4d78341894ea2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "605fe5d6a2f9702448c07117d3c911b0e4d6da7674b8773becb4d78341894ea2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "605fe5d6a2f9702448c07117d3c911b0e4d6da7674b8773becb4d78341894ea2" :a :task/title :v "CLI-SCAFFOLD-1: OutputFormatter types — ListFormatter, DetailFormatter, SearchFormatter, CreateFormatter, ErrorFormatter, SteeringFormatter. Each enforces its template (CLI_COHERENCE_SPEC.md §4). Rust types with Display impl. All commands use these instead of ad-hoc println" :op :assert}
+   {:e #blake3 "605fe5d6a2f9702448c07117d3c911b0e4d6da7674b8773becb4d78341894ea2" :a :task/title-l0 :v "CLI-SCAFFOLD-1" :op :assert}
+   {:e #blake3 "605fe5d6a2f9702448c07117d3c911b0e4d6da7674b8773becb4d78341894ea2" :a :task/title-l1 :v "CLI-SCAFFOLD-1: OutputFormatter types — ListFormatter, DetailFormatter, Sea..." :op :assert}
+   {:e #blake3 "605fe5d6a2f9702448c07117d3c911b0e4d6da7674b8773becb4d78341894ea2" :a :task/type :v :task.type/task :op :assert}
+ ]}

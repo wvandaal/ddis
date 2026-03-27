@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774586753/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C9-SPEC: Formalize INV-REFLEXIVE-006 and INV-REFLEXIVE-007 in spec with falsification conditions"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "552bb1809829bbef5ae8e8a9ae7e752b1797015aa7811bc2e01ec7599b491e4f" :a :db/ident :v :task/t-1e1710d3 :op :assert}
+   {:e #blake3 "552bb1809829bbef5ae8e8a9ae7e752b1797015aa7811bc2e01ec7599b491e4f" :a :task/created-at :v 1774586752 :op :assert}
+   {:e #blake3 "552bb1809829bbef5ae8e8a9ae7e752b1797015aa7811bc2e01ec7599b491e4f" :a :task/description :v "CONTEXT: The C9 principle (second-order epistemic closure) exists only as observations in the store. For a 10/10 solution, it must be formalized as invariants in spec/22-reflexive.md with falsification conditions and verification tags. APPROACH: Add two new invariants to spec/22-reflexive.md: INV-REFLEXIVE-006 (Second-Order Epistemic Closure): The system must apply its own coherence machinery to its own observation layer using the same functions it applies to domain observations. Result surfaceable via single CLI command. Falsification: (a) 10+ observations from 2+ agents, cannot retrieve top 3 convergent findings in one command. (b) Second-order functions differ from first-order functions. (c) braid observe list on 50+ observations fails to show grouped themes. (d) braid observe show with 3+ links fails to display targets. INV-REFLEXIVE-007 (Fixed-Point Property): Functions for second-order analysis must be identical to first-order. No conditional branches for meta vs domain observations. apply(f, apply(f, data)) == apply(f, data). Falsification: any C9 function contains meta-observation special case. ALSO: Transact both invariants into the store via braid spec create. ACCEPTANCE: (A) spec/22-reflexive.md contains both invariants with full falsification conditions. (B) braid query for :spec/id INV-REFLEXIVE-006 and INV-REFLEXIVE-007 returns entities. (C) Both have verification tags V:PROP and V:TYPE. FILES: spec/22-reflexive.md. EFFORT: 1h." :op :assert}
+   {:e #blake3 "552bb1809829bbef5ae8e8a9ae7e752b1797015aa7811bc2e01ec7599b491e4f" :a :task/id :v "t-1e1710d3" :op :assert}
+   {:e #blake3 "552bb1809829bbef5ae8e8a9ae7e752b1797015aa7811bc2e01ec7599b491e4f" :a :task/labels :v :label/C9 :op :assert}
+   {:e #blake3 "552bb1809829bbef5ae8e8a9ae7e752b1797015aa7811bc2e01ec7599b491e4f" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "552bb1809829bbef5ae8e8a9ae7e752b1797015aa7811bc2e01ec7599b491e4f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "552bb1809829bbef5ae8e8a9ae7e752b1797015aa7811bc2e01ec7599b491e4f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "552bb1809829bbef5ae8e8a9ae7e752b1797015aa7811bc2e01ec7599b491e4f" :a :task/title :v "C9-SPEC: Formalize INV-REFLEXIVE-006 and INV-REFLEXIVE-007 in spec with falsification conditions" :op :assert}
+   {:e #blake3 "552bb1809829bbef5ae8e8a9ae7e752b1797015aa7811bc2e01ec7599b491e4f" :a :task/title-l0 :v "C9-SPEC" :op :assert}
+   {:e #blake3 "552bb1809829bbef5ae8e8a9ae7e752b1797015aa7811bc2e01ec7599b491e4f" :a :task/title-l1 :v "C9-SPEC: Formalize INV-REFLEXIVE-006 and INV-REFLEXIVE-007 in spec with falsi..." :op :assert}
+   {:e #blake3 "552bb1809829bbef5ae8e8a9ae7e752b1797015aa7811bc2e01ec7599b491e4f" :a :task/traces-to :v #blake3 "b8a4bebf5634d533a34d85a0fea7f293cb5e93934ee229810b9ae6ead5cf3d14" :op :assert}
+   {:e #blake3 "552bb1809829bbef5ae8e8a9ae7e752b1797015aa7811bc2e01ec7599b491e4f" :a :task/type :v :task.type/task :op :assert}
+ ]}

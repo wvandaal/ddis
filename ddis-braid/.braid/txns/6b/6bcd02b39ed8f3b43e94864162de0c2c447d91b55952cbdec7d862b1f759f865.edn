@@ -1,0 +1,38 @@
+{:tx/id #hlc "1774590044/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :db/ident :v :recon/trace-54100b9ca0557b60 :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-neighborhood :v "CONVERGENCE" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.store.adr-store-006" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-neighbors :v ":task/t-71f8c758" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-neighbors :v ":task/t-994167b6" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-neighbors :v ":task/t-9df08f11" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-neighbors :v ":task/t-9f0aedd9" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-neighbors :v ":task/t-c1999149" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-neighbors :v ":task/t-c1f94695" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-neighbors :v ":task/t-c4b070ed" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-neighbors :v ":task/t-d0b042d7" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-neighbors :v ":task/t-e7394fd8" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "ADR-CONVERGENCE-005" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "ADR-FOUNDATION-014" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "ADR-FOUNDATION-015" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "ADR-FOUNDATION-016" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "ADR-FOUNDATION-021" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "ADR-FOUNDATION-024" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "ADR-FOUNDATION-026" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "ADR-FOUNDATION-029" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "ADR-FOUNDATION-030" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "ADR-FOUNDATION-031" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "ADR-STORE-006" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "INV-CACHE-001" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "INV-CACHE-003" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "INV-CACHE-004" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "INV-CACHE-005" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "INV-CONVERGENCE-006" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "INV-DAEMON-010" :op :assert}
+   {:e #blake3 "e517417fbcfced1b877fba1ca8e4e9772bf977388af4bddeb2283369754b6f16" :a :recon/trace-refs :v "INV-GUIDANCE-020" :op :assert}
+ ]}

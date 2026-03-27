@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774589177/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: CLI Coherence — Braid as Learnable Language. THE SINGLE MOST ACCRETIVE ACTION. Braid is not a tool the LLM uses — it is a language the LLM speaks. The API must be a coherent formal language that an in-context learner converges on within 3-5 interactions. DOGFOOD 6.75/10 measured an unlearnable language. PHASE 1: AUDIT grammar/vocabulary/output/error inconsistencies. PHASE 2: GRAMMAR SPEC with INV-CLI-GRAMMAR through INV-CLI-PROGRESSIVE. PHASE 3: UNIFY commands, outputs, errors. PHASE 4: DOGFOOD-4 validation (target >8.0). Traces: docs/design/STEERING_MANIFOLD.md, ADR-FOUNDATION-034."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d4164055d65a0d430aa5eb3682775b59e68f5f9acbbfca5ecec9589146097746" :a :db/ident :v :task/t-94b8246b :op :assert}
+   {:e #blake3 "d4164055d65a0d430aa5eb3682775b59e68f5f9acbbfca5ecec9589146097746" :a :task/created-at :v 1774589176 :op :assert}
+   {:e #blake3 "d4164055d65a0d430aa5eb3682775b59e68f5f9acbbfca5ecec9589146097746" :a :task/id :v "t-94b8246b" :op :assert}
+   {:e #blake3 "d4164055d65a0d430aa5eb3682775b59e68f5f9acbbfca5ecec9589146097746" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "d4164055d65a0d430aa5eb3682775b59e68f5f9acbbfca5ecec9589146097746" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d4164055d65a0d430aa5eb3682775b59e68f5f9acbbfca5ecec9589146097746" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d4164055d65a0d430aa5eb3682775b59e68f5f9acbbfca5ecec9589146097746" :a :task/title :v "EPIC: CLI Coherence — Braid as Learnable Language. THE SINGLE MOST ACCRETIVE ACTION. Braid is not a tool the LLM uses — it is a language the LLM speaks. The API must be a coherent formal language that an in-context learner converges on within 3-5 interactions. DOGFOOD 6.75/10 measured an unlearnable language. PHASE 1: AUDIT grammar/vocabulary/output/error inconsistencies. PHASE 2: GRAMMAR SPEC with INV-CLI-GRAMMAR through INV-CLI-PROGRESSIVE. PHASE 3: UNIFY commands, outputs, errors. PHASE 4: DOGFOOD-4 validation (target >8.0). Traces: docs/design/STEERING_MANIFOLD.md, ADR-FOUNDATION-034." :op :assert}
+   {:e #blake3 "d4164055d65a0d430aa5eb3682775b59e68f5f9acbbfca5ecec9589146097746" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "d4164055d65a0d430aa5eb3682775b59e68f5f9acbbfca5ecec9589146097746" :a :task/title-l1 :v "EPIC: CLI Coherence — Braid as Learnable Language" :op :assert}
+   {:e #blake3 "d4164055d65a0d430aa5eb3682775b59e68f5f9acbbfca5ecec9589146097746" :a :task/traces-to :v #blake3 "ed3b10a7c6da67c326fbccd337ba0e240550819ce429a68e22fafffd1d2c2aba" :op :assert}
+   {:e #blake3 "d4164055d65a0d430aa5eb3682775b59e68f5f9acbbfca5ecec9589146097746" :a :task/type :v :task.type/epic :op :assert}
+ ]}

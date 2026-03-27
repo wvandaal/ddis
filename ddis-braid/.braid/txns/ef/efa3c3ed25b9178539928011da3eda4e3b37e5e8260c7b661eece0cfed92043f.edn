@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774591925/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CLI-006 \"Progressive Disclosure: Default output <=10 lines, --verbose for full detail\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "40437685ac8db131580ef5e910be37591665f1760731ca5c8703a0816c40c36d" :a :db/doc :v "Any default output exceeding 10 lines." :op :assert}
+   {:e #blake3 "a88cbb328ac98f2beb32d911c8687ea9c29bcca3e530350b7bd8bf9d03e8dd2f" :a :db/ident :v :task/t-ad614aef :op :assert}
+   {:e #blake3 "a88cbb328ac98f2beb32d911c8687ea9c29bcca3e530350b7bd8bf9d03e8dd2f" :a :task/created-at :v 1774591924 :op :assert}
+   {:e #blake3 "a88cbb328ac98f2beb32d911c8687ea9c29bcca3e530350b7bd8bf9d03e8dd2f" :a :task/id :v "t-ad614aef" :op :assert}
+   {:e #blake3 "a88cbb328ac98f2beb32d911c8687ea9c29bcca3e530350b7bd8bf9d03e8dd2f" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "a88cbb328ac98f2beb32d911c8687ea9c29bcca3e530350b7bd8bf9d03e8dd2f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a88cbb328ac98f2beb32d911c8687ea9c29bcca3e530350b7bd8bf9d03e8dd2f" :a :task/title :v "Implement INV-CLI-006: Progressive Disclosure: Default output <=10 lines, --verbose for full detail" :op :assert}
+   {:e #blake3 "a88cbb328ac98f2beb32d911c8687ea9c29bcca3e530350b7bd8bf9d03e8dd2f" :a :task/traces-to :v #blake3 "cfc3f942861dc4bcffbd1df6145edcae7f9a70fe6f2853946d8f6b885db6b61f" :op :assert}
+   {:e #blake3 "a88cbb328ac98f2beb32d911c8687ea9c29bcca3e530350b7bd8bf9d03e8dd2f" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "cfc3f942861dc4bcffbd1df6145edcae7f9a70fe6f2853946d8f6b885db6b61f" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "cfc3f942861dc4bcffbd1df6145edcae7f9a70fe6f2853946d8f6b885db6b61f" :a :comonad/falsification :v #blake3 "40437685ac8db131580ef5e910be37591665f1760731ca5c8703a0816c40c36d" :op :assert}
+   {:e #blake3 "cfc3f942861dc4bcffbd1df6145edcae7f9a70fe6f2853946d8f6b885db6b61f" :a :db/doc :v "Progressive Disclosure: Default output <=10 lines, --verbose for full detail" :op :assert}
+   {:e #blake3 "cfc3f942861dc4bcffbd1df6145edcae7f9a70fe6f2853946d8f6b885db6b61f" :a :db/ident :v :spec/inv-cli-006 :op :assert}
+   {:e #blake3 "cfc3f942861dc4bcffbd1df6145edcae7f9a70fe6f2853946d8f6b885db6b61f" :a :element/traces-to :v "STEERING_MANIFOLD.md §3 (Piagetian progressive disclosure)" :op :assert}
+   {:e #blake3 "cfc3f942861dc4bcffbd1df6145edcae7f9a70fe6f2853946d8f6b885db6b61f" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "cfc3f942861dc4bcffbd1df6145edcae7f9a70fe6f2853946d8f6b885db6b61f" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "cfc3f942861dc4bcffbd1df6145edcae7f9a70fe6f2853946d8f6b885db6b61f" :a :spec/falsification :v "Any default output exceeding 10 lines." :op :assert}
+   {:e #blake3 "cfc3f942861dc4bcffbd1df6145edcae7f9a70fe6f2853946d8f6b885db6b61f" :a :spec/id :v "INV-CLI-006" :op :assert}
+   {:e #blake3 "cfc3f942861dc4bcffbd1df6145edcae7f9a70fe6f2853946d8f6b885db6b61f" :a :spec/namespace :v :spec.ns/CLI :op :assert}
+   {:e #blake3 "cfc3f942861dc4bcffbd1df6145edcae7f9a70fe6f2853946d8f6b885db6b61f" :a :spec/statement :v "Default output of every command fits in 10 lines (excluding steering vector). --verbose expands. --json provides machine-parseable output." :op :assert}
+ ]}

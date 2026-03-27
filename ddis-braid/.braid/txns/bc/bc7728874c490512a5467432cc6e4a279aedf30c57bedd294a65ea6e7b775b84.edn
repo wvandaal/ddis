@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774584164/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "MEASUREMENT: braid status at 151K datoms = 3.2-3.9s (3 runs). Store growing ~35 datoms per status invocation from concurrent agents. 12,738 transaction files. Cache hit confirmed (store.bin exists and is fresh). The 3.3s is NOT the seal_existing_txns regression (already removed). This is the pre-existing O(N) datom scan pattern from audit findings PERF-002/PERF-005. The harvest command at 28.5s is the same root cause amplified (15+ full datom scans in the harvest pipeline)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b099246e4a33bdb983b86e75e832262c2595a3a3bec70add946dec912973d1d9" :a :db/doc :v "MEASUREMENT: braid status at 151K datoms = 3.2-3.9s (3 runs). Store growing ~35 datoms per status invocation from concurrent agents. 12,738 transaction files. Cache hit confirmed (store.bin exists and is fresh). The 3.3s is NOT the seal_existing_txns regression (already removed). This is the pre-existing O(N) datom scan pattern from audit findings PERF-002/PERF-005. The harvest command at 28.5s is the same root cause amplified (15+ full datom scans in the harvest pipeline)." :op :assert}
+   {:e #blake3 "b099246e4a33bdb983b86e75e832262c2595a3a3bec70add946dec912973d1d9" :a :db/ident :v :observation/measurement-braid-status-at-151k-datoms-32-39s-3-runs :op :assert}
+   {:e #blake3 "b099246e4a33bdb983b86e75e832262c2595a3a3bec70add946dec912973d1d9" :a :exploration/body :v "MEASUREMENT: braid status at 151K datoms = 3.2-3.9s (3 runs). Store growing ~35 datoms per status invocation from concurrent agents. 12,738 transaction files. Cache hit confirmed (store.bin exists and is fresh). The 3.3s is NOT the seal_existing_txns regression (already removed). This is the pre-existing O(N) datom scan pattern from audit findings PERF-002/PERF-005. The harvest command at 28.5s is the same root cause amplified (15+ full datom scans in the harvest pipeline)." :op :assert}
+   {:e #blake3 "b099246e4a33bdb983b86e75e832262c2595a3a3bec70add946dec912973d1d9" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "b099246e4a33bdb983b86e75e832262c2595a3a3bec70add946dec912973d1d9" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "b099246e4a33bdb983b86e75e832262c2595a3a3bec70add946dec912973d1d9" :a :exploration/content-hash :v #bytes "9872d6a429bf6638481a9fdb897ffaae28d2f7f5521fb84798981d692de97658" :op :assert}
+   {:e #blake3 "b099246e4a33bdb983b86e75e832262c2595a3a3bec70add946dec912973d1d9" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b099246e4a33bdb983b86e75e832262c2595a3a3bec70add946dec912973d1d9" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b099246e4a33bdb983b86e75e832262c2595a3a3bec70add946dec912973d1d9" :a :exploration/source-session :v #blake3 "b10132d170629e1c9be0e1e13a6e047b570df301b005a773e978542f17fe0326" :op :assert}
+   {:e #blake3 "b099246e4a33bdb983b86e75e832262c2595a3a3bec70add946dec912973d1d9" :a :exploration/tags :v :tag/measurement :op :assert}
+   {:e #blake3 "b099246e4a33bdb983b86e75e832262c2595a3a3bec70add946dec912973d1d9" :a :exploration/tags :v :tag/performance :op :assert}
+ ]}

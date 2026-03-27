@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774592056/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-HELP-1: Rewrite all help text to show canonical noun-verb forms, consistent vocabulary, one demonstration per command. CURRENT: help text shows verb forms ('braid observe TEXT'). CHANGE: (1) Every help example shows canonical form first, shortcut form second with '(shortcut)' annotation. (2) All help text uses canonical vocabulary from CLI_COHERENCE_SPEC.md §6 lexicon. (3) Each command's after_long_help includes exactly one worked example showing a complete interaction (input + output). (4) Cross-reference: each help mentions related commands ('see also: braid observation list'). ACCEPTANCE: (A) All help text shows canonical forms. (B) Zero non-canonical vocabulary in help. (C) Every command has a worked example. (D) Grammar test: extract all command names from help, verify they match the formal grammar. FILE: crates/braid/src/commands/mod.rs (clap definitions). TRACES: INV-CLI-002, ADR-CLI-001"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "964b9b1224c8765ebb73cc1aa4103b91b966ae05de89d1f9b36f2c2132b281d0" :a :db/ident :v :task/t-b39c229d :op :assert}
+   {:e #blake3 "964b9b1224c8765ebb73cc1aa4103b91b966ae05de89d1f9b36f2c2132b281d0" :a :task/acceptance :v "(A) All help text shows canonical forms. (B) Zero non-canonical vocabulary in help. (C) Every command has a worked example. (D) Grammar test: extract all command names from help, verify they match the formal grammar." :op :assert}
+   {:e #blake3 "964b9b1224c8765ebb73cc1aa4103b91b966ae05de89d1f9b36f2c2132b281d0" :a :task/body :v "ACCEPTANCE: (A) All help text shows canonical forms. (B) Zero non-canonical vocabulary in help. (C) Every command has a worked example. (D) Grammar test: extract all command names from help, verify they match the formal grammar. FILE: crates/braid/src/commands/mod.rs (clap definitions). TRACES: INV-CLI-002, ADR-CLI-001" :op :assert}
+   {:e #blake3 "964b9b1224c8765ebb73cc1aa4103b91b966ae05de89d1f9b36f2c2132b281d0" :a :task/created-at :v 1774592055 :op :assert}
+   {:e #blake3 "964b9b1224c8765ebb73cc1aa4103b91b966ae05de89d1f9b36f2c2132b281d0" :a :task/files :v "crates/braid/src/commands/mod.rs (clap definitions). TRACES: INV-CLI-002" :op :assert}
+   {:e #blake3 "964b9b1224c8765ebb73cc1aa4103b91b966ae05de89d1f9b36f2c2132b281d0" :a :task/id :v "t-b39c229d" :op :assert}
+   {:e #blake3 "964b9b1224c8765ebb73cc1aa4103b91b966ae05de89d1f9b36f2c2132b281d0" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "964b9b1224c8765ebb73cc1aa4103b91b966ae05de89d1f9b36f2c2132b281d0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "964b9b1224c8765ebb73cc1aa4103b91b966ae05de89d1f9b36f2c2132b281d0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "964b9b1224c8765ebb73cc1aa4103b91b966ae05de89d1f9b36f2c2132b281d0" :a :task/title :v "CLI-HELP-1: Rewrite all help text to show canonical noun-verb forms, consistent vocabulary, one demonstration per command. CURRENT: help text shows verb forms ('braid observe TEXT'). CHANGE: (1) Every help example shows canonical form first, shortcut form second with '(shortcut)' annotation. (2) All help text uses canonical vocabulary from CLI_COHERENCE_SPEC.md §6 lexicon. (3) Each command's after_long_help includes exactly one worked example showing a complete interaction (input + output). (4) Cross-reference: each help mentions related commands ('see also: braid observation list')" :op :assert}
+   {:e #blake3 "964b9b1224c8765ebb73cc1aa4103b91b966ae05de89d1f9b36f2c2132b281d0" :a :task/title-l0 :v "CLI-HELP-1" :op :assert}
+   {:e #blake3 "964b9b1224c8765ebb73cc1aa4103b91b966ae05de89d1f9b36f2c2132b281d0" :a :task/title-l1 :v "CLI-HELP-1: Rewrite all help text to show canonical noun-verb forms, consiste..." :op :assert}
+   {:e #blake3 "964b9b1224c8765ebb73cc1aa4103b91b966ae05de89d1f9b36f2c2132b281d0" :a :task/type :v :task.type/task :op :assert}
+ ]}

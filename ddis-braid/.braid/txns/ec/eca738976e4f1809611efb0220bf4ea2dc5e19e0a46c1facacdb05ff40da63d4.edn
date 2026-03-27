@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774586637/0/82c9bbe796a087908db36cc169662519"
+ :tx/agent "82c9bbe796a087908db36cc169662519"
+ :tx/provenance :derived
+ :tx/rationale "ADR-FOUNDATION-031: online calibration (n=211, mean=0.7509, threshold=0.7256)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "74a8271327ee5531f27b613de0ce588c40206a7b57d9f213d2f2277daa1b7aa0" :a :config/key :v "calibration.similarity-sum-sq" :op :assert}
+   {:e #blake3 "74a8271327ee5531f27b613de0ce588c40206a7b57d9f213d2f2277daa1b7aa0" :a :config/scope :v :config.scope/project :op :assert}
+   {:e #blake3 "74a8271327ee5531f27b613de0ce588c40206a7b57d9f213d2f2277daa1b7aa0" :a :config/value :v "119.50880103" :op :assert}
+   {:e #blake3 "74a8271327ee5531f27b613de0ce588c40206a7b57d9f213d2f2277daa1b7aa0" :a :db/ident :v :config/calibration-similarity-sum-sq :op :assert}
+   {:e #blake3 "d0b85f9d94965e00a210c4b20ecdac6d6f516a2ac0718f09f7e72e34c1748e46" :a :config/key :v "concept.join-threshold" :op :assert}
+   {:e #blake3 "d0b85f9d94965e00a210c4b20ecdac6d6f516a2ac0718f09f7e72e34c1748e46" :a :config/scope :v :config.scope/project :op :assert}
+   {:e #blake3 "d0b85f9d94965e00a210c4b20ecdac6d6f516a2ac0718f09f7e72e34c1748e46" :a :config/value :v "0.7256" :op :assert}
+   {:e #blake3 "d0b85f9d94965e00a210c4b20ecdac6d6f516a2ac0718f09f7e72e34c1748e46" :a :db/ident :v :config/concept-join-threshold :op :assert}
+   {:e #blake3 "f147a4beeb1c5fd3d049474aa7c8bce933c609183b4887da36702c7eea2e7e41" :a :config/key :v "concept.sigmoid-temperature" :op :assert}
+   {:e #blake3 "f147a4beeb1c5fd3d049474aa7c8bce933c609183b4887da36702c7eea2e7e41" :a :config/scope :v :config.scope/project :op :assert}
+   {:e #blake3 "f147a4beeb1c5fd3d049474aa7c8bce933c609183b4887da36702c7eea2e7e41" :a :config/value :v "0.0253" :op :assert}
+   {:e #blake3 "f147a4beeb1c5fd3d049474aa7c8bce933c609183b4887da36702c7eea2e7e41" :a :db/ident :v :config/concept-sigmoid-temperature :op :assert}
+   {:e #blake3 "f3d1d3113e21a84234967254f1719bfec2e161520eb461393106d5b3f95f397f" :a :config/key :v "calibration.similarity-count" :op :assert}
+   {:e #blake3 "f3d1d3113e21a84234967254f1719bfec2e161520eb461393106d5b3f95f397f" :a :config/scope :v :config.scope/project :op :assert}
+   {:e #blake3 "f3d1d3113e21a84234967254f1719bfec2e161520eb461393106d5b3f95f397f" :a :config/value :v "211" :op :assert}
+   {:e #blake3 "f3d1d3113e21a84234967254f1719bfec2e161520eb461393106d5b3f95f397f" :a :db/ident :v :config/calibration-similarity-count :op :assert}
+   {:e #blake3 "f7e98ec747af1f8413799c0a2af116915ef4ff7a8fc495f96b7f8b080e8ad12a" :a :config/key :v "calibration.similarity-sum" :op :assert}
+   {:e #blake3 "f7e98ec747af1f8413799c0a2af116915ef4ff7a8fc495f96b7f8b080e8ad12a" :a :config/scope :v :config.scope/project :op :assert}
+   {:e #blake3 "f7e98ec747af1f8413799c0a2af116915ef4ff7a8fc495f96b7f8b080e8ad12a" :a :config/value :v "158.43836234" :op :assert}
+   {:e #blake3 "f7e98ec747af1f8413799c0a2af116915ef4ff7a8fc495f96b7f8b080e8ad12a" :a :db/ident :v :config/calibration-similarity-sum :op :assert}
+ ]}

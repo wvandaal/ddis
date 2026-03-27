@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774583502/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "75f1e1d56c071b61e6e6012b38f98fba98752849c8dc500b1a54c2a0f01ee433" :a :db/ident :v :recon/trace-9ade599f114c1432 :op :assert}
+   {:e #blake3 "75f1e1d56c071b61e6e6012b38f98fba98752849c8dc500b1a54c2a0f01ee433" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "75f1e1d56c071b61e6e6012b38f98fba98752849c8dc500b1a54c2a0f01ee433" :a :recon/trace-neighborhood :v "LAYOUT" :op :assert}
+   {:e #blake3 "75f1e1d56c071b61e6e6012b38f98fba98752849c8dc500b1a54c2a0f01ee433" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.layout.inv-layout-006" :op :assert}
+   {:e #blake3 "75f1e1d56c071b61e6e6012b38f98fba98752849c8dc500b1a54c2a0f01ee433" :a :recon/trace-refs :v "INV-LAYOUT-006" :op :assert}
+ ]}

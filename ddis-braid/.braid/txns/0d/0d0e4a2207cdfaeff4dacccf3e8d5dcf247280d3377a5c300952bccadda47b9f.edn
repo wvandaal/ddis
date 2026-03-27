@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774587226/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-0217080c"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c9efd86158b536bc703d7ef81ce5f8e1d94f6ab7005c0677e2d3333ada56bd3a" :a :task/close-reason :v "Superseded: adding steering questions to every subcommand output per STEERING_MANIFOLD.md Section 2. The question IS the acquisition function rendered as natural language." :op :assert}
+   {:e #blake3 "c9efd86158b536bc703d7ef81ce5f8e1d94f6ab7005c0677e2d3333ada56bd3a" :a :task/closed-at :v 1774587225 :op :assert}
+   {:e #blake3 "c9efd86158b536bc703d7ef81ce5f8e1d94f6ab7005c0677e2d3333ada56bd3a" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "c9efd86158b536bc703d7ef81ce5f8e1d94f6ab7005c0677e2d3333ada56bd3a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

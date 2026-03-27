@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774591912/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CLI-003 \"Output Shape Consistency: All list/show/search commands match their template\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1d707a4238efe430a214f5baeeb94942299a7c04cc78268d249c65a4463a6954" :a :db/ident :v :task/t-ddb6327f :op :assert}
+   {:e #blake3 "1d707a4238efe430a214f5baeeb94942299a7c04cc78268d249c65a4463a6954" :a :task/created-at :v 1774591911 :op :assert}
+   {:e #blake3 "1d707a4238efe430a214f5baeeb94942299a7c04cc78268d249c65a4463a6954" :a :task/id :v "t-ddb6327f" :op :assert}
+   {:e #blake3 "1d707a4238efe430a214f5baeeb94942299a7c04cc78268d249c65a4463a6954" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "1d707a4238efe430a214f5baeeb94942299a7c04cc78268d249c65a4463a6954" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1d707a4238efe430a214f5baeeb94942299a7c04cc78268d249c65a4463a6954" :a :task/title :v "Implement INV-CLI-003: Output Shape Consistency: All list/show/search commands match their template" :op :assert}
+   {:e #blake3 "1d707a4238efe430a214f5baeeb94942299a7c04cc78268d249c65a4463a6954" :a :task/traces-to :v #blake3 "2eb04136688b39c558ccd77affed80ebf936dcf39aeb4a546318c4b4f5cbdd93" :op :assert}
+   {:e #blake3 "1d707a4238efe430a214f5baeeb94942299a7c04cc78268d249c65a4463a6954" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "2eb04136688b39c558ccd77affed80ebf936dcf39aeb4a546318c4b4f5cbdd93" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "2eb04136688b39c558ccd77affed80ebf936dcf39aeb4a546318c4b4f5cbdd93" :a :comonad/falsification :v #blake3 "433a5f0e75d4eac91f00450204f73f00141d5572809c3709f5321b44c8cb9120" :op :assert}
+   {:e #blake3 "2eb04136688b39c558ccd77affed80ebf936dcf39aeb4a546318c4b4f5cbdd93" :a :db/doc :v "Output Shape Consistency: All list/show/search commands match their template" :op :assert}
+   {:e #blake3 "2eb04136688b39c558ccd77affed80ebf936dcf39aeb4a546318c4b4f5cbdd93" :a :db/ident :v :spec/inv-cli-003 :op :assert}
+   {:e #blake3 "2eb04136688b39c558ccd77affed80ebf936dcf39aeb4a546318c4b4f5cbdd93" :a :element/traces-to :v "STEERING_MANIFOLD.md §14" :op :assert}
+   {:e #blake3 "2eb04136688b39c558ccd77affed80ebf936dcf39aeb4a546318c4b4f5cbdd93" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "2eb04136688b39c558ccd77affed80ebf936dcf39aeb4a546318c4b4f5cbdd93" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "2eb04136688b39c558ccd77affed80ebf936dcf39aeb4a546318c4b4f5cbdd93" :a :spec/falsification :v "Any list/show/search command whose output does not match its assigned template." :op :assert}
+   {:e #blake3 "2eb04136688b39c558ccd77affed80ebf936dcf39aeb4a546318c4b4f5cbdd93" :a :spec/id :v "INV-CLI-003" :op :assert}
+   {:e #blake3 "2eb04136688b39c558ccd77affed80ebf936dcf39aeb4a546318c4b4f5cbdd93" :a :spec/namespace :v :spec.ns/CLI :op :assert}
+   {:e #blake3 "2eb04136688b39c558ccd77affed80ebf936dcf39aeb4a546318c4b4f5cbdd93" :a :spec/statement :v "All list commands produce ListOutput template. All show commands produce DetailOutput. All search commands produce SearchOutput. Templates in CLI_COHERENCE_SPEC.md §4." :op :assert}
+   {:e #blake3 "433a5f0e75d4eac91f00450204f73f00141d5572809c3709f5321b44c8cb9120" :a :db/doc :v "Any list/show/search command whose output does not match its assigned template." :op :assert}
+ ]}

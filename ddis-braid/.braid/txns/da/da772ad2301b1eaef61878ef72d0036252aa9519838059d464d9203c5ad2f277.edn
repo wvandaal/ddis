@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774592021/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-MIGRATE-3: boundary resource — rename bilateral → boundary. CURRENT: braid bilateral is a standalone command. CHANGE: (1) Create braid boundary with subcommands: status, evaluate, list, show, search, history. (2) braid bilateral becomes shortcut for braid boundary status. (3) boundary list shows all configured boundaries. boundary show <id> shows boundary detail with weights. (4) All output uses OutputFormatter. ACCEPTANCE: (A) braid boundary status/evaluate/list/show/search all work. (B) braid bilateral still works as shortcut. (C) Help text shows canonical forms. (D) 6+ unit tests. FILE: crates/braid/src/commands/bilateral.rs → crates/braid/src/commands/boundary.rs. TRACES: INV-CLI-001, INV-CLI-002, ADR-CLI-001"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e0ef6422a151b962cdef69618736d4b7efa1759f4bb722b368e246d3f26f0677" :a :db/ident :v :task/t-8b2e8d3c :op :assert}
+   {:e #blake3 "e0ef6422a151b962cdef69618736d4b7efa1759f4bb722b368e246d3f26f0677" :a :task/acceptance :v "(A) braid boundary status/evaluate/list/show/search all work. (B) braid bilateral still works as shortcut. (C) Help text shows canonical forms. (D) 6+ unit tests." :op :assert}
+   {:e #blake3 "e0ef6422a151b962cdef69618736d4b7efa1759f4bb722b368e246d3f26f0677" :a :task/body :v "ACCEPTANCE: (A) braid boundary status/evaluate/list/show/search all work. (B) braid bilateral still works as shortcut. (C) Help text shows canonical forms. (D) 6+ unit tests. FILE: crates/braid/src/commands/bilateral.rs → crates/braid/src/commands/boundary.rs. TRACES: INV-CLI-001, INV-CLI-002, ADR-CLI-001" :op :assert}
+   {:e #blake3 "e0ef6422a151b962cdef69618736d4b7efa1759f4bb722b368e246d3f26f0677" :a :task/created-at :v 1774592020 :op :assert}
+   {:e #blake3 "e0ef6422a151b962cdef69618736d4b7efa1759f4bb722b368e246d3f26f0677" :a :task/files :v "crates/braid/src/commands/bilateral.rs → crates/braid/src/commands/boundary.rs. TRACES: INV-CLI-001" :op :assert}
+   {:e #blake3 "e0ef6422a151b962cdef69618736d4b7efa1759f4bb722b368e246d3f26f0677" :a :task/id :v "t-8b2e8d3c" :op :assert}
+   {:e #blake3 "e0ef6422a151b962cdef69618736d4b7efa1759f4bb722b368e246d3f26f0677" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e0ef6422a151b962cdef69618736d4b7efa1759f4bb722b368e246d3f26f0677" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e0ef6422a151b962cdef69618736d4b7efa1759f4bb722b368e246d3f26f0677" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e0ef6422a151b962cdef69618736d4b7efa1759f4bb722b368e246d3f26f0677" :a :task/title :v "CLI-MIGRATE-3: boundary resource — rename bilateral → boundary. CURRENT: braid bilateral is a standalone command. CHANGE: (1) Create braid boundary with subcommands: status, evaluate, list, show, search, history. (2) braid bilateral becomes shortcut for braid boundary status. (3) boundary list shows all configured boundaries. boundary show <id> shows boundary detail with weights. (4) All output uses OutputFormatter" :op :assert}
+   {:e #blake3 "e0ef6422a151b962cdef69618736d4b7efa1759f4bb722b368e246d3f26f0677" :a :task/title-l0 :v "CLI-MIGRATE-3" :op :assert}
+   {:e #blake3 "e0ef6422a151b962cdef69618736d4b7efa1759f4bb722b368e246d3f26f0677" :a :task/title-l1 :v "CLI-MIGRATE-3: boundary resource — rename bilateral → boundary" :op :assert}
+   {:e #blake3 "e0ef6422a151b962cdef69618736d4b7efa1759f4bb722b368e246d3f26f0677" :a :task/type :v :task.type/task :op :assert}
+ ]}

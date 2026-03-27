@@ -1,0 +1,51 @@
+{:tx/id #hlc "1774589295/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 50 candidates from task 'CLI Coherence EPIC crystallized with 4-phase dependency chain'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "16282aec202bcd0655696ac4f2b44dea9f178f0d082b6fe7d47f42311dd92d99" :a :hypothesis/action :v #blake3 "50ffde310c3d4f2dd24d8c8d88ab701868a524835ed2fdf0a4e1c8b2c5efa61f" :op :assert}
+   {:e #blake3 "16282aec202bcd0655696ac4f2b44dea9f178f0d082b6fe7d47f42311dd92d99" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "16282aec202bcd0655696ac4f2b44dea9f178f0d082b6fe7d47f42311dd92d99" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "16282aec202bcd0655696ac4f2b44dea9f178f0d082b6fe7d47f42311dd92d99" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "16282aec202bcd0655696ac4f2b44dea9f178f0d082b6fe7d47f42311dd92d99" :a :hypothesis/predicted :v 0.5328429207720536 :op :assert}
+   {:e #blake3 "16282aec202bcd0655696ac4f2b44dea9f178f0d082b6fe7d47f42311dd92d99" :a :hypothesis/timestamp :v #inst 1774589297 :op :assert}
+   {:e #blake3 "a3e4f01f26357dc75360b0dd435bfa40a7766e7130eaf7aa5e9af6eef40c1e47" :a :db/ident :v :session/s-1774589297491 :op :assert}
+   {:e #blake3 "a3e4f01f26357dc75360b0dd435bfa40a7766e7130eaf7aa5e9af6eef40c1e47" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "a3e4f01f26357dc75360b0dd435bfa40a7766e7130eaf7aa5e9af6eef40c1e47" :a :session/current :v #blake3 "a3e4f01f26357dc75360b0dd435bfa40a7766e7130eaf7aa5e9af6eef40c1e47" :op :assert}
+   {:e #blake3 "a3e4f01f26357dc75360b0dd435bfa40a7766e7130eaf7aa5e9af6eef40c1e47" :a :session/start-datom-count :v 153033 :op :assert}
+   {:e #blake3 "a3e4f01f26357dc75360b0dd435bfa40a7766e7130eaf7aa5e9af6eef40c1e47" :a :session/start-fitness :v 0.6138585922759305 :op :assert}
+   {:e #blake3 "a3e4f01f26357dc75360b0dd435bfa40a7766e7130eaf7aa5e9af6eef40c1e47" :a :session/start-time :v "2026-03-27T05:28:17Z" :op :assert}
+   {:e #blake3 "a3e4f01f26357dc75360b0dd435bfa40a7766e7130eaf7aa5e9af6eef40c1e47" :a :session/started-at :v 1774589297 :op :assert}
+   {:e #blake3 "a3e4f01f26357dc75360b0dd435bfa40a7766e7130eaf7aa5e9af6eef40c1e47" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "a3e4f01f26357dc75360b0dd435bfa40a7766e7130eaf7aa5e9af6eef40c1e47" :a :session/task :v "## Session Synthesis Directive\n\n**Next session task**: continue: CLI Coherence EPIC crystallized with 4-phase dependency chain\nRun: `braid seed --task \"continue: CLI Coherence EPIC crystallized with 4-phase dependency chain\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :db/doc :v "Harvest session for task: CLI Coherence EPIC crystallized with 4-phase dependency chain" :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :db/ident :v :harvest/session-braid-user-1774589295 :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :harvest/accomplishments :v "What connects thinking about topology and coupling for ... to t-420f?; Session entity: :recon/trace-72f6bbc5d80242b9; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to t-420f?; Session entity: :runtime/req-9ebf32c603231d92; Session entity: :task/t-846ca3d7; What connects thinking about topology and coupling for ... to t-420f?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; What connects thinking about topology and coupling for ... to t-420f?; Session entity: :runtime/req-26809dbdd0f8d5c2; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; Session entity: :recon/trace-668d885fe003bcc4; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; Session entity: :task/t-5c38ce0a; Session entity: :task/t-5d9c3a17; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; Session entity: :runtime/req-7a1d1ef0665e5618; What connects thinking about topology and coupling for ... to t-420f?; Session entity: :task/t-d2554f52; Session entity: :runtime/req-fe3c61cd04ebf0c0; Session entity: :recon/trace-3058ea8b943f0e54; Session entity: :runtime/req-81715e1181cc676a; Session entity: :recon/trace-26405aecc188850b; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; Session entity: :runtime/req-b0da4b2f4d3f5ddb; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to t-420f?; Session entity: :recon/trace-8dd79f69b0f49585" :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :harvest/candidate-count :v 50 :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :harvest/codebase-snapshot :v "Codebase: 0 LOC across 0 source files\nTests: 2063 passing" :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :harvest/context-metrics :v "{\"candidates\":50,\"k_eff_estimated\":\"0.69\",\"observations\":0,\"output_tokens_est\":2492,\"tasks_closed\":0,\"tx_count\":32,\"wall_elapsed_s\":3600}" :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :harvest/delta-summary :v "+392 datoms, +46 entities" :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :harvest/recommended-tasks :v "t-d9536d87,t-f12bff46,t-846ca3d7" :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :harvest/store-datom-count :v 152998 :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :harvest/store-entity-count :v 11861 :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: CLI Coherence EPIC crystallized with 4-phase dependency chain\nRun: `braid seed --task \"continue: CLI Coherence EPIC crystallized with 4-phase dependency chain\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :harvest/task :v "CLI Coherence EPIC crystallized with 4-phase dependency chain" :op :assert}
+   {:e #blake3 "ad082751c91a978469d6263ff314cf9fd5f7657a189b33dbc5ae40ddcce0dc24" :a :harvest/tx-since-last :v 34 :op :assert}
+   {:e #blake3 "c6afeba1d06b63b212cdc3d62f6fcd04a3053e8239744a9ba9380bf78086d31b" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "ccab0a585ab0da09f81155d55e20c00d8f9b44ee032656de979accb815918054" :a :hypothesis/action :v #blake3 "11146360f74be633495a6342dd8200186db3c8cf4a9c36a3c12288606c58cf62" :op :assert}
+   {:e #blake3 "ccab0a585ab0da09f81155d55e20c00d8f9b44ee032656de979accb815918054" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "ccab0a585ab0da09f81155d55e20c00d8f9b44ee032656de979accb815918054" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "ccab0a585ab0da09f81155d55e20c00d8f9b44ee032656de979accb815918054" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "ccab0a585ab0da09f81155d55e20c00d8f9b44ee032656de979accb815918054" :a :hypothesis/predicted :v 0.7804825145763055 :op :assert}
+   {:e #blake3 "ccab0a585ab0da09f81155d55e20c00d8f9b44ee032656de979accb815918054" :a :hypothesis/timestamp :v #inst 1774589297 :op :assert}
+   {:e #blake3 "ef70de83b8fdd52bd54bc1cfc7c4fe6df3778691e9ab3d403ef27cb2b9c29fbe" :a :hypothesis/action :v #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :op :assert}
+   {:e #blake3 "ef70de83b8fdd52bd54bc1cfc7c4fe6df3778691e9ab3d403ef27cb2b9c29fbe" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "ef70de83b8fdd52bd54bc1cfc7c4fe6df3778691e9ab3d403ef27cb2b9c29fbe" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "ef70de83b8fdd52bd54bc1cfc7c4fe6df3778691e9ab3d403ef27cb2b9c29fbe" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "ef70de83b8fdd52bd54bc1cfc7c4fe6df3778691e9ab3d403ef27cb2b9c29fbe" :a :hypothesis/predicted :v 0.6247245324231826 :op :assert}
+   {:e #blake3 "ef70de83b8fdd52bd54bc1cfc7c4fe6df3778691e9ab3d403ef27cb2b9c29fbe" :a :hypothesis/timestamp :v #inst 1774589297 :op :assert}
+ ]}

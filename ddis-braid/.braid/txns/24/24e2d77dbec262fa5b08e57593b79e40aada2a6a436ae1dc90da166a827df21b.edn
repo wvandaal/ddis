@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774589214/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DOGFOOD-4: Validate CLI coherence on external project. Measure in-context convergence speed. Target: DOGFOOD > 8.0 (was 6.75). Depends on CLI-UNIFY."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8826cc79bc35e7fbd93ff906df75a04049d9c3bfb0ea8eb3e56b15c99b873750" :a :db/ident :v :task/t-5d9c3a17 :op :assert}
+   {:e #blake3 "8826cc79bc35e7fbd93ff906df75a04049d9c3bfb0ea8eb3e56b15c99b873750" :a :task/created-at :v 1774589213 :op :assert}
+   {:e #blake3 "8826cc79bc35e7fbd93ff906df75a04049d9c3bfb0ea8eb3e56b15c99b873750" :a :task/id :v "t-5d9c3a17" :op :assert}
+   {:e #blake3 "8826cc79bc35e7fbd93ff906df75a04049d9c3bfb0ea8eb3e56b15c99b873750" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8826cc79bc35e7fbd93ff906df75a04049d9c3bfb0ea8eb3e56b15c99b873750" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8826cc79bc35e7fbd93ff906df75a04049d9c3bfb0ea8eb3e56b15c99b873750" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8826cc79bc35e7fbd93ff906df75a04049d9c3bfb0ea8eb3e56b15c99b873750" :a :task/title :v "DOGFOOD-4: Validate CLI coherence on external project. Measure in-context convergence speed. Target: DOGFOOD > 8.0 (was 6.75). Depends on CLI-UNIFY." :op :assert}
+   {:e #blake3 "8826cc79bc35e7fbd93ff906df75a04049d9c3bfb0ea8eb3e56b15c99b873750" :a :task/title-l0 :v "DOGFOOD-4" :op :assert}
+   {:e #blake3 "8826cc79bc35e7fbd93ff906df75a04049d9c3bfb0ea8eb3e56b15c99b873750" :a :task/title-l1 :v "DOGFOOD-4: Validate CLI coherence on external project" :op :assert}
+   {:e #blake3 "8826cc79bc35e7fbd93ff906df75a04049d9c3bfb0ea8eb3e56b15c99b873750" :a :task/type :v :task.type/task :op :assert}
+ ]}

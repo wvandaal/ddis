@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774591916/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-CLI-004 \"Error Steering: Every error teaches the correct action\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "009bdd545ce1779bb3ef30810215947c48a1c7dd1f1381197cb23e7190459a1b" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "009bdd545ce1779bb3ef30810215947c48a1c7dd1f1381197cb23e7190459a1b" :a :comonad/falsification :v #blake3 "ba1ab509e7545491976abdc029c9d842d3ac0ff2307a0bdc99a667d3850b2eb4" :op :assert}
+   {:e #blake3 "009bdd545ce1779bb3ef30810215947c48a1c7dd1f1381197cb23e7190459a1b" :a :db/doc :v "Error Steering: Every error teaches the correct action" :op :assert}
+   {:e #blake3 "009bdd545ce1779bb3ef30810215947c48a1c7dd1f1381197cb23e7190459a1b" :a :db/ident :v :spec/inv-cli-004 :op :assert}
+   {:e #blake3 "009bdd545ce1779bb3ef30810215947c48a1c7dd1f1381197cb23e7190459a1b" :a :element/traces-to :v "STEERING_MANIFOLD.md §14" :op :assert}
+   {:e #blake3 "009bdd545ce1779bb3ef30810215947c48a1c7dd1f1381197cb23e7190459a1b" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "009bdd545ce1779bb3ef30810215947c48a1c7dd1f1381197cb23e7190459a1b" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "009bdd545ce1779bb3ef30810215947c48a1c7dd1f1381197cb23e7190459a1b" :a :spec/falsification :v "Any error message lacking any of the three components." :op :assert}
+   {:e #blake3 "009bdd545ce1779bb3ef30810215947c48a1c7dd1f1381197cb23e7190459a1b" :a :spec/id :v "INV-CLI-004" :op :assert}
+   {:e #blake3 "009bdd545ce1779bb3ef30810215947c48a1c7dd1f1381197cb23e7190459a1b" :a :spec/namespace :v :spec.ns/CLI :op :assert}
+   {:e #blake3 "009bdd545ce1779bb3ef30810215947c48a1c7dd1f1381197cb23e7190459a1b" :a :spec/statement :v "Every error message contains: (a) what went wrong, (b) how to do it correctly with runnable example, (c) a reference (spec element or help pointer)." :op :assert}
+   {:e #blake3 "4f6da42b51cf2e61307e23ca7c6ebbafd6e7a73527745788fad4b7a230fbf5eb" :a :db/ident :v :task/t-56363369 :op :assert}
+   {:e #blake3 "4f6da42b51cf2e61307e23ca7c6ebbafd6e7a73527745788fad4b7a230fbf5eb" :a :task/created-at :v 1774591915 :op :assert}
+   {:e #blake3 "4f6da42b51cf2e61307e23ca7c6ebbafd6e7a73527745788fad4b7a230fbf5eb" :a :task/id :v "t-56363369" :op :assert}
+   {:e #blake3 "4f6da42b51cf2e61307e23ca7c6ebbafd6e7a73527745788fad4b7a230fbf5eb" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "4f6da42b51cf2e61307e23ca7c6ebbafd6e7a73527745788fad4b7a230fbf5eb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4f6da42b51cf2e61307e23ca7c6ebbafd6e7a73527745788fad4b7a230fbf5eb" :a :task/title :v "Implement INV-CLI-004: Error Steering: Every error teaches the correct action" :op :assert}
+   {:e #blake3 "4f6da42b51cf2e61307e23ca7c6ebbafd6e7a73527745788fad4b7a230fbf5eb" :a :task/traces-to :v #blake3 "009bdd545ce1779bb3ef30810215947c48a1c7dd1f1381197cb23e7190459a1b" :op :assert}
+   {:e #blake3 "4f6da42b51cf2e61307e23ca7c6ebbafd6e7a73527745788fad4b7a230fbf5eb" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "ba1ab509e7545491976abdc029c9d842d3ac0ff2307a0bdc99a667d3850b2eb4" :a :db/doc :v "Any error message lacking any of the three components." :op :assert}
+ ]}

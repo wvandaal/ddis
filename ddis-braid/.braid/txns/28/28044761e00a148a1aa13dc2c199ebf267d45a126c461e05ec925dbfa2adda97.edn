@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774589010/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 048: CLAUDE.md optimized from 52.6K to 24K chars (53% reduction) by applying prompt-optimization constraint removal test. Removed 6 parasitic NEGs, redundant beads section, stale task guidance, completed stage details. Preserved all 9 hard constraints (C1-C7 compressed to one-liners, C8-C9 full), 4 critical NEGs, dynamic store context tags. Structure reordered for optimal field activation: identity → vocabulary → boundaries → protocol → navigation → live state."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b874dbb6cecd42219e2ae93c99dd96728367efe53dbd672b92c7b367b7745ed2" :a :db/doc :v "Session 048: CLAUDE.md optimized from 52.6K to 24K chars (53% reduction) by applying prompt-optimization constraint removal test. Removed 6 parasitic NEGs, redundant beads section, stale task guidance, completed stage details. Preserved all 9 hard constraints (C1-C7 compressed to one-liners, C8-C9 full), 4 critical NEGs, dynamic store context tags. Structure reordered for optimal field activation: identity → vocabulary → boundaries → protocol → navigation → live state." :op :assert}
+   {:e #blake3 "b874dbb6cecd42219e2ae93c99dd96728367efe53dbd672b92c7b367b7745ed2" :a :db/ident :v :observation/session-048-claudemd-optimized-from-526k-to-24k-chars-53 :op :assert}
+   {:e #blake3 "b874dbb6cecd42219e2ae93c99dd96728367efe53dbd672b92c7b367b7745ed2" :a :exploration/body :v "Session 048: CLAUDE.md optimized from 52.6K to 24K chars (53% reduction) by applying prompt-optimization constraint removal test. Removed 6 parasitic NEGs, redundant beads section, stale task guidance, completed stage details. Preserved all 9 hard constraints (C1-C7 compressed to one-liners, C8-C9 full), 4 critical NEGs, dynamic store context tags. Structure reordered for optimal field activation: identity → vocabulary → boundaries → protocol → navigation → live state." :op :assert}
+   {:e #blake3 "b874dbb6cecd42219e2ae93c99dd96728367efe53dbd672b92c7b367b7745ed2" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "b874dbb6cecd42219e2ae93c99dd96728367efe53dbd672b92c7b367b7745ed2" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "b874dbb6cecd42219e2ae93c99dd96728367efe53dbd672b92c7b367b7745ed2" :a :exploration/content-hash :v #bytes "e9554a54a9f503ac1cdedc2268266e476aac79fa5e6322e97222f2a42e2d4591" :op :assert}
+   {:e #blake3 "b874dbb6cecd42219e2ae93c99dd96728367efe53dbd672b92c7b367b7745ed2" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b874dbb6cecd42219e2ae93c99dd96728367efe53dbd672b92c7b367b7745ed2" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b874dbb6cecd42219e2ae93c99dd96728367efe53dbd672b92c7b367b7745ed2" :a :exploration/source-session :v #blake3 "d5623dbd02609c583a083ae155b8fd85ffbe6b46dae3891916fc25f6fc8ab4cc" :op :assert}
+ ]}

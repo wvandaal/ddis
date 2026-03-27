@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774587317/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-11e068f6"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "54f11f1020a080a6d54e224e1c619d2aace0d1f261dd67c437cdbfc882c3e0ee" :a :task/close-reason :v "Superseded: expanding to verify steering questions in output and updated task IDs." :op :assert}
+   {:e #blake3 "54f11f1020a080a6d54e224e1c619d2aace0d1f261dd67c437cdbfc882c3e0ee" :a :task/closed-at :v 1774587316 :op :assert}
+   {:e #blake3 "54f11f1020a080a6d54e224e1c619d2aace0d1f261dd67c437cdbfc882c3e0ee" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "54f11f1020a080a6d54e224e1c619d2aace0d1f261dd67c437cdbfc882c3e0ee" :a :task/status :v :task.status/closed :op :assert}
+ ]}

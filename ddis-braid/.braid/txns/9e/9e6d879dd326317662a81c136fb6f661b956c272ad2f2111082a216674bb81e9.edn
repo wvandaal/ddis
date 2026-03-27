@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774592052/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-ERRORS-1: Rewrite all error messages to follow INV-CLI-004 3-component pattern. CURRENT: many errors are bare strings ('error: invalid input', 'task not found'). CHANGE: Every error message follows the template: 'error: <what_went_wrong>\\nfix: <runnable_correct_command> | ref: <spec_element_or_help>'. Use the ErrorFormatter from CLI-SCAFFOLD-1. APPROACH: (1) Grep all eprintln/anyhow/thiserror in crates/braid/. (2) For each error path, categorize per CLI_COHERENCE_SPEC.md §5. (3) Rewrite each to include fix and ref. (4) Special attention to shortcut misuse errors (steering from alias to canonical). ACCEPTANCE: (A) Zero error messages without fix and ref components. (B) All errors use ErrorFormatter. (C) E2E: trigger 20+ error paths, verify all have 3 components. (D) Shortcut misuse errors steer to canonical form. FILE: all files in crates/braid/src/commands/. TRACES: INV-CLI-004"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b1679e53163b95cabcdfe7d6a955e4c1cc188408b2d651c7f806ccfdb62b250f" :a :db/ident :v :task/t-0e825fe3 :op :assert}
+   {:e #blake3 "b1679e53163b95cabcdfe7d6a955e4c1cc188408b2d651c7f806ccfdb62b250f" :a :task/acceptance :v "(A) Zero error messages without fix and ref components. (B) All errors use ErrorFormatter. (C) E2E: trigger 20+ error paths, verify all have 3 components. (D) Shortcut misuse errors steer to canonical form." :op :assert}
+   {:e #blake3 "b1679e53163b95cabcdfe7d6a955e4c1cc188408b2d651c7f806ccfdb62b250f" :a :task/approach :v "(1) Grep all eprintln/anyhow/thiserror in crates/braid/. (2) For each error path, categorize per CLI_COHERENCE_SPEC.md §5. (3) Rewrite each to include fix and ref. (4) Special attention to shortcut misuse errors (steering from alias to canonical)." :op :assert}
+   {:e #blake3 "b1679e53163b95cabcdfe7d6a955e4c1cc188408b2d651c7f806ccfdb62b250f" :a :task/body :v "APPROACH: (1) Grep all eprintln/anyhow/thiserror in crates/braid/. (2) For each error path, categorize per CLI_COHERENCE_SPEC.md §5. (3) Rewrite each to include fix and ref. (4) Special attention to shortcut misuse errors (steering from alias to canonical). ACCEPTANCE: (A) Zero error messages without fix and ref components. (B) All errors use ErrorFormatter. (C) E2E: trigger 20+ error paths, verify all have 3 components. (D) Shortcut misuse errors steer to canonical form. FILE: all files in crates/braid/src/commands/. TRACES: INV-CLI-004" :op :assert}
+   {:e #blake3 "b1679e53163b95cabcdfe7d6a955e4c1cc188408b2d651c7f806ccfdb62b250f" :a :task/created-at :v 1774592051 :op :assert}
+   {:e #blake3 "b1679e53163b95cabcdfe7d6a955e4c1cc188408b2d651c7f806ccfdb62b250f" :a :task/files :v "all files in crates/braid/src/commands/. TRACES: INV-CLI-004" :op :assert}
+   {:e #blake3 "b1679e53163b95cabcdfe7d6a955e4c1cc188408b2d651c7f806ccfdb62b250f" :a :task/id :v "t-0e825fe3" :op :assert}
+   {:e #blake3 "b1679e53163b95cabcdfe7d6a955e4c1cc188408b2d651c7f806ccfdb62b250f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b1679e53163b95cabcdfe7d6a955e4c1cc188408b2d651c7f806ccfdb62b250f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b1679e53163b95cabcdfe7d6a955e4c1cc188408b2d651c7f806ccfdb62b250f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b1679e53163b95cabcdfe7d6a955e4c1cc188408b2d651c7f806ccfdb62b250f" :a :task/title :v "CLI-ERRORS-1: Rewrite all error messages to follow INV-CLI-004 3-component pattern. CURRENT: many errors are bare strings ('error: invalid input', 'task not found'). CHANGE: Every error message follows the template: 'error: <what_went_wrong>\\nfix: <runnable_correct_command> | ref: <spec_element_or_help>'. Use the ErrorFormatter from CLI-SCAFFOLD-1" :op :assert}
+   {:e #blake3 "b1679e53163b95cabcdfe7d6a955e4c1cc188408b2d651c7f806ccfdb62b250f" :a :task/title-l0 :v "CLI-ERRORS-1" :op :assert}
+   {:e #blake3 "b1679e53163b95cabcdfe7d6a955e4c1cc188408b2d651c7f806ccfdb62b250f" :a :task/title-l1 :v "CLI-ERRORS-1: Rewrite all error messages to follow INV-CLI-004 3-component pa..." :op :assert}
+   {:e #blake3 "b1679e53163b95cabcdfe7d6a955e4c1cc188408b2d651c7f806ccfdb62b250f" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774591929/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-CLI-001 \"Noun-Verb Grammar: Chose braid <resource> <action> over verb-flag\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "854b457513c6c0bc1cd726b9d5d8e0be15cacdf5887990828294efe20cebb9b3" :a :adr/decision :v "All commands follow braid <resource> <action>. A shortcut layer maps ergonomic aliases to canonical forms. Help text and error messages always show the canonical form. Rationale: one example teaches the entire grammar, |GrammarSpace|=|ValidCommands|, zero excess cardinality." :op :assert}
+   {:e #blake3 "854b457513c6c0bc1cd726b9d5d8e0be15cacdf5887990828294efe20cebb9b3" :a :adr/problem :v "The CLI grammar was inconsistent: some commands used noun-verb (task list), others used bare verbs (observe, harvest). LLMs could not predict the grammar from a single example." :op :assert}
+   {:e #blake3 "854b457513c6c0bc1cd726b9d5d8e0be15cacdf5887990828294efe20cebb9b3" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "854b457513c6c0bc1cd726b9d5d8e0be15cacdf5887990828294efe20cebb9b3" :a :db/doc :v "Noun-Verb Grammar: Chose braid <resource> <action> over verb-flag" :op :assert}
+   {:e #blake3 "854b457513c6c0bc1cd726b9d5d8e0be15cacdf5887990828294efe20cebb9b3" :a :db/ident :v :spec/adr-cli-001 :op :assert}
+   {:e #blake3 "854b457513c6c0bc1cd726b9d5d8e0be15cacdf5887990828294efe20cebb9b3" :a :element/traces-to :v "STEERING_MANIFOLD.md §14, ADR-FOUNDATION-014" :op :assert}
+   {:e #blake3 "854b457513c6c0bc1cd726b9d5d8e0be15cacdf5887990828294efe20cebb9b3" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "854b457513c6c0bc1cd726b9d5d8e0be15cacdf5887990828294efe20cebb9b3" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "854b457513c6c0bc1cd726b9d5d8e0be15cacdf5887990828294efe20cebb9b3" :a :spec/id :v "ADR-CLI-001" :op :assert}
+   {:e #blake3 "854b457513c6c0bc1cd726b9d5d8e0be15cacdf5887990828294efe20cebb9b3" :a :spec/namespace :v :spec.ns/CLI :op :assert}
+   {:e #blake3 "c61e0b4f96d2ff7d98039f2ff8f211fc2e2ac988819785e4a64f8e371905e26c" :a :db/ident :v :task/t-3a5d7139 :op :assert}
+   {:e #blake3 "c61e0b4f96d2ff7d98039f2ff8f211fc2e2ac988819785e4a64f8e371905e26c" :a :task/created-at :v 1774591928 :op :assert}
+   {:e #blake3 "c61e0b4f96d2ff7d98039f2ff8f211fc2e2ac988819785e4a64f8e371905e26c" :a :task/id :v "t-3a5d7139" :op :assert}
+   {:e #blake3 "c61e0b4f96d2ff7d98039f2ff8f211fc2e2ac988819785e4a64f8e371905e26c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "c61e0b4f96d2ff7d98039f2ff8f211fc2e2ac988819785e4a64f8e371905e26c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c61e0b4f96d2ff7d98039f2ff8f211fc2e2ac988819785e4a64f8e371905e26c" :a :task/title :v "Implement ADR-CLI-001: Noun-Verb Grammar: Chose braid <resource> <action> over verb-flag" :op :assert}
+   {:e #blake3 "c61e0b4f96d2ff7d98039f2ff8f211fc2e2ac988819785e4a64f8e371905e26c" :a :task/traces-to :v #blake3 "854b457513c6c0bc1cd726b9d5d8e0be15cacdf5887990828294efe20cebb9b3" :op :assert}
+   {:e #blake3 "c61e0b4f96d2ff7d98039f2ff8f211fc2e2ac988819785e4a64f8e371905e26c" :a :task/type :v :task.type/task :op :assert}
+ ]}

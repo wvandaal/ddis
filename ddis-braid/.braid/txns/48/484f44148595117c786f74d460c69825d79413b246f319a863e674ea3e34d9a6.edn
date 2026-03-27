@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774591970/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-SCAFFOLD-2: Resource dispatch pattern — trait ResourceCommand with fn list(), fn show(id), fn search(query) + optional actions. Each resource module implements this trait. Clap generates consistent subcommand groups from the trait. ACCEPTANCE: (A) ResourceCommand trait defined with universal methods. (B) At least one resource (observation) implements it. (C) Clap subcommand generation is DRY — no copy-paste per resource. (D) The trait enforces INV-CLI-001 at compile time: you cannot create a resource without list/show/search. FILE: crates/braid/src/commands/resource.rs (new). TRACES: INV-CLI-001, ADR-CLI-001"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a8bdc1dda9647b4ec6742b7efa6f93d92c8733562b8359d824417a0ba239efd8" :a :db/ident :v :task/t-9a5b2e6e :op :assert}
+   {:e #blake3 "a8bdc1dda9647b4ec6742b7efa6f93d92c8733562b8359d824417a0ba239efd8" :a :task/acceptance :v "(A) ResourceCommand trait defined with universal methods. (B) At least one resource (observation) implements it. (C) Clap subcommand generation is DRY — no copy-paste per resource. (D) The trait enforces INV-CLI-001 at compile time: you cannot create a resource without list/show/search." :op :assert}
+   {:e #blake3 "a8bdc1dda9647b4ec6742b7efa6f93d92c8733562b8359d824417a0ba239efd8" :a :task/body :v "ACCEPTANCE: (A) ResourceCommand trait defined with universal methods. (B) At least one resource (observation) implements it. (C) Clap subcommand generation is DRY — no copy-paste per resource. (D) The trait enforces INV-CLI-001 at compile time: you cannot create a resource without list/show/search. FILE: crates/braid/src/commands/resource.rs (new). TRACES: INV-CLI-001, ADR-CLI-001" :op :assert}
+   {:e #blake3 "a8bdc1dda9647b4ec6742b7efa6f93d92c8733562b8359d824417a0ba239efd8" :a :task/created-at :v 1774591969 :op :assert}
+   {:e #blake3 "a8bdc1dda9647b4ec6742b7efa6f93d92c8733562b8359d824417a0ba239efd8" :a :task/files :v "crates/braid/src/commands/resource.rs (new). TRACES: INV-CLI-001" :op :assert}
+   {:e #blake3 "a8bdc1dda9647b4ec6742b7efa6f93d92c8733562b8359d824417a0ba239efd8" :a :task/id :v "t-9a5b2e6e" :op :assert}
+   {:e #blake3 "a8bdc1dda9647b4ec6742b7efa6f93d92c8733562b8359d824417a0ba239efd8" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "a8bdc1dda9647b4ec6742b7efa6f93d92c8733562b8359d824417a0ba239efd8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a8bdc1dda9647b4ec6742b7efa6f93d92c8733562b8359d824417a0ba239efd8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a8bdc1dda9647b4ec6742b7efa6f93d92c8733562b8359d824417a0ba239efd8" :a :task/title :v "CLI-SCAFFOLD-2: Resource dispatch pattern — trait ResourceCommand with fn list(), fn show(id), fn search(query) + optional actions. Each resource module implements this trait. Clap generates consistent subcommand groups from the trait" :op :assert}
+   {:e #blake3 "a8bdc1dda9647b4ec6742b7efa6f93d92c8733562b8359d824417a0ba239efd8" :a :task/title-l0 :v "CLI-SCAFFOLD-2" :op :assert}
+   {:e #blake3 "a8bdc1dda9647b4ec6742b7efa6f93d92c8733562b8359d824417a0ba239efd8" :a :task/title-l1 :v "CLI-SCAFFOLD-2: Resource dispatch pattern — trait ResourceCommand with fn l..." :op :assert}
+   {:e #blake3 "a8bdc1dda9647b4ec6742b7efa6f93d92c8733562b8359d824417a0ba239efd8" :a :task/type :v :task.type/task :op :assert}
+ ]}

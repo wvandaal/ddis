@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774580937/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-fa7eb30a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d20a855812081ec9628cff5f5d908ae06a2f5177fc3437d43d437cf4cc296d9d" :a :task/close-reason :v "Implemented: LinkRelation enum, ExtractedLink struct, extract_observation_links(), link_datoms(), classify_relation(), is_task_id_at(), is_spec_ref_at(). 9/9 tests passing. Uses existing :exploration/depends-on and :exploration/related-spec schema attributes. No regex dependency." :op :assert}
+   {:e #blake3 "d20a855812081ec9628cff5f5d908ae06a2f5177fc3437d43d437cf4cc296d9d" :a :task/closed-at :v 1774580936 :op :assert}
+   {:e #blake3 "d20a855812081ec9628cff5f5d908ae06a2f5177fc3437d43d437cf4cc296d9d" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "d20a855812081ec9628cff5f5d908ae06a2f5177fc3437d43d437cf4cc296d9d" :a :task/status :v :task.status/closed :op :assert}
+ ]}

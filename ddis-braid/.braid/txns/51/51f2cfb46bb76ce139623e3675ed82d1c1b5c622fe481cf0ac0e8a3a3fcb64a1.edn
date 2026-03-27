@@ -1,0 +1,9 @@
+{:tx/id #hlc "1774578776/0/82c9bbe796a087908db36cc169662519"
+ :tx/agent "82c9bbe796a087908db36cc169662519"
+ :tx/provenance :derived
+ :tx/rationale "CAL-3: calibrated concept threshold=0.6100, temperature=0.0448"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e67104662679ce30e4028da6c92ea608fbb508677e1d41fa7a4f0a6d2bb63595" :a :config/value :v "0.0448" :op :assert}
+   {:e #blake3 "f54542fcc0e98c8cfeceea16044df4c794ec9fca97f9da5fc7836e3178cbddbf" :a :config/value :v "0.6100" :op :assert}
+ ]}

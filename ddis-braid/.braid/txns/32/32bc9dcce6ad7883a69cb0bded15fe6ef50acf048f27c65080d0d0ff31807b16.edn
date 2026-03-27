@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774595033/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: CLI-COHERENCE — Braid as Learnable Language (ADR-CLI-001). Noun-verb grammar with shortcut layer. SPEC: docs/design/CLI_COHERENCE_SPEC.md. INVARIANTS: INV-CLI-001..006. TARGET: DOGFOOD >8.0 (was 6.75). Traces: STEERING_MANIFOLD.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aaed39b3aa4d84a5681432ec42ce66d83e3ab1fc867d0ab75b78658e70d087e4" :a :db/ident :v :task/t-b3254e52 :op :assert}
+   {:e #blake3 "aaed39b3aa4d84a5681432ec42ce66d83e3ab1fc867d0ab75b78658e70d087e4" :a :task/created-at :v 1774595032 :op :assert}
+   {:e #blake3 "aaed39b3aa4d84a5681432ec42ce66d83e3ab1fc867d0ab75b78658e70d087e4" :a :task/id :v "t-b3254e52" :op :assert}
+   {:e #blake3 "aaed39b3aa4d84a5681432ec42ce66d83e3ab1fc867d0ab75b78658e70d087e4" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "aaed39b3aa4d84a5681432ec42ce66d83e3ab1fc867d0ab75b78658e70d087e4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "aaed39b3aa4d84a5681432ec42ce66d83e3ab1fc867d0ab75b78658e70d087e4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "aaed39b3aa4d84a5681432ec42ce66d83e3ab1fc867d0ab75b78658e70d087e4" :a :task/title :v "EPIC: CLI-COHERENCE — Braid as Learnable Language (ADR-CLI-001). Noun-verb grammar with shortcut layer. SPEC: docs/design/CLI_COHERENCE_SPEC.md. INVARIANTS: INV-CLI-001..006. TARGET: DOGFOOD >8.0 (was 6.75). Traces: STEERING_MANIFOLD.md" :op :assert}
+   {:e #blake3 "aaed39b3aa4d84a5681432ec42ce66d83e3ab1fc867d0ab75b78658e70d087e4" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "aaed39b3aa4d84a5681432ec42ce66d83e3ab1fc867d0ab75b78658e70d087e4" :a :task/title-l1 :v "EPIC: CLI-COHERENCE — Braid as Learnable Language (ADR-CLI-001)" :op :assert}
+   {:e #blake3 "aaed39b3aa4d84a5681432ec42ce66d83e3ab1fc867d0ab75b78658e70d087e4" :a :task/type :v :task.type/epic :op :assert}
+ ]}

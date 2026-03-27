@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774591962/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: CLI-COHERENCE — Braid as Learnable Language (ADR-CLI-001). The API must be a coherent formal language converging within 3-5 interactions. Noun-verb grammar with shortcut layer. SPEC: docs/design/CLI_COHERENCE_SPEC.md. INVARIANTS: INV-CLI-001..006. PHASES: scaffold → migrate → errors → verify → DOGFOOD. TARGET: DOGFOOD >8.0 (was 6.75). Traces: STEERING_MANIFOLD.md, ADR-FOUNDATION-014, ADR-FOUNDATION-034"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ecaf726b7344771ae25023de242dd205a537088f53f3a68d8044b93d13c8a28c" :a :db/ident :v :task/t-5e2b88c2 :op :assert}
+   {:e #blake3 "ecaf726b7344771ae25023de242dd205a537088f53f3a68d8044b93d13c8a28c" :a :task/created-at :v 1774591961 :op :assert}
+   {:e #blake3 "ecaf726b7344771ae25023de242dd205a537088f53f3a68d8044b93d13c8a28c" :a :task/id :v "t-5e2b88c2" :op :assert}
+   {:e #blake3 "ecaf726b7344771ae25023de242dd205a537088f53f3a68d8044b93d13c8a28c" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "ecaf726b7344771ae25023de242dd205a537088f53f3a68d8044b93d13c8a28c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ecaf726b7344771ae25023de242dd205a537088f53f3a68d8044b93d13c8a28c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ecaf726b7344771ae25023de242dd205a537088f53f3a68d8044b93d13c8a28c" :a :task/title :v "EPIC: CLI-COHERENCE — Braid as Learnable Language (ADR-CLI-001). The API must be a coherent formal language converging within 3-5 interactions. Noun-verb grammar with shortcut layer. SPEC: docs/design/CLI_COHERENCE_SPEC.md. INVARIANTS: INV-CLI-001..006. PHASES: scaffold → migrate → errors → verify → DOGFOOD. TARGET: DOGFOOD >8.0 (was 6.75). Traces: STEERING_MANIFOLD.md, ADR-FOUNDATION-014, ADR-FOUNDATION-034" :op :assert}
+   {:e #blake3 "ecaf726b7344771ae25023de242dd205a537088f53f3a68d8044b93d13c8a28c" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "ecaf726b7344771ae25023de242dd205a537088f53f3a68d8044b93d13c8a28c" :a :task/title-l1 :v "EPIC: CLI-COHERENCE — Braid as Learnable Language (ADR-CLI-001)" :op :assert}
+   {:e #blake3 "ecaf726b7344771ae25023de242dd205a537088f53f3a68d8044b93d13c8a28c" :a :task/traces-to :v #blake3 "ed3b10a7c6da67c326fbccd337ba0e240550819ce429a68e22fafffd1d2c2aba" :op :assert}
+   {:e #blake3 "ecaf726b7344771ae25023de242dd205a537088f53f3a68d8044b93d13c8a28c" :a :task/type :v :task.type/epic :op :assert}
+ ]}

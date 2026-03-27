@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774584828/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C9-P5: Observation subcommands — braid observe {list, search, show, recent} mirroring braid task API"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "625a4a96accde7ec6e8f0e6c5f67e931bb99b3b0bfa3046bc43fccd2994f7183" :a :db/ident :v :task/t-3115acf1 :op :assert}
+   {:e #blake3 "625a4a96accde7ec6e8f0e6c5f67e931bb99b3b0bfa3046bc43fccd2994f7183" :a :task/created-at :v 1774584827 :op :assert}
+   {:e #blake3 "625a4a96accde7ec6e8f0e6c5f67e931bb99b3b0bfa3046bc43fccd2994f7183" :a :task/description :v "CONTEXT: An agent with 226 observations cannot search, list, or show them. braid task search exists but braid observe search does not. The agent fell back to reading markdown files — the exact failure C9 exists to solve. RATIONALE: Unix principle — same verbs (list, search, show, recent), different noun (observe vs task). Mirrors the existing braid task API exactly. Zero new concepts for the agent to learn. APPROACH — KERNEL SIDE: New fn all_observations(store) -> Vec<ObservationSummary> in concept.rs or new observation.rs. ObservationSummary struct: entity, title (first 80 chars of body), body (full), confidence, category, concept_name, timestamp, tags. Iterates store.attribute_datoms(:exploration/body), collects metadata via store.live_value(). Sorted by timestamp descending. APPROACH — CLI SIDE: Extend crates/braid/src/commands/observe.rs. Add subcommands: List (all observations, optional --concept filter), Search { pattern } (substring match on body), Show { id } (full entity detail), Recent { limit } (default 20). Each follows task.rs pattern exactly: call all_observations, filter, format as CommandOutput in all 4 modes (human/agent/json/tsv). CLAP COMPATIBILITY: braid observe TEXT must still work for creation. Use clap subcommand with default/fallback to preserve backward compat. ACCEPTANCE: (A) braid observe list shows observations with confidence and truncated body. (B) braid observe search AUDIT finds audit observations. (C) braid observe show ENTITY shows full detail. (D) braid observe recent 10 shows 10 most recent. (E) braid observe TEXT -c 0.9 still creates observations (no regression). (F) All 4 output modes work. FILES: crates/braid-kernel/src/concept.rs (all_observations), crates/braid/src/commands/observe.rs (subcommands), crates/braid/src/commands/mod.rs (clap definitions). EFFORT: 6h." :op :assert}
+   {:e #blake3 "625a4a96accde7ec6e8f0e6c5f67e931bb99b3b0bfa3046bc43fccd2994f7183" :a :task/id :v "t-3115acf1" :op :assert}
+   {:e #blake3 "625a4a96accde7ec6e8f0e6c5f67e931bb99b3b0bfa3046bc43fccd2994f7183" :a :task/labels :v :label/C9 :op :assert}
+   {:e #blake3 "625a4a96accde7ec6e8f0e6c5f67e931bb99b3b0bfa3046bc43fccd2994f7183" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "625a4a96accde7ec6e8f0e6c5f67e931bb99b3b0bfa3046bc43fccd2994f7183" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "625a4a96accde7ec6e8f0e6c5f67e931bb99b3b0bfa3046bc43fccd2994f7183" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "625a4a96accde7ec6e8f0e6c5f67e931bb99b3b0bfa3046bc43fccd2994f7183" :a :task/title :v "C9-P5: Observation subcommands — braid observe {list, search, show, recent} mirroring braid task API" :op :assert}
+   {:e #blake3 "625a4a96accde7ec6e8f0e6c5f67e931bb99b3b0bfa3046bc43fccd2994f7183" :a :task/title-l0 :v "C9-P5" :op :assert}
+   {:e #blake3 "625a4a96accde7ec6e8f0e6c5f67e931bb99b3b0bfa3046bc43fccd2994f7183" :a :task/title-l1 :v "C9-P5: Observation subcommands — braid observe {list, search, show, recent}..." :op :assert}
+   {:e #blake3 "625a4a96accde7ec6e8f0e6c5f67e931bb99b3b0bfa3046bc43fccd2994f7183" :a :task/traces-to :v #blake3 "1becd9d6d843ecd8e4358ed6eb20f29ed260a22ec17f2aee0e9c40294e74cfb0" :op :assert}
+   {:e #blake3 "625a4a96accde7ec6e8f0e6c5f67e931bb99b3b0bfa3046bc43fccd2994f7183" :a :task/traces-to :v #blake3 "1e18c9b39778378b8712b78c2e5978eed659df9179d8209759c4d693e223132a" :op :assert}
+   {:e #blake3 "625a4a96accde7ec6e8f0e6c5f67e931bb99b3b0bfa3046bc43fccd2994f7183" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774579628/0/a0808ee3ce7a5842689f7ae3ec520637"
+ :tx/agent "a0808ee3ce7a5842689f7ae3ec520637"
+ :tx/provenance :derived
+ :tx/rationale "ATT-2-IMPL: hebbian boost from --verbose request"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0a9e7369a49a8406692e728c02ec6915bc5a7e7f889c51e6af933edb8419ab33" :a :attention/hebbian-boost :v 4.0 :op :retract}
+   {:e #blake3 "0a9e7369a49a8406692e728c02ec6915bc5a7e7f889c51e6af933edb8419ab33" :a :attention/hebbian-boost :v 5.0 :op :assert}
+   {:e #blake3 "124b98fbfd26ee7dba63e1c69966df243a9c99d2c56461a6f5cf6997b801b2bb" :a :attention/hebbian-boost :v 4.0 :op :retract}
+   {:e #blake3 "124b98fbfd26ee7dba63e1c69966df243a9c99d2c56461a6f5cf6997b801b2bb" :a :attention/hebbian-boost :v 5.0 :op :assert}
+   {:e #blake3 "5632430119de8ef2f7c62b6c02160ce3f73014b5c91f4486de278bc8a017e8ce" :a :attention/hebbian-boost :v 3.0 :op :retract}
+   {:e #blake3 "5632430119de8ef2f7c62b6c02160ce3f73014b5c91f4486de278bc8a017e8ce" :a :attention/hebbian-boost :v 4.0 :op :assert}
+   {:e #blake3 "78ddc15926395710b20c31b21a95a24729380e2c4b29e3e94b7fecda4ce09734" :a :attention/hebbian-boost :v 4.0 :op :retract}
+   {:e #blake3 "78ddc15926395710b20c31b21a95a24729380e2c4b29e3e94b7fecda4ce09734" :a :attention/hebbian-boost :v 5.0 :op :assert}
+   {:e #blake3 "9d5f252d4c2d3b47e1f87408032f3d4e4d531fe3ec5db1f25a5f0a753c1cbb08" :a :attention/hebbian-boost :v 4.0 :op :retract}
+   {:e #blake3 "9d5f252d4c2d3b47e1f87408032f3d4e4d531fe3ec5db1f25a5f0a753c1cbb08" :a :attention/hebbian-boost :v 5.0 :op :assert}
+   {:e #blake3 "eb2b41f95c58e1b08599388d4d7fd6c5cb9673aa7d26cd2ce41bae1a2f37e027" :a :attention/hebbian-boost :v 4.0 :op :retract}
+   {:e #blake3 "eb2b41f95c58e1b08599388d4d7fd6c5cb9673aa7d26cd2ce41bae1a2f37e027" :a :attention/hebbian-boost :v 5.0 :op :assert}
+ ]}

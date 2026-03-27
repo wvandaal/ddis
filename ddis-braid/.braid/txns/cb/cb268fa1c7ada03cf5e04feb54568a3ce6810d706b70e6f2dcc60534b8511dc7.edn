@@ -1,0 +1,51 @@
+{:tx/id #hlc "1774589045/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 34 candidates from task 'Session 048: CLAUDE.md optimization + steering manifold theory + braid-as-language insight'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9aa0332e6f44c054a4fbd8dcd518ae6a44866f4024303e647fc2628560999e75" :a :db/ident :v :session/s-1774589051954 :op :assert}
+   {:e #blake3 "9aa0332e6f44c054a4fbd8dcd518ae6a44866f4024303e647fc2628560999e75" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "9aa0332e6f44c054a4fbd8dcd518ae6a44866f4024303e647fc2628560999e75" :a :session/current :v #blake3 "9aa0332e6f44c054a4fbd8dcd518ae6a44866f4024303e647fc2628560999e75" :op :assert}
+   {:e #blake3 "9aa0332e6f44c054a4fbd8dcd518ae6a44866f4024303e647fc2628560999e75" :a :session/start-datom-count :v 152921 :op :assert}
+   {:e #blake3 "9aa0332e6f44c054a4fbd8dcd518ae6a44866f4024303e647fc2628560999e75" :a :session/start-fitness :v 0.6138569443484224 :op :assert}
+   {:e #blake3 "9aa0332e6f44c054a4fbd8dcd518ae6a44866f4024303e647fc2628560999e75" :a :session/start-time :v "2026-03-27T05:24:11Z" :op :assert}
+   {:e #blake3 "9aa0332e6f44c054a4fbd8dcd518ae6a44866f4024303e647fc2628560999e75" :a :session/started-at :v 1774589051 :op :assert}
+   {:e #blake3 "9aa0332e6f44c054a4fbd8dcd518ae6a44866f4024303e647fc2628560999e75" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "9aa0332e6f44c054a4fbd8dcd518ae6a44866f4024303e647fc2628560999e75" :a :session/task :v "## Session Synthesis Directive\n\n**Next session task**: continue: Session 048: CLAUDE.md optimization + steering manifold theory + braid-as-language insight\nRun: `braid seed --task \"continue: Session 048: CLAUDE.md optimization + steering manifold theory + braid-as-language insight\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :db/doc :v "Harvest session for task: Session 048: CLAUDE.md optimization + steering manifold theory + braid-as-language insight" :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :db/ident :v :harvest/session-braid-user-1774589045 :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :harvest/accomplishments :v "What connects thinking about topology and coupling for ... to t-420f?; Session entity: :recon/trace-72f6bbc5d80242b9; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to t-420f?; What connects thinking about topology and coupling for ... to t-420f?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; What connects thinking about topology and coupling for ... to t-420f?; Session entity: :runtime/req-26809dbdd0f8d5c2; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; Session entity: :recon/trace-668d885fe003bcc4; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; Session entity: :runtime/req-7a1d1ef0665e5618; What connects thinking about topology and coupling for ... to t-420f?; Session entity: :runtime/req-fe3c61cd04ebf0c0; Session entity: :runtime/req-81715e1181cc676a; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; Session entity: :runtime/req-b0da4b2f4d3f5ddb; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to t-420f?; Session entity: :recon/trace-8dd79f69b0f49585" :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :harvest/candidate-count :v 34 :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :harvest/codebase-snapshot :v "Codebase: 0 LOC across 0 source files\nTests: 2063 passing" :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :harvest/context-metrics :v "{\"candidates\":34,\"k_eff_estimated\":\"0.79\",\"observations\":0,\"output_tokens_est\":1812,\"tasks_closed\":0,\"tx_count\":19,\"wall_elapsed_s\":3600}" :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :harvest/delta-summary :v "+280 datoms, +37 entities" :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :harvest/recommended-tasks :v "t-d9536d87,t-f12bff46,t-56b8f57e" :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :harvest/store-datom-count :v 152886 :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :harvest/store-entity-count :v 11852 :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: Session 048: CLAUDE.md optimization + steering manifold theory + braid-as-language insight\nRun: `braid seed --task \"continue: Session 048: CLAUDE.md optimization + steering manifold theory + braid-as-language insight\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :harvest/task :v "Session 048: CLAUDE.md optimization + steering manifold theory + braid-as-language insight" :op :assert}
+   {:e #blake3 "a22c9a54344be35b408962d0d94e97db0161fd08e55f9cf2aabaf23aa44647b5" :a :harvest/tx-since-last :v 21 :op :assert}
+   {:e #blake3 "b2760415d67aecc7a1287d861065d86efc0369eb4b76a9b0d0d9310d9288b054" :a :hypothesis/action :v #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :op :assert}
+   {:e #blake3 "b2760415d67aecc7a1287d861065d86efc0369eb4b76a9b0d0d9310d9288b054" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "b2760415d67aecc7a1287d861065d86efc0369eb4b76a9b0d0d9310d9288b054" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "b2760415d67aecc7a1287d861065d86efc0369eb4b76a9b0d0d9310d9288b054" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "b2760415d67aecc7a1287d861065d86efc0369eb4b76a9b0d0d9310d9288b054" :a :hypothesis/predicted :v 0.3366704110802345 :op :assert}
+   {:e #blake3 "b2760415d67aecc7a1287d861065d86efc0369eb4b76a9b0d0d9310d9288b054" :a :hypothesis/timestamp :v #inst 1774589051 :op :assert}
+   {:e #blake3 "bc25365bade29e6f51cdaeabf3efddccbc803476dfcd456daf56f6eca93e0fd9" :a :hypothesis/action :v #blake3 "11146360f74be633495a6342dd8200186db3c8cf4a9c36a3c12288606c58cf62" :op :assert}
+   {:e #blake3 "bc25365bade29e6f51cdaeabf3efddccbc803476dfcd456daf56f6eca93e0fd9" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "bc25365bade29e6f51cdaeabf3efddccbc803476dfcd456daf56f6eca93e0fd9" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "bc25365bade29e6f51cdaeabf3efddccbc803476dfcd456daf56f6eca93e0fd9" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "bc25365bade29e6f51cdaeabf3efddccbc803476dfcd456daf56f6eca93e0fd9" :a :hypothesis/predicted :v 0.7804357666566519 :op :assert}
+   {:e #blake3 "bc25365bade29e6f51cdaeabf3efddccbc803476dfcd456daf56f6eca93e0fd9" :a :hypothesis/timestamp :v #inst 1774589051 :op :assert}
+   {:e #blake3 "c6afeba1d06b63b212cdc3d62f6fcd04a3053e8239744a9ba9380bf78086d31b" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "fd8a42f5b84ca5c57b5b18cdc3033ac58b34d702e3e803daedceea68709c7fc3" :a :hypothesis/action :v #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :op :assert}
+   {:e #blake3 "fd8a42f5b84ca5c57b5b18cdc3033ac58b34d702e3e803daedceea68709c7fc3" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "fd8a42f5b84ca5c57b5b18cdc3033ac58b34d702e3e803daedceea68709c7fc3" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "fd8a42f5b84ca5c57b5b18cdc3033ac58b34d702e3e803daedceea68709c7fc3" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "fd8a42f5b84ca5c57b5b18cdc3033ac58b34d702e3e803daedceea68709c7fc3" :a :hypothesis/predicted :v 0.6246378861432416 :op :assert}
+   {:e #blake3 "fd8a42f5b84ca5c57b5b18cdc3033ac58b34d702e3e803daedceea68709c7fc3" :a :hypothesis/timestamp :v #inst 1774589051 :op :assert}
+ ]}

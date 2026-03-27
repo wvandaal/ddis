@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774589210/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-UNIFY: Implement the unified grammar. Add missing symmetric commands (observe list, etc). Remove vocabulary splits. Standardize output shapes. Make every error teach. Make every response steer. Depends on CLI-GRAMMAR-SPEC."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "86744395352282c148799265792e5612d3ee4eb346263c4c2c0f84f0093d041e" :a :db/ident :v :task/t-5c38ce0a :op :assert}
+   {:e #blake3 "86744395352282c148799265792e5612d3ee4eb346263c4c2c0f84f0093d041e" :a :task/created-at :v 1774589209 :op :assert}
+   {:e #blake3 "86744395352282c148799265792e5612d3ee4eb346263c4c2c0f84f0093d041e" :a :task/id :v "t-5c38ce0a" :op :assert}
+   {:e #blake3 "86744395352282c148799265792e5612d3ee4eb346263c4c2c0f84f0093d041e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "86744395352282c148799265792e5612d3ee4eb346263c4c2c0f84f0093d041e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "86744395352282c148799265792e5612d3ee4eb346263c4c2c0f84f0093d041e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "86744395352282c148799265792e5612d3ee4eb346263c4c2c0f84f0093d041e" :a :task/title :v "CLI-UNIFY: Implement the unified grammar. Add missing symmetric commands (observe list, etc). Remove vocabulary splits. Standardize output shapes. Make every error teach. Make every response steer. Depends on CLI-GRAMMAR-SPEC." :op :assert}
+   {:e #blake3 "86744395352282c148799265792e5612d3ee4eb346263c4c2c0f84f0093d041e" :a :task/title-l0 :v "CLI-UNIFY" :op :assert}
+   {:e #blake3 "86744395352282c148799265792e5612d3ee4eb346263c4c2c0f84f0093d041e" :a :task/title-l1 :v "CLI-UNIFY: Implement the unified grammar" :op :assert}
+   {:e #blake3 "86744395352282c148799265792e5612d3ee4eb346263c4c2c0f84f0093d041e" :a :task/type :v :task.type/task :op :assert}
+ ]}

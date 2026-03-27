@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774578464/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1a20a2e9"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/close-reason :v "Implemented: StagnationSignal struct, detect_stagnation() function, MethodologyGaps integration, 4 unit tests all passing. Uses load_trajectory() from bilateral.rs. Backward compatible (Option<StagnationSignal> defaults to None)." :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/closed-at :v 1774578463 :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "02ac161a68734ad1626493791dc6bc26cc2bf183cd3e63b584ba564972eeacec" :a :task/status :v :task.status/closed :op :assert}
+ ]}
