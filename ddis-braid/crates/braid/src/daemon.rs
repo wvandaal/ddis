@@ -741,8 +741,15 @@ pub fn check_lock(lock_path: &LockPath) -> LockStatus {
 /// Returns `true` if the process exists (or we lack permission to signal it),
 /// `false` if `ESRCH` (no such process).
 fn is_process_alive(pid: u32) -> bool {
+    // DEFECT-005 fix: PIDs > i32::MAX would wrap to negative values,
+    // causing kill() to signal process groups instead of individual
+    // processes. Treat as dead (invalid PID).
+    if pid > i32::MAX as u32 {
+        return false;
+    }
     // Safety: kill(pid, 0) is a standard POSIX existence check.
-    // SAFETY: sig=0 sends no signal, only checks existence.
+    // SAFETY: sig=0 sends no signal, only checks existence. pid is
+    // verified positive (fits in i32) above.
     let ret = unsafe { libc::kill(pid as libc::pid_t, 0) };
     if ret == 0 {
         return true; // Process exists and we can signal it.

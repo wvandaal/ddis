@@ -329,6 +329,14 @@ pub(crate) fn tool_definitions() -> JsonValue {
                         "no_auto_crystallize": {
                             "type": "boolean",
                             "description": "Suppress auto-crystallization of spec findings"
+                        },
+                        "rationale": {
+                            "type": "string",
+                            "description": "Why this decision was made (for design-decisions)"
+                        },
+                        "alternatives": {
+                            "type": "string",
+                            "description": "Alternatives considered (for design-decisions)"
                         }
                     },
                     "required": ["text"],

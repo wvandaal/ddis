@@ -296,7 +296,10 @@ impl LiveStore {
 
         use std::os::unix::io::AsRawFd;
         // SAFETY: lock_file is a valid open fd. flock is a standard POSIX call.
-        let lock_result = unsafe { libc::flock(lock_file.as_raw_fd(), libc::LOCK_EX) };
+        // LOCK_NB: non-blocking — if another process holds the lock, skip flush
+        // instead of blocking indefinitely (prevents hang in Drop). DEFECT-004 fix.
+        let lock_result =
+            unsafe { libc::flock(lock_file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) };
         if lock_result != 0 {
             // Cannot acquire lock — skip flush. Txn EDN files are durable (C1).
             self.dirty = false;
