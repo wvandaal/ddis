@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774573420/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-HASH-LIST-001 \"Single-Computation Hash List\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "506fe98fdfa9eb664ab03a7312d9f84b820684ff61ae227a99d4b07f5564bf32" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "506fe98fdfa9eb664ab03a7312d9f84b820684ff61ae227a99d4b07f5564bf32" :a :comonad/falsification :v #blake3 "67c871327691b1ec74c29811a793d2efcad7b70b4a3f1b59109e63c30e7f1ba1" :op :assert}
+   {:e #blake3 "506fe98fdfa9eb664ab03a7312d9f84b820684ff61ae227a99d4b07f5564bf32" :a :db/doc :v "Single-Computation Hash List" :op :assert}
+   {:e #blake3 "506fe98fdfa9eb664ab03a7312d9f84b820684ff61ae227a99d4b07f5564bf32" :a :db/ident :v :spec/inv-hash-list-001 :op :assert}
+   {:e #blake3 "506fe98fdfa9eb664ab03a7312d9f84b820684ff61ae227a99d4b07f5564bf32" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "506fe98fdfa9eb664ab03a7312d9f84b820684ff61ae227a99d4b07f5564bf32" :a :spec/falsification :v "list_tx_hashes called more than once before the first write_tx in a process" :op :assert}
+   {:e #blake3 "506fe98fdfa9eb664ab03a7312d9f84b820684ff61ae227a99d4b07f5564bf32" :a :spec/id :v "INV-HASH-LIST-001" :op :assert}
+   {:e #blake3 "506fe98fdfa9eb664ab03a7312d9f84b820684ff61ae227a99d4b07f5564bf32" :a :spec/namespace :v :spec.ns/HASH :op :assert}
+   {:e #blake3 "506fe98fdfa9eb664ab03a7312d9f84b820684ff61ae227a99d4b07f5564bf32" :a :spec/statement :v "list_tx_hashes is called at most once during LiveStore::open. The result is cached as known_hashes. Subsequent consumers read from cache." :op :assert}
+   {:e #blake3 "67c871327691b1ec74c29811a793d2efcad7b70b4a3f1b59109e63c30e7f1ba1" :a :db/doc :v "list_tx_hashes called more than once before the first write_tx in a process" :op :assert}
+   {:e #blake3 "89d23ae2ce007859c9c17fc5bf1df0cd0d1535dc73bc23061d0c5ce4629db1ba" :a :db/ident :v :task/t-b0662fcd :op :assert}
+   {:e #blake3 "89d23ae2ce007859c9c17fc5bf1df0cd0d1535dc73bc23061d0c5ce4629db1ba" :a :task/created-at :v 1774573419 :op :assert}
+   {:e #blake3 "89d23ae2ce007859c9c17fc5bf1df0cd0d1535dc73bc23061d0c5ce4629db1ba" :a :task/id :v "t-b0662fcd" :op :assert}
+   {:e #blake3 "89d23ae2ce007859c9c17fc5bf1df0cd0d1535dc73bc23061d0c5ce4629db1ba" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "89d23ae2ce007859c9c17fc5bf1df0cd0d1535dc73bc23061d0c5ce4629db1ba" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "89d23ae2ce007859c9c17fc5bf1df0cd0d1535dc73bc23061d0c5ce4629db1ba" :a :task/title :v "Implement INV-HASH-LIST-001: Single-Computation Hash List" :op :assert}
+   {:e #blake3 "89d23ae2ce007859c9c17fc5bf1df0cd0d1535dc73bc23061d0c5ce4629db1ba" :a :task/traces-to :v #blake3 "506fe98fdfa9eb664ab03a7312d9f84b820684ff61ae227a99d4b07f5564bf32" :op :assert}
+   {:e #blake3 "89d23ae2ce007859c9c17fc5bf1df0cd0d1535dc73bc23061d0c5ce4629db1ba" :a :task/type :v :task.type/task :op :assert}
+ ]}

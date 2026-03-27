@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774573424/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HASH-CACHE: Eliminate 2 of 3 redundant list_tx_hashes calls. load_store_with_hashes returns hash list, LiveStore::open reuses it, status uses known_hash_count. Saves ~700ms. INV-HASH-LIST-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "75430b37a8270f87f619cde7e278e78094547689d6f4dd9e3a7e31b91f5c83dd" :a :db/ident :v :task/t-781330fc :op :assert}
+   {:e #blake3 "75430b37a8270f87f619cde7e278e78094547689d6f4dd9e3a7e31b91f5c83dd" :a :task/created-at :v 1774573423 :op :assert}
+   {:e #blake3 "75430b37a8270f87f619cde7e278e78094547689d6f4dd9e3a7e31b91f5c83dd" :a :task/id :v "t-781330fc" :op :assert}
+   {:e #blake3 "75430b37a8270f87f619cde7e278e78094547689d6f4dd9e3a7e31b91f5c83dd" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "75430b37a8270f87f619cde7e278e78094547689d6f4dd9e3a7e31b91f5c83dd" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "75430b37a8270f87f619cde7e278e78094547689d6f4dd9e3a7e31b91f5c83dd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "75430b37a8270f87f619cde7e278e78094547689d6f4dd9e3a7e31b91f5c83dd" :a :task/title :v "HASH-CACHE: Eliminate 2 of 3 redundant list_tx_hashes calls. load_store_with_hashes returns hash list, LiveStore::open reuses it, status uses known_hash_count. Saves ~700ms. INV-HASH-LIST-001." :op :assert}
+   {:e #blake3 "75430b37a8270f87f619cde7e278e78094547689d6f4dd9e3a7e31b91f5c83dd" :a :task/title-l0 :v "HASH-CACHE" :op :assert}
+   {:e #blake3 "75430b37a8270f87f619cde7e278e78094547689d6f4dd9e3a7e31b91f5c83dd" :a :task/title-l1 :v "HASH-CACHE: Eliminate 2 of 3 redundant list_tx_hashes calls" :op :assert}
+   {:e #blake3 "75430b37a8270f87f619cde7e278e78094547689d6f4dd9e3a7e31b91f5c83dd" :a :task/type :v :task.type/task :op :assert}
+ ]}

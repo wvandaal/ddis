@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774573520/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "HASH-CACHE result: openat calls 1312->796 (39% reduction). Wall time 4.7s->4.5s (warm) — less than expected because OS file cache absorbs repeated directory reads. Real savings on cold/pressured systems. The remaining 4.5s bottleneck is: ~1.5s bincode deserialize of 77MB primary data, ~1.5s from_primary index rebuild, ~1s status computation, ~0.5s remaining I/O. Path to sub-1s requires eliminating deserialization entirely: either rkyv zero-copy or daemon."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f55d125240a32b6b66aaebf25122d31050b416bb02ac9dd850354b41f67127e7" :a :db/doc :v "HASH-CACHE result: openat calls 1312->796 (39% reduction). Wall time 4.7s->4.5s (warm) — less than expected because OS file cache absorbs repeated directory reads. Real savings on cold/pressured systems. The remaining 4.5s bottleneck is: ~1.5s bincode deserialize of 77MB primary data, ~1.5s from_primary index rebuild, ~1s status computation, ~0.5s remaining I/O. Path to sub-1s requires eliminating deserialization entirely: either rkyv zero-copy or daemon." :op :assert}
+   {:e #blake3 "f55d125240a32b6b66aaebf25122d31050b416bb02ac9dd850354b41f67127e7" :a :db/ident :v :observation/hash-cache-result-openat-calls-1312-796-39-reduction-w :op :assert}
+   {:e #blake3 "f55d125240a32b6b66aaebf25122d31050b416bb02ac9dd850354b41f67127e7" :a :exploration/body :v "HASH-CACHE result: openat calls 1312->796 (39% reduction). Wall time 4.7s->4.5s (warm) — less than expected because OS file cache absorbs repeated directory reads. Real savings on cold/pressured systems. The remaining 4.5s bottleneck is: ~1.5s bincode deserialize of 77MB primary data, ~1.5s from_primary index rebuild, ~1s status computation, ~0.5s remaining I/O. Path to sub-1s requires eliminating deserialization entirely: either rkyv zero-copy or daemon." :op :assert}
+   {:e #blake3 "f55d125240a32b6b66aaebf25122d31050b416bb02ac9dd850354b41f67127e7" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "f55d125240a32b6b66aaebf25122d31050b416bb02ac9dd850354b41f67127e7" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "f55d125240a32b6b66aaebf25122d31050b416bb02ac9dd850354b41f67127e7" :a :exploration/content-hash :v #bytes "156a425906049507ca904f37919e7e058a52000df551299a21cc6e0a72e98c8f" :op :assert}
+   {:e #blake3 "f55d125240a32b6b66aaebf25122d31050b416bb02ac9dd850354b41f67127e7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f55d125240a32b6b66aaebf25122d31050b416bb02ac9dd850354b41f67127e7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f55d125240a32b6b66aaebf25122d31050b416bb02ac9dd850354b41f67127e7" :a :exploration/source-session :v #blake3 "4636be6196fd1db68b31312d3537f16cd679b4270f565d5d7112e43b23e4b445" :op :assert}
+ ]}

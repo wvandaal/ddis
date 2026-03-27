@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774573415/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FINDING: list_tx_hashes called 3x per braid status, each listing 12,337 files across 256 dirs in ~350ms. Total: 1050ms = 22% of 4.7s. Pure function called on unchanged input — referential transparency violation. Fix: load_store_with_hashes returns (Store, Vec<String>, String), LiveStore::open reuses hash list, status uses known_hash_count. Saves ~700ms. INV-HASH-LIST-001 crystallized."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cbb4f5c7d689dba577fd1612d9dd1ea34f55f71bf31d34710e22b9c7dc7f1ce1" :a :db/doc :v "FINDING: list_tx_hashes called 3x per braid status, each listing 12,337 files across 256 dirs in ~350ms. Total: 1050ms = 22% of 4.7s. Pure function called on unchanged input — referential transparency violation. Fix: load_store_with_hashes returns (Store, Vec<String>, String), LiveStore::open reuses hash list, status uses known_hash_count. Saves ~700ms. INV-HASH-LIST-001 crystallized." :op :assert}
+   {:e #blake3 "cbb4f5c7d689dba577fd1612d9dd1ea34f55f71bf31d34710e22b9c7dc7f1ce1" :a :db/ident :v :observation/finding-list-tx-hashes-called-3x-per-braid-status-each-lis :op :assert}
+   {:e #blake3 "cbb4f5c7d689dba577fd1612d9dd1ea34f55f71bf31d34710e22b9c7dc7f1ce1" :a :exploration/body :v "FINDING: list_tx_hashes called 3x per braid status, each listing 12,337 files across 256 dirs in ~350ms. Total: 1050ms = 22% of 4.7s. Pure function called on unchanged input — referential transparency violation. Fix: load_store_with_hashes returns (Store, Vec<String>, String), LiveStore::open reuses hash list, status uses known_hash_count. Saves ~700ms. INV-HASH-LIST-001 crystallized." :op :assert}
+   {:e #blake3 "cbb4f5c7d689dba577fd1612d9dd1ea34f55f71bf31d34710e22b9c7dc7f1ce1" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "cbb4f5c7d689dba577fd1612d9dd1ea34f55f71bf31d34710e22b9c7dc7f1ce1" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "cbb4f5c7d689dba577fd1612d9dd1ea34f55f71bf31d34710e22b9c7dc7f1ce1" :a :exploration/content-hash :v #bytes "1c30b68230cb991a0f30a85acfcb05da4e8ff084217eee6d9e4c83d86c4b9575" :op :assert}
+   {:e #blake3 "cbb4f5c7d689dba577fd1612d9dd1ea34f55f71bf31d34710e22b9c7dc7f1ce1" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "cbb4f5c7d689dba577fd1612d9dd1ea34f55f71bf31d34710e22b9c7dc7f1ce1" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "cbb4f5c7d689dba577fd1612d9dd1ea34f55f71bf31d34710e22b9c7dc7f1ce1" :a :exploration/source-session :v #blake3 "4636be6196fd1db68b31312d3537f16cd679b4270f565d5d7112e43b23e4b445" :op :assert}
+ ]}

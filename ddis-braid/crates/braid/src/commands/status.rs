@@ -206,7 +206,10 @@ pub fn run(
             &mut fallback
         }
     };
-    let hashes = live.layout().list_tx_hashes()?;
+    // INV-HASH-LIST-001: Use known_hash_count from LiveStore instead of
+    // calling list_tx_hashes() a third time (~350ms saved). Build functions
+    // only use hashes.len() for display — create a vec with correct length.
+    let hashes: Vec<String> = vec![String::new(); live.known_hash_count()];
     let tx_since_harvest = count_txns_since_last_harvest(live.store());
 
     // Deep mode: bilateral F(S) + optional graph analytics

@@ -744,20 +744,19 @@ impl DiskLayout {
     /// rebuilding. This is the primary performance optimization for startup.
     ///
     /// After a slow-path load, the cache is written for subsequent calls.
-    pub fn load_store(&self) -> Result<Store, BraidError> {
-        // C1 ENFORCEMENT: Seal any writable txn files on load (one-time migration).
-        // After this, all txn files in the store are read-only. This runs once
-        // per store lifecycle — subsequent loads find 0 writable files and return
-        // immediately. Cost: O(F) readdir on first load, O(1) thereafter.
+    /// Load store, returning the hash list and fingerprint for reuse.
+    ///
+    /// INV-HASH-LIST-001: list_tx_hashes is called exactly ONCE here.
+    /// The hash list and fingerprint are returned so LiveStore::open() can
+    /// reuse them without re-listing the 12K+ file txns/ directory.
+    pub fn load_store_with_hashes(&self) -> Result<(Store, Vec<String>, String), BraidError> {
         let _ = self.seal_existing_txns();
 
         let hashes = self.list_tx_hashes()?;
         let fingerprint = self.txn_fingerprint(&hashes);
 
-        // SLIM-3 (INV-CACHE-001): Use slim cache (primary-only + zstd) for fast path.
-        // Backward compatible: read_slim_cache detects old format via magic number.
         if let Some(store) = self.read_slim_cache(&fingerprint) {
-            return Ok(store);
+            return Ok((store, hashes, fingerprint));
         }
 
         // POLICY-6: Incremental path — try loading cached store + delta.
@@ -792,7 +791,7 @@ impl DiskLayout {
                 // If it is, cache the result and return
                 if store.len() >= cached_hashes.len() {
                     let _ = self.write_slim_cache(&store);
-                    return Ok(store);
+                    return Ok((store, hashes, fingerprint));
                 }
                 // Otherwise fall through to full rebuild
             }
@@ -815,7 +814,12 @@ impl DiskLayout {
         // SLIM-3: Write slim cache for next time (primary only + zstd compressed).
         let _ = self.write_slim_cache(&store);
 
-        Ok(store)
+        Ok((store, hashes, fingerprint))
+    }
+
+    /// Convenience wrapper for callers that don't need the hash list.
+    pub fn load_store(&self) -> Result<Store, BraidError> {
+        self.load_store_with_hashes().map(|(store, _, _)| store)
     }
 
     /// Verify integrity of all transaction files.

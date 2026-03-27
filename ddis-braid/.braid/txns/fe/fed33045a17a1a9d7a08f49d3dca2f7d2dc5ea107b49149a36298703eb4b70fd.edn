@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774573439/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-781330fc"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "75430b37a8270f87f619cde7e278e78094547689d6f4dd9e3a7e31b91f5c83dd" :a :task/close-reason :v "Implemented: load_store_with_hashes returns hash list, LiveStore::open reuses it, status uses known_hash_count. 1646 tests pass." :op :assert}
+   {:e #blake3 "75430b37a8270f87f619cde7e278e78094547689d6f4dd9e3a7e31b91f5c83dd" :a :task/closed-at :v 1774573438 :op :assert}
+   {:e #blake3 "75430b37a8270f87f619cde7e278e78094547689d6f4dd9e3a7e31b91f5c83dd" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "75430b37a8270f87f619cde7e278e78094547689d6f4dd9e3a7e31b91f5c83dd" :a :task/status :v :task.status/closed :op :assert}
+ ]}
