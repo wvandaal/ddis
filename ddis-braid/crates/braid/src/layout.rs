@@ -413,6 +413,20 @@ impl DiskLayout {
             )));
         }
 
+        // C1 ENFORCEMENT: Seal-on-read — if this file is still writable
+        // (pre-existing file from before write-time sealing was added),
+        // seal it now. This is O(1) per file, amortized across natural reads,
+        // with no dedicated directory scan. Files loaded from cache skip this
+        // entirely (read_tx not called for cache hits).
+        {
+            use std::os::unix::fs::PermissionsExt;
+            if let Ok(meta) = fs::metadata(&path) {
+                if meta.permissions().mode() & 0o222 != 0 {
+                    Self::make_readonly(&path);
+                }
+            }
+        }
+
         let tx = deserialize_tx(&bytes)?;
         Ok(tx)
     }
@@ -525,7 +539,11 @@ impl DiskLayout {
     /// Serializes only (datoms, frontier, schema, clock, views) — no indexes.
     /// Compressed with zstd level 3. ~6x smaller than full index cache.
     /// Indexes rebuilt on load via Store::from_primary() (INV-CACHE-001).
-    pub fn write_slim_cache(&self, store: &braid_kernel::Store) -> Result<(), BraidError> {
+    pub fn write_slim_cache(
+        &self,
+        store: &braid_kernel::Store,
+        known_hashes: &[String],
+    ) -> Result<(), BraidError> {
         let cache_dir = self.cache_dir();
         fs::create_dir_all(&cache_dir)?;
 
@@ -543,10 +561,7 @@ impl DiskLayout {
             .map_err(|e| BraidError::Parse(format!("bincode serialize slim: {e}")))?;
 
         let compressed = zstd::encode_all(std::io::Cursor::new(&encoded), 3)
-            .map_err(|e| BraidError::Io(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("zstd compress: {e}"),
-            )))?;
+            .map_err(|e| BraidError::Io(std::io::Error::other(format!("zstd compress: {e}"))))?;
 
         // Atomic write: tmp + rename
         let store_bin_path = cache_dir.join("store.bin");
@@ -554,9 +569,9 @@ impl DiskLayout {
         fs::write(&store_tmp_path, &compressed)?;
         fs::rename(&store_tmp_path, &store_bin_path)?;
 
-        // Write meta.json (unchanged format)
-        let hashes = self.list_tx_hashes()?;
-        let fingerprint = self.txn_fingerprint(&hashes);
+        // Write meta.json — fingerprint from the hashes the caller actually loaded,
+        // NOT from list_tx_hashes() which may include files written by other processes.
+        let fingerprint = self.txn_fingerprint(known_hashes);
         let now = SystemTime::now()
             .duration_since(SystemTime::UNIX_EPOCH)
             .unwrap_or_default()
@@ -566,7 +581,7 @@ impl DiskLayout {
             txn_fingerprint: fingerprint,
             datom_count,
             created_at: now,
-            tx_hashes: hashes,
+            tx_hashes: known_hashes.to_vec(),
         };
         let meta_json =
             serde_json::to_string_pretty(&meta).map_err(|e| BraidError::Parse(e.to_string()))?;
@@ -663,7 +678,11 @@ impl DiskLayout {
                 return None;
             }
             braid_kernel::Store::from_primary(
-                slim.datoms, slim.frontier, slim.schema, slim.clock, slim.views,
+                slim.datoms,
+                slim.frontier,
+                slim.schema,
+                slim.clock,
+                slim.views,
             )
         } else {
             let s: braid_kernel::Store = bincode::deserialize(&bin_bytes).ok()?;
@@ -684,6 +703,7 @@ impl DiskLayout {
     ///
     /// This loads the full Store including all 6 indexes, schema, frontier,
     /// and clock — skipping the expensive `Store::from_datoms()` rebuild.
+    #[allow(dead_code)]
     fn read_index_cache(&self, current_fingerprint: &str) -> Option<Store> {
         let cache_dir = self.cache_dir();
 
@@ -712,6 +732,7 @@ impl DiskLayout {
     /// Used for incremental loading: if the cached store exists but the
     /// fingerprint doesn't match, the caller can compute the delta (new
     /// transactions) and apply them incrementally via Store::transact().
+    #[allow(dead_code)]
     fn read_index_cache_with_hashes(&self) -> Option<(Store, Vec<String>)> {
         let cache_dir = self.cache_dir();
         let meta_bytes = fs::read(cache_dir.join("meta.json")).ok()?;
@@ -750,7 +771,11 @@ impl DiskLayout {
     /// The hash list and fingerprint are returned so LiveStore::open() can
     /// reuse them without re-listing the 12K+ file txns/ directory.
     pub fn load_store_with_hashes(&self) -> Result<(Store, Vec<String>, String), BraidError> {
-        let _ = self.seal_existing_txns();
+        // C1 ENFORCEMENT: No dedicated seal scan here — it was O(F) on every
+        // command invocation (4s regression at 12K files). Instead:
+        //   - New files sealed at write time (write_tx → make_readonly)
+        //   - Pre-existing files sealed lazily in read_tx (seal-on-read)
+        //   - Hash verification in read_tx catches all tampering regardless
 
         let hashes = self.list_tx_hashes()?;
         let fingerprint = self.txn_fingerprint(&hashes);
@@ -772,7 +797,9 @@ impl DiskLayout {
             // Only use incremental if delta is small (< 50% of total)
             // and cached hashes are a subset of current (no deletions, C1)
             let all_cached_present = cached_hashes.iter().all(|ch| hashes.contains(ch));
-            if all_cached_present && !delta_hashes.is_empty() && delta_hashes.len() < hashes.len() / 2
+            if all_cached_present
+                && !delta_hashes.is_empty()
+                && delta_hashes.len() < hashes.len() / 2
             {
                 let mut store = cached_store;
                 // ADR-STORE-011: Use apply_datoms for incremental replay.
@@ -790,7 +817,7 @@ impl DiskLayout {
                 // Verify: datom count should be >= cached (monotonic growth, C1)
                 // If it is, cache the result and return
                 if store.len() >= cached_hashes.len() {
-                    let _ = self.write_slim_cache(&store);
+                    let _ = self.write_slim_cache(&store, &hashes);
                     return Ok((store, hashes, fingerprint));
                 }
                 // Otherwise fall through to full rebuild
@@ -812,7 +839,7 @@ impl DiskLayout {
         let store = Store::from_datoms(all_datoms);
 
         // SLIM-3: Write slim cache for next time (primary only + zstd compressed).
-        let _ = self.write_slim_cache(&store);
+        let _ = self.write_slim_cache(&store, &hashes);
 
         Ok((store, hashes, fingerprint))
     }
@@ -1031,6 +1058,11 @@ mod tests {
         let hash = &hashes[0];
         let prefix = &hash[..2];
         let path = root.join("txns").join(prefix).join(format!("{hash}.edn"));
+        // C1 enforcement makes files 0o444 — temporarily restore write permission for test
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(&path, fs::Permissions::from_mode(0o644)).unwrap();
+        }
         fs::write(&path, b"corrupted content").unwrap();
 
         let report = layout.verify_integrity().unwrap();
@@ -1209,6 +1241,11 @@ mod tests {
         // Corrupt the file content (but keep the same filename/hash)
         let prefix = &hash[..2];
         let path = root.join("txns").join(prefix).join(format!("{hash}.edn"));
+        // C1 enforcement makes files 0o444 — temporarily restore write permission for test
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(&path, fs::Permissions::from_mode(0o644)).unwrap();
+        }
         fs::write(&path, b"corrupted content that does not match the hash").unwrap();
 
         // Negative case: corrupted file should fail hash verification

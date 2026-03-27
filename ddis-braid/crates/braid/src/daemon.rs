@@ -258,9 +258,7 @@ const RUNTIME_ATTRS: &[(&str, &str, &str, &str)] = &[
 /// Uses `live.write_tx()` for persistence (C3: schema-as-data).
 ///
 /// **ADR-DAEMON-003**: Runtime attributes are schema datoms, not config.
-pub fn install_runtime_schema(
-    live: &mut crate::live_store::LiveStore,
-) -> Result<(), DaemonError> {
+pub fn install_runtime_schema(live: &mut crate::live_store::LiveStore) -> Result<(), DaemonError> {
     use braid_kernel::datom::*;
     use braid_kernel::layout::TxFile;
 
@@ -351,24 +349,96 @@ pub fn install_runtime_schema(
 /// Each tuple: (name, description, module_path).
 /// This is the binary's self-model — what the daemon knows it can do.
 const CAPABILITIES: &[(&str, &str, &str)] = &[
-    ("store-binary-cache", "Bincode-serialized store.bin for O(1) startup", "crates/braid/src/layout.rs"),
-    ("incremental-tx-loading", "Apply new txn files without full store rebuild", "crates/braid/src/live_store.rs"),
-    ("external-write-detection", "O(1) mtime-based detection of CLI writes during daemon mode", "crates/braid/src/live_store.rs"),
-    ("write-through-persistence", "Every write is durable before returning (fsync + in-memory)", "crates/braid/src/live_store.rs"),
-    ("materialized-views", "Incremental fitness/coherence via Store::observe_datom", "crates/braid-kernel/src/store.rs"),
-    ("bilateral-scan", "Spec-impl alignment boundary evaluation", "crates/braid-kernel/src/bilateral.rs"),
-    ("spectral-partition", "Fiedler-based graph partition for topology planning", "crates/braid-kernel/src/topology.rs"),
-    ("datalog-query", "Stratified Datalog evaluation with CALM compliance", "crates/braid-kernel/src/query/evaluator.rs"),
-    ("harvest-pipeline", "Session knowledge extraction with candidate scoring", "crates/braid-kernel/src/harvest.rs"),
-    ("seed-assembly", "Task-conditioned context assembly with budget management", "crates/braid-kernel/src/seed.rs"),
-    ("routing-engine", "R(t) task impact scoring with calibration", "crates/braid-kernel/src/routing.rs"),
-    ("bridge-hypotheses", "FEGH free-energy gradient over hypothetical observations", "crates/braid-kernel/src/routing.rs"),
-    ("hypothesis-ledger", "Predicted vs actual outcome tracking with calibration", "crates/braid-kernel/src/routing.rs"),
-    ("topology-planning", "Spectral task partition for multi-agent coordination", "crates/braid-kernel/src/topology.rs"),
-    ("cotx-routing", "Contextual observation auto-routing (finding/task/ADR/question)", "crates/braid-kernel/src/guidance.rs"),
-    ("crdt-merge", "Set-union merge with per-attribute resolution modes", "crates/braid-kernel/src/merge.rs"),
-    ("runtime-self-observation", "Daemon emits :runtime/* datoms for reflexive F(S)", "crates/braid/src/daemon.rs"),
-    ("unix-socket-daemon", "Persistent LiveStore with JSON-RPC over Unix socket", "crates/braid/src/daemon.rs"),
+    (
+        "store-binary-cache",
+        "Bincode-serialized store.bin for O(1) startup",
+        "crates/braid/src/layout.rs",
+    ),
+    (
+        "incremental-tx-loading",
+        "Apply new txn files without full store rebuild",
+        "crates/braid/src/live_store.rs",
+    ),
+    (
+        "external-write-detection",
+        "O(1) mtime-based detection of CLI writes during daemon mode",
+        "crates/braid/src/live_store.rs",
+    ),
+    (
+        "write-through-persistence",
+        "Every write is durable before returning (fsync + in-memory)",
+        "crates/braid/src/live_store.rs",
+    ),
+    (
+        "materialized-views",
+        "Incremental fitness/coherence via Store::observe_datom",
+        "crates/braid-kernel/src/store.rs",
+    ),
+    (
+        "bilateral-scan",
+        "Spec-impl alignment boundary evaluation",
+        "crates/braid-kernel/src/bilateral.rs",
+    ),
+    (
+        "spectral-partition",
+        "Fiedler-based graph partition for topology planning",
+        "crates/braid-kernel/src/topology.rs",
+    ),
+    (
+        "datalog-query",
+        "Stratified Datalog evaluation with CALM compliance",
+        "crates/braid-kernel/src/query/evaluator.rs",
+    ),
+    (
+        "harvest-pipeline",
+        "Session knowledge extraction with candidate scoring",
+        "crates/braid-kernel/src/harvest.rs",
+    ),
+    (
+        "seed-assembly",
+        "Task-conditioned context assembly with budget management",
+        "crates/braid-kernel/src/seed.rs",
+    ),
+    (
+        "routing-engine",
+        "R(t) task impact scoring with calibration",
+        "crates/braid-kernel/src/routing.rs",
+    ),
+    (
+        "bridge-hypotheses",
+        "FEGH free-energy gradient over hypothetical observations",
+        "crates/braid-kernel/src/routing.rs",
+    ),
+    (
+        "hypothesis-ledger",
+        "Predicted vs actual outcome tracking with calibration",
+        "crates/braid-kernel/src/routing.rs",
+    ),
+    (
+        "topology-planning",
+        "Spectral task partition for multi-agent coordination",
+        "crates/braid-kernel/src/topology.rs",
+    ),
+    (
+        "cotx-routing",
+        "Contextual observation auto-routing (finding/task/ADR/question)",
+        "crates/braid-kernel/src/guidance.rs",
+    ),
+    (
+        "crdt-merge",
+        "Set-union merge with per-attribute resolution modes",
+        "crates/braid-kernel/src/merge.rs",
+    ),
+    (
+        "runtime-self-observation",
+        "Daemon emits :runtime/* datoms for reflexive F(S)",
+        "crates/braid/src/daemon.rs",
+    ),
+    (
+        "unix-socket-daemon",
+        "Persistent LiveStore with JSON-RPC over Unix socket",
+        "crates/braid/src/daemon.rs",
+    ),
 ];
 
 /// Run the capability census: record compiled-in subsystems as `:capability/*` datoms.
@@ -378,9 +448,7 @@ const CAPABILITIES: &[(&str, &str, &str)] = &[
 /// preventing tasks from being created for already-implemented features.
 ///
 /// **PERF-4a**: The daemon's first act is binary reflection.
-pub fn run_capability_census(
-    live: &mut crate::live_store::LiveStore,
-) -> Result<(), DaemonError> {
+pub fn run_capability_census(live: &mut crate::live_store::LiveStore) -> Result<(), DaemonError> {
     use braid_kernel::datom::*;
     use braid_kernel::layout::TxFile;
 
@@ -495,11 +563,7 @@ fn run_reflexive_fegh(live: &mut crate::live_store::LiveStore) {
     let mut datoms = Vec::new();
 
     for (i, bridge) in bridges.iter().enumerate() {
-        let ident = format!(
-            ":hypothesis/reflexive-{}-{}",
-            wall_ms,
-            i
-        );
+        let ident = format!(":hypothesis/reflexive-{}-{}", wall_ms, i);
         let entity = EntityId::from_ident(&ident);
 
         datoms.push(Datom::new(
@@ -609,11 +673,7 @@ pub fn acquire_lock(lock_path: &LockPath) -> Result<(), DaemonError> {
     let path = lock_path.path();
 
     // Attempt exclusive create.
-    match OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(path)
-    {
+    match OpenOptions::new().write(true).create_new(true).open(path) {
         Ok(mut f) => {
             // Write our PID.
             let pid = std::process::id();
@@ -626,9 +686,7 @@ pub fn acquire_lock(lock_path: &LockPath) -> Result<(), DaemonError> {
                 LockStatus::Live(pid) => Err(DaemonError::LockHeld { pid }),
                 LockStatus::Stale(pid) => {
                     // Remove stale lock and retry (INV-DAEMON-005).
-                    eprintln!(
-                        "daemon: removing stale lock (pid {pid} is dead)"
-                    );
+                    eprintln!("daemon: removing stale lock (pid {pid} is dead)");
                     let _ = std::fs::remove_file(path);
                     // Recurse once. If this fails, surface the error.
                     acquire_lock(lock_path)
@@ -701,13 +759,281 @@ fn is_process_alive(pid: u32) -> bool {
 // CLI auto-routing — D4-8, INV-DAEMON-007
 // ---------------------------------------------------------------------------
 
-/// Commands that bypass daemon routing (always use direct mode).
-const DAEMON_EXEMPT_COMMANDS: &[&str] = &[
-    "init", "daemon", "mcp", "shell", "merge", "session",
-    "bilateral", "trace", "schema", "witness", "challenge",
-    "extract", "wrap", "config", "topology", "verify", "analyze",
-    "log",
-];
+/// Map a CLI Command to its daemon-routable MCP tool name and JSON arguments.
+///
+/// Returns `None` for commands that should use direct mode (init, daemon, shell,
+/// bilateral, topology, etc.). Returns `Some((tool_name, args))` for the 11
+/// commands the daemon can handle.
+///
+/// **INV-DAEMON-004**: Argument marshaling preserves semantic equivalence.
+/// **DW2**: Full coverage of all MCP tools defined in `mcp::tool_definitions()`.
+pub fn marshal_command(cmd: &crate::commands::Command) -> Option<(&'static str, JsonValue)> {
+    use crate::commands::{Command, ObserveAction, TaskAction, WriteAction};
+
+    match cmd {
+        // 1. status → braid_status {}
+        Command::Status { .. } => Some(("braid_status", json!({}))),
+
+        // 2. query → braid_query {datalog?, entity?, attribute?}
+        Command::Query {
+            entity,
+            attribute,
+            datalog,
+            positional_datalog,
+            ..
+        } => {
+            let mut args = json!({});
+            // --datalog flag takes precedence, then positional
+            let dlog = datalog.as_deref().or(positional_datalog.as_deref());
+            if let Some(d) = dlog {
+                args["datalog"] = json!(d);
+            }
+            if let Some(e) = entity {
+                args["entity"] = json!(e);
+            }
+            if let Some(a) = attribute {
+                args["attribute"] = json!(a);
+            }
+            Some(("braid_query", args))
+        }
+
+        // 3. observe (with text) → braid_observe {...}
+        //    Observe subcommands (list, search, show, recent) are not routable.
+        //    ObserveAction::Create is also routable (explicit creation form).
+        Command::Observe {
+            text: Some(text),
+            confidence,
+            tag,
+            category,
+            relates_to,
+            rationale,
+            alternatives,
+            no_auto_crystallize,
+            action: None,
+            ..
+        } => {
+            let mut args = json!({"text": text, "confidence": confidence});
+            if !tag.is_empty() {
+                args["tags"] = json!(tag);
+            }
+            if let Some(c) = category {
+                args["category"] = json!(c);
+            }
+            if let Some(r) = relates_to {
+                args["relates_to"] = json!(r);
+            }
+            if let Some(r) = rationale {
+                args["rationale"] = json!(r);
+            }
+            if let Some(a) = alternatives {
+                args["alternatives"] = json!(a);
+            }
+            if *no_auto_crystallize {
+                args["no_auto_crystallize"] = json!(true);
+            }
+            Some(("braid_observe", args))
+        }
+
+        // ObserveAction::Create — explicit `braid observe create "text"`
+        Command::Observe {
+            action:
+                Some(ObserveAction::Create {
+                    text,
+                    confidence,
+                    tag,
+                    category,
+                    relates_to,
+                    rationale,
+                    alternatives,
+                    no_auto_crystallize,
+                    ..
+                }),
+            ..
+        } => {
+            let mut args = json!({"text": text, "confidence": confidence});
+            if !tag.is_empty() {
+                args["tags"] = json!(tag);
+            }
+            if let Some(c) = category {
+                args["category"] = json!(c);
+            }
+            if let Some(r) = relates_to {
+                args["relates_to"] = json!(r);
+            }
+            if let Some(r) = rationale {
+                args["rationale"] = json!(r);
+            }
+            if let Some(a) = alternatives {
+                args["alternatives"] = json!(a);
+            }
+            if *no_auto_crystallize {
+                args["no_auto_crystallize"] = json!(true);
+            }
+            Some(("braid_observe", args))
+        }
+
+        // Observe subcommands (list, search, show, recent) — not routable
+        Command::Observe { .. } => None,
+
+        // 4. harvest → braid_harvest {task?, commit?, force?, no_reconcile?}
+        Command::Harvest {
+            task,
+            commit,
+            force,
+            no_reconcile,
+            ..
+        } => {
+            let mut args = json!({});
+            if let Some(t) = task {
+                args["task"] = json!(t);
+            } else {
+                // braid_harvest MCP tool requires "task" — provide a default
+                args["task"] = json!("continue");
+            }
+            if *commit {
+                args["commit"] = json!(true);
+            }
+            if *force {
+                args["force"] = json!(true);
+            }
+            if *no_reconcile {
+                args["no_reconcile"] = json!(true);
+            }
+            Some(("braid_harvest", args))
+        }
+
+        // 5. go → braid_task_go {id}
+        Command::Go { id, .. } => Some(("braid_task_go", json!({"id": id}))),
+
+        // 6. next → braid_task_ready {}
+        Command::Next { .. } => Some(("braid_task_ready", json!({}))),
+
+        // 7. done → braid_task_close {id}
+        //    Closes the first ID. Multiple IDs fall back to direct mode.
+        Command::Done { ids, .. } => {
+            if ids.len() == 1 {
+                Some(("braid_task_close", json!({"id": ids[0]})))
+            } else {
+                // Multiple IDs or zero IDs — use direct mode for batch close
+                None
+            }
+        }
+
+        // 8. task create → braid_task_create {title, priority?, ...}
+        Command::Task {
+            action:
+                TaskAction::Create {
+                    title,
+                    priority,
+                    task_type,
+                    description,
+                    traces_to,
+                    labels,
+                    force,
+                    ..
+                },
+        } => {
+            let mut args = json!({"title": title});
+            if *priority != 2 {
+                args["priority"] = json!(priority);
+            }
+            if task_type != "task" {
+                args["task_type"] = json!(task_type);
+            }
+            if let Some(d) = description {
+                args["description"] = json!(d);
+            }
+            if !traces_to.is_empty() {
+                args["traces_to"] = json!(traces_to);
+            }
+            if !labels.is_empty() {
+                args["labels"] = json!(labels);
+            }
+            if *force {
+                args["force"] = json!(true);
+            }
+            Some(("braid_task_create", args))
+        }
+
+        // 9. seed → braid_seed {task?, budget?}
+        Command::Seed {
+            task, seed_budget, ..
+        } => {
+            let mut args = json!({});
+            if let Some(t) = task {
+                args["task"] = json!(t);
+            } else {
+                args["task"] = json!("continue");
+            }
+            if *seed_budget != 2000 {
+                args["budget"] = json!(seed_budget);
+            }
+            Some(("braid_seed", args))
+        }
+
+        // 10. write assert → braid_write {entity, attribute, value, rationale?}
+        Command::Write {
+            action: WriteAction::Assert {
+                datoms, rationale, ..
+            },
+        } => {
+            // The MCP braid_write tool handles a single [entity, attribute, value].
+            // CLI `write assert` can have multiple --datom triples. Route only
+            // single-datom assertions through the daemon; multi-datom falls back.
+            if datoms.len() == 3 {
+                let mut args = json!({
+                    "entity": datoms[0],
+                    "attribute": datoms[1],
+                    "value": datoms[2],
+                });
+                if !rationale.is_empty() {
+                    args["rationale"] = json!(rationale);
+                }
+                Some(("braid_write", args))
+            } else {
+                None // Multi-datom or empty — use direct mode
+            }
+        }
+
+        // 11. guidance (bare `braid` with no subcommand resolves to Status above)
+        //     The `braid_guidance` tool is available but has no dedicated CLI command.
+        //     It is reachable only via MCP. No CLI command maps here.
+
+        // note → braid_observe (note is a shortcut for observe)
+        Command::Note {
+            text, confidence, ..
+        } => Some((
+            "braid_observe",
+            json!({"text": text, "confidence": confidence}),
+        )),
+
+        // transact → braid_write (single-datom only, same as write assert)
+        Command::Transact {
+            datoms, rationale, ..
+        } => {
+            if datoms.len() == 3 {
+                let mut args = json!({
+                    "entity": datoms[0],
+                    "attribute": datoms[1],
+                    "value": datoms[2],
+                });
+                if let Some(r) = rationale {
+                    args["rationale"] = json!(r);
+                }
+                Some(("braid_write", args))
+            } else {
+                None
+            }
+        }
+
+        // All other commands use direct mode:
+        // init, daemon, mcp, shell, model, bilateral, trace, verify, challenge,
+        // log, schema, merge, session, wrap, config, topology, witness, extract,
+        // spec, task (non-create subcommands), write (non-assert subcommands),
+        // observe (subcommands)
+        _ => None,
+    }
+}
 
 /// Try to route a CLI command through the daemon socket.
 ///
@@ -718,13 +1044,11 @@ const DAEMON_EXEMPT_COMMANDS: &[&str] = &[
 /// **INV-DAEMON-004**: Semantic equivalence with direct mode.
 pub fn try_route_through_daemon(
     braid_dir: &Path,
-    cmd_name: &str,
-    cmd_json: &JsonValue,
+    cmd: &crate::commands::Command,
 ) -> Option<String> {
-    // Skip daemon-exempt commands.
-    if DAEMON_EXEMPT_COMMANDS.contains(&cmd_name) {
-        return None;
-    }
+    // Marshal the command to an MCP tool name + JSON arguments.
+    // Returns None for non-routable commands (init, daemon, shell, etc.).
+    let (tool_name, cmd_json) = marshal_command(cmd)?;
 
     let sock_path = SocketPath::new(braid_dir);
     if !sock_path.path().exists() {
@@ -762,21 +1086,20 @@ pub fn try_route_through_daemon(
     }
 
     // Try to connect with a short timeout.
+    // DW3: Write commands get a 2s timeout (fall back to direct mode if daemon is busy
+    // processing a long status request). Read commands get 10s (status can take a while).
+    let is_read_command = matches!(
+        &*tool_name,
+        "braid_status" | "braid_query" | "braid_guidance" | "braid_task_ready"
+    );
+    let read_timeout = if is_read_command { 10 } else { 2 };
     let stream = std::os::unix::net::UnixStream::connect(sock_path.path()).ok()?;
     stream
-        .set_read_timeout(Some(std::time::Duration::from_secs(10)))
+        .set_read_timeout(Some(std::time::Duration::from_secs(read_timeout)))
         .ok()?;
-    stream.set_write_timeout(Some(std::time::Duration::from_secs(2))).ok()?;
-
-    // Map CLI command to JSON-RPC tools/call.
-    // ONLY read-only commands that need no args are daemon-routable.
-    // Write commands (observe, harvest, task, spec) need argument marshaling
-    // which is not yet implemented — they use direct mode.
-    let tool_name = match cmd_name {
-        "status" => "braid_status",
-        "query" => "braid_query",
-        _ => return None, // Not yet mapped — use direct mode.
-    };
+    stream
+        .set_write_timeout(Some(std::time::Duration::from_secs(2)))
+        .ok()?;
 
     let request = json!({
         "jsonrpc": "2.0",
@@ -841,8 +1164,7 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
     };
 
     // 2. Open LiveStore.
-    let mut live = crate::live_store::LiveStore::open(braid_dir)
-        .map_err(DaemonError::from)?;
+    let mut live = crate::live_store::LiveStore::open(braid_dir).map_err(DaemonError::from)?;
 
     // 3. Install runtime schema (ADR-DAEMON-003).
     install_runtime_schema(&mut live)?;
@@ -857,8 +1179,7 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
     let _ = std::fs::remove_file(sock_path.path());
 
     // 5. Bind Unix socket.
-    let listener = UnixListener::bind(sock_path.path())
-        .map_err(DaemonError::BindFailed)?;
+    let listener = UnixListener::bind(sock_path.path()).map_err(DaemonError::BindFailed)?;
     // Non-blocking accept so we can check the shutdown flag.
     listener
         .set_nonblocking(true)
@@ -881,8 +1202,14 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
         // SAFETY: signal_hook_registry or manual signal handling.
         // We use a simple approach: set the flag on SIGTERM/SIGINT.
         unsafe {
-            libc::signal(libc::SIGTERM, signal_handler as *const () as libc::sighandler_t);
-            libc::signal(libc::SIGINT, signal_handler as *const () as libc::sighandler_t);
+            libc::signal(
+                libc::SIGTERM,
+                signal_handler as *const () as libc::sighandler_t,
+            );
+            libc::signal(
+                libc::SIGINT,
+                signal_handler as *const () as libc::sighandler_t,
+            );
         }
         // Store the Arc in a global so the signal handler can access it.
         SHUTDOWN_FLAG
@@ -897,12 +1224,10 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
 
     // INV-DAEMON-011: Idle timeout — daemon self-terminates after no requests.
     // Default 300s (5 minutes). Configurable via :config/daemon-idle-timeout datom (C9).
-    let idle_timeout_secs: u64 = braid_kernel::config::get_config(
-        live.store(),
-        "daemon.idle-timeout-secs",
-    )
-    .and_then(|v| v.parse().ok())
-    .unwrap_or(300);
+    let idle_timeout_secs: u64 =
+        braid_kernel::config::get_config(live.store(), "daemon.idle-timeout-secs")
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(300);
     let idle_timeout = std::time::Duration::from_secs(idle_timeout_secs);
 
     // 7. Accept loop.
@@ -1194,8 +1519,7 @@ fn handle_with_observation(
 // ---------------------------------------------------------------------------
 
 /// Global shutdown flag, accessible from the signal handler.
-static SHUTDOWN_FLAG: std::sync::Mutex<Option<Arc<AtomicBool>>> =
-    std::sync::Mutex::new(None);
+static SHUTDOWN_FLAG: std::sync::Mutex<Option<Arc<AtomicBool>>> = std::sync::Mutex::new(None);
 
 /// Signal handler that sets the shutdown flag.
 ///
@@ -1321,8 +1645,7 @@ mod tests {
         let conn_err = DaemonError::ConnectionFailed(std::io::Error::other("conn"));
         assert!(conn_err.source().is_some());
 
-        let store_err =
-            DaemonError::StoreError(crate::error::BraidError::Validation("v".into()));
+        let store_err = DaemonError::StoreError(crate::error::BraidError::Validation("v".into()));
         assert!(store_err.source().is_some());
 
         let timeout = DaemonError::Timeout;
@@ -1394,7 +1717,10 @@ mod tests {
         acquire_lock(&lock).unwrap();
         assert!(lock.path().exists());
         release_lock(&lock);
-        assert!(!lock.path().exists(), "lock file must be removed after release");
+        assert!(
+            !lock.path().exists(),
+            "lock file must be removed after release"
+        );
     }
 
     #[test]
@@ -1467,7 +1793,10 @@ mod tests {
             .entity_datoms(entity)
             .iter()
             .any(|d| d.attribute == vt_attr && d.op == Op::Assert);
-        assert!(has_value_type, ":runtime/command must have :db/valueType after install");
+        assert!(
+            has_value_type,
+            ":runtime/command must have :db/valueType after install"
+        );
     }
 
     #[test]
@@ -1504,7 +1833,10 @@ mod tests {
         install_runtime_schema(&mut live).unwrap();
         let count_after_second = live.store().len();
 
-        assert!(count_after_first > count_before, "first install should add datoms");
+        assert!(
+            count_after_first > count_before,
+            "first install should add datoms"
+        );
         assert_eq!(
             count_after_first, count_after_second,
             "second install should be a no-op (idempotent)"
@@ -1647,14 +1979,11 @@ mod tests {
         // Verify the outcome is "error".
         use braid_kernel::datom::{Attribute, Op};
         let outcome_attr = Attribute::from_keyword(":runtime/outcome");
-        let has_error_outcome = live
-            .store()
-            .datoms()
-            .any(|d| {
-                d.attribute == outcome_attr
-                    && d.op == Op::Assert
-                    && d.value == braid_kernel::datom::Value::String("error".to_string())
-            });
+        let has_error_outcome = live.store().datoms().any(|d| {
+            d.attribute == outcome_attr
+                && d.op == Op::Assert
+                && d.value == braid_kernel::datom::Value::String("error".to_string())
+        });
         assert!(
             has_error_outcome,
             "error path runtime datom must have outcome='error'"
@@ -1799,11 +2128,7 @@ mod tests {
         );
 
         // Send daemon/status and verify response.
-        let resp = send_socket_request(
-            sock_path.path(),
-            "daemon/status",
-            serde_json::json!({}),
-        );
+        let resp = send_socket_request(sock_path.path(), "daemon/status", serde_json::json!({}));
         assert!(resp.is_some(), "daemon/status must return a response");
         let resp = resp.unwrap();
         let pid = resp
@@ -1813,11 +2138,8 @@ mod tests {
         assert!(pid.is_some(), "daemon/status must return PID");
 
         // Send shutdown.
-        let _shutdown_resp = send_socket_request(
-            sock_path.path(),
-            "daemon/shutdown",
-            serde_json::json!({}),
-        );
+        let _shutdown_resp =
+            send_socket_request(sock_path.path(), "daemon/shutdown", serde_json::json!({}));
 
         // Wait for daemon thread to finish.
         let result = handle.join().expect("daemon thread must not panic");
@@ -1855,7 +2177,10 @@ mod tests {
             "tools/call",
             serde_json::json!({"name": "braid_status", "arguments": {}}),
         );
-        assert!(resp.is_some(), "braid_status via socket must return a response");
+        assert!(
+            resp.is_some(),
+            "braid_status via socket must return a response"
+        );
 
         // Verify response has content.
         let resp = resp.unwrap();
@@ -1874,11 +2199,7 @@ mod tests {
         );
 
         // Shutdown.
-        let _ = send_socket_request(
-            sock_path.path(),
-            "daemon/shutdown",
-            serde_json::json!({}),
-        );
+        let _ = send_socket_request(sock_path.path(), "daemon/shutdown", serde_json::json!({}));
         let _ = handle.join();
     }
 
@@ -1902,8 +2223,7 @@ mod tests {
 
         // Send 3 tool calls on a SINGLE connection (line-delimited protocol).
         let response_count = {
-            let stream = UnixStream::connect(sock_path.path())
-                .expect("must connect to daemon");
+            let stream = UnixStream::connect(sock_path.path()).expect("must connect to daemon");
             stream
                 .set_read_timeout(Some(std::time::Duration::from_secs(10)))
                 .ok();
@@ -1940,11 +2260,7 @@ mod tests {
         assert_eq!(response_count, 3, "must get 3 responses from daemon");
 
         // Shutdown.
-        let _ = send_socket_request(
-            sock_path.path(),
-            "daemon/shutdown",
-            serde_json::json!({}),
-        );
+        let _ = send_socket_request(sock_path.path(), "daemon/shutdown", serde_json::json!({}));
         let _ = handle.join();
 
         // Now open the store directly and count runtime entities.
@@ -1970,6 +2286,9 @@ mod tests {
         }
 
         let count = count_runtime_entities(live.store());
-        assert_eq!(count, 5, "5 tool calls must produce exactly 5 runtime entities");
+        assert_eq!(
+            count, 5,
+            "5 tool calls must produce exactly 5 runtime entities"
+        );
     }
 }

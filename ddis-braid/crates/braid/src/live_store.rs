@@ -139,6 +139,9 @@ impl LiveStore {
     /// `refresh_if_needed()` to actually apply them.
     ///
     /// Used by the daemon to record `:runtime/cache-hit` (INV-DAEMON-003).
+    ///
+    /// DEPRECATED: Dead code — txns/ mtime never changes once all 257 shard
+    /// directories exist. Superseded by DW0b flush guard (flock + hash check).
     pub fn has_new_external_txns(&self) -> bool {
         let current_mtime = std::fs::metadata(self.path.join("txns"))
             .and_then(|m| m.modified())
@@ -183,7 +186,10 @@ impl LiveStore {
     /// If `transact()` fails (e.g., schema violation), the transaction file
     /// is still written (durability preserved) but the in-memory store is
     /// NOT updated. The error is propagated to the caller.
-    pub fn write_tx(&mut self, tx: &TxFile) -> Result<braid_kernel::layout::TxFilePath, BraidError> {
+    pub fn write_tx(
+        &mut self,
+        tx: &TxFile,
+    ) -> Result<braid_kernel::layout::TxFilePath, BraidError> {
         // Step 1: Write EDN to disk (durable before we return).
         // The txn file is fsynced — crash safety guaranteed by C1.
         let file_path = self.layout.write_tx_no_invalidate(tx)?;
@@ -236,15 +242,9 @@ impl LiveStore {
         }
 
         // Slow path: mtime changed — list all hashes and diff.
-        let all_hashes: HashSet<String> = self
-            .layout
-            .list_tx_hashes()?
-            .into_iter()
-            .collect();
+        let all_hashes: HashSet<String> = self.layout.list_tx_hashes()?.into_iter().collect();
 
-        let new_hashes: Vec<&String> = all_hashes
-            .difference(&self.known_hashes)
-            .collect();
+        let new_hashes: Vec<&String> = all_hashes.difference(&self.known_hashes).collect();
 
         if new_hashes.is_empty() {
             // Mtime changed but no new files (e.g., metadata update).
@@ -272,24 +272,64 @@ impl LiveStore {
     /// by commands that need the cache fresh for other processes (e.g.,
     /// `braid status` returning to an agent), and by `Drop` on process exit.
     ///
-    /// SAFETY: If another process has written to store.bin since we opened
-    /// (detected by txns/ directory mtime change + new unknown hashes),
-    /// we skip the flush to avoid overwriting newer state with stale data.
-    /// The next open() will rebuild incrementally from the EDN txn files.
+    /// DW0b flush guard: Before writing, acquires an exclusive flock on
+    /// `.cache/store.bin.lock` and verifies that `known_hashes ⊇ disk_hashes`.
+    /// If the disk has transaction hashes we never loaded, our cache would be
+    /// a subset — skip the write. The next `open()` will detect the fingerprint
+    /// mismatch (DW0 fix) and rebuild correctly from the durable EDN txn files (C1).
     ///
     /// Cost: ~100ms for a 74K datom store (bincode serialization + fsync).
     pub fn flush(&mut self) -> Result<(), BraidError> {
-        if self.dirty {
-            // Defensive: if another LiveStore instance (from a command that opened
-            // its own) has written new transactions since we opened, our in-memory
-            // state may be stale. Don't overwrite their newer store.bin.
-            if self.has_new_external_txns() {
-                self.dirty = false; // Silently skip — txn EDN files are durable (C1).
-                return Ok(());
-            }
-            self.layout.write_slim_cache(&self.store)?;
-            self.dirty = false;
+        if !self.dirty {
+            return Ok(());
         }
+
+        // Acquire exclusive flock on cache write.
+        let cache_dir = self.path.join(".cache");
+        let _ = std::fs::create_dir_all(&cache_dir);
+        let lock_path = cache_dir.join("store.bin.lock");
+        let lock_file = std::fs::OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(false)
+            .open(&lock_path)?;
+
+        use std::os::unix::io::AsRawFd;
+        // SAFETY: lock_file is a valid open fd. flock is a standard POSIX call.
+        let lock_result = unsafe { libc::flock(lock_file.as_raw_fd(), libc::LOCK_EX) };
+        if lock_result != 0 {
+            // Cannot acquire lock — skip flush. Txn EDN files are durable (C1).
+            self.dirty = false;
+            return Ok(());
+        }
+
+        // Under lock: verify known_hashes ⊇ disk_hashes.
+        // If the disk has hashes we never loaded, our store is a subset and
+        // writing it would overwrite a more-complete cache with stale data.
+        let disk_hashes: HashSet<String> = self
+            .layout
+            .list_tx_hashes()
+            .unwrap_or_default()
+            .into_iter()
+            .collect();
+
+        let unknown_count = disk_hashes.difference(&self.known_hashes).count();
+
+        if unknown_count > 0 {
+            // We're missing data — our cache would be incomplete. Skip write.
+            // DW0 ensures the next reader detects the fingerprint mismatch.
+            self.dirty = false;
+            // flock released on lock_file drop
+            return Ok(());
+        }
+
+        // We have ALL data. Write cache with our known_hashes as fingerprint.
+        let mut sorted_hashes: Vec<String> = self.known_hashes.iter().cloned().collect();
+        sorted_hashes.sort();
+        self.layout.write_slim_cache(&self.store, &sorted_hashes)?;
+        self.dirty = false;
+
+        // flock released on lock_file drop
         Ok(())
     }
 }
@@ -325,7 +365,10 @@ mod tests {
         let braid_path = tmp.path().join(".braid");
 
         let live = LiveStore::create(&braid_path).unwrap();
-        assert!(!live.store().is_empty(), "created store should have genesis datoms");
+        assert!(
+            !live.store().is_empty(),
+            "created store should have genesis datoms"
+        );
         assert!(!live.is_dirty());
     }
 
@@ -545,9 +588,8 @@ mod tests {
             let agent = braid_kernel::datom::AgentId::from_name("test:rebuild");
             for i in 0..5 {
                 let tx_id = braid_kernel::datom::TxId::new(3000 + i, 0, agent);
-                let entity = braid_kernel::datom::EntityId::from_ident(
-                    &format!(":test/rebuild-{i}"),
-                );
+                let entity =
+                    braid_kernel::datom::EntityId::from_ident(&format!(":test/rebuild-{i}"));
                 let datom = braid_kernel::datom::Datom::new(
                     entity,
                     braid_kernel::datom::Attribute::from_keyword(":db/doc"),
@@ -590,9 +632,7 @@ mod tests {
         let mut prev = live.store().len();
         for i in 0..10 {
             let tx_id = braid_kernel::datom::TxId::new(4000 + i, 0, agent);
-            let entity = braid_kernel::datom::EntityId::from_ident(
-                &format!(":test/mono-{i}"),
-            );
+            let entity = braid_kernel::datom::EntityId::from_ident(&format!(":test/mono-{i}"));
             let datom = braid_kernel::datom::Datom::new(
                 entity,
                 braid_kernel::datom::Attribute::from_keyword(":db/doc"),
@@ -655,7 +695,12 @@ mod tests {
         if cache_dir.is_dir() {
             for entry in std::fs::read_dir(&cache_dir).unwrap() {
                 let entry = entry.unwrap();
-                if entry.path().extension().map(|x| x == "bin").unwrap_or(false) {
+                if entry
+                    .path()
+                    .extension()
+                    .map(|x| x == "bin")
+                    .unwrap_or(false)
+                {
                     std::fs::remove_file(entry.path()).unwrap();
                 }
             }
@@ -719,9 +764,8 @@ mod tests {
 
             for i in 0..3 {
                 let tx_id = braid_kernel::datom::TxId::new(7000 + i, 0, agent);
-                let entity = braid_kernel::datom::EntityId::from_ident(
-                    &format!(":test/compat-bin-{i}"),
-                );
+                let entity =
+                    braid_kernel::datom::EntityId::from_ident(&format!(":test/compat-bin-{i}"));
                 let datom = braid_kernel::datom::Datom::new(
                     entity,
                     braid_kernel::datom::Attribute::from_keyword(":db/doc"),
@@ -775,9 +819,8 @@ mod tests {
 
             for i in 0..5 {
                 let tx_id = braid_kernel::datom::TxId::new(8000 + i, 0, agent);
-                let entity = braid_kernel::datom::EntityId::from_ident(
-                    &format!(":test/compat-rt-{i}"),
-                );
+                let entity =
+                    braid_kernel::datom::EntityId::from_ident(&format!(":test/compat-rt-{i}"));
                 let datom = braid_kernel::datom::Datom::new(
                     entity,
                     braid_kernel::datom::Attribute::from_keyword(":db/doc"),
@@ -828,10 +871,7 @@ mod tests {
             "genesis_datom_stability: two fresh stores must have identical datom counts"
         );
         // Both must be non-empty (genesis schema produces datoms).
-        assert!(
-            !live1.store().is_empty(),
-            "genesis store must not be empty"
-        );
+        assert!(!live1.store().is_empty(), "genesis store must not be empty");
     }
 
     // ── Property-based tests (LIVESTORE-TEST-ALGEBRAIC) ─────────────

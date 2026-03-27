@@ -48,10 +48,7 @@ use std::path::Path;
 
 use serde_json::{json, Value as JsonValue};
 
-use braid_kernel::datom::{
-    AgentId, Attribute, EntityId, Op, ProvenanceType, TxId, Value as DatomValue,
-};
-use braid_kernel::harvest::{harvest_pipeline, SessionContext};
+use braid_kernel::datom::{AgentId, Attribute, EntityId, Op, ProvenanceType, Value as DatomValue};
 use braid_kernel::layout::TxFile;
 use braid_kernel::query::evaluator::{evaluate_with_frontier, QueryResult};
 use braid_kernel::query::FindSpec;
@@ -186,6 +183,18 @@ pub(crate) fn tool_definitions() -> JsonValue {
                             "type": "object",
                             "description": "Key discoveries to persist, e.g. {\"performance\": \"Lanczos converges in 50 steps\"}",
                             "additionalProperties": { "type": "string" }
+                        },
+                        "commit": {
+                            "type": "boolean",
+                            "description": "Persist approved candidates to the store"
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "description": "Bypass crystallization guard"
+                        },
+                        "no_reconcile": {
+                            "type": "boolean",
+                            "description": "Skip harvest reconciliation (auto-close)"
                         }
                     },
                     "required": ["task"],
@@ -267,6 +276,24 @@ pub(crate) fn tool_definitions() -> JsonValue {
                         "task_type": {
                             "type": "string",
                             "description": "task (default), bug, feature, epic, test, docs"
+                        },
+                        "description": {
+                            "type": "string",
+                            "description": "Detailed task description"
+                        },
+                        "traces_to": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "description": "Spec element references"
+                        },
+                        "labels": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "description": "Labels for categorization"
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "description": "Skip duplicate preview"
                         }
                     },
                     "required": ["title"],
@@ -293,6 +320,15 @@ pub(crate) fn tool_definitions() -> JsonValue {
                         "relates_to": {
                             "type": "string",
                             "description": "Optional cross-reference to a spec element (e.g., ':spec/inv-store-001')"
+                        },
+                        "tags": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "description": "Tags for filtering (repeatable)"
+                        },
+                        "no_auto_crystallize": {
+                            "type": "boolean",
+                            "description": "Suppress auto-crystallization of spec findings"
                         }
                     },
                     "required": ["text"],
@@ -527,59 +563,46 @@ fn tool_harvest(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, Bra
         .and_then(|v| v.as_str())
         .ok_or_else(|| BraidError::Parse("missing required parameter: task".into()))?;
 
-    let store = live.store();
-    let agent = AgentId::from_name("braid:mcp");
+    let commit = args
+        .get("commit")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let force = args.get("force").and_then(|v| v.as_bool()).unwrap_or(false);
+    let no_reconcile = args
+        .get("no_reconcile")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
 
-    let mut session_knowledge: Vec<(String, DatomValue)> = Vec::new();
+    // Convert knowledge object to the key-value pairs format expected by harvest::run
+    let mut knowledge_raw: Vec<String> = Vec::new();
     if let Some(knowledge) = args.get("knowledge").and_then(|v| v.as_object()) {
         for (k, v) in knowledge {
             if let Some(vs) = v.as_str() {
-                session_knowledge.push((k.clone(), DatomValue::String(vs.to_string())));
+                knowledge_raw.push(k.clone());
+                knowledge_raw.push(vs.to_string());
             }
         }
     }
 
-    let session_boundary = braid_kernel::guidance::last_harvest_wall_time(store);
+    let harvest_path = live.layout().root.clone();
+    let output = crate::commands::harvest::run(
+        harvest_path.as_path(),
+        "braid:mcp",
+        Some(task),
+        &knowledge_raw,
+        commit,
+        force,
+        no_reconcile,
+    )?;
 
-    let context = SessionContext {
-        agent,
-        agent_name: "braid:mcp".into(),
-        session_start_tx: TxId::new(session_boundary, 0, agent),
-        task_description: task.to_string(),
-        session_knowledge,
-    };
-
-    let result = harvest_pipeline(store, &context);
-
-    let mut out = String::new();
-    out.push_str(&format!(
-        "harvest: {} candidate(s)\n",
-        result.candidates.len()
-    ));
-    out.push_str(&format!("drift_score: {:.2}\n", result.drift_score));
-    out.push_str(&format!(
-        "quality: {} total ({} high, {} medium, {} low)\n",
-        result.quality.count,
-        result.quality.high_confidence,
-        result.quality.medium_confidence,
-        result.quality.low_confidence,
-    ));
-
-    for (i, c) in result.candidates.iter().enumerate() {
-        out.push_str(&format!(
-            "  [{}] {:?} -- {:?} (confidence: {:.2}): {}\n",
-            i + 1,
-            c.category,
-            c.status,
-            c.confidence,
-            c.rationale,
-        ));
-    }
+    // Render agent-mode output as MCP text content
+    use crate::output::OutputMode;
+    let text = output.render(OutputMode::Agent);
 
     Ok(json!({
         "content": [{
             "type": "text",
-            "text": out,
+            "text": text,
         }],
     }))
 }
@@ -680,18 +703,33 @@ fn tool_observe(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, Bra
     let rationale = args.get("rationale").and_then(|v| v.as_str());
     let alternatives = args.get("alternatives").and_then(|v| v.as_str());
 
+    let tags: Vec<String> = args
+        .get("tags")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|item| item.as_str().map(String::from))
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let no_auto_crystallize = args
+        .get("no_auto_crystallize")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+
     let observe_path = live.layout().root.clone();
     let result = crate::commands::observe::run(crate::commands::observe::ObserveArgs {
         path: &observe_path,
         text,
         confidence,
-        tags: &[],
+        tags: &tags,
         category,
         agent: "braid:mcp",
         relates_to,
         rationale,
         alternatives,
-        no_auto_crystallize: false,
+        no_auto_crystallize,
     })?;
 
     Ok(json!({
@@ -709,8 +747,8 @@ fn tool_observe(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, Bra
 /// verbose methodology view — use `braid_status` for quick orientation.
 fn tool_guidance(live: &mut LiveStore) -> Result<JsonValue, BraidError> {
     use braid_kernel::guidance::{
-        compute_methodology_score, compute_routing_with_calibration,
-        derive_actions_with_routing, format_actions, telemetry_from_store, Trend,
+        compute_methodology_score, compute_routing_with_calibration, derive_actions_with_routing,
+        format_actions, telemetry_from_store, Trend,
     };
 
     let store = live.store();
@@ -899,41 +937,49 @@ fn tool_task_create(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue,
         .and_then(|v| v.as_str())
         .unwrap_or("task");
 
-    let task_type = match task_type_str {
-        "bug" => braid_kernel::TaskType::Bug,
-        "feature" => braid_kernel::TaskType::Feature,
-        "epic" => braid_kernel::TaskType::Epic,
-        "docs" => braid_kernel::TaskType::Docs,
-        "question" => braid_kernel::TaskType::Question,
-        _ => braid_kernel::TaskType::Task,
-    };
+    let description = args.get("description").and_then(|v| v.as_str());
 
-    let agent = AgentId::from_name("braid:mcp");
-    let tx_id = crate::commands::write::next_tx_id(live.store(), agent);
+    let traces_to: Vec<String> = args
+        .get("traces_to")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|item| item.as_str().map(String::from))
+                .collect()
+        })
+        .unwrap_or_default();
 
-    let params = braid_kernel::CreateTaskParams {
+    let labels: Vec<String> = args
+        .get("labels")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|item| item.as_str().map(String::from))
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let force = args.get("force").and_then(|v| v.as_bool()).unwrap_or(false);
+
+    let create_path = live.layout().root.clone();
+    let output = crate::commands::task::create(crate::commands::task::CreateArgs {
+        path: create_path.as_path(),
         title,
-        description: None,
+        description,
         priority,
-        task_type,
-        tx: tx_id,
-        traces_to: &[],
-        labels: &[],
-    };
-    let (_entity, datoms) = braid_kernel::create_task_datoms(params);
-    let task_id = braid_kernel::generate_task_id(title);
-    let tx = TxFile {
-        tx_id,
-        agent,
-        provenance: ProvenanceType::Observed,
-        rationale: format!("MCP: create task \"{title}\""),
-        causal_predecessors: vec![],
-        datoms,
-    };
-    live.write_tx(&tx)?;
+        task_type: task_type_str,
+        agent: "braid:mcp",
+        traces_to: &traces_to,
+        labels: &labels,
+        force,
+    })?;
+
+    // Render agent-mode output as MCP text content
+    use crate::output::OutputMode;
+    let text = output.render(OutputMode::Agent);
 
     Ok(json!({
-        "content": [{"type": "text", "text": format!("created: {task_id} \"{title}\" (P{priority} {task_type_str})")}],
+        "content": [{"type": "text", "text": text}],
     }))
 }
 
@@ -1085,7 +1131,11 @@ pub(crate) fn write_response(writer: &mut impl Write, response: &JsonValue) {
 /// INV-INTERFACE-008: The instructions field provides basin activation —
 /// a ~100 token orientation that anchors the agent's reasoning trajectory
 /// before any tool calls. Uses live store metrics when available.
-pub(crate) fn handle_initialize(id: &JsonValue, _params: &JsonValue, live: &mut LiveStore) -> JsonValue {
+pub(crate) fn handle_initialize(
+    id: &JsonValue,
+    _params: &JsonValue,
+    live: &mut LiveStore,
+) -> JsonValue {
     // Build dynamic instructions from store state.
     let instructions = {
         let store = live.store();
@@ -1131,7 +1181,11 @@ pub(crate) fn handle_tools_list(id: &JsonValue) -> JsonValue {
 /// INV-GUIDANCE-001: Every tool response includes an M(t) guidance footer.
 /// This is the MCP equivalent of the CLI's `try_build_footer` — ensuring
 /// methodology adherence signals are continuous, not optional.
-pub(crate) fn handle_tools_call(id: &JsonValue, params: &JsonValue, live: &mut LiveStore) -> JsonValue {
+pub(crate) fn handle_tools_call(
+    id: &JsonValue,
+    params: &JsonValue,
+    live: &mut LiveStore,
+) -> JsonValue {
     let name = match params.get("name").and_then(|v| v.as_str()) {
         Some(n) => n,
         None => return jsonrpc_error(id, INVALID_PARAMS, "missing 'name' in tools/call params"),

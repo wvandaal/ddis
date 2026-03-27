@@ -2,13 +2,13 @@ use clap::Parser;
 
 pub mod bootstrap;
 mod commands;
+pub mod daemon;
 mod error;
 pub mod git;
 pub mod inject;
 pub mod layout;
 pub mod live_store;
 pub mod mcp;
-pub mod daemon;
 pub mod output;
 
 /// Braid — append-only datom store for human/AI coherence verification.
@@ -102,21 +102,18 @@ fn main() {
     let budget_exempt = is_budget_exempt(&cmd);
 
     // Resolve store path (needed by both daemon routing and direct mode).
-    let resolved_path = commands::store_path(&cmd)
-        .map(|p| commands::resolve_store_path(p.to_path_buf()));
+    let resolved_path =
+        commands::store_path(&cmd).map(|p| commands::resolve_store_path(p.to_path_buf()));
 
     // INV-DAEMON-007: Try daemon routing FIRST, BEFORE opening LiveStore.
     // If the daemon is running, the CLI sends the request over the Unix socket
     // and the daemon's warm in-memory store handles it — zero deserialization.
     // Previously this was AFTER LiveStore::open(), defeating the purpose:
     // the CLI paid the full ~3s store load before even checking the daemon.
+    // DW2: marshal_command maps all 11 routable commands to MCP tool names + JSON args.
     if cmd_name != "init" && cmd_name != "daemon" {
         if let Some(ref store_path) = resolved_path {
-            if let Some(text) = daemon::try_route_through_daemon(
-                store_path,
-                cmd_name,
-                &serde_json::json!({}),
-            ) {
+            if let Some(text) = daemon::try_route_through_daemon(store_path, &cmd) {
                 println!("{text}");
                 return;
             }
@@ -138,13 +135,11 @@ fn main() {
     if cmd_name != "init" && cmd_name != "session" && uses_pre_opened {
         if let Some(ref mut live) = live {
             if braid_kernel::guidance::detect_session_start(live.store()) {
-                let agent = braid_kernel::datom::AgentId::from_name("braid:session");
+                let resolved = commands::resolve_agent_identity("braid:user");
+                let agent = braid_kernel::datom::AgentId::from_name(&resolved);
                 let tx_id = commands::write::next_tx_id(live.store(), agent);
-                let datoms = braid_kernel::guidance::create_session_start_datoms(
-                    live.store(),
-                    agent,
-                    tx_id,
-                );
+                let datoms =
+                    braid_kernel::guidance::create_session_start_datoms(live.store(), agent, tx_id);
                 let tx_file = braid_kernel::layout::TxFile {
                     tx_id,
                     agent,
@@ -184,10 +179,8 @@ fn main() {
                 && mode != output::OutputMode::Tsv;
             // AR-2: Only knowledge-producing commands produce reconciliation traces.
             // Read commands (status, query, task list) do NOT write traces.
-            let is_knowledge_producing = matches!(
-                cmd_name,
-                "observe" | "transact" | "write" | "task" | "spec"
-            );
+            let is_knowledge_producing =
+                matches!(cmd_name, "observe" | "transact" | "write" | "task" | "spec");
 
             // L1-SINGLE: For commands that need post-command hooks, refresh the store
             // to pick up any txns written by the command. For read-only commands, skip
@@ -204,9 +197,7 @@ fn main() {
             }
 
             // RFL-2: Record projected action as datom for R(t) feedback loop.
-            if let (Some(acp), Some(ref mut live)) =
-                (cmd_output.json.get("_acp"), live.as_mut())
-            {
+            if let (Some(acp), Some(ref mut live)) = (cmd_output.json.get("_acp"), live.as_mut()) {
                 if let Some(action) = acp.get("action") {
                     let cmd_str = action.get("command").and_then(|v| v.as_str()).unwrap_or("");
                     let impact = action.get("impact").and_then(|v| v.as_f64()).unwrap_or(0.0);
@@ -279,9 +270,7 @@ fn main() {
                             braid_kernel::guidance::spec_graph_neighbors(live.store(), &spec_refs);
                         let namespace = spec_refs
                             .first()
-                            .map(|r| {
-                                braid_kernel::guidance::extract_spec_namespace(r).to_string()
-                            })
+                            .map(|r| braid_kernel::guidance::extract_spec_namespace(r).to_string())
                             .unwrap_or_default();
 
                         let agent = AgentId::from_name("braid:recon");
@@ -289,10 +278,8 @@ fn main() {
                         let wall_secs = tx.wall_time();
                         let trace_ident = format!(
                             ":recon/trace-{}",
-                            &blake3::hash(
-                                format!("{}-{}", cmd_name, wall_secs).as_bytes()
-                            )
-                            .to_hex()[..16]
+                            &blake3::hash(format!("{}-{}", cmd_name, wall_secs).as_bytes())
+                                .to_hex()[..16]
                         );
                         let trace_entity = EntityId::from_ident(&trace_ident);
 
@@ -335,7 +322,8 @@ fn main() {
 
                         for (neighbor_entity, _score) in &neighbors {
                             let ident_attr = Attribute::from_keyword(":db/ident");
-                            let neighbor_ident = live.store()
+                            let neighbor_ident = live
+                                .store()
                                 .entity_datoms(*neighbor_entity)
                                 .iter()
                                 .find(|d| d.attribute == ident_attr && d.op == Op::Assert)

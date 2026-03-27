@@ -7,10 +7,13 @@ use clap::Subcommand;
 
 pub(crate) mod analyze;
 mod bilateral;
+mod challenge;
 mod config;
-mod harvest;
+mod extract;
+pub(crate) mod harvest;
 mod init;
 mod log;
+pub(crate) mod model;
 pub(crate) mod observe;
 pub mod orientation;
 pub(crate) mod query;
@@ -20,14 +23,11 @@ pub(crate) mod session;
 pub(crate) mod shell;
 mod spec;
 pub(crate) mod status;
-mod task;
+pub(crate) mod task;
 mod topology;
 pub(crate) mod trace;
 mod verify;
 mod witness;
-mod challenge;
-mod extract;
-pub(crate) mod model;
 mod wrap;
 pub(crate) mod write;
 
@@ -80,6 +80,25 @@ impl BudgetCtx {
     }
 }
 
+/// Resolve agent identity using three-tier cascade (INV-REFLEXIVE-007).
+///
+/// 1. Explicit `--agent` flag (if non-default "braid:user")
+/// 2. `BRAID_AGENT` environment variable
+/// 3. PID-derived fallback: `braid:pid-{PID}`
+///
+/// Fixed-point property: `resolve_agent_identity(resolve_agent_identity(x)) == resolve_agent_identity(x)`
+pub fn resolve_agent_identity(explicit: &str) -> String {
+    if explicit != "braid:user" {
+        return explicit.to_string();
+    }
+    if let Ok(val) = std::env::var("BRAID_AGENT") {
+        if !val.is_empty() {
+            return val;
+        }
+    }
+    format!("braid:pid-{}", std::process::id())
+}
+
 /// All subcommands available in the `braid` CLI.
 ///
 /// Commands are organized by workflow phase (ADR-INTERFACE-008: agent cycle):
@@ -122,24 +141,30 @@ After init:
     },
 
     // ── CAPTURE ────────────────────────────────────────────────────────
-    /// Capture knowledge as content-addressed entity.
+    /// Capture or query observations. Mirrors `braid task` API grammar.
     ///
-    /// `braid observe "CRDT merge commutes" -c 0.9` → entity :exploration/crdt-merge-commutes.
-    /// Creates :exploration/* datoms. Use for knowledge capture during work.
-    #[command(after_long_help = "\
+    /// Create: `braid observe "CRDT merge commutes" -c 0.9`
+    /// Query:  `braid observe list`, `braid observe search PATTERN`,
+    ///         `braid observe show ENTITY`, `braid observe recent N`
+    ///
+    /// INV-REFLEXIVE-006: Every query subcommand ends with a steering question.
+    #[command(
+        args_conflicts_with_subcommands = true,
+        subcommand_negates_reqs = true,
+        after_long_help = "\
 Examples:
   braid observe \"merge is a bottleneck\" --confidence 0.8 --tag bottleneck
-  braid observe \"CRDT merge is commutative\" --category theorem --relates-to :spec/inv-store-004
-  braid observe \"query returns wrong results\" --confidence 0.3 --category conjecture
+  braid observe list                                  # grouped by concept
+  braid observe search \"audit\"                        # ranked results
+  braid observe show :observation/merge-is-bottleneck  # full detail
+  braid observe recent 5                              # most recent
 
 Categories: observation, conjecture, theorem, definition, algorithm, design-decision, open-question
-Workflow: observe \u{2192} status (check) \u{2192} observe more \u{2192} harvest (commit)
-
-Use `braid observe` for knowledge capture (decisions, questions, findings).
-Use `braid write assert` for raw datom mutations (schema, spec links).")]
+Workflow: observe \u{2192} status (check) \u{2192} observe more \u{2192} harvest (commit)"
+    )]
     Observe {
-        /// The observation text.
-        text: String,
+        /// The observation text (creation mode when no subcommand given).
+        text: Option<String>,
 
         /// Epistemic confidence (0.0=uncertain, 1.0=certain).
         #[arg(long, short = 'c', default_value = "0.7")]
@@ -176,6 +201,10 @@ Use `braid write assert` for raw datom mutations (schema, spec links).")]
         /// Suppress auto-crystallization of spec findings (COTX-2).
         #[arg(long)]
         no_auto_crystallize: bool,
+
+        /// Observe subcommand (list, search, show, recent, create).
+        #[command(subcommand)]
+        action: Option<ObserveAction>,
     },
 
     /// Write datoms: assert, retract, promote, or export.
@@ -781,9 +810,12 @@ When running, CLI commands auto-route through the daemon socket.")]
     /// Manage embedding model files.
     ///
     /// `braid model status` → show which embedder is active.
-    #[command(subcommand, after_long_help = "\
+    #[command(
+        subcommand,
+        after_long_help = "\
 Examples:
-  braid model status                # show model status and embedder type")]
+  braid model status                # show model status and embedder type"
+    )]
     Model(ModelAction),
 
     // ── SHORTCUTS (WP6) ──────────────────────────────────────────────
@@ -1260,6 +1292,109 @@ pub enum SpecAction {
         /// Store directory path.
         #[arg(long, short = 'p', default_value = ".braid")]
         path: PathBuf,
+    },
+}
+
+/// Observe subcommands — query and create observations (INV-REFLEXIVE-006).
+///
+/// Every query subcommand ends with a computed steering question.
+/// `braid observe list|search|show|recent` mirrors `braid task list|search|show`.
+#[derive(Subcommand)]
+pub enum ObserveAction {
+    /// List observations grouped by concept, with steering question.
+    List {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+
+    /// Search observations by pattern (ranked composite score), with steering question.
+    Search {
+        /// Search pattern (case-insensitive substring match).
+        pattern: String,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+
+    /// Show full detail for an observation entity with links, with steering question.
+    Show {
+        /// Entity ident (e.g., :observation/merge-is-bottleneck).
+        entity: String,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+
+    /// Show most recent observations with concept tags, with steering question.
+    Recent {
+        /// Number of recent observations to show.
+        #[arg(default_value = "10")]
+        count: usize,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+
+    /// Create an observation (explicit form — use when text matches a subcommand name).
+    Create {
+        /// The observation text.
+        text: String,
+
+        /// Epistemic confidence (0.0=uncertain, 1.0=certain).
+        #[arg(long, short = 'c', default_value = "0.7")]
+        confidence: f64,
+
+        /// Tags for filtering (repeatable).
+        #[arg(long, short = 't', action = clap::ArgAction::Append)]
+        tag: Vec<String>,
+
+        /// Category.
+        #[arg(long)]
+        category: Option<String>,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+
+        /// Cross-reference to a spec element.
+        #[arg(long)]
+        relates_to: Option<String>,
+
+        /// Rationale for a design decision.
+        #[arg(long)]
+        rationale: Option<String>,
+
+        /// Alternatives considered.
+        #[arg(long)]
+        alternatives: Option<String>,
+
+        /// Suppress auto-crystallization (COTX-2).
+        #[arg(long)]
+        no_auto_crystallize: bool,
     },
 }
 
@@ -1772,7 +1907,6 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
         | Command::Seed { path, .. }
         | Command::Merge { path, .. }
         | Command::Log { path, .. }
-        | Command::Observe { path, .. }
         | Command::Shell { path, .. }
         | Command::Wrap { path, .. }
         | Command::Config { path, .. }
@@ -1783,6 +1917,18 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
         | Command::Verify { path, .. }
         | Command::Transact { path, .. }
         | Command::Challenge { path, .. } => Some(path),
+        Command::Observe {
+            ref path,
+            ref action,
+            ..
+        } => match action {
+            None => Some(path),
+            Some(ObserveAction::List { path, .. })
+            | Some(ObserveAction::Search { path, .. })
+            | Some(ObserveAction::Show { path, .. })
+            | Some(ObserveAction::Recent { path, .. })
+            | Some(ObserveAction::Create { path, .. }) => Some(path),
+        },
         Command::Session { action } => match action {
             SessionAction::Start { path, .. }
             | SessionAction::End { path, .. }
@@ -2183,7 +2329,6 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
         | Command::Seed { path, .. }
         | Command::Merge { path, .. }
         | Command::Log { path, .. }
-        | Command::Observe { path, .. }
         | Command::Shell { path, .. }
         | Command::Wrap { path, .. }
         | Command::Config { path, .. }
@@ -2195,6 +2340,24 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
         | Command::Transact { path, .. }
         | Command::Challenge { path, .. } => {
             *path = resolve_store_path(path.clone());
+        }
+        Command::Observe {
+            ref mut path,
+            ref mut action,
+            ..
+        } => {
+            *path = resolve_store_path(path.clone());
+            if let Some(ref mut action) = action {
+                match action {
+                    ObserveAction::List { path, .. }
+                    | ObserveAction::Search { path, .. }
+                    | ObserveAction::Show { path, .. }
+                    | ObserveAction::Recent { path, .. }
+                    | ObserveAction::Create { path, .. } => {
+                        *path = resolve_store_path(path.clone());
+                    }
+                }
+            }
         }
         Command::Session { action } => match action {
             SessionAction::Start { path, .. }
@@ -2324,7 +2487,8 @@ pub fn run(
             // INV-PERF-001: --deep must complete in <1s.
             // L1-SINGLE: Status receives the pre-opened LiveStore (zero deserialization).
             let cmd_output = status::run(
-                &path, &agent, json, verbose, deep, spectral, full, verify, commit, pre_opened, quiet,
+                &path, &agent, json, verbose, deep, spectral, full, verify, commit, pre_opened,
+                quiet,
             )?;
             return Ok(maybe_inject_footer(
                 cmd_output,
@@ -2448,7 +2612,8 @@ pub fn run(
                     "write export",
                 ),
             };
-            let projection = braid_kernel::budget::ActionProjection::from_command_output(&text, subcmd);
+            let projection =
+                braid_kernel::budget::ActionProjection::from_command_output(&text, subcmd);
             let mut cmd_output = CommandOutput::from_human(text);
             let acp = projection.to_json();
             if let serde_json::Value::Object(acp_map) = acp {
@@ -2641,28 +2806,157 @@ pub fn run(
             rationale,
             alternatives,
             no_auto_crystallize,
+            action,
         } => {
-            let observe_text = text.clone(); // PSR: capture before move
-            let cmd_output = observe::run(observe::ObserveArgs {
-                path: &path,
-                text: &text,
-                confidence,
-                tags: &tag,
-                category: category.as_deref(),
-                agent: &agent,
-                relates_to: relates_to.as_deref(),
-                rationale: rationale.as_deref(),
-                alternatives: alternatives.as_deref(),
-                no_auto_crystallize,
-            })?;
-            return Ok(maybe_inject_footer(
-                cmd_output,
-                skip_footer,
-                path_for_footer.as_deref(),
-                budget_ctx,
-                footer_cmd_name,
-                Some(&observe_text),
-            ));
+            // Dispatch helper for creation mode (shared by implicit and explicit create).
+            let do_create =
+                |p: &Path,
+                 t: &str,
+                 conf: f64,
+                 tags: &[String],
+                 cat: Option<&str>,
+                 ag: &str,
+                 rel: Option<&str>,
+                 rat: Option<&str>,
+                 alt: Option<&str>,
+                 no_ac: bool|
+                 -> Result<crate::output::CommandOutput, crate::error::BraidError> {
+                    let agent_r = resolve_agent_identity(ag);
+                    observe::run(observe::ObserveArgs {
+                        path: p,
+                        text: t,
+                        confidence: conf,
+                        tags,
+                        category: cat,
+                        agent: &agent_r,
+                        relates_to: rel,
+                        rationale: rat,
+                        alternatives: alt,
+                        no_auto_crystallize: no_ac,
+                    })
+                };
+
+            match action {
+                // No subcommand: creation mode (backward compat: `braid observe "text"`)
+                None => {
+                    let text = text.ok_or_else(|| crate::error::BraidError::Validation(
+                        "observation text required. Usage: braid observe \"text\" or braid observe list|search|show|recent".to_string()
+                    ))?;
+                    let observe_text = text.clone();
+                    let cmd_output = do_create(
+                        &path,
+                        &text,
+                        confidence,
+                        &tag,
+                        category.as_deref(),
+                        &agent,
+                        relates_to.as_deref(),
+                        rationale.as_deref(),
+                        alternatives.as_deref(),
+                        no_auto_crystallize,
+                    )?;
+                    return Ok(maybe_inject_footer(
+                        cmd_output,
+                        skip_footer,
+                        path_for_footer.as_deref(),
+                        budget_ctx,
+                        footer_cmd_name,
+                        Some(&observe_text),
+                    ));
+                }
+                // Explicit create subcommand
+                Some(ObserveAction::Create {
+                    text,
+                    confidence,
+                    tag,
+                    category,
+                    path,
+                    agent,
+                    relates_to,
+                    rationale,
+                    alternatives,
+                    no_auto_crystallize,
+                }) => {
+                    let observe_text = text.clone();
+                    let cmd_output = do_create(
+                        &path,
+                        &text,
+                        confidence,
+                        &tag,
+                        category.as_deref(),
+                        &agent,
+                        relates_to.as_deref(),
+                        rationale.as_deref(),
+                        alternatives.as_deref(),
+                        no_auto_crystallize,
+                    )?;
+                    return Ok(maybe_inject_footer(
+                        cmd_output,
+                        skip_footer,
+                        path_for_footer.as_deref(),
+                        budget_ctx,
+                        footer_cmd_name,
+                        Some(&observe_text),
+                    ));
+                }
+                // Query subcommands (INV-REFLEXIVE-006)
+                Some(ObserveAction::List { path, agent }) => {
+                    let agent = resolve_agent_identity(&agent);
+                    let cmd_output = observe::run_list(&path, &agent)?;
+                    return Ok(maybe_inject_footer(
+                        cmd_output,
+                        skip_footer,
+                        path_for_footer.as_deref(),
+                        budget_ctx,
+                        footer_cmd_name,
+                        None,
+                    ));
+                }
+                Some(ObserveAction::Search {
+                    pattern,
+                    path,
+                    agent,
+                }) => {
+                    let agent = resolve_agent_identity(&agent);
+                    let cmd_output = observe::run_search(&path, &pattern, &agent)?;
+                    return Ok(maybe_inject_footer(
+                        cmd_output,
+                        skip_footer,
+                        path_for_footer.as_deref(),
+                        budget_ctx,
+                        footer_cmd_name,
+                        None,
+                    ));
+                }
+                Some(ObserveAction::Show {
+                    entity,
+                    path,
+                    agent,
+                }) => {
+                    let agent = resolve_agent_identity(&agent);
+                    let cmd_output = observe::run_show(&path, &entity, &agent)?;
+                    return Ok(maybe_inject_footer(
+                        cmd_output,
+                        skip_footer,
+                        path_for_footer.as_deref(),
+                        budget_ctx,
+                        footer_cmd_name,
+                        None,
+                    ));
+                }
+                Some(ObserveAction::Recent { count, path, agent }) => {
+                    let agent = resolve_agent_identity(&agent);
+                    let cmd_output = observe::run_recent(&path, count, &agent)?;
+                    return Ok(maybe_inject_footer(
+                        cmd_output,
+                        skip_footer,
+                        path_for_footer.as_deref(),
+                        budget_ctx,
+                        footer_cmd_name,
+                        None,
+                    ));
+                }
+            }
         }
         Command::Session { action } => {
             let cmd_output = match action {
@@ -2737,22 +3031,20 @@ pub fn run(
                     // TAP-2: When title is "-", read structured document from stdin
                     if title == "-" {
                         let mut input = String::new();
-                        std::io::Read::read_to_string(&mut std::io::stdin(), &mut input)
-                            .map_err(|e| {
+                        std::io::Read::read_to_string(&mut std::io::stdin(), &mut input).map_err(
+                            |e| {
                                 crate::error::BraidError::Validation(format!(
                                     "failed to read stdin: {e}"
                                 ))
-                            })?;
+                            },
+                        )?;
                         let parsed = task::parse_stdin_document(&input)?;
                         task::create(task::CreateArgs {
                             path: &path,
                             title: &parsed.title,
                             description: parsed.body.as_deref(),
                             priority: parsed.priority.unwrap_or(priority),
-                            task_type: parsed
-                                .task_type
-                                .as_deref()
-                                .unwrap_or(&task_type),
+                            task_type: parsed.task_type.as_deref().unwrap_or(&task_type),
                             agent: &agent,
                             traces_to: &parsed
                                 .traces_to
@@ -2882,31 +3174,24 @@ pub fn run(
                 Ok(String::new())
             }
         },
-        Command::Model(action) => {
-            match action {
-                ModelAction::Status { path } => {
-                    let output = model::format_status(&path);
-                    return Ok(crate::output::CommandOutput::from_human(output));
-                }
+        Command::Model(action) => match action {
+            ModelAction::Status { path } => {
+                let output = model::format_status(&path);
+                return Ok(crate::output::CommandOutput::from_human(output));
             }
         },
         Command::Daemon { action } => {
             use crate::daemon;
             match action {
                 DaemonAction::Start { path } => {
-                    daemon::serve_daemon(&path).map_err(|e| {
-                        crate::error::BraidError::Validation(e.to_string())
-                    })?;
+                    daemon::serve_daemon(&path)
+                        .map_err(|e| crate::error::BraidError::Validation(e.to_string()))?;
                     Ok(String::new())
                 }
-                DaemonAction::Stop { path } => {
-                    daemon_stop(&path)
-                }
-                DaemonAction::Status { path } => {
-                    daemon_status(&path)
-                }
+                DaemonAction::Stop { path } => daemon_stop(&path),
+                DaemonAction::Status { path } => daemon_status(&path),
             }
-        },
+        }
 
         // ── Shortcuts (WP6: delegates to existing handlers) ──────────
         Command::Next { path, skip } => {
@@ -3167,7 +3452,9 @@ pub fn run(
             falsify,
             criteria,
         } => {
-            let cmd_output = challenge::run(&path, &entity, survive, falsify, register, &criteria, &agent)?;
+            let cmd_output = challenge::run(
+                &path, &entity, survive, falsify, register, &criteria, &agent,
+            )?;
             return Ok(maybe_inject_footer(
                 cmd_output,
                 skip_footer,
@@ -3264,16 +3551,12 @@ fn daemon_stop(braid_dir: &Path) -> Result<String, crate::error::BraidError> {
 
     // Check if daemon is running.
     match crate::daemon::check_lock(&lock_path) {
-        crate::daemon::LockStatus::Absent => {
-            return Ok("daemon not running\n".to_string())
-        }
+        crate::daemon::LockStatus::Absent => return Ok("daemon not running\n".to_string()),
         crate::daemon::LockStatus::Stale(pid) => {
             // Clean up stale lock.
             crate::daemon::release_lock(&lock_path);
             let _ = std::fs::remove_file(sock_path.path());
-            return Ok(format!(
-                "stale lock removed (pid {pid} was dead)\n"
-            ))
+            return Ok(format!("stale lock removed (pid {pid} was dead)\n"));
         }
         crate::daemon::LockStatus::Live(_) => {} // Proceed with stop.
     }
@@ -3293,9 +3576,9 @@ fn daemon_stop(braid_dir: &Path) -> Result<String, crate::error::BraidError> {
         "params": {},
     });
     let bytes = serde_json::to_vec(&request).unwrap();
-    writer.write_all(&bytes).map_err(|e| {
-        crate::error::BraidError::Validation(format!("cannot send shutdown: {e}"))
-    })?;
+    writer
+        .write_all(&bytes)
+        .map_err(|e| crate::error::BraidError::Validation(format!("cannot send shutdown: {e}")))?;
     writer.write_all(b"\n").ok();
     writer.flush().ok();
 
@@ -3553,7 +3836,7 @@ mod tests {
         assert!(!is_generative_output(&query));
 
         let observe = Command::Observe {
-            text: "test".into(),
+            text: Some("test".into()),
             confidence: 0.7,
             tag: vec![],
             category: None,
@@ -3563,6 +3846,7 @@ mod tests {
             rationale: None,
             alternatives: None,
             no_auto_crystallize: false,
+            action: None,
         };
         assert!(!is_generative_output(&observe));
     }
@@ -3735,7 +4019,7 @@ mod tests {
         // Commands that MUST get footers:
         let observe = Command::Observe {
             path: PathBuf::from(".braid"),
-            text: "test".into(),
+            text: Some("test".into()),
             confidence: 0.7,
             tag: vec![],
             category: None,
@@ -3744,6 +4028,7 @@ mod tests {
             rationale: None,
             alternatives: None,
             no_auto_crystallize: false,
+            action: None,
         };
         assert!(!is_json_output(&observe, h), "Observe must get footer");
         assert!(!is_generative_output(&observe), "Observe must get footer");
@@ -3887,7 +4172,7 @@ mod tests {
             },
             Command::Observe {
                 path: PathBuf::from(".braid"),
-                text: "test".into(),
+                text: Some("test".into()),
                 confidence: 0.7,
                 tag: vec![],
                 category: None,
@@ -3896,6 +4181,7 @@ mod tests {
                 rationale: None,
                 alternatives: None,
                 no_auto_crystallize: false,
+                action: None,
             },
             Command::Schema {
                 path: PathBuf::from(".braid"),
