@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774576790/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-03f867f7"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/close-reason :v "Superseded by C9-REDESIGN: regex dependency extraction revised to use entity_auto_link pattern with observation-to-observation linking." :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/closed-at :v 1774576789 :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "c68d3d4e8d1a3da718b21748f223dc6facf3244a9a5844d5352f922ba6205e17" :a :task/status :v :task.status/closed :op :assert}
+ ]}

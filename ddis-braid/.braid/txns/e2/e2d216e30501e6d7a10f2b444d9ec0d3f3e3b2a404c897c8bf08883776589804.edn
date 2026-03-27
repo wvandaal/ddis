@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774576786/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-6090a2ed"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/close-reason :v "Superseded by C9-REDESIGN: corroboration at concept level blocked by HashEmbedder collapse. Replaced by agent provenance primitive at observation level." :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/closed-at :v 1774576785 :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "939915f71a1a111d004c6769ca3367e0b9a8cf0a44ee4b5427ba4adc1d0d58b4" :a :task/status :v :task.status/closed :op :assert}
+ ]}

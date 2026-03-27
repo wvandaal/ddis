@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774576794/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c910d6b2"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1f505228f522d5152db1ce1c57e9c31e3fdf2a5571b0f359af22a1ac5152e795" :a :task/close-reason :v "Superseded by C9-REDESIGN: monolithic seed integration replaced by composable primitives that seed optionally uses." :op :assert}
+   {:e #blake3 "1f505228f522d5152db1ce1c57e9c31e3fdf2a5571b0f359af22a1ac5152e795" :a :task/closed-at :v 1774576793 :op :assert}
+   {:e #blake3 "1f505228f522d5152db1ce1c57e9c31e3fdf2a5571b0f359af22a1ac5152e795" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "1f505228f522d5152db1ce1c57e9c31e3fdf2a5571b0f359af22a1ac5152e795" :a :task/status :v :task.status/closed :op :assert}
+ ]}
