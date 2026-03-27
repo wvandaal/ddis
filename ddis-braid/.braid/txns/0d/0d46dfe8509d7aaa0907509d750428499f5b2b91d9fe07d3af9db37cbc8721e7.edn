@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774636545/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "WRITER-4 (direct mode fix) complements DW4 (daemon mode fix)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4484ba56edf858cee64d16582ef3828b70fffb5de151487175e18444890e699d" :a :task/parent :v :task/t-21092c71 :op :assert}
+ ]}

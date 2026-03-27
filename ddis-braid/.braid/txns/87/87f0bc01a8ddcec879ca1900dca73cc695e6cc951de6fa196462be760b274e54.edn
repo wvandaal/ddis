@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774647917/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-07acd5e8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "03d77d1a8fea8b9f0eaa83ef04afaf0ab2680a53a9a7a1dcf46e4a52e96598b0" :a :task/close-reason :v "Superseded by Strategy 4: TF-IDF partition + dual trigger (variance OR size>50) + learned thresholds via OBSERVER-4" :op :assert}
+   {:e #blake3 "03d77d1a8fea8b9f0eaa83ef04afaf0ab2680a53a9a7a1dcf46e4a52e96598b0" :a :task/closed-at :v 1774647916 :op :assert}
+   {:e #blake3 "03d77d1a8fea8b9f0eaa83ef04afaf0ab2680a53a9a7a1dcf46e4a52e96598b0" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "03d77d1a8fea8b9f0eaa83ef04afaf0ab2680a53a9a7a1dcf46e4a52e96598b0" :a :task/status :v :task.status/closed :op :assert}
+ ]}

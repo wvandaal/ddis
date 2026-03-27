@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774631410/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-80969102"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/close-reason :v "Superseded by refined DAEMON-WRITE-v2 task tree" :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/closed-at :v 1774631409 :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/status :v :task.status/closed :op :assert}
+ ]}

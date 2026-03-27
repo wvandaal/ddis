@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774635350/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DS5-TEST: Crash recovery verification — 8 tests including kill-and-recover E2E"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :db/ident :v :task/t-1afedb8e :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/created-at :v 1774635349 :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/description :v "TESTS for DS5 crash recovery. UNIT: (1) test_fast_recovery: Create checkpoint with 100 datoms. Write 10 WAL entries after. Simulate daemon restart. Verify Store has 100+10 datoms. Verify 10 .edn files regenerated. (2) test_truncated_wal_recovery: Create checkpoint. Write 10 WAL entries. Truncate WAL mid-entry-7. Restart. Verify Store has checkpoint + entries 1-6. Entries 7-10 lost (correct — never fsynced). (3) test_corrupt_checkpoint_fallback: Write 50 txns to .edn files. Create checkpoint. Corrupt checkpoint.bin (flip bytes). Restart. Verify falls back to .edn rebuild. Store has all 50. (4) test_missing_wal_recovery: Create checkpoint only (no WAL). Restart. Verify Store matches checkpoint exactly. (5) test_missing_everything_recovery: Only .edn files exist (no checkpoint, no WAL). Restart. Full rebuild. All datoms present. (6) test_recovery_generates_missing_edn: Create checkpoint. Write 5 WAL entries. Do NOT run checkpoint thread. Restart. Verify 5 .edn files created during recovery. (7) test_recovery_verification: After recovery, compute BLAKE3(fold(all .edn files)). Compare to BLAKE3(recovered Store). Must match. If mismatch: recovery bug detected. E2E: (8) test_kill_and_recover: Start daemon. Send 50 observations via CLI. SIGKILL daemon (unclean). Restart daemon. All 50 observations in store. Braid status shows correct datom count. FAILURE DIAGNOSTIC: Log recovery level used (fast/medium/slow), checkpoint_lsn, WAL entries replayed, .edn files regenerated, time elapsed per phase." :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/id :v "t-1afedb8e" :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/labels :v :label/daemon-scale :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/labels :v :label/ds5 :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/labels :v :label/recovery :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/title :v "DS5-TEST: Crash recovery verification — 8 tests including kill-and-recover E2E" :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/title-l0 :v "DS5-TEST" :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/title-l1 :v "DS5-TEST: Crash recovery verification — 8 tests including kill-and-recover E2E" :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/traces-to :v #blake3 "c2a77b04e631f1087740a74b4f34ad3f08243b1b8f394f270412b820cdb8adc1" :op :assert}
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/type :v :task.type/task :op :assert}
+ ]}

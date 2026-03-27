@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774629854/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DAEMON-W1-TEST: 18 unit tests for marshal_command — 11 routable + 7 non-routable"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :db/ident :v :task/t-433d881c :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/created-at :v 1774629853 :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/description :v "TESTS for DAEMON-W1. UNIT: 11 tests, one per routable command: (1) Command::Observe{text:'X',confidence:0.8,..} → Some(('braid_observe',{text:'X',confidence:0.8})). (2) Command::Harvest{task:Some('fix'),commit:true,..} → Some(('braid_harvest',{task:'fix',commit:true})). (3-11) Similar for seed, task-ready, go, done, task-create, write-assert, guidance, query, status. NEGATIVE: 7 tests for non-routable: (12) Command::Init → None. (13) Command::Daemon → None. (14) Command::Mcp → None. (15) Command::Shell → None. (16) Command::Trace → None. (17) Command::Bilateral → None. (18) Command::Merge → None. PROPERTY: For all routable commands, the returned tool_name exists in mcp::tool_definitions().tools[].name. FAILURE DIAGNOSTIC: On mismatch, print expected vs actual JSON with a diff." :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/id :v "t-433d881c" :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/labels :v :label/daemon :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/labels :v :label/wave1 :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/title :v "DAEMON-W1-TEST: 18 unit tests for marshal_command — 11 routable + 7 non-routable" :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/title-l0 :v "DAEMON-W1-TEST" :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/title-l1 :v "DAEMON-W1-TEST: 18 unit tests for marshal_command — 11 routable + 7 non-rou..." :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774629816/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DAEMON-W0-TEST: Verify fingerprint reflects known_hashes, not disk state"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :db/ident :v :task/t-cece1e96 :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/created-at :v 1774629815 :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/description :v "TESTS for DAEMON-W0. UNIT: (1) Create store with 5 txns. Open LiveStore (knows 5). External process writes 2 more txns to disk. Flush LiveStore. Verify meta.json fingerprint matches 5-hash set, NOT 7-hash set. (2) Open new LiveStore. list_tx_hashes returns 7. Fingerprint(7) \\!= meta fingerprint(5). Cache miss triggered. Store rebuilt with all 7. Verify datom count includes all 7 txns. PROPTEST: For any n in 1..20, create n txns. Open LiveStore (knows n). Add k=1..5 external txns. Flush. Verify fingerprint reflects n, not n+k. Reload. Verify rebuild produces n+k datoms. FAILURE DIAGNOSTIC: Log fingerprint values at flush time and load time. If they match when they shouldn't, log the hash diff." :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/id :v "t-cece1e96" :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/labels :v :label/daemon :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/labels :v :label/wave0 :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/title :v "DAEMON-W0-TEST: Verify fingerprint reflects known_hashes, not disk state" :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/title-l0 :v "DAEMON-W0-TEST" :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/title-l1 :v "DAEMON-W0-TEST: Verify fingerprint reflects known_hashes, not disk state" :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/type :v :task.type/task :op :assert}
+ ]}

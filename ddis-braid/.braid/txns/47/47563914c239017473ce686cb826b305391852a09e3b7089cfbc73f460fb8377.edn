@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774619878/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C9-REM-2: Unit tests for compute_read_steering(). CONTEXT: compute_read_steering() at concept.rs:636 computes the steering question that is the core deliverable of INV-REFLEXIVE-006. It has a 3-tier priority cascade: frontier_recommendation > co_occurrence gap (jaccard<0.01) > smallest concept (member_count<3). Zero tests. APPROACH: 3 tests in concept.rs #[cfg(test)]: (1) compute_read_steering_empty_store — returns None (no concepts, no co-occurrence, no frontier). (2) compute_read_steering_small_concept — store with 1 concept having 1 member triggers priority 3 (question mentions concept name and count). (3) compute_read_steering_no_embedding — with context_embedding=None, skips priority 1 and falls through to 2 or 3. ACCEPTANCE: (A) 3 tests pass. (B) Each test verifies the specific priority tier that fires. (C) Boundary condition: concept with exactly 3 members does NOT trigger priority 3. DEPENDS-ON: none. FILE: crates/braid-kernel/src/concept.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :db/ident :v :task/t-5d03710a :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/acceptance :v "(A) 3 tests pass. (B) Each test verifies the specific priority tier that fires. (C) Boundary condition: concept with exactly 3 members does NOT trigger priority 3. DEPENDS-ON: none." :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/approach :v "3 tests in concept.rs #[cfg(test)]: (1) compute_read_steering_empty_store — returns None (no concepts, no co-occurrence, no frontier). (2) compute_read_steering_small_concept — store with 1 concept having 1 member triggers priority 3 (question mentions concept name and count). (3) compute_read_steering_no_embedding — with context_embedding=None, skips priority 1 and falls through to 2 or 3." :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/body :v "APPROACH: 3 tests in concept.rs #[cfg(test)]: (1) compute_read_steering_empty_store — returns None (no concepts, no co-occurrence, no frontier). (2) compute_read_steering_small_concept — store with 1 concept having 1 member triggers priority 3 (question mentions concept name and count). (3) compute_read_steering_no_embedding — with context_embedding=None, skips priority 1 and falls through to 2 or 3. ACCEPTANCE: (A) 3 tests pass. (B) Each test verifies the specific priority tier that fires. (C) Boundary condition: concept with exactly 3 members does NOT trigger priority 3. DEPENDS-ON: none. FILE: crates/braid-kernel/src/concept.rs" :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/created-at :v 1774619877 :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/files :v "crates/braid-kernel/src/concept.rs" :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/id :v "t-5d03710a" :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/labels :v :label/C9 :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/labels :v :label/remediation :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/title :v "C9-REM-2: Unit tests for compute_read_steering(). CONTEXT: compute_read_steering() at concept.rs:636 computes the steering question that is the core deliverable of INV-REFLEXIVE-006. It has a 3-tier priority cascade: frontier_recommendation > co_occurrence gap (jaccard<0.01) > smallest concept (member_count<3). Zero tests" :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/title-l0 :v "C9-REM-2" :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/title-l1 :v "C9-REM-2: Unit tests for compute_read_steering()" :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/traces-to :v #blake3 "9b7f536149cb59d2f140fb63f130493edb4275be8b76e31cea037b89060241d8" :op :assert}
+   {:e #blake3 "e0e875b1a83e9531443760eebefb1014b71e1051c6f86ee3c73e071013bd03e1" :a :task/type :v :task.type/task :op :assert}
+ ]}

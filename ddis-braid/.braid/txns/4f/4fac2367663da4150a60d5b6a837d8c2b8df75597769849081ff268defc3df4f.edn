@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774641538/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-eefdf941"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9545a1e190cb704e6ccf71e9eaca907cf417e572c670ed12a050e1e1775cc1c1" :a :task/close-reason :v "Superseded by REM-5v2 with CLI_COHERENCE_SPEC §4 template validation" :op :assert}
+   {:e #blake3 "9545a1e190cb704e6ccf71e9eaca907cf417e572c670ed12a050e1e1775cc1c1" :a :task/closed-at :v 1774641537 :op :assert}
+   {:e #blake3 "9545a1e190cb704e6ccf71e9eaca907cf417e572c670ed12a050e1e1775cc1c1" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "9545a1e190cb704e6ccf71e9eaca907cf417e572c670ed12a050e1e1775cc1c1" :a :task/status :v :task.status/closed :op :assert}
+ ]}

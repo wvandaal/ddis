@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774635461/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DAEMON-SCALE epic membership"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "124b60284273cbd20abb793ef0b2c455ea9a44eb8711ef5b2c6627386606f754" :a :task/parent :v :task/t-94c133c7 :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/parent :v :task/t-94c133c7 :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/parent :v :task/t-94c133c7 :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/parent :v :task/t-94c133c7 :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/parent :v :task/t-94c133c7 :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/parent :v :task/t-94c133c7 :op :assert}
+   {:e #blake3 "9b730d54a87a16798354bd22c471976799bd3896f702b0736e6b57ab8be3dbff" :a :task/parent :v :task/t-94c133c7 :op :assert}
+   {:e #blake3 "a6da5abfa92e5e0e5c790311c79b1051ce020649df41765bce885dde6b45287b" :a :task/parent :v :task/t-94c133c7 :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/parent :v :task/t-94c133c7 :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/parent :v :task/t-94c133c7 :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/parent :v :task/t-94c133c7 :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/parent :v :task/t-94c133c7 :op :assert}
+ ]}

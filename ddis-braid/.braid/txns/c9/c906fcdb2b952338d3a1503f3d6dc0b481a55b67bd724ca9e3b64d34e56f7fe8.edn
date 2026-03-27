@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774639861/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FINAL-IRON-1774639855"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "043f2470dba3ee5940b946756d0949646e54e6be732e2795586cb467c0d07aa0" :a :db/ident :v :task/t-eef40a70 :op :assert}
+   {:e #blake3 "043f2470dba3ee5940b946756d0949646e54e6be732e2795586cb467c0d07aa0" :a :task/created-at :v 1774639860 :op :assert}
+   {:e #blake3 "043f2470dba3ee5940b946756d0949646e54e6be732e2795586cb467c0d07aa0" :a :task/id :v "t-eef40a70" :op :assert}
+   {:e #blake3 "043f2470dba3ee5940b946756d0949646e54e6be732e2795586cb467c0d07aa0" :a :task/priority :v 4 :op :assert}
+   {:e #blake3 "043f2470dba3ee5940b946756d0949646e54e6be732e2795586cb467c0d07aa0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "043f2470dba3ee5940b946756d0949646e54e6be732e2795586cb467c0d07aa0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "043f2470dba3ee5940b946756d0949646e54e6be732e2795586cb467c0d07aa0" :a :task/title :v "FINAL-IRON-1774639855" :op :assert}
+   {:e #blake3 "043f2470dba3ee5940b946756d0949646e54e6be732e2795586cb467c0d07aa0" :a :task/title-l0 :v "FINAL-IRON-1774639855" :op :assert}
+   {:e #blake3 "043f2470dba3ee5940b946756d0949646e54e6be732e2795586cb467c0d07aa0" :a :task/title-l1 :v "FINAL-IRON-1774639855" :op :assert}
+   {:e #blake3 "043f2470dba3ee5940b946756d0949646e54e6be732e2795586cb467c0d07aa0" :a :task/type :v :task.type/task :op :assert}
+ ]}

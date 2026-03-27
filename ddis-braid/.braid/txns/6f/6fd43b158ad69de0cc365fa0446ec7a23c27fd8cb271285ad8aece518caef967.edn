@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774595588/0/de37ca30776f7c34728416676d8988a2"
+ :tx/agent "de37ca30776f7c34728416676d8988a2"
+ :tx/provenance :observed
+ :tx/rationale "C9 epic complete — all 5 tasks done"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0412a86c7e32d394a075cc9c634e6badfc5892dd863e5efb5024b87f0275508c" :a :db/doc :v "C9 epic complete — all 5 tasks done" :op :assert}
+   {:e #blake3 "0412a86c7e32d394a075cc9c634e6badfc5892dd863e5efb5024b87f0275508c" :a :db/ident :v :observation/c9-epic-complete-all-5-tasks-done :op :assert}
+   {:e #blake3 "0412a86c7e32d394a075cc9c634e6badfc5892dd863e5efb5024b87f0275508c" :a :exploration/body :v "C9 epic complete — all 5 tasks done" :op :assert}
+   {:e #blake3 "0412a86c7e32d394a075cc9c634e6badfc5892dd863e5efb5024b87f0275508c" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "0412a86c7e32d394a075cc9c634e6badfc5892dd863e5efb5024b87f0275508c" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "0412a86c7e32d394a075cc9c634e6badfc5892dd863e5efb5024b87f0275508c" :a :exploration/content-hash :v #bytes "08850e16d264a6b7a49bf2b94019124868a94232c70fbe5e9eb31b60b73bbc42" :op :assert}
+   {:e #blake3 "0412a86c7e32d394a075cc9c634e6badfc5892dd863e5efb5024b87f0275508c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "0412a86c7e32d394a075cc9c634e6badfc5892dd863e5efb5024b87f0275508c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "0412a86c7e32d394a075cc9c634e6badfc5892dd863e5efb5024b87f0275508c" :a :exploration/source-session :v #blake3 "d5623dbd02609c583a083ae155b8fd85ffbe6b46dae3891916fc25f6fc8ab4cc" :op :assert}
+ ]}

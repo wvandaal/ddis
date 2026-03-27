@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774637178/0/0ba5f882dab318c48894dd49cc643ab1"
+ :tx/agent "0ba5f882dab318c48894dd49cc643ab1"
+ :tx/provenance :observed
+ :tx/rationale "DW0 IMPLEMENTED: write_slim_cache now accepts known_hashes parameter. flush() passes self.known_hashes as sorted Vec. Both internal callers in load_store_with_hashes updated. Fingerprint now reflects what the LiveStore actually loaded, not what's on disk. Kernel compiles clean. Full build pending DW1 completion (mcp.rs edits in progress by parallel agent)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "21d6b609cd16ce55d7bf456771ee816d68711e8626292059aeece154efb80f8d" :a :db/doc :v "DW0 IMPLEMENTED: write_slim_cache now accepts known_hashes parameter. flush() passes self.known_hashes as sorted Vec. Both internal callers in load_store_with_hashes updated. Fingerprint now reflects what the LiveStore actually loaded, not what's on disk. Kernel compiles clean. Full build pending DW1 completion (mcp.rs edits in progress by parallel agent)." :op :assert}
+   {:e #blake3 "21d6b609cd16ce55d7bf456771ee816d68711e8626292059aeece154efb80f8d" :a :db/ident :v :observation/dw0-implemented-write-slim-cache-now-accepts-known-hashes-p :op :assert}
+   {:e #blake3 "21d6b609cd16ce55d7bf456771ee816d68711e8626292059aeece154efb80f8d" :a :exploration/body :v "DW0 IMPLEMENTED: write_slim_cache now accepts known_hashes parameter. flush() passes self.known_hashes as sorted Vec. Both internal callers in load_store_with_hashes updated. Fingerprint now reflects what the LiveStore actually loaded, not what's on disk. Kernel compiles clean. Full build pending DW1 completion (mcp.rs edits in progress by parallel agent)." :op :assert}
+   {:e #blake3 "21d6b609cd16ce55d7bf456771ee816d68711e8626292059aeece154efb80f8d" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "21d6b609cd16ce55d7bf456771ee816d68711e8626292059aeece154efb80f8d" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "21d6b609cd16ce55d7bf456771ee816d68711e8626292059aeece154efb80f8d" :a :exploration/content-hash :v #bytes "a7c0a68a70fc354588e87de46265910eca013e9ad8e88d02ed7cb1a818bcca54" :op :assert}
+   {:e #blake3 "21d6b609cd16ce55d7bf456771ee816d68711e8626292059aeece154efb80f8d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "21d6b609cd16ce55d7bf456771ee816d68711e8626292059aeece154efb80f8d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "21d6b609cd16ce55d7bf456771ee816d68711e8626292059aeece154efb80f8d" :a :exploration/source-session :v #blake3 "d0f54c4b57f4c4f5af176602c3cbf2e61bd39f66c3dc082f0586544dffcbdbb6" :op :assert}
+   {:e #blake3 "21d6b609cd16ce55d7bf456771ee816d68711e8626292059aeece154efb80f8d" :a :exploration/tags :v :tag/DW0 :op :assert}
+   {:e #blake3 "21d6b609cd16ce55d7bf456771ee816d68711e8626292059aeece154efb80f8d" :a :exploration/tags :v :tag/complete :op :assert}
+ ]}

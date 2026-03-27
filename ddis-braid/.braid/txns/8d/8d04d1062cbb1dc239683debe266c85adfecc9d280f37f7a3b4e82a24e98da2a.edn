@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774641967/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ef404261"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2b30a8d1af25f07d7796cc01a6224cd9682ba4459071ce976172b161e3162f8e" :a :task/close-reason :v "Superseded by C9-STEER-TESTv2 (t-0fbc62d9) with §4 template validation and 23 checks" :op :assert}
+   {:e #blake3 "2b30a8d1af25f07d7796cc01a6224cd9682ba4459071ce976172b161e3162f8e" :a :task/closed-at :v 1774641966 :op :assert}
+   {:e #blake3 "2b30a8d1af25f07d7796cc01a6224cd9682ba4459071ce976172b161e3162f8e" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "2b30a8d1af25f07d7796cc01a6224cd9682ba4459071ce976172b161e3162f8e" :a :task/status :v :task.status/closed :op :assert}
+ ]}

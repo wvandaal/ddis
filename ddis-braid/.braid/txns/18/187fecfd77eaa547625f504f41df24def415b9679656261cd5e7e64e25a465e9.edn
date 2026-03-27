@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774636482/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :db/ident :v :recon/trace-ef6010e17a8ff8a6 :op :assert}
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :recon/trace-neighborhood :v "DAEMON" :op :assert}
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :recon/trace-neighbors :v ":task/t-0a1ef40a" :op :assert}
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :recon/trace-neighbors :v ":task/t-1250a47c" :op :assert}
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :recon/trace-neighbors :v ":task/t-449ec46d" :op :assert}
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :recon/trace-neighbors :v ":task/t-5d804a1b" :op :assert}
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :recon/trace-neighbors :v ":task/t-994167b6" :op :assert}
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :recon/trace-neighbors :v ":task/t-9ca466d5" :op :assert}
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :recon/trace-neighbors :v ":task/t-ab65c62c" :op :assert}
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :recon/trace-neighbors :v ":task/t-bbd407e0" :op :assert}
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :recon/trace-neighbors :v ":task/t-d73f32f0" :op :assert}
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :recon/trace-neighbors :v ":task/t-dac5f985" :op :assert}
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :recon/trace-refs :v "INV-DAEMON-010" :op :assert}
+   {:e #blake3 "bdf0509dff27f948bcb93b6eb048ea98d05141d2c20bb2221c6b1e1390ac9d31" :a :recon/trace-refs :v "INV-STORE-020" :op :assert}
+ ]}

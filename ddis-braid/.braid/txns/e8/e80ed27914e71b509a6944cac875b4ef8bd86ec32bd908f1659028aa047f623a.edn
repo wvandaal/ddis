@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774622310/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: C9-STEER — Steering-Quality Remediation for observe subcommands. The C9 implementation closed the structural gap (observe list/search/show/recent exist) but the OUTPUT QUALITY fails the Steering Manifold's acceptance criterion. Three critical failures: (1) AgentOutput is a receipt not a steering vector — content field is a one-line summary while the rich output goes to human-only mode. (2) Steering questions are context-free — compute_read_steering always gets None embedding, producing the same question regardless of what was queried. (3) Search scoring duplicates the acquisition function with uncalibrated weights. These are not bugs — they are steering failures. The Markov blanket is unidirectional for read commands. DEPENDS-ON: C9-REMEDIATION (correctness fixes first). TRACES: STEERING_MANIFOLD §2 (three-component output), §6 (acquisition function), §14 (CLI coherence invariants)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "366d3b5987b77e40fab67c36f7d2fe7d11098d58a76f21f0eaf3589cb77ae6bb" :a :db/ident :v :task/t-8fd10f95 :op :assert}
+   {:e #blake3 "366d3b5987b77e40fab67c36f7d2fe7d11098d58a76f21f0eaf3589cb77ae6bb" :a :task/created-at :v 1774622309 :op :assert}
+   {:e #blake3 "366d3b5987b77e40fab67c36f7d2fe7d11098d58a76f21f0eaf3589cb77ae6bb" :a :task/id :v "t-8fd10f95" :op :assert}
+   {:e #blake3 "366d3b5987b77e40fab67c36f7d2fe7d11098d58a76f21f0eaf3589cb77ae6bb" :a :task/labels :v :label/C9 :op :assert}
+   {:e #blake3 "366d3b5987b77e40fab67c36f7d2fe7d11098d58a76f21f0eaf3589cb77ae6bb" :a :task/labels :v :label/steering :op :assert}
+   {:e #blake3 "366d3b5987b77e40fab67c36f7d2fe7d11098d58a76f21f0eaf3589cb77ae6bb" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "366d3b5987b77e40fab67c36f7d2fe7d11098d58a76f21f0eaf3589cb77ae6bb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "366d3b5987b77e40fab67c36f7d2fe7d11098d58a76f21f0eaf3589cb77ae6bb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "366d3b5987b77e40fab67c36f7d2fe7d11098d58a76f21f0eaf3589cb77ae6bb" :a :task/title :v "EPIC: C9-STEER — Steering-Quality Remediation for observe subcommands. The C9 implementation closed the structural gap (observe list/search/show/recent exist) but the OUTPUT QUALITY fails the Steering Manifold's acceptance criterion. Three critical failures: (1) AgentOutput is a receipt not a steering vector — content field is a one-line summary while the rich output goes to human-only mode. (2) Steering questions are context-free — compute_read_steering always gets None embedding, producing the same question regardless of what was queried. (3) Search scoring duplicates the acquisition function with uncalibrated weights. These are not bugs — they are steering failures. The Markov blanket is unidirectional for read commands. DEPENDS-ON: C9-REMEDIATION (correctness fixes first). TRACES: STEERING_MANIFOLD §2 (three-component output), §6 (acquisition function), §14 (CLI coherence invariants)" :op :assert}
+   {:e #blake3 "366d3b5987b77e40fab67c36f7d2fe7d11098d58a76f21f0eaf3589cb77ae6bb" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "366d3b5987b77e40fab67c36f7d2fe7d11098d58a76f21f0eaf3589cb77ae6bb" :a :task/title-l1 :v "EPIC: C9-STEER — Steering-Quality Remediation for observe subcommands" :op :assert}
+   {:e #blake3 "366d3b5987b77e40fab67c36f7d2fe7d11098d58a76f21f0eaf3589cb77ae6bb" :a :task/traces-to :v #blake3 "9b7f536149cb59d2f140fb63f130493edb4275be8b76e31cea037b89060241d8" :op :assert}
+   {:e #blake3 "366d3b5987b77e40fab67c36f7d2fe7d11098d58a76f21f0eaf3589cb77ae6bb" :a :task/type :v :task.type/epic :op :assert}
+ ]}

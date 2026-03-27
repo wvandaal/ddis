@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774632412/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DW0b dependency edges"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "293425c088487ee8a7a756b8ea528e9a51fc48d74e32bf338835c0acfd0d40ce" :a :task/depends-on :v :task/t-396b02f1 :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/depends-on :v :task/t-396b02f1 :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/parent :v :task/t-21092c71 :op :assert}
+   {:e #blake3 "d35deb3e849e4cdca10215981850dacdf65074fefb1186d68ebca16c5ffb8740" :a :task/depends-on :v :task/t-3fc3324f :op :assert}
+   {:e #blake3 "d35deb3e849e4cdca10215981850dacdf65074fefb1186d68ebca16c5ffb8740" :a :task/parent :v :task/t-21092c71 :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774619590/0/70a54a4354b423894849888d313c5da4"
+ :tx/agent "70a54a4354b423894849888d313c5da4"
+ :tx/provenance :observed
+ :tx/rationale "DEFECT-004 (MINOR): Double .to_string() at observe.rs:1680. Line reads: let key = d.attribute.to_string().to_string(); — Attribute implements Display, so first .to_string() already returns String. Second call is a redundant copy. Fix: remove the second .to_string(). Zero behavior change."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3d2dcb0a023412765a99bc8a4ee6ebbd990b2c717f7d82be539f80affb63bc42" :a :db/doc :v "DEFECT-004 (MINOR): Double .to_string() at observe.rs:1680. Line reads: let key = d.attribute.to_string().to_string(); — Attribute implements Display, so first .to_string() already returns String. Second call is a redundant copy. Fix: remove the second .to_string(). Zero behavior change." :op :assert}
+   {:e #blake3 "3d2dcb0a023412765a99bc8a4ee6ebbd990b2c717f7d82be539f80affb63bc42" :a :db/ident :v :observation/defect-004-minor-double-to-string-at-observers1680 :op :assert}
+   {:e #blake3 "3d2dcb0a023412765a99bc8a4ee6ebbd990b2c717f7d82be539f80affb63bc42" :a :exploration/body :v "DEFECT-004 (MINOR): Double .to_string() at observe.rs:1680. Line reads: let key = d.attribute.to_string().to_string(); — Attribute implements Display, so first .to_string() already returns String. Second call is a redundant copy. Fix: remove the second .to_string(). Zero behavior change." :op :assert}
+   {:e #blake3 "3d2dcb0a023412765a99bc8a4ee6ebbd990b2c717f7d82be539f80affb63bc42" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "3d2dcb0a023412765a99bc8a4ee6ebbd990b2c717f7d82be539f80affb63bc42" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "3d2dcb0a023412765a99bc8a4ee6ebbd990b2c717f7d82be539f80affb63bc42" :a :exploration/content-hash :v #bytes "8f7807ac021b5dd2de8987b1306ea5f5b79daab60dfc351adac855687d259660" :op :assert}
+   {:e #blake3 "3d2dcb0a023412765a99bc8a4ee6ebbd990b2c717f7d82be539f80affb63bc42" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "3d2dcb0a023412765a99bc8a4ee6ebbd990b2c717f7d82be539f80affb63bc42" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "3d2dcb0a023412765a99bc8a4ee6ebbd990b2c717f7d82be539f80affb63bc42" :a :exploration/source-session :v #blake3 "d5623dbd02609c583a083ae155b8fd85ffbe6b46dae3891916fc25f6fc8ab4cc" :op :assert}
+ ]}

@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774636529/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "WRITER-SPEC joins DAEMON-WRITE epic (replaces DW5)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "10f5a3947abd24d54278f4bc0040c2a9c9de5402105f58e0a28e4cd8ad5aa294" :a :task/parent :v :task/t-21092c71 :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774641463/0/8cf03ce975ad77e7b283d28667f20050"
+ :tx/agent "8cf03ce975ad77e7b283d28667f20050"
+ :tx/provenance :observed
+ :tx/rationale "OPTION-E CONVERGENT INSIGHT: C9-STEER-1 (agent output) and CLI-SCAFFOLD-1 (OutputFormatter types) solve the SAME problem from different directions. Implementing §4 template shapes inline in C9-STEER-1v2 means CLI-SCAFFOLD-1 becomes a mechanical extract-to-trait refactor. No blocking dependency. The pragmatic path: match the SHAPE now, abstract the TYPE later. Forward-compatible because same data, different abstraction layer. Traces: ADR-CLI-001, INV-CLI-003, STEERING_MANIFOLD §2."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5c36111d84176e7b20a6bfb7239098cb6e02315379a367cea39e96c33261523d" :a :db/doc :v "OPTION-E CONVERGENT INSIGHT: C9-STEER-1 (agent output) and CLI-SCAFFOLD-1 (OutputFormatter types) solve the SAME problem from different directions. Implementing §4 template shapes inline in C9-STEER-1v2 means CLI-SCAFFOLD-1 becomes a mechanical extract-to-trait refactor. No blocking dependency. The pragmatic path: match the SHAPE now, abstract the TYPE later. Forward-compatible because same data, different abstraction layer. Traces: ADR-CLI-001, INV-CLI-003, STEERING_MANIFOLD §2." :op :assert}
+   {:e #blake3 "5c36111d84176e7b20a6bfb7239098cb6e02315379a367cea39e96c33261523d" :a :db/ident :v :observation/option-e-convergent-insight-c9-steer-1-agent-output-and-c :op :assert}
+   {:e #blake3 "5c36111d84176e7b20a6bfb7239098cb6e02315379a367cea39e96c33261523d" :a :exploration/body :v "OPTION-E CONVERGENT INSIGHT: C9-STEER-1 (agent output) and CLI-SCAFFOLD-1 (OutputFormatter types) solve the SAME problem from different directions. Implementing §4 template shapes inline in C9-STEER-1v2 means CLI-SCAFFOLD-1 becomes a mechanical extract-to-trait refactor. No blocking dependency. The pragmatic path: match the SHAPE now, abstract the TYPE later. Forward-compatible because same data, different abstraction layer. Traces: ADR-CLI-001, INV-CLI-003, STEERING_MANIFOLD §2." :op :assert}
+   {:e #blake3 "5c36111d84176e7b20a6bfb7239098cb6e02315379a367cea39e96c33261523d" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "5c36111d84176e7b20a6bfb7239098cb6e02315379a367cea39e96c33261523d" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "5c36111d84176e7b20a6bfb7239098cb6e02315379a367cea39e96c33261523d" :a :exploration/content-hash :v #bytes "c7e5cf1e4cb7baa4aaf24fa78384dc08664e89c52d55339b392b3488ec097f5b" :op :assert}
+   {:e #blake3 "5c36111d84176e7b20a6bfb7239098cb6e02315379a367cea39e96c33261523d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "5c36111d84176e7b20a6bfb7239098cb6e02315379a367cea39e96c33261523d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "5c36111d84176e7b20a6bfb7239098cb6e02315379a367cea39e96c33261523d" :a :exploration/source-session :v #blake3 "d0f54c4b57f4c4f5af176602c3cbf2e61bd39f66c3dc082f0586544dffcbdbb6" :op :assert}
+ ]}

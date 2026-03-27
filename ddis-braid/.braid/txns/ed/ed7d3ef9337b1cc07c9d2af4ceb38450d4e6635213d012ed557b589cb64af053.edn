@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774630007/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DAEMON-WRITE dependency graph"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/depends-on :v :task/t-80969102 :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/depends-on :v :task/t-9823ad2c :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/depends-on :v :task/t-80969102 :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/depends-on :v :task/t-037f1043 :op :assert}
+   {:e #blake3 "a51776f265541b52be249ebe47697ae42c9955a5561cbc9bd21cdcbf8b777a17" :a :task/depends-on :v :task/t-1aef70b6 :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/depends-on :v :task/t-037f1043 :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/depends-on :v :task/t-1aef70b6 :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/depends-on :v :task/t-80969102 :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/depends-on :v :task/t-9823ad2c :op :assert}
+   {:e #blake3 "df85472b2bcf0ebc7c174ce66edc23ff3c8e7e1f0ede2b56ac2f333b3a56e35e" :a :task/depends-on :v :task/t-9823ad2c :op :assert}
+ ]}

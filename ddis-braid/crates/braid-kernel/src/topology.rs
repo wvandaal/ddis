@@ -28,9 +28,9 @@ use crate::store::Store;
 /// C8 compliance: no assumption about which language the project uses.
 fn has_source_extension(path: &str) -> bool {
     let extensions = [
-        ".rs", ".go", ".ts", ".tsx", ".js", ".jsx", ".py", ".rb", ".java",
-        ".kt", ".swift", ".c", ".cpp", ".h", ".hpp", ".cs", ".fs",
-        ".edn", ".toml", ".yaml", ".yml", ".json", ".md", ".sh",
+        ".rs", ".go", ".ts", ".tsx", ".js", ".jsx", ".py", ".rb", ".java", ".kt", ".swift", ".c",
+        ".cpp", ".h", ".hpp", ".cs", ".fs", ".edn", ".toml", ".yaml", ".yml", ".json", ".md",
+        ".sh",
     ];
     extensions.iter().any(|ext| path.ends_with(ext))
 }
@@ -41,9 +41,9 @@ fn has_source_extension(path: &str) -> bool {
 /// is found, returns the original string unchanged.
 fn strip_source_extension(part: &str) -> &str {
     let extensions = [
-        ".rs", ".go", ".ts", ".tsx", ".js", ".jsx", ".py", ".rb", ".java",
-        ".kt", ".swift", ".c", ".cpp", ".h", ".hpp", ".cs", ".fs",
-        ".edn", ".toml", ".yaml", ".yml", ".json", ".md", ".sh",
+        ".rs", ".go", ".ts", ".tsx", ".js", ".jsx", ".py", ".rb", ".java", ".kt", ".swift", ".c",
+        ".cpp", ".h", ".hpp", ".cs", ".fs", ".edn", ".toml", ".yaml", ".yml", ".json", ".md",
+        ".sh",
     ];
     for ext in &extensions {
         if let Some(stem) = part.strip_suffix(ext) {
@@ -234,9 +234,26 @@ pub fn agent_name_from_files(files: &BTreeSet<String>, index: usize) -> String {
     }
 
     // Language-agnostic skip list — common directory names that are not meaningful
-    let skip = ["src", "crates", "lib", "mod", "main", "tests", "test", "pkg",
-                 "internal", "cmd", "bin", "build", "dist", "out", "node_modules",
-                 "packages", "components", "utils"];
+    let skip = [
+        "src",
+        "crates",
+        "lib",
+        "mod",
+        "main",
+        "tests",
+        "test",
+        "pkg",
+        "internal",
+        "cmd",
+        "bin",
+        "build",
+        "dist",
+        "out",
+        "node_modules",
+        "packages",
+        "components",
+        "utils",
+    ];
     let mut stem_counts: BTreeMap<&str, usize> = BTreeMap::new();
 
     for path in files {
@@ -1271,9 +1288,8 @@ pub fn composite_coupling_weighted(
         let i_score = inv_coupling.get(&pair).unwrap_or(&0.0);
         let h_score = historical_coupling.get(&pair).unwrap_or(&0.0);
         // Schema and causal are zero at Stage 0b
-        let combined = weights.file * f_score
-            + weights.invariant * i_score
-            + weights.historical * h_score;
+        let combined =
+            weights.file * f_score + weights.invariant * i_score + weights.historical * h_score;
         if combined > 0.0 {
             result.insert(pair, combined.clamp(0.0, 1.0));
         }
@@ -1405,7 +1421,7 @@ pub fn spectral_partition(rho: &[Vec<f64>], k: usize) -> Vec<Vec<usize>> {
 ///
 /// Returns (positive_group, negative_group). If the bisection is trivial
 /// (all same sign), falls back to splitting in half by index order.
-fn fiedler_bisect(rho: &[Vec<f64>], indices: &[usize]) -> (Vec<usize>, Vec<usize>) {
+pub fn fiedler_bisect(rho: &[Vec<f64>], indices: &[usize]) -> (Vec<usize>, Vec<usize>) {
     let m = indices.len();
     if m < 2 {
         return (indices.to_vec(), vec![]);

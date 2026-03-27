@@ -616,9 +616,10 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         .and_then(|v| v.parse().ok())
         .unwrap_or_else(|| embedder.join_threshold());
     // CONCEPT-MULTI + ADR-FOUNDATION-031: Sigmoid soft membership.
-    let sigmoid_temperature: f32 = braid_kernel::config::get_config(store, "concept.sigmoid-temperature")
-        .and_then(|v| v.parse().ok())
-        .unwrap_or(0.05); // Bootstrap default temperature
+    let sigmoid_temperature: f32 =
+        braid_kernel::config::get_config(store, "concept.sigmoid-temperature")
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(0.05); // Bootstrap default temperature
     let mut multi_assignments = braid_kernel::concept::assign_to_concepts_soft(
         store,
         &obs_embedding,
@@ -641,7 +642,10 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     let mut auto_crystallized_concepts: Vec<String> = Vec::new();
     let mut uncategorized_count: usize = 0;
 
-    if matches!(concept_assignment, braid_kernel::concept::ConceptAssignment::Uncategorized) {
+    if matches!(
+        concept_assignment,
+        braid_kernel::concept::ConceptAssignment::Uncategorized
+    ) {
         // Count uncategorized observations (have embedding but no concept ref).
         let concept_ref_attr = Attribute::from_keyword(":exploration/concept");
         let embed_ref_attr = Attribute::from_keyword(":exploration/embedding");
@@ -652,12 +656,11 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
                 .filter(|d| d.op == Op::Assert && d.attribute == embed_ref_attr)
                 .map(|d| d.entity)
                 .collect();
-        let entities_with_concept: std::collections::HashSet<braid_kernel::datom::EntityId> =
-            store
-                .datoms()
-                .filter(|d| d.op == Op::Assert && d.attribute == concept_ref_attr)
-                .map(|d| d.entity)
-                .collect();
+        let entities_with_concept: std::collections::HashSet<braid_kernel::datom::EntityId> = store
+            .datoms()
+            .filter(|d| d.op == Op::Assert && d.attribute == concept_ref_attr)
+            .map(|d| d.entity)
+            .collect();
         let existing_uncategorized: Vec<braid_kernel::datom::EntityId> = entities_with_embedding
             .difference(&entities_with_concept)
             .copied()
@@ -672,15 +675,13 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             let mut observations: Vec<(braid_kernel::datom::EntityId, Vec<f32>, String)> =
                 Vec::new();
             for &eid in &existing_uncategorized {
-                let emb = store
-                    .live_value(eid, &embed_ref_attr)
-                    .and_then(|v| {
-                        if let braid_kernel::datom::Value::Bytes(b) = v {
-                            Some(braid_kernel::embedding::bytes_to_embedding(b))
-                        } else {
-                            None
-                        }
-                    });
+                let emb = store.live_value(eid, &embed_ref_attr).and_then(|v| {
+                    if let braid_kernel::datom::Value::Bytes(b) = v {
+                        Some(braid_kernel::embedding::bytes_to_embedding(b))
+                    } else {
+                        None
+                    }
+                });
                 let body = store
                     .live_value(eid, &body_attr_for_cryst)
                     .and_then(|v| {
@@ -725,10 +726,8 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
                     for (e, a, v) in concept_datom_tuples {
                         cryst_datoms.push(Datom::new(e, a, v, cryst_tx_id, Op::Assert));
                     }
-                    let member_datom_tuples = braid_kernel::concept::membership_datoms(
-                        concept.entity,
-                        &concept.members,
-                    );
+                    let member_datom_tuples =
+                        braid_kernel::concept::membership_datoms(concept.entity, &concept.members);
                     for (e, a, v) in member_datom_tuples {
                         cryst_datoms.push(Datom::new(e, a, v, cryst_tx_id, Op::Assert));
                     }
@@ -785,15 +784,17 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         _ => None,
     };
     if let Some(sim) = primary_similarity {
-        let cal_count: i64 = braid_kernel::config::get_config(store, "calibration.similarity-count")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(0);
+        let cal_count: i64 =
+            braid_kernel::config::get_config(store, "calibration.similarity-count")
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(0);
         let cal_sum: f64 = braid_kernel::config::get_config(store, "calibration.similarity-sum")
             .and_then(|v| v.parse().ok())
             .unwrap_or(0.0);
-        let cal_sum_sq: f64 = braid_kernel::config::get_config(store, "calibration.similarity-sum-sq")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(0.0);
+        let cal_sum_sq: f64 =
+            braid_kernel::config::get_config(store, "calibration.similarity-sum-sq")
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(0.0);
 
         let new_count = cal_count + 1;
         let new_sum = cal_sum + sim as f64;
@@ -805,13 +806,22 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         let cal_tx = super::write::next_tx_id(store, cal_agent);
         let mut cal_datoms = Vec::new();
         cal_datoms.extend(braid_kernel::config::set_config_datoms(
-            "calibration.similarity-count", &new_count.to_string(), "project", cal_tx,
+            "calibration.similarity-count",
+            &new_count.to_string(),
+            "project",
+            cal_tx,
         ));
         cal_datoms.extend(braid_kernel::config::set_config_datoms(
-            "calibration.similarity-sum", &format!("{new_sum:.8}"), "project", cal_tx,
+            "calibration.similarity-sum",
+            &format!("{new_sum:.8}"),
+            "project",
+            cal_tx,
         ));
         cal_datoms.extend(braid_kernel::config::set_config_datoms(
-            "calibration.similarity-sum-sq", &format!("{new_sum_sq:.8}"), "project", cal_tx,
+            "calibration.similarity-sum-sq",
+            &format!("{new_sum_sq:.8}"),
+            "project",
+            cal_tx,
         ));
 
         // After 3+ observations, compute and write calibrated threshold + temperature.
@@ -823,10 +833,16 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             let cal_temperature = (stddev / 2.0).max(0.01) as f32;
 
             cal_datoms.extend(braid_kernel::config::set_config_datoms(
-                "concept.join-threshold", &format!("{cal_threshold:.4}"), "project", cal_tx,
+                "concept.join-threshold",
+                &format!("{cal_threshold:.4}"),
+                "project",
+                cal_tx,
             ));
             cal_datoms.extend(braid_kernel::config::set_config_datoms(
-                "concept.sigmoid-temperature", &format!("{cal_temperature:.4}"), "project", cal_tx,
+                "concept.sigmoid-temperature",
+                &format!("{cal_temperature:.4}"),
+                "project",
+                cal_tx,
             ));
         }
 
@@ -874,9 +890,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
 
     for (idx, assignment) in multi_assignments.iter().enumerate() {
         if let braid_kernel::concept::ConceptAssignment::Joined {
-            concept,
-            surprise,
-            ..
+            concept, surprise, ..
         } = assignment
         {
             // Write :exploration/concept Ref for each membership.
@@ -901,27 +915,51 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             // --- LIFECYCLE-OBSERVE: Update each concept entity ---
             let old_count = store
                 .live_value(*concept, &count_attr_kw)
-                .and_then(|v| if let Value::Long(n) = v { Some(*n as usize) } else { None })
+                .and_then(|v| {
+                    if let Value::Long(n) = v {
+                        Some(*n as usize)
+                    } else {
+                        None
+                    }
+                })
                 .unwrap_or(0);
 
             let old_total_weight = store
                 .live_value(*concept, &weight_attr_kw)
-                .and_then(|v| if let Value::Double(w) = v { Some(w.into_inner()) } else { None })
+                .and_then(|v| {
+                    if let Value::Double(w) = v {
+                        Some(w.into_inner())
+                    } else {
+                        None
+                    }
+                })
                 .unwrap_or(0.0);
 
-            let old_centroid = store
-                .live_value(*concept, &emb_attr)
-                .and_then(|v| if let Value::Bytes(b) = v { Some(braid_kernel::embedding::bytes_to_embedding(b)) } else { None });
+            let old_centroid = store.live_value(*concept, &emb_attr).and_then(|v| {
+                if let Value::Bytes(b) = v {
+                    Some(braid_kernel::embedding::bytes_to_embedding(b))
+                } else {
+                    None
+                }
+            });
 
             let strength = match assignment {
                 braid_kernel::concept::ConceptAssignment::Joined { strength, .. } => *strength,
                 _ => 1.0,
             };
-            let sw = braid_kernel::concept::surprise_weight(*surprise, braid_kernel::concept::DEFAULT_ALPHA) * strength;
+            let sw = braid_kernel::concept::surprise_weight(
+                *surprise,
+                braid_kernel::concept::DEFAULT_ALPHA,
+            ) * strength;
 
             if let Some(old_cent) = old_centroid {
                 let (mut new_centroid, new_total_weight) =
-                    braid_kernel::concept::update_centroid_weighted(&old_cent, old_total_weight, &obs_embedding, sw);
+                    braid_kernel::concept::update_centroid_weighted(
+                        &old_cent,
+                        old_total_weight,
+                        &obs_embedding,
+                        sw,
+                    );
                 braid_kernel::embedding::l2_normalize(&mut new_centroid);
 
                 let new_count = old_count + 1;
@@ -976,10 +1014,8 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     let store = live.store();
 
     // --- CE-OBSERVE: Responsive observation — contextual micro-hypotheses ---
-    let connections =
-        braid_kernel::connections::propose_connections(store, entity, args.text);
-    let topo_events =
-        braid_kernel::connections::detect_topological_events(&connections, store);
+    let connections = braid_kernel::connections::propose_connections(store, entity, args.text);
+    let topo_events = braid_kernel::connections::detect_topological_events(&connections, store);
 
     let mut responsive_parts: Vec<String> = Vec::new();
 
@@ -987,8 +1023,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     if !connections.is_empty() {
         let top = &connections[0];
         let body_attr = Attribute::from_keyword(":exploration/body");
-        if let Some(Value::String(target_text)) = store.live_value(top.target, &body_attr)
-        {
+        if let Some(Value::String(target_text)) = store.live_value(top.target, &body_attr) {
             let target_preview = braid_kernel::budget::safe_truncate_bytes(target_text, 60);
             let ellipsis = if target_text.len() > 60 { "..." } else { "" };
             responsive_parts.push(format!(
@@ -1005,10 +1040,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         }
 
         if connections.len() > 1 {
-            responsive_parts.push(format!(
-                "{} total connections found",
-                connections.len()
-            ));
+            responsive_parts.push(format!("{} total connections found", connections.len()));
         }
     }
 
@@ -1092,13 +1124,13 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         // Fallback to steering question when no frontier recommendation available.
         responsive_parts.push(format!("\u{2192} {q}"));
     } else if connections.is_empty() {
-        responsive_parts.push(
-            "\u{2192} No connections yet. What else relates to this?".to_string(),
-        );
+        responsive_parts
+            .push("\u{2192} No connections yet. What else relates to this?".to_string());
     }
 
     // --- META-3: Real-time crystallization feedback (INV-GUIDANCE-014, INV-BILATERAL-001) ---
-    let has_spec_refs = args.text.contains("INV-") || args.text.contains("ADR-") || args.text.contains("NEG-");
+    let has_spec_refs =
+        args.text.contains("INV-") || args.text.contains("ADR-") || args.text.contains("NEG-");
     let spec_refs_exist = if has_spec_refs {
         let refs = braid_kernel::task::parse_spec_refs(args.text);
         refs.iter().any(|r| {
@@ -1235,8 +1267,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         if related_specs.len() >= 3 {
             context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
                 braid_kernel::budget::OutputPrecedence::System,
-                "3+ existing knowledge elements found. Reconcile before crystallizing."
-                    .to_string(),
+                "3+ existing knowledge elements found. Reconcile before crystallizing.".to_string(),
                 8,
             ));
         }
@@ -1472,6 +1503,319 @@ fn find_active_session(store: &braid_kernel::Store) -> Option<EntityId> {
     }
 
     latest_entity
+}
+
+// ===================================================================
+// Observe Query Subcommands (C9-P5, INV-REFLEXIVE-006)
+// ===================================================================
+
+/// `braid observe list` — observations grouped by concept, with steering question.
+pub fn run_list(path: &Path, _agent: &str) -> Result<CommandOutput, BraidError> {
+    let live = LiveStore::open(path)?;
+    let store = live.store();
+
+    let groups = braid_kernel::concept::observations_by_concept(store);
+    let steering = braid_kernel::concept::compute_read_steering(store, None);
+
+    let mut human = String::new();
+    let mut json_groups = Vec::new();
+
+    for (concept, observations) in &groups {
+        let label = match concept {
+            Some(c) => format!(
+                "{} ({} members, variance={:.2})",
+                c.name, c.member_count, c.variance
+            ),
+            None => "Uncategorized".to_string(),
+        };
+        human.push_str(&format!("\n## {label}\n"));
+
+        let mut json_obs = Vec::new();
+        for obs in observations {
+            let cat_short = obs
+                .category
+                .strip_prefix(":exploration.cat/")
+                .unwrap_or(&obs.category);
+            human.push_str(&format!(
+                "  [{cat_short}, {:.1}] {}\n",
+                obs.confidence,
+                truncate_display(&obs.body, 80),
+            ));
+            json_obs.push(serde_json::json!({
+                "entity": obs.ident,
+                "body": obs.body,
+                "confidence": obs.confidence,
+                "category": cat_short,
+                "concept": obs.concept_name,
+            }));
+        }
+
+        json_groups.push(serde_json::json!({
+            "concept": concept.as_ref().map(|c| &c.name),
+            "member_count": concept.as_ref().map(|c| c.member_count).unwrap_or(observations.len()),
+            "observations": json_obs,
+        }));
+    }
+
+    // Steering question (INV-REFLEXIVE-006a)
+    if let Some(ref q) = steering {
+        human.push_str(&format!("\n-> {q}\n"));
+    }
+
+    let total: usize = groups.iter().map(|(_, obs)| obs.len()).sum();
+    let json = serde_json::json!({
+        "total": total,
+        "groups": json_groups,
+        "steering_question": steering,
+    });
+
+    Ok(CommandOutput {
+        human,
+        agent: AgentOutput {
+            content: format!("{total} observations in {} groups", groups.len()),
+            footer: steering.unwrap_or_default(),
+            context: String::new(),
+        },
+        json,
+    })
+}
+
+/// `braid observe search PATTERN` — ranked results with steering question.
+pub fn run_search(path: &Path, pattern: &str, _agent: &str) -> Result<CommandOutput, BraidError> {
+    let live = LiveStore::open(path)?;
+    let store = live.store();
+
+    let all = braid_kernel::concept::all_observations(store);
+    let lower_pat = pattern.to_ascii_lowercase();
+
+    // Score: 0.4 relevance + 0.3 link_proxy + 0.2 confidence + 0.1 recency
+    let max_time = all.iter().map(|o| o.tx_wall_time).max().unwrap_or(1).max(1);
+    let mut matches: Vec<(f64, &braid_kernel::concept::ObservationRecord)> = all
+        .iter()
+        .filter(|o| o.body.to_ascii_lowercase().contains(&lower_pat))
+        .map(|o| {
+            let body_lower = o.body.to_ascii_lowercase();
+            // Simple relevance: count of pattern occurrences / body length
+            let relevance = body_lower.matches(&lower_pat).count() as f64
+                / (body_lower.len().max(1) as f64 / 100.0);
+            let relevance = relevance.min(1.0);
+            let link_proxy = if o.concept.is_some() { 0.5 } else { 0.0 };
+            let recency = o.tx_wall_time as f64 / max_time as f64;
+            let score = 0.4 * relevance + 0.3 * link_proxy + 0.2 * o.confidence + 0.1 * recency;
+            (score, o)
+        })
+        .collect();
+
+    matches.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+
+    let steering = braid_kernel::concept::compute_read_steering(store, None);
+
+    let mut human = format!("search \"{pattern}\": {} results\n\n", matches.len());
+    let mut json_matches = Vec::new();
+
+    for (score, obs) in matches.iter().take(20) {
+        let concept_tag = obs.concept_name.as_deref().unwrap_or("-");
+        human.push_str(&format!(
+            "  [{:.2}] [{}] {}\n",
+            score,
+            concept_tag,
+            truncate_display(&obs.body, 72),
+        ));
+        json_matches.push(serde_json::json!({
+            "entity": obs.ident,
+            "body": obs.body,
+            "score": score,
+            "confidence": obs.confidence,
+            "concept": obs.concept_name,
+        }));
+    }
+
+    if let Some(ref q) = steering {
+        human.push_str(&format!("\n-> {q}\n"));
+    }
+
+    let json = serde_json::json!({
+        "pattern": pattern,
+        "total": matches.len(),
+        "matches": json_matches,
+        "steering_question": steering,
+    });
+
+    Ok(CommandOutput {
+        human,
+        agent: AgentOutput {
+            content: format!("search \"{pattern}\": {} results", matches.len()),
+            footer: steering.unwrap_or_default(),
+            context: String::new(),
+        },
+        json,
+    })
+}
+
+/// `braid observe show ENTITY` — full detail with links, with steering question.
+pub fn run_show(
+    path: &Path,
+    entity_ident: &str,
+    _agent: &str,
+) -> Result<CommandOutput, BraidError> {
+    let live = LiveStore::open(path)?;
+    let store = live.store();
+
+    let entity = EntityId::from_ident(entity_ident);
+    let datoms: Vec<_> = store.entity_datoms(entity).to_vec();
+
+    if datoms.is_empty() {
+        return Err(BraidError::Validation(format!(
+            "entity not found: {entity_ident}"
+        )));
+    }
+
+    let mut human = format!("# {entity_ident}\n\n");
+    let mut attrs = serde_json::Map::new();
+
+    for d in &datoms {
+        if d.op != braid_kernel::datom::Op::Assert {
+            continue;
+        }
+        let key = d.attribute.to_string().to_string();
+        let val = match &d.value {
+            Value::String(s) => serde_json::Value::String(s.clone()),
+            Value::Long(n) => serde_json::json!(n),
+            Value::Double(f) => serde_json::json!(f.into_inner()),
+            Value::Boolean(b) => serde_json::json!(b),
+            Value::Keyword(k) => serde_json::Value::String(k.clone()),
+            Value::Ref(r) => serde_json::Value::String(format!("{:?}", r)),
+            Value::Bytes(b) => serde_json::Value::String(format!("[{} bytes]", b.len())),
+            Value::Instant(ts) => serde_json::json!(ts),
+            Value::Uuid(u) => serde_json::Value::String(format!("{u:?}")),
+        };
+        human.push_str(&format!("  {} = {}\n", key, val));
+        attrs.insert(key, val);
+    }
+
+    // Show links (incoming refs via VAET index)
+    let mut links = Vec::new();
+    let concept_ref_attr = braid_kernel::datom::Attribute::from_keyword(":exploration/concept");
+    let related_attr = braid_kernel::datom::Attribute::from_keyword(":exploration/related-spec");
+    for d in store.datoms() {
+        if d.op != braid_kernel::datom::Op::Assert {
+            continue;
+        }
+        if let Value::Ref(target) = d.value {
+            if target == entity {
+                let link_type = if d.attribute == concept_ref_attr {
+                    "member-of"
+                } else if d.attribute == related_attr {
+                    "related"
+                } else {
+                    "ref"
+                };
+                links.push(serde_json::json!({
+                    "from": format!("{:?}", d.entity),
+                    "type": link_type,
+                    "attribute": d.attribute.to_string(),
+                }));
+            }
+        }
+    }
+
+    if !links.is_empty() {
+        human.push_str(&format!("\n  {} incoming links\n", links.len()));
+    }
+
+    let steering = braid_kernel::concept::compute_read_steering(store, None);
+    if let Some(ref q) = steering {
+        human.push_str(&format!("\n-> {q}\n"));
+    }
+
+    let json = serde_json::json!({
+        "entity": entity_ident,
+        "attributes": attrs,
+        "incoming_links": links,
+        "steering_question": steering,
+    });
+
+    Ok(CommandOutput {
+        human,
+        agent: AgentOutput {
+            content: format!(
+                "{entity_ident}: {} attributes, {} links",
+                attrs.len(),
+                links.len()
+            ),
+            footer: steering.unwrap_or_default(),
+            context: String::new(),
+        },
+        json,
+    })
+}
+
+/// `braid observe recent N` — most recent observations with concept tags, with steering question.
+pub fn run_recent(path: &Path, count: usize, _agent: &str) -> Result<CommandOutput, BraidError> {
+    let live = LiveStore::open(path)?;
+    let store = live.store();
+
+    let all = braid_kernel::concept::all_observations(store);
+    let recent: Vec<_> = all.into_iter().take(count).collect();
+
+    let steering = braid_kernel::concept::compute_read_steering(store, None);
+
+    let mut human = format!("{} most recent observations:\n\n", recent.len());
+    let mut json_obs = Vec::new();
+
+    for obs in &recent {
+        let concept_tag = obs.concept_name.as_deref().unwrap_or("-");
+        let cat_short = obs
+            .category
+            .strip_prefix(":exploration.cat/")
+            .unwrap_or(&obs.category);
+        human.push_str(&format!(
+            "  [{cat_short}, {:.1}] [{}] {}\n",
+            obs.confidence,
+            concept_tag,
+            truncate_display(&obs.body, 65),
+        ));
+        json_obs.push(serde_json::json!({
+            "entity": obs.ident,
+            "body": obs.body,
+            "confidence": obs.confidence,
+            "category": cat_short,
+            "concept": obs.concept_name,
+        }));
+    }
+
+    if let Some(ref q) = steering {
+        human.push_str(&format!("\n-> {q}\n"));
+    }
+
+    let json = serde_json::json!({
+        "total": recent.len(),
+        "observations": json_obs,
+        "steering_question": steering,
+    });
+
+    Ok(CommandOutput {
+        human,
+        agent: AgentOutput {
+            content: format!("{} recent observations", recent.len()),
+            footer: steering.unwrap_or_default(),
+            context: String::new(),
+        },
+        json,
+    })
+}
+
+/// Truncate a string for display, adding "..." if too long.
+fn truncate_display(s: &str, max: usize) -> &str {
+    if s.len() <= max {
+        return s;
+    }
+    // Find a safe UTF-8 boundary
+    let mut end = max;
+    while end > 0 && !s.is_char_boundary(end) {
+        end -= 1;
+    }
+    &s[..end]
 }
 
 #[cfg(test)]
@@ -1805,24 +2149,28 @@ mod tests {
     fn crystallization_feedback_unanchored_observation() {
         // An observation without spec references should get delta_cryst = -0.1
         let text = "the merge latency is too high";
-        let has_spec_refs =
-            text.contains("INV-") || text.contains("ADR-") || text.contains("NEG-");
+        let has_spec_refs = text.contains("INV-") || text.contains("ADR-") || text.contains("NEG-");
         assert!(!has_spec_refs, "plain text should not have spec refs");
         // delta_cryst for unanchored = -0.1
         let delta: f64 = -0.1;
-        assert!(delta < 0.0, "unanchored observation should have negative delta");
+        assert!(
+            delta < 0.0,
+            "unanchored observation should have negative delta"
+        );
     }
 
     #[test]
     fn crystallization_feedback_anchored_observation() {
         // An observation with a valid spec reference gets delta_cryst = 0.2
         let text = "INV-STORE-001 is violated if merge drops datoms";
-        let has_spec_refs =
-            text.contains("INV-") || text.contains("ADR-") || text.contains("NEG-");
+        let has_spec_refs = text.contains("INV-") || text.contains("ADR-") || text.contains("NEG-");
         assert!(has_spec_refs, "spec-anchored text should have spec refs");
         // delta_cryst for anchored = 0.2
         let delta: f64 = 0.2;
-        assert!(delta > 0.0, "anchored observation should have positive delta");
+        assert!(
+            delta > 0.0,
+            "anchored observation should have positive delta"
+        );
     }
 
     #[test]
@@ -1830,7 +2178,11 @@ mod tests {
         // Test that spec refs are extracted from observation text
         let text = "This relates to INV-BILATERAL-001 and ADR-STORE-005";
         let refs = braid_kernel::task::parse_spec_refs(text);
-        assert!(refs.len() >= 2, "should parse at least 2 spec refs from '{}'", text);
+        assert!(
+            refs.len() >= 2,
+            "should parse at least 2 spec refs from '{}'",
+            text
+        );
         assert!(
             refs.iter().any(|r| r.contains("BILATERAL")),
             "should find BILATERAL ref"

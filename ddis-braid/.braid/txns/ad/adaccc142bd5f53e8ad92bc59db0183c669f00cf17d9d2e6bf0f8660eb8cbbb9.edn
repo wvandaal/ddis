@@ -1,0 +1,52 @@
+{:tx/id #hlc "1774643427/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 6 candidates from task 'Cleanroom review + DEFECT fixes'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "00461d9f1d90220c9e76b6199473410bdbffe128110dea8d46240abc9beba68e" :a :db/ident :v :session/s-1774643430921 :op :assert}
+   {:e #blake3 "00461d9f1d90220c9e76b6199473410bdbffe128110dea8d46240abc9beba68e" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "00461d9f1d90220c9e76b6199473410bdbffe128110dea8d46240abc9beba68e" :a :session/current :v #blake3 "00461d9f1d90220c9e76b6199473410bdbffe128110dea8d46240abc9beba68e" :op :assert}
+   {:e #blake3 "00461d9f1d90220c9e76b6199473410bdbffe128110dea8d46240abc9beba68e" :a :session/start-datom-count :v 176053 :op :assert}
+   {:e #blake3 "00461d9f1d90220c9e76b6199473410bdbffe128110dea8d46240abc9beba68e" :a :session/start-fitness :v 0.6135584908462371 :op :assert}
+   {:e #blake3 "00461d9f1d90220c9e76b6199473410bdbffe128110dea8d46240abc9beba68e" :a :session/start-time :v "2026-03-27T20:30:30Z" :op :assert}
+   {:e #blake3 "00461d9f1d90220c9e76b6199473410bdbffe128110dea8d46240abc9beba68e" :a :session/started-at :v 1774643430 :op :assert}
+   {:e #blake3 "00461d9f1d90220c9e76b6199473410bdbffe128110dea8d46240abc9beba68e" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "00461d9f1d90220c9e76b6199473410bdbffe128110dea8d46240abc9beba68e" :a :session/task :v "## Session Synthesis Directive\n\n**Next session task**: continue: Cleanroom review + DEFECT fixes\nRun: `braid seed --task \"continue: Cleanroom review + DEFECT fixes\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "1d6609d6592f6d5b0a6c473e28d4bd713a9a383859f4ef5b24116cacdc609ee3" :a :hypothesis/action :v #blake3 "11146360f74be633495a6342dd8200186db3c8cf4a9c36a3c12288606c58cf62" :op :assert}
+   {:e #blake3 "1d6609d6592f6d5b0a6c473e28d4bd713a9a383859f4ef5b24116cacdc609ee3" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "1d6609d6592f6d5b0a6c473e28d4bd713a9a383859f4ef5b24116cacdc609ee3" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "1d6609d6592f6d5b0a6c473e28d4bd713a9a383859f4ef5b24116cacdc609ee3" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "1d6609d6592f6d5b0a6c473e28d4bd713a9a383859f4ef5b24116cacdc609ee3" :a :hypothesis/predicted :v 0.7905638749374522 :op :assert}
+   {:e #blake3 "1d6609d6592f6d5b0a6c473e28d4bd713a9a383859f4ef5b24116cacdc609ee3" :a :hypothesis/timestamp :v #inst 1774643430 :op :assert}
+   {:e #blake3 "3fb75e95d3f485738feeb16c89aae6d40a4fe773ac9d66e7befff5a828c634ea" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "4caa2dae9536d7be20b1f695ccb1931ff2d89e95be4c98c98835c8256bff8aae" :a :hypothesis/action :v #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :op :assert}
+   {:e #blake3 "4caa2dae9536d7be20b1f695ccb1931ff2d89e95be4c98c98835c8256bff8aae" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "4caa2dae9536d7be20b1f695ccb1931ff2d89e95be4c98c98835c8256bff8aae" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "4caa2dae9536d7be20b1f695ccb1931ff2d89e95be4c98c98835c8256bff8aae" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "4caa2dae9536d7be20b1f695ccb1931ff2d89e95be4c98c98835c8256bff8aae" :a :hypothesis/predicted :v 0.6424567075468626 :op :assert}
+   {:e #blake3 "4caa2dae9536d7be20b1f695ccb1931ff2d89e95be4c98c98835c8256bff8aae" :a :hypothesis/timestamp :v #inst 1774643430 :op :assert}
+   {:e #blake3 "4cfb8d3e2d803edad8796b460dc11ea6425a1e9808f4ae0ba37669961a34c9c9" :a :hypothesis/action :v #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :op :assert}
+   {:e #blake3 "4cfb8d3e2d803edad8796b460dc11ea6425a1e9808f4ae0ba37669961a34c9c9" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "4cfb8d3e2d803edad8796b460dc11ea6425a1e9808f4ae0ba37669961a34c9c9" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "4cfb8d3e2d803edad8796b460dc11ea6425a1e9808f4ae0ba37669961a34c9c9" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "4cfb8d3e2d803edad8796b460dc11ea6425a1e9808f4ae0ba37669961a34c9c9" :a :hypothesis/predicted :v 0.34432614472502654 :op :assert}
+   {:e #blake3 "4cfb8d3e2d803edad8796b460dc11ea6425a1e9808f4ae0ba37669961a34c9c9" :a :hypothesis/timestamp :v #inst 1774643430 :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :db/doc :v "Harvest session for task: Cleanroom review + DEFECT fixes" :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :db/ident :v :harvest/session-braid-user-1774643427 :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/accomplishments :v "Session entity: :recon/trace-37bfc0d761934438" :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/candidate-count :v 6 :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/codebase-snapshot :v "Codebase: 0 LOC across 0 source files\nTests: 2072 passing" :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/context-metrics :v "{\"candidates\":6,\"k_eff_estimated\":\"0.94\",\"observations\":0,\"output_tokens_est\":99,\"tasks_closed\":0,\"tx_count\":6,\"wall_elapsed_s\":261}" :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/delta-summary :v "+123 datoms, +15 entities" :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/git-summary :v "branch=main, 1 commits, 3 files (+20/-2)\n  9a0c3252 Cleanroom review fixes: DEFECT-002, DEFECT-004, DEFECT-005\nHot files:\n  ddis-braid/crates/braid/src/daemon.rs (9 lines changed)\n  ddis-braid/crates/braid/src/mcp.rs (8 lines changed)\n  ddis-braid/crates/braid/src/live_store.rs (5 lines changed)" :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/recommended-tasks :v "t-d9536d87,t-f12bff46,t-56b8f57e" :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/store-datom-count :v 176017 :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/store-entity-count :v 12967 :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: Cleanroom review + DEFECT fixes\nRun: `braid seed --task \"continue: Cleanroom review + DEFECT fixes\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/task :v "Cleanroom review + DEFECT fixes" :op :assert}
+   {:e #blake3 "d3feaed5bfcb306468dbf0eb3531c8108fb22bf805e9ff2c9c1ed84f8cb14a26" :a :harvest/tx-since-last :v 6 :op :assert}
+ ]}

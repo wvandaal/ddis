@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774629922/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DAEMON-W3-TEST: Verify zero-write CLI in daemon mode — primary stale cache regression test"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :db/ident :v :task/t-051b939b :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/created-at :v 1774629921 :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/description :v "TESTS for DAEMON-W3. UNIT: (1) Simulate daemon-routed command. Verify main.rs LiveStore.is_dirty() == false at process exit. (2) Simulate direct-mode command with RFL-2 output. Verify main.rs LiveStore.is_dirty() == true and RFL-2 datoms present. E2E: (3) Start daemon. Run braid observe 'X'. Immediately run braid status. Verify observation X appears (no stale cache from main.rs overwrite). This is the PRIMARY regression test for the stale cache bug. (4) Run 5 consecutive braid observe commands rapidly. All 5 observations appear in braid task search / braid query. No data loss. FAILURE DIAGNOSTIC: Log LiveStore dirty flag at process exit. If dirty after daemon-routed command, print warning with the write that caused it." :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/id :v "t-051b939b" :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/labels :v :label/daemon :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/labels :v :label/wave3 :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/title :v "DAEMON-W3-TEST: Verify zero-write CLI in daemon mode — primary stale cache regression test" :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/title-l0 :v "DAEMON-W3-TEST" :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/title-l1 :v "DAEMON-W3-TEST: Verify zero-write CLI in daemon mode — primary stale cache..." :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/traces-to :v #blake3 "7ceb3ac1150ab21287b5642e327ecec7a2d644e1f0772aab707f9c6106560932" :op :assert}
+   {:e #blake3 "a12181ebfc1877ea5c8a7e20b4b9692713ae305da8da7f4a6bbcf383b5a71944" :a :task/type :v :task.type/task :op :assert}
+ ]}

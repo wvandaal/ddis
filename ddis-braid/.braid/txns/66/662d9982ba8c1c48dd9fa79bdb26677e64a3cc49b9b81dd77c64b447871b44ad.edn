@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774619555/0/49b3c547f4ad36acd485fec181aab1fa"
+ :tx/agent "49b3c547f4ad36acd485fec181aab1fa"
+ :tx/provenance :observed
+ :tx/rationale "DEFECT-002 (MAJOR): compute_read_steering() at concept.rs:636 has zero unit tests. This is the function that computes the steering question — the core deliverable of INV-REFLEXIVE-006. Priority cascade: (1) frontier_recommendation from embedding, (2) co_occurrence_matrix bridge gap (jaccard < 0.01), (3) concept_inventory smallest concept (member_count < 3). Both thresholds (0.01 and 3) are untested boundary conditions. Empty store must return None. Store with one small concept must return question mentioning concept name. TRACES: INV-REFLEXIVE-006."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "26487cdef23ed5af40660ee274dc2e522ee9065e695c3365e74175756e35e79d" :a :db/doc :v "DEFECT-002 (MAJOR): compute_read_steering() at concept.rs:636 has zero unit tests. This is the function that computes the steering question — the core deliverable of INV-REFLEXIVE-006. Priority cascade: (1) frontier_recommendation from embedding, (2) co_occurrence_matrix bridge gap (jaccard < 0.01), (3) concept_inventory smallest concept (member_count < 3). Both thresholds (0.01 and 3) are untested boundary conditions. Empty store must return None. Store with one small concept must return question mentioning concept name. TRACES: INV-REFLEXIVE-006." :op :assert}
+   {:e #blake3 "26487cdef23ed5af40660ee274dc2e522ee9065e695c3365e74175756e35e79d" :a :db/ident :v :observation/defect-002-major-compute-read-steering-at-conceptrs63 :op :assert}
+   {:e #blake3 "26487cdef23ed5af40660ee274dc2e522ee9065e695c3365e74175756e35e79d" :a :exploration/body :v "DEFECT-002 (MAJOR): compute_read_steering() at concept.rs:636 has zero unit tests. This is the function that computes the steering question — the core deliverable of INV-REFLEXIVE-006. Priority cascade: (1) frontier_recommendation from embedding, (2) co_occurrence_matrix bridge gap (jaccard < 0.01), (3) concept_inventory smallest concept (member_count < 3). Both thresholds (0.01 and 3) are untested boundary conditions. Empty store must return None. Store with one small concept must return question mentioning concept name. TRACES: INV-REFLEXIVE-006." :op :assert}
+   {:e #blake3 "26487cdef23ed5af40660ee274dc2e522ee9065e695c3365e74175756e35e79d" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "26487cdef23ed5af40660ee274dc2e522ee9065e695c3365e74175756e35e79d" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "26487cdef23ed5af40660ee274dc2e522ee9065e695c3365e74175756e35e79d" :a :exploration/content-hash :v #bytes "2838f8b0cc4eb4c18cc023e6e099ee05cad6b08796c426a9ccbac8ab3f640f27" :op :assert}
+   {:e #blake3 "26487cdef23ed5af40660ee274dc2e522ee9065e695c3365e74175756e35e79d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "26487cdef23ed5af40660ee274dc2e522ee9065e695c3365e74175756e35e79d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "26487cdef23ed5af40660ee274dc2e522ee9065e695c3365e74175756e35e79d" :a :exploration/source-session :v #blake3 "d5623dbd02609c583a083ae155b8fd85ffbe6b46dae3891916fc25f6fc8ab4cc" :op :assert}
+ ]}

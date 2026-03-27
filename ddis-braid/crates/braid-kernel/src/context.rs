@@ -188,11 +188,10 @@ pub fn record_block_presentations(
                 // Read existing last-presented for retraction
                 // Get LIVE last-presented (latest Assert by tx wins)
                 let ent_datoms = store.entity_datoms(e);
-                let last = latest_assert(&ent_datoms, &last_attr)
-                    .and_then(|ed| match &ed.value {
-                        Value::Instant(ts) => Some(*ts),
-                        _ => None,
-                    });
+                let last = latest_assert(&ent_datoms, &last_attr).and_then(|ed| match &ed.value {
+                    Value::Instant(ts) => Some(*ts),
+                    _ => None,
+                });
                 (e, Some(count), last)
             }
             None => {
@@ -546,25 +545,26 @@ fn methodology_context_blocks_inner(
                 1.0
             }
         });
-    let score_block = |label: &str, impact: f64, tokens: usize| -> Option<crate::budget::AcquisitionScore> {
-        let count = block_presentation_count(store, label);
-        let novelty = crate::budget::novelty_from_count(count);
-        // ATT-2-IMPL: Hebbian boost from --verbose requests.
-        // Blocks the user explicitly requested via --verbose get a boost that
-        // increases their impact score, causing them to auto-promote into
-        // default output over time. Clamped to [0.0, 0.5] to prevent any
-        // single block from dominating purely through verbose requests.
-        let boost = block_hebbian_boost(store, label).clamp(0.0, 0.5);
-        let boosted_impact = (impact + boost).min(1.0);
-        Some(crate::budget::AcquisitionScore::from_factors(
-            crate::budget::ObservationKind::ContextBlock,
-            boosted_impact,
-            1.0, // methodology blocks always relevant
-            novelty,
-            block_confidence,
-            crate::budget::ObservationCost::from_tokens(tokens),
-        ))
-    };
+    let score_block =
+        |label: &str, impact: f64, tokens: usize| -> Option<crate::budget::AcquisitionScore> {
+            let count = block_presentation_count(store, label);
+            let novelty = crate::budget::novelty_from_count(count);
+            // ATT-2-IMPL: Hebbian boost from --verbose requests.
+            // Blocks the user explicitly requested via --verbose get a boost that
+            // increases their impact score, causing them to auto-promote into
+            // default output over time. Clamped to [0.0, 0.5] to prevent any
+            // single block from dominating purely through verbose requests.
+            let boost = block_hebbian_boost(store, label).clamp(0.0, 0.5);
+            let boosted_impact = (impact + boost).min(1.0);
+            Some(crate::budget::AcquisitionScore::from_factors(
+                crate::budget::ObservationKind::ContextBlock,
+                boosted_impact,
+                1.0, // methodology blocks always relevant
+                novelty,
+                block_confidence,
+                crate::budget::ObservationCost::from_tokens(tokens),
+            ))
+        };
 
     let mut blocks = vec![crate::budget::ContextBlock {
         precedence: crate::budget::OutputPrecedence::Methodology,
@@ -1783,45 +1783,46 @@ pub fn knowledge_relevance_scan(text: &str, store: &Store) -> Vec<SpecRelevance>
             let entity_datoms_list = store.entity_datoms(entity);
 
             // Try :task/id first (task entity), then :db/ident (spec entity)
-            let (ident, human_id, source, summary) =
-                if let Some(tid) = entity_datoms_list.iter().find(|d| {
-                    d.attribute == task_id_attr && d.op == Op::Assert
-                }) {
-                    let id = match &tid.value {
-                        Value::String(s) => s.clone(),
-                        _ => format!("{:?}", entity),
-                    };
-                    let title = store
-                        .live_value(entity, &Attribute::from_keyword(":task/title"))
-                        .and_then(|v| match v {
-                            Value::String(s) => Some(s.clone()),
-                            _ => None,
-                        })
-                        .unwrap_or_default();
-                    let summary = crate::budget::safe_truncate_bytes(&title, 60).to_string();
-                    (format!(":task/{}", id), id, "task".to_string(), summary)
-                } else if let Some(id_datom) = entity_datoms_list.iter().find(|d| {
-                    d.attribute == ident_attr && d.op == Op::Assert
-                }) {
-                    let ident_str = match &id_datom.value {
-                        Value::Keyword(k) => k.clone(),
-                        _ => format!("{:?}", entity),
-                    };
-                    let human = crate::spec_id::SpecId::from_store_ident(&ident_str)
-                        .map(|s| s.human_form())
-                        .unwrap_or_else(|| ident_str.clone());
-                    let stmt = store
-                        .live_value(entity, &Attribute::from_keyword(":spec/statement"))
-                        .and_then(|v| match v {
-                            Value::String(s) => Some(s.clone()),
-                            _ => None,
-                        })
-                        .unwrap_or_default();
-                    let summary = crate::budget::safe_truncate_bytes(&stmt, 60).to_string();
-                    (ident_str.clone(), human, "spec".to_string(), summary)
-                } else {
-                    continue; // Skip entities without identifiable metadata
+            let (ident, human_id, source, summary) = if let Some(tid) = entity_datoms_list
+                .iter()
+                .find(|d| d.attribute == task_id_attr && d.op == Op::Assert)
+            {
+                let id = match &tid.value {
+                    Value::String(s) => s.clone(),
+                    _ => format!("{:?}", entity),
                 };
+                let title = store
+                    .live_value(entity, &Attribute::from_keyword(":task/title"))
+                    .and_then(|v| match v {
+                        Value::String(s) => Some(s.clone()),
+                        _ => None,
+                    })
+                    .unwrap_or_default();
+                let summary = crate::budget::safe_truncate_bytes(&title, 60).to_string();
+                (format!(":task/{}", id), id, "task".to_string(), summary)
+            } else if let Some(id_datom) = entity_datoms_list
+                .iter()
+                .find(|d| d.attribute == ident_attr && d.op == Op::Assert)
+            {
+                let ident_str = match &id_datom.value {
+                    Value::Keyword(k) => k.clone(),
+                    _ => format!("{:?}", entity),
+                };
+                let human = crate::spec_id::SpecId::from_store_ident(&ident_str)
+                    .map(|s| s.human_form())
+                    .unwrap_or_else(|| ident_str.clone());
+                let stmt = store
+                    .live_value(entity, &Attribute::from_keyword(":spec/statement"))
+                    .and_then(|v| match v {
+                        Value::String(s) => Some(s.clone()),
+                        _ => None,
+                    })
+                    .unwrap_or_default();
+                let summary = crate::budget::safe_truncate_bytes(&stmt, 60).to_string();
+                (ident_str.clone(), human, "spec".to_string(), summary)
+            } else {
+                continue; // Skip entities without identifiable metadata
+            };
 
             results.push(SpecRelevance {
                 ident,
@@ -1948,10 +1949,7 @@ pub fn extract_spec_namespace(spec_ref: &str) -> &str {
 /// 4. For 1-hop: follow `:spec/traces-to` from the spec entity to neighbor
 ///    spec entities, then VAET on those neighbors. Score *= 0.5 for 1-hop.
 /// 5. Deduplicate by max score, cap at top 10.
-pub fn spec_graph_neighbors(
-    store: &Store,
-    spec_ref_ids: &[String],
-) -> Vec<(EntityId, f64)> {
+pub fn spec_graph_neighbors(store: &Store, spec_ref_ids: &[String]) -> Vec<(EntityId, f64)> {
     if spec_ref_ids.is_empty() {
         return Vec::new();
     }
@@ -2030,10 +2028,7 @@ pub fn spec_graph_neighbors(
 
     // Sort by score descending, cap at top 10
     let mut results: Vec<(EntityId, f64)> = scores.into_iter().collect();
-    results.sort_by(|a, b| {
-        b.1.partial_cmp(&a.1)
-            .unwrap_or(std::cmp::Ordering::Equal)
-    });
+    results.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
     results.truncate(10);
     results
 }
@@ -2132,7 +2127,6 @@ pub fn contextual_observation_hint(
 fn truncate_hint(s: &str, max: usize) -> &str {
     crate::budget::safe_truncate_bytes(s, max)
 }
-
 
 /// Generate the `<braid-methodology>` section content from store state (INV-GUIDANCE-022).
 ///
@@ -2291,7 +2285,10 @@ mod tests {
         // Second boost: increments to 2.0
         let tx2 = TxId::new(201, 0, agent);
         let datoms2 = record_hebbian_boosts(&store, &[label], tx2);
-        assert!(!datoms2.is_empty(), "should produce datoms for second boost");
+        assert!(
+            !datoms2.is_empty(),
+            "should produce datoms for second boost"
+        );
         store.apply_datoms(&datoms2);
         let boost2 = block_hebbian_boost(&store, label);
         assert!(
@@ -2392,12 +2389,28 @@ mod tests {
 
         let blocks = vec![
             ContextBlock::new_scored(OutputPrecedence::System, "store: 100 datoms".into(), 15),
-            ContextBlock::new_scored(OutputPrecedence::Methodology, "coherence: F=0.62".into(), 25),
-            ContextBlock::new_scored(OutputPrecedence::Methodology, "boundaries: spec 0.90".into(), 12),
+            ContextBlock::new_scored(
+                OutputPrecedence::Methodology,
+                "coherence: F=0.62".into(),
+                25,
+            ),
+            ContextBlock::new_scored(
+                OutputPrecedence::Methodology,
+                "boundaries: spec 0.90".into(),
+                12,
+            ),
             ContextBlock::new_scored(OutputPrecedence::UserRequested, "tasks: 10 open".into(), 18),
             ContextBlock::new_scored(OutputPrecedence::Methodology, "harvest: 3 tx".into(), 10),
-            ContextBlock::new_scored(OutputPrecedence::Speculative, "gaps: 5 uncrystallized".into(), 15),
-            ContextBlock::new_scored(OutputPrecedence::Methodology, "session: +2 tasks".into(), 12),
+            ContextBlock::new_scored(
+                OutputPrecedence::Speculative,
+                "gaps: 5 uncrystallized".into(),
+                15,
+            ),
+            ContextBlock::new_scored(
+                OutputPrecedence::Methodology,
+                "session: +2 tasks".into(),
+                12,
+            ),
         ];
 
         // Navigate budget = 100 tokens

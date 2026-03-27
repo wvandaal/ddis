@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774619640/0/a0ded8ec1eb8fb489929ffc97ae0c27a"
+ :tx/agent "a0ded8ec1eb8fb489929ffc97ae0c27a"
+ :tx/provenance :observed
+ :tx/rationale "DEFECT-007 (MINOR): truncate_display at observe.rs:1809 returns truncated text with no visual indicator. User cannot distinguish 'complete short text' from 'long text cut off mid-sentence'. Fix: return Cow<str> — borrowed &str when no truncation needed, owned String with appended ellipsis character when truncated. Must account for UTF-8 boundary in ellipsis placement. TRACES: INV-CLI-RESPONSE-STEERING (STEERING_MANIFOLD.md section 14)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2d6df80a395fc84b0e81bf310afd6dacf0c2f43fe9b20183d81d363a52ab5be0" :a :db/doc :v "DEFECT-007 (MINOR): truncate_display at observe.rs:1809 returns truncated text with no visual indicator. User cannot distinguish 'complete short text' from 'long text cut off mid-sentence'. Fix: return Cow<str> — borrowed &str when no truncation needed, owned String with appended ellipsis character when truncated. Must account for UTF-8 boundary in ellipsis placement. TRACES: INV-CLI-RESPONSE-STEERING (STEERING_MANIFOLD.md section 14)." :op :assert}
+   {:e #blake3 "2d6df80a395fc84b0e81bf310afd6dacf0c2f43fe9b20183d81d363a52ab5be0" :a :db/ident :v :observation/defect-007-minor-truncate-display-at-observers1809-retu :op :assert}
+   {:e #blake3 "2d6df80a395fc84b0e81bf310afd6dacf0c2f43fe9b20183d81d363a52ab5be0" :a :exploration/body :v "DEFECT-007 (MINOR): truncate_display at observe.rs:1809 returns truncated text with no visual indicator. User cannot distinguish 'complete short text' from 'long text cut off mid-sentence'. Fix: return Cow<str> — borrowed &str when no truncation needed, owned String with appended ellipsis character when truncated. Must account for UTF-8 boundary in ellipsis placement. TRACES: INV-CLI-RESPONSE-STEERING (STEERING_MANIFOLD.md section 14)." :op :assert}
+   {:e #blake3 "2d6df80a395fc84b0e81bf310afd6dacf0c2f43fe9b20183d81d363a52ab5be0" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "2d6df80a395fc84b0e81bf310afd6dacf0c2f43fe9b20183d81d363a52ab5be0" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "2d6df80a395fc84b0e81bf310afd6dacf0c2f43fe9b20183d81d363a52ab5be0" :a :exploration/content-hash :v #bytes "c1160938cdf4317a2664f0be784bd0abb83e92ac00c32f3d2f7f30f5964d993b" :op :assert}
+   {:e #blake3 "2d6df80a395fc84b0e81bf310afd6dacf0c2f43fe9b20183d81d363a52ab5be0" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2d6df80a395fc84b0e81bf310afd6dacf0c2f43fe9b20183d81d363a52ab5be0" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2d6df80a395fc84b0e81bf310afd6dacf0c2f43fe9b20183d81d363a52ab5be0" :a :exploration/source-session :v #blake3 "d5623dbd02609c583a083ae155b8fd85ffbe6b46dae3891916fc25f6fc8ab4cc" :op :assert}
+ ]}

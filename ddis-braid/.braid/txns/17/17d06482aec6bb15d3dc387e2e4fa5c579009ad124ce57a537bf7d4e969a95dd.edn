@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774636522/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-9a74911c"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/close-reason :v "Superseded by existing WRITER-SPEC (t-abb1f8b5) which has exact Rust borrow pattern, NLL explanation, command-by-command wiring order, and strace verification — all more detailed than DW5" :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/closed-at :v 1774636521 :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1235,8 +1235,7 @@ pub fn close(
                     .attribute_datoms(&hyp_action_attr)
                     .iter()
                     .filter(|d| {
-                        d.op == Op::Assert
-                            && matches!(&d.value, Value::Ref(r) if *r == task_entity)
+                        d.op == Op::Assert && matches!(&d.value, Value::Ref(r) if *r == task_entity)
                     })
                     .map(|d| d.entity)
                     .collect();
@@ -1254,8 +1253,7 @@ pub fn close(
                         .entity_datoms(hyp_entity)
                         .iter()
                         .find(|d| {
-                            d.attribute.as_str() == ":hypothesis/predicted"
-                                && d.op == Op::Assert
+                            d.attribute.as_str() == ":hypothesis/predicted" && d.op == Op::Assert
                         })
                         .and_then(|d| match &d.value {
                             Value::Double(v) => Some(v.into_inner()),
@@ -2042,10 +2040,7 @@ pub fn audit(path: &Path) -> Result<CommandOutput, BraidError> {
 ///
 /// Returns (score, task_id, short_title) for matches with score > 0.3.
 /// Uses Jaccard similarity on tokenized words (len >= 4).
-fn crb_preview_scan(
-    title: &str,
-    store: &braid_kernel::Store,
-) -> Vec<(f64, String, String)> {
+fn crb_preview_scan(title: &str, store: &braid_kernel::Store) -> Vec<(f64, String, String)> {
     use std::collections::BTreeSet;
 
     let tokenize = |text: &str| -> BTreeSet<String> {
@@ -2549,10 +2544,7 @@ mod tests {
         let task_id = generate_task_id("Invalid attr test");
 
         let result = set(&path, &task_id, "nonexistent_attribute", "value", "test");
-        assert!(
-            result.is_err(),
-            "setting unknown attribute should error"
-        );
+        assert!(result.is_err(), "setting unknown attribute should error");
     }
 
     // -------------------------------------------------------------------
@@ -2622,7 +2614,8 @@ mod tests {
 
     #[test]
     fn tap2_parse_stdin_document_basic() {
-        let input = "TITLE: Fix the merge bug\nBACKGROUND: There's a merge issue\nACCEPTANCE: Tests pass\n";
+        let input =
+            "TITLE: Fix the merge bug\nBACKGROUND: There's a merge issue\nACCEPTANCE: Tests pass\n";
         let doc = super::parse_stdin_document(input).unwrap();
         assert_eq!(doc.title, "Fix the merge bug");
         assert!(doc.body.is_some());
@@ -2643,4 +2636,3 @@ mod tests {
         assert!(result.is_err());
     }
 }
-

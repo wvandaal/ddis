@@ -29,6 +29,7 @@ pub struct ModelInfo {
     /// Size of model.safetensors in bytes.
     pub model_size: u64,
     /// Size of tokenizer.json in bytes.
+    #[allow(dead_code)]
     pub tokenizer_size: u64,
 }
 
@@ -92,10 +93,7 @@ fn check_model_dir(dir: &Path, scope: ModelScope) -> Option<ModelInfo> {
 /// ADR-EMBEDDING-002: Prefer model2vec when available, hash fallback.
 pub fn resolve_embedder(
     store_path: &Path,
-) -> (
-    Box<dyn braid_kernel::embedding::TextEmbedder>,
-    &'static str,
-) {
+) -> (Box<dyn braid_kernel::embedding::TextEmbedder>, &'static str) {
     if let Some(info) = discover_model(store_path) {
         // Try to load model2vec embedder.
         #[cfg(feature = "embeddings")]
@@ -103,10 +101,7 @@ pub fn resolve_embedder(
             let model_path = info.path.join(MODEL_FILE);
             let tokenizer_path = info.path.join(TOKENIZER_FILE);
 
-            match (
-                std::fs::read(&model_path),
-                std::fs::read(&tokenizer_path),
-            ) {
+            match (std::fs::read(&model_path), std::fs::read(&tokenizer_path)) {
                 (Ok(model_bytes), Ok(tokenizer_bytes)) => {
                     match braid_kernel::embedding::Embedder::from_bytes(
                         &model_bytes,
@@ -116,7 +111,9 @@ pub fn resolve_embedder(
                             return (Box::new(embedder), "model2vec");
                         }
                         Err(e) => {
-                            eprintln!("warning: model load failed: {e}, falling back to hash embedder");
+                            eprintln!(
+                                "warning: model load failed: {e}, falling back to hash embedder"
+                            );
                         }
                     }
                 }
@@ -129,7 +126,9 @@ pub fn resolve_embedder(
         #[cfg(not(feature = "embeddings"))]
         {
             let _ = info; // Suppress unused warning.
-            eprintln!("warning: model found but 'embeddings' feature not enabled, using hash embedder");
+            eprintln!(
+                "warning: model found but 'embeddings' feature not enabled, using hash embedder"
+            );
         }
     }
 

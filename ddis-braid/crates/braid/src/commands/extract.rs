@@ -150,7 +150,10 @@ pub fn run(
                 let code = output.status.code().unwrap_or(-1);
                 out.push_str(&format!(" FAILED (exit {})\n", code));
                 if !stderr.is_empty() {
-                    out.push_str(&format!("    stderr: {}\n", stderr.lines().next().unwrap_or("")));
+                    out.push_str(&format!(
+                        "    stderr: {}\n",
+                        stderr.lines().next().unwrap_or("")
+                    ));
                 }
                 results.push(serde_json::json!({
                     "command": ext.command,

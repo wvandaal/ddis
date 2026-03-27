@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774623308/0/734d27b68bbd5212b8b47398f6f8c3a8"
+ :tx/agent "734d27b68bbd5212b8b47398f6f8c3a8"
+ :tx/provenance :observed
+ :tx/rationale "mtime test"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8e38e3a6314d286bc36d555100b151e8b83b96b8ea2e8841576365080b9b5e71" :a :db/doc :v "mtime test" :op :assert}
+   {:e #blake3 "8e38e3a6314d286bc36d555100b151e8b83b96b8ea2e8841576365080b9b5e71" :a :db/ident :v :observation/mtime-test :op :assert}
+   {:e #blake3 "8e38e3a6314d286bc36d555100b151e8b83b96b8ea2e8841576365080b9b5e71" :a :exploration/body :v "mtime test" :op :assert}
+   {:e #blake3 "8e38e3a6314d286bc36d555100b151e8b83b96b8ea2e8841576365080b9b5e71" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "8e38e3a6314d286bc36d555100b151e8b83b96b8ea2e8841576365080b9b5e71" :a :exploration/confidence :v 0.5 :op :assert}
+   {:e #blake3 "8e38e3a6314d286bc36d555100b151e8b83b96b8ea2e8841576365080b9b5e71" :a :exploration/content-hash :v #bytes "5a5ecc4161900b69fe60612a2241539c0132595d688073b4c4f806b9ba098039" :op :assert}
+   {:e #blake3 "8e38e3a6314d286bc36d555100b151e8b83b96b8ea2e8841576365080b9b5e71" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "8e38e3a6314d286bc36d555100b151e8b83b96b8ea2e8841576365080b9b5e71" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "8e38e3a6314d286bc36d555100b151e8b83b96b8ea2e8841576365080b9b5e71" :a :exploration/source-session :v #blake3 "26c93d8623214ca55517c10b3ebbbcbf557c3d290fc04173e7a1c13a48277d13" :op :assert}
+   {:e #blake3 "8e38e3a6314d286bc36d555100b151e8b83b96b8ea2e8841576365080b9b5e71" :a :exploration/tags :v :tag/test :op :assert}
+ ]}

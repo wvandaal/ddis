@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774642715/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-70de9930"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2e8067b3763ababe2a243e91f1bce813d959b3a1eb81b160108ea5331f8c92cb" :a :task/close-reason :v "Superseded by STEER-1v3 with --verbose flag, vocabulary consistency, and pagination" :op :assert}
+   {:e #blake3 "2e8067b3763ababe2a243e91f1bce813d959b3a1eb81b160108ea5331f8c92cb" :a :task/closed-at :v 1774642714 :op :assert}
+   {:e #blake3 "2e8067b3763ababe2a243e91f1bce813d959b3a1eb81b160108ea5331f8c92cb" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "2e8067b3763ababe2a243e91f1bce813d959b3a1eb81b160108ea5331f8c92cb" :a :task/status :v :task.status/closed :op :assert}
+ ]}

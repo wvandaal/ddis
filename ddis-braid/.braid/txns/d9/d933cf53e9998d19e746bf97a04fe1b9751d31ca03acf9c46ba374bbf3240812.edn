@@ -1,0 +1,14 @@
+{:tx/id #hlc "1774641466/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c0c7ca7423100152250a4568fb35dadebf5a08b68116dbd0e159cbc99ead216f" :a :db/ident :v :recon/trace-537f709d7da55567 :op :assert}
+   {:e #blake3 "c0c7ca7423100152250a4568fb35dadebf5a08b68116dbd0e159cbc99ead216f" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "c0c7ca7423100152250a4568fb35dadebf5a08b68116dbd0e159cbc99ead216f" :a :recon/trace-neighborhood :v "CLI" :op :assert}
+   {:e #blake3 "c0c7ca7423100152250a4568fb35dadebf5a08b68116dbd0e159cbc99ead216f" :a :recon/trace-neighbors :v ":task/t-3a5d7139" :op :assert}
+   {:e #blake3 "c0c7ca7423100152250a4568fb35dadebf5a08b68116dbd0e159cbc99ead216f" :a :recon/trace-neighbors :v ":task/t-ddb6327f" :op :assert}
+   {:e #blake3 "c0c7ca7423100152250a4568fb35dadebf5a08b68116dbd0e159cbc99ead216f" :a :recon/trace-refs :v "ADR-CLI-001" :op :assert}
+   {:e #blake3 "c0c7ca7423100152250a4568fb35dadebf5a08b68116dbd0e159cbc99ead216f" :a :recon/trace-refs :v "INV-CLI-003" :op :assert}
+ ]}

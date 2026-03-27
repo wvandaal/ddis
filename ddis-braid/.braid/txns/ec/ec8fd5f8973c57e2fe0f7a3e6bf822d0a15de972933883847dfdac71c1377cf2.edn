@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774632224/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: race-test-1"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9ed61795da58dbfface87486cf17b65f2066e0c6c23f3c5febc1ec7e1678a438" :a :db/ident :v :task/t-0792d49b :op :assert}
+   {:e #blake3 "9ed61795da58dbfface87486cf17b65f2066e0c6c23f3c5febc1ec7e1678a438" :a :task/created-at :v 1774632223 :op :assert}
+   {:e #blake3 "9ed61795da58dbfface87486cf17b65f2066e0c6c23f3c5febc1ec7e1678a438" :a :task/id :v "t-0792d49b" :op :assert}
+   {:e #blake3 "9ed61795da58dbfface87486cf17b65f2066e0c6c23f3c5febc1ec7e1678a438" :a :task/priority :v 4 :op :assert}
+   {:e #blake3 "9ed61795da58dbfface87486cf17b65f2066e0c6c23f3c5febc1ec7e1678a438" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9ed61795da58dbfface87486cf17b65f2066e0c6c23f3c5febc1ec7e1678a438" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9ed61795da58dbfface87486cf17b65f2066e0c6c23f3c5febc1ec7e1678a438" :a :task/title :v "race-test-1" :op :assert}
+   {:e #blake3 "9ed61795da58dbfface87486cf17b65f2066e0c6c23f3c5febc1ec7e1678a438" :a :task/title-l0 :v "race-test-1" :op :assert}
+   {:e #blake3 "9ed61795da58dbfface87486cf17b65f2066e0c6c23f3c5febc1ec7e1678a438" :a :task/title-l1 :v "race-test-1" :op :assert}
+   {:e #blake3 "9ed61795da58dbfface87486cf17b65f2066e0c6c23f3c5febc1ec7e1678a438" :a :task/type :v :task.type/task :op :assert}
+ ]}

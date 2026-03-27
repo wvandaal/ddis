@@ -33,8 +33,8 @@ pub mod census;
 pub mod coherence;
 pub mod compiler;
 pub mod concept;
-pub mod connections;
 pub mod config;
+pub mod connections;
 pub mod context;
 pub mod datom;
 pub mod deliberation;
@@ -71,26 +71,25 @@ pub mod witness;
 pub use agent_md::{generate_agent_md, AgentMdConfig, AgentMdSection, GeneratedAgentMd};
 pub use agent_store::{AgentStore, CommitError};
 pub use bilateral::{
-    analyze_convergence, backward_scan, composite_evidence_weight, compute_fitness,
-    compute_fitness_from_policy, compute_fitness_with_registry, cycle_to_datoms,
-    comonadic_depth, default_boundaries, depth_weight, set_depth_datom,
-    evaluate_conditions, format_terse, format_verbose, forward_scan, load_trajectory,
-    observation_boundary, run_cycle,
+    analyze_convergence, backward_scan, comonadic_depth, composite_evidence_weight,
+    compute_fitness, compute_fitness_from_policy, compute_fitness_with_registry, cycle_to_datoms,
+    default_boundaries, depth_weight, evaluate_conditions, format_terse, format_verbose,
+    forward_scan, load_trajectory, observation_boundary, run_cycle, set_depth_datom,
     spectral_certificate, BilateralScan, BilateralState, Boundary, BoundaryCheck,
     BoundaryDivergence, BoundaryEvaluation, BoundaryRegistry, CoherenceConditions, ConditionResult,
-    ConvergenceAnalysis, DivergenceDirection, EntropyDecomposition, FitnessComponents, FitnessScore,
-    Gap, GapSeverity, RenyiSpectrum, ScanResult, SetRelation, SpecImplBoundary,
+    ConvergenceAnalysis, DivergenceDirection, EntropyDecomposition, FitnessComponents,
+    FitnessScore, Gap, GapSeverity, RenyiSpectrum, ScanResult, SetRelation, SpecImplBoundary,
     SpectralCertificate,
 };
 pub use branch::{branch_datoms, compare_branches, create_branch, merge_branch, prune_branch};
 pub use budget::{
     attention_decay, classify_command, enforce_ceiling, json_to_tsv, novelty_from_count,
-    quality_adjusted_budget, safe_truncate_bytes, safe_truncate_display, ActionProjection,
-    ActivationStrategy, AcquisitionScore, ApproxTokenCounter, AttentionProfile, BudgetManager,
-    BudgetProjection, ContextBlock, ObservationCost, ObservationKind,
-    GuidanceLevel, OutputBlock, OutputPrecedence, ProjectedAction, SessionPhase, TokenCounter,
-    TokenEfficiency, AGENT_MODE_CEILING, BUDGET_FRACTION, DEFAULT_WINDOW_SIZE,
-    ERROR_MESSAGE_CEILING, GUIDANCE_FOOTER_CEILING, MIN_OUTPUT,
+    quality_adjusted_budget, safe_truncate_bytes, safe_truncate_display, AcquisitionScore,
+    ActionProjection, ActivationStrategy, ApproxTokenCounter, AttentionProfile, BudgetManager,
+    BudgetProjection, ContextBlock, GuidanceLevel, ObservationCost, ObservationKind, OutputBlock,
+    OutputPrecedence, ProjectedAction, SessionPhase, TokenCounter, TokenEfficiency,
+    AGENT_MODE_CEILING, BUDGET_FRACTION, DEFAULT_WINDOW_SIZE, ERROR_MESSAGE_CEILING,
+    GUIDANCE_FOOTER_CEILING, MIN_OUTPUT,
 };
 pub use coherence::{
     coherence_check, tier1_check, tier2_check, transact_with_coherence, CoherenceError,
@@ -102,16 +101,19 @@ pub use compiler::{
     TestProperty,
 };
 pub use concept::{
-    assign_to_concept, assign_to_concepts, assign_to_concepts_soft, calibrate_join_threshold,
-    co_occurrence_matrix,
-    compute_observe_steering, compute_observe_steering_multi, concept_inventory,
-    concept_to_datoms, crystallize_concepts, entity_auto_link, find_nearest_concept,
-    format_concept_status, frontier_recommendation, innate_concept_datoms, is_innate,
-    membership_datoms, membership_strength, mention_datoms, should_merge, should_split,
-    surprise_weight, update_centroid, update_centroid_weighted, ConceptAssignment,
-    ConceptCoOccurrence, ConceptSummary, EntityMatch, FrontierKind, FrontierRec, NewConcept,
-    ObserveSteering, DEFAULT_ALPHA, INNATE_CONCEPTS, JOIN_THRESHOLD, MERGE_THRESHOLD,
-    MIN_CLUSTER_SIZE, SPLIT_THRESHOLD,
+    agent_observation_groups, all_observations, assign_to_concept, assign_to_concepts,
+    assign_to_concepts_soft, calibrate_join_threshold, co_occurrence_matrix,
+    compute_observe_steering, compute_observe_steering_multi, compute_read_steering,
+    concept_inventory, concept_to_datoms, crystallize_concepts, entity_auto_link,
+    extract_observation_links, find_agreement_clusters, find_nearest_concept,
+    format_agreement_summary, format_concept_status, frontier_recommendation,
+    innate_concept_datoms, is_innate, link_datoms as concept_link_datoms, membership_datoms,
+    membership_strength, mention_datoms, observations_by_concept, should_merge, should_split,
+    split_concept, surprise_weight, update_centroid, update_centroid_weighted,
+    AgentObservationGroup, AgreementCluster, ConceptAssignment, ConceptCoOccurrence,
+    ConceptSummary, EntityMatch, ExtractedLink, FrontierKind, FrontierRec, LinkRelation,
+    NewConcept, ObservationRecord, ObserveSteering, DEFAULT_ALPHA, INNATE_CONCEPTS,
+    JOIN_THRESHOLD, MERGE_THRESHOLD, MIN_CLUSTER_SIZE, SPLIT_THRESHOLD,
 };
 pub use config::{
     all_config, defaults as config_defaults, get_config, get_config_or, set_config_datoms,
@@ -121,44 +123,41 @@ pub use connections::{
     shared_keywords, tokenize, ConnectionSummary, ProposedConnection,
 };
 pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
-#[cfg(feature = "embeddings")]
-pub use embedding::Embedder;
-pub use embedding::{
-    bytes_to_embedding, centroid, cosine_similarity, embedding_to_bytes, variance,
-    EmbeddingError, HashEmbedder, TextEmbedder, DEFAULT_DIM,
-};
 pub use deliberation::{
     add_position, check_stability, coherence_violation_to_deliberation, decide, find_precedent,
     open_deliberation, DecisionMethod, DeliberationStatus, StabilityScore,
+};
+#[cfg(feature = "embeddings")]
+pub use embedding::Embedder;
+pub use embedding::{
+    bytes_to_embedding, centroid, cosine_similarity, embedding_to_bytes, variance, EmbeddingError,
+    HashEmbedder, TextEmbedder, DEFAULT_DIM,
 };
 pub use error::{KernelError, TopologyError};
 pub use guidance::{
     adjust_gaps, build_command_footer, build_command_footer_with_hint, build_footer,
     build_footer_with_budget, classify_action_outcome, compute_action_from_routing,
-    compute_action_from_store, compute_methodology_score, compute_routing,
-    compute_routing_from_store, compute_routing_with_calibration, compute_calibration_metrics,
-    hypothesis_completed_count, hypothesis_count,
-    record_hypotheses, record_hypotheses_with_type, CalibrationReport, CalibrationTrend,
+    compute_action_from_store, compute_calibration_metrics, compute_methodology_score,
+    compute_routing, compute_routing_from_store, compute_routing_with_calibration,
     contextual_observation_hint, create_session_start_datoms,
     create_session_start_datoms_with_name, crystallization_candidates, days_to_ymd,
-    find_active_session,
     default_derivation_rules, derive_actions, derive_actions_with_budget,
     derive_actions_with_precomputed, derive_actions_with_routing, derive_tasks,
-    detect_activity_mode, detect_session_start, dynamic_threshold, format_actions, format_footer,
-    format_footer_at_level, harvest_urgency_multi, harvest_warning_from_k_eff,
-    harvest_warning_level, is_actionable_decision, knowledge_relevance_scan,
-    extract_block_labels, methodology_context_blocks, methodology_context_blocks_with_calibration,
-    methodology_gaps, modulate_actions,
-    observation_staleness, record_block_presentations,
-    orphaned_decisions, reconciliation_check, refit_routing_weights, routing_dashboard,
+    detect_activity_mode, detect_session_start, detect_stagnation, dynamic_threshold,
+    extract_block_labels, find_active_session, format_actions, format_footer,
+    format_footer_at_level, generate_bridge_hypotheses, harvest_urgency_multi,
+    harvest_warning_from_k_eff, harvest_warning_level, hypothesis_completed_count,
+    hypothesis_count, is_actionable_decision, knowledge_relevance_scan, methodology_context_blocks,
+    methodology_context_blocks_with_calibration, methodology_gaps, modulate_actions,
+    observation_staleness, orphaned_decisions, reconciliation_check, record_block_presentations,
+    record_hypotheses, record_hypotheses_with_type, refit_routing_weights, routing_dashboard,
     routing_weights, should_warn_on_exit, spec_anchor_factor, spec_neighborhood_concentration,
     spec_relevance_scan, suggest_task_title, telemetry_from_store, tx_velocity, ActionCategory,
-    ActivityMode,
-    AdjustedGaps, ConcentrationSignal, ContextualHint, DerivationRule, DerivedTask,
-    GuidanceAction, GuidanceContext,
-    GuidanceFooter, HarvestWarningLevel, MethodologyComponents, MethodologyGaps, MethodologyScore,
-    BridgeHypothesis, ReconciliationResult, RoutingDashboard, RoutingMetrics, SessionTelemetry,
-    TaskNode, TaskRouting, Trend, generate_bridge_hypotheses, ROUTING_FEATURE_NAMES,
+    ActivityMode, AdjustedGaps, BridgeHypothesis, CalibrationReport, CalibrationTrend,
+    ConcentrationSignal, ContextualHint, DerivationRule, DerivedTask, GuidanceAction,
+    GuidanceContext, GuidanceFooter, HarvestWarningLevel, MethodologyComponents, MethodologyGaps,
+    MethodologyScore, ReconciliationResult, RoutingDashboard, RoutingMetrics, SessionTelemetry,
+    StagnationSignal, TaskNode, TaskRouting, Trend, ROUTING_FEATURE_NAMES,
 };
 pub use harvest::{
     build_harvest_commit, calibrate_harvest, candidate_to_datoms, classify_spec_candidate,
@@ -176,6 +175,10 @@ pub use layout::{
 pub use merge::{
     cascade_full, cascade_step1_conflicts, cascade_stub_datoms, detect_merge_conflicts,
     merge_stores, run_cascade, verify_frontier_advancement, verify_monotonicity, CascadeReceipt,
+};
+pub use policy::{
+    apply_weight_adjustments, calibrate_boundary_weights, validate_policy, AnomalyDef, BoundaryDef,
+    CalibrationConfig, PolicyConfig, PolicyError, WeightAdjustment,
 };
 pub use promote::{
     is_already_promoted, promote, promote_batch, verify_dual_identity, BatchPromotionResult,
@@ -221,10 +224,6 @@ pub use signal::{
     signal_to_datoms, ConfusionDetector, DivergenceType, Severity, Signal, SignalAction,
     SignalType,
 };
-pub use policy::{
-    apply_weight_adjustments, calibrate_boundary_weights, validate_policy, AnomalyDef,
-    BoundaryDef, CalibrationConfig, PolicyConfig, PolicyError, WeightAdjustment,
-};
 pub use stage::{capabilities, max_stage, stage_name};
 pub use store::{
     FitnessDelta, Frontier, MergeCascadeReceipt, MergeReceipt, SnapshotView, Store, TxData,
@@ -241,9 +240,9 @@ pub use task::{
 pub use topology::{
     agent_name_from_files, balance_assign, classify_task_phase, composite_coupling,
     compute_file_coupling, compute_invariant_coupling, coupling_density_matrix,
-    emit_seed_for_agent, extract_task_files, format_plan_agent, format_plan_human,
-    partition_by_file_coupling, partition_quality, phase_plan, quick_plan, ready_task_files,
-    select_topology, spec_dependency_datoms, spectral_partition,
+    emit_seed_for_agent, extract_task_files, fiedler_bisect, format_plan_agent,
+    format_plan_human, partition_by_file_coupling, partition_quality, phase_plan, quick_plan,
+    ready_task_files, select_topology, spec_dependency_datoms, spectral_partition,
     von_neumann_entropy_from_eigenvalues, AgentAssignment, CalmTier, CouplingAnalysis, Phase,
     PlanMethod, TopologyPattern, TopologyPlan,
 };
@@ -260,8 +259,7 @@ pub use witness::{
     alignment_threshold, all_witnesses, auto_task_on_refutation, batch_generate_l1_witnesses,
     challenge_witness, check_depth_monotonic, completeness_guard, content_hash, create_fbw,
     current_spec_hashes, detect_stale_witnesses, fbw_to_datoms, kani_proof_bindings,
-    keyword_alignment_score, mark_stale_datoms, promote_tests_to_l2,
-    stateright_model_bindings, witness_and_challenge, witness_gaps, witness_validation_score,
-    ChallengeResult, CurrentSpecHashes, StaleReason, WitnessParams, WitnessStatus,
-    WitnessVerdict, FBW,
+    keyword_alignment_score, mark_stale_datoms, promote_tests_to_l2, stateright_model_bindings,
+    witness_and_challenge, witness_gaps, witness_validation_score, ChallengeResult,
+    CurrentSpecHashes, StaleReason, WitnessParams, WitnessStatus, WitnessVerdict, FBW,
 };

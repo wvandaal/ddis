@@ -18,9 +18,8 @@
 use braid_kernel::budget::{AcquisitionScore, ObservationCost, ObservationKind};
 use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, TxId, Value};
 use braid_kernel::guidance::{
-    compute_calibration_metrics, hypothesis_completed_count, hypothesis_count,
-    record_hypotheses, record_hypotheses_with_type, CalibrationTrend, RoutingMetrics,
-    TaskRouting,
+    compute_calibration_metrics, hypothesis_completed_count, hypothesis_count, record_hypotheses,
+    record_hypotheses_with_type, CalibrationTrend, RoutingMetrics, TaskRouting,
 };
 use braid_kernel::store::Store;
 
@@ -502,10 +501,7 @@ fn record_hypotheses_with_type_uses_item_type() {
             "item-type should be 'exploration', got '{}'",
             s
         ),
-        other => panic!(
-            "item-type value should be String, got {:?}",
-            other
-        ),
+        other => panic!("item-type value should be String, got {:?}", other),
     }
 
     // Also verify the default path: record_hypotheses uses "task"
@@ -516,15 +512,10 @@ fn record_hypotheses_with_type_uses_item_type() {
         .expect("default path should also have item-type");
 
     match &default_type.value {
-        Value::String(s) => assert_eq!(
-            s, "task",
-            "default item-type should be 'task', got '{}'",
-            s
-        ),
-        other => panic!(
-            "default item-type value should be String, got {:?}",
-            other
-        ),
+        Value::String(s) => {
+            assert_eq!(s, "task", "default item-type should be 'task', got '{}'", s)
+        }
+        other => panic!("default item-type value should be String, got {:?}", other),
     }
 }
 
@@ -537,8 +528,8 @@ fn record_hypotheses_skips_zero_impact() {
     let agent = AgentId::from_name("test:zero");
     let routings = vec![
         make_routing(":task/real", 0.5, 0.0),
-        make_routing(":task/zero", 0.0, 0.0),      // should be skipped
-        make_routing(":task/tiny", 1e-20, 0.0),     // should be skipped (below EPSILON)
+        make_routing(":task/zero", 0.0, 0.0), // should be skipped
+        make_routing(":task/tiny", 1e-20, 0.0), // should be skipped (below EPSILON)
     ];
     let tx_id = TxId::new(400, 0, agent);
     let datoms = record_hypotheses(&routings, 3, tx_id);
@@ -586,8 +577,8 @@ fn record_hypotheses_respects_top_n() {
 fn record_hypotheses_boundary_inference() {
     let agent = AgentId::from_name("test:boundary");
     let routings = vec![
-        make_routing(":task/gradient", 0.5, 0.1),  // gradient_delta > 0 -> spec<->impl
-        make_routing(":task/general", 0.5, 0.0),   // gradient_delta == 0 -> general
+        make_routing(":task/gradient", 0.5, 0.1), // gradient_delta > 0 -> spec<->impl
+        make_routing(":task/general", 0.5, 0.0),  // gradient_delta == 0 -> general
     ];
     let tx_id = TxId::new(600, 0, agent);
     let datoms = record_hypotheses(&routings, 2, tx_id);
@@ -633,20 +624,55 @@ fn per_boundary_accuracy_grouped() {
         let error = if i == 0 { 0.1 } else { 0.3 };
         let actual = 0.5 - error; // so predicted=0.5, actual varies
 
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/action"),
-            Value::Ref(target), tx, Op::Assert));
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/predicted"),
-            Value::Double(ordered_float::OrderedFloat(0.5)), tx, Op::Assert));
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/actual"),
-            Value::Double(ordered_float::OrderedFloat(actual)), tx, Op::Assert));
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/error"),
-            Value::Double(ordered_float::OrderedFloat(error)), tx, Op::Assert));
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/boundary"),
-            Value::String("coverage".to_string()), tx, Op::Assert));
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/completed"),
-            Value::Instant(1000 + i as u64), tx, Op::Assert));
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/item-type"),
-            Value::String("task".to_string()), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/action"),
+            Value::Ref(target),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/predicted"),
+            Value::Double(ordered_float::OrderedFloat(0.5)),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/actual"),
+            Value::Double(ordered_float::OrderedFloat(actual)),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/error"),
+            Value::Double(ordered_float::OrderedFloat(error)),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/boundary"),
+            Value::String("coverage".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/completed"),
+            Value::Instant(1000 + i as u64),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/item-type"),
+            Value::String("task".to_string()),
+            tx,
+            Op::Assert,
+        ));
     }
 
     // Boundary "formality": 2 hypotheses with errors 0.4, 0.6 -> mean 0.5
@@ -656,20 +682,55 @@ fn per_boundary_accuracy_grouped() {
         let error = if i == 0 { 0.4 } else { 0.6 };
         let actual = 0.8 - error;
 
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/action"),
-            Value::Ref(target), tx, Op::Assert));
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/predicted"),
-            Value::Double(ordered_float::OrderedFloat(0.8)), tx, Op::Assert));
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/actual"),
-            Value::Double(ordered_float::OrderedFloat(actual)), tx, Op::Assert));
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/error"),
-            Value::Double(ordered_float::OrderedFloat(error)), tx, Op::Assert));
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/boundary"),
-            Value::String("formality".to_string()), tx, Op::Assert));
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/completed"),
-            Value::Instant(1000 + i as u64), tx, Op::Assert));
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/item-type"),
-            Value::String("task".to_string()), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/action"),
+            Value::Ref(target),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/predicted"),
+            Value::Double(ordered_float::OrderedFloat(0.8)),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/actual"),
+            Value::Double(ordered_float::OrderedFloat(actual)),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/error"),
+            Value::Double(ordered_float::OrderedFloat(error)),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/boundary"),
+            Value::String("formality".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/completed"),
+            Value::Instant(1000 + i as u64),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/item-type"),
+            Value::String("task".to_string()),
+            tx,
+            Op::Assert,
+        ));
     }
 
     let store = Store::from_datoms(datoms);
@@ -677,9 +738,13 @@ fn per_boundary_accuracy_grouped() {
 
     assert_eq!(report.completed_hypotheses, 4);
 
-    let cov_error = report.per_boundary_accuracy.get("coverage")
+    let cov_error = report
+        .per_boundary_accuracy
+        .get("coverage")
         .expect("should have coverage boundary");
-    let form_error = report.per_boundary_accuracy.get("formality")
+    let form_error = report
+        .per_boundary_accuracy
+        .get("formality")
         .expect("should have formality boundary");
 
     assert!(
@@ -707,45 +772,119 @@ fn per_type_accuracy_grouped() {
     // Type "task": error 0.1
     let hyp1 = EntityId::from_ident(":hypothesis/type-task");
     let target1 = EntityId::from_ident(":task/type-target-1");
-    datoms.insert(Datom::new(hyp1, Attribute::from_keyword(":hypothesis/action"),
-        Value::Ref(target1), tx, Op::Assert));
-    datoms.insert(Datom::new(hyp1, Attribute::from_keyword(":hypothesis/predicted"),
-        Value::Double(ordered_float::OrderedFloat(0.5)), tx, Op::Assert));
-    datoms.insert(Datom::new(hyp1, Attribute::from_keyword(":hypothesis/actual"),
-        Value::Double(ordered_float::OrderedFloat(0.4)), tx, Op::Assert));
-    datoms.insert(Datom::new(hyp1, Attribute::from_keyword(":hypothesis/error"),
-        Value::Double(ordered_float::OrderedFloat(0.1)), tx, Op::Assert));
-    datoms.insert(Datom::new(hyp1, Attribute::from_keyword(":hypothesis/boundary"),
-        Value::String("general".to_string()), tx, Op::Assert));
-    datoms.insert(Datom::new(hyp1, Attribute::from_keyword(":hypothesis/completed"),
-        Value::Instant(1000), tx, Op::Assert));
-    datoms.insert(Datom::new(hyp1, Attribute::from_keyword(":hypothesis/item-type"),
-        Value::String("task".to_string()), tx, Op::Assert));
+    datoms.insert(Datom::new(
+        hyp1,
+        Attribute::from_keyword(":hypothesis/action"),
+        Value::Ref(target1),
+        tx,
+        Op::Assert,
+    ));
+    datoms.insert(Datom::new(
+        hyp1,
+        Attribute::from_keyword(":hypothesis/predicted"),
+        Value::Double(ordered_float::OrderedFloat(0.5)),
+        tx,
+        Op::Assert,
+    ));
+    datoms.insert(Datom::new(
+        hyp1,
+        Attribute::from_keyword(":hypothesis/actual"),
+        Value::Double(ordered_float::OrderedFloat(0.4)),
+        tx,
+        Op::Assert,
+    ));
+    datoms.insert(Datom::new(
+        hyp1,
+        Attribute::from_keyword(":hypothesis/error"),
+        Value::Double(ordered_float::OrderedFloat(0.1)),
+        tx,
+        Op::Assert,
+    ));
+    datoms.insert(Datom::new(
+        hyp1,
+        Attribute::from_keyword(":hypothesis/boundary"),
+        Value::String("general".to_string()),
+        tx,
+        Op::Assert,
+    ));
+    datoms.insert(Datom::new(
+        hyp1,
+        Attribute::from_keyword(":hypothesis/completed"),
+        Value::Instant(1000),
+        tx,
+        Op::Assert,
+    ));
+    datoms.insert(Datom::new(
+        hyp1,
+        Attribute::from_keyword(":hypothesis/item-type"),
+        Value::String("task".to_string()),
+        tx,
+        Op::Assert,
+    ));
 
     // Type "block": error 0.4
     let hyp2 = EntityId::from_ident(":hypothesis/type-block");
     let target2 = EntityId::from_ident(":task/type-target-2");
-    datoms.insert(Datom::new(hyp2, Attribute::from_keyword(":hypothesis/action"),
-        Value::Ref(target2), tx, Op::Assert));
-    datoms.insert(Datom::new(hyp2, Attribute::from_keyword(":hypothesis/predicted"),
-        Value::Double(ordered_float::OrderedFloat(0.8)), tx, Op::Assert));
-    datoms.insert(Datom::new(hyp2, Attribute::from_keyword(":hypothesis/actual"),
-        Value::Double(ordered_float::OrderedFloat(0.4)), tx, Op::Assert));
-    datoms.insert(Datom::new(hyp2, Attribute::from_keyword(":hypothesis/error"),
-        Value::Double(ordered_float::OrderedFloat(0.4)), tx, Op::Assert));
-    datoms.insert(Datom::new(hyp2, Attribute::from_keyword(":hypothesis/boundary"),
-        Value::String("general".to_string()), tx, Op::Assert));
-    datoms.insert(Datom::new(hyp2, Attribute::from_keyword(":hypothesis/completed"),
-        Value::Instant(1001), tx, Op::Assert));
-    datoms.insert(Datom::new(hyp2, Attribute::from_keyword(":hypothesis/item-type"),
-        Value::String("block".to_string()), tx, Op::Assert));
+    datoms.insert(Datom::new(
+        hyp2,
+        Attribute::from_keyword(":hypothesis/action"),
+        Value::Ref(target2),
+        tx,
+        Op::Assert,
+    ));
+    datoms.insert(Datom::new(
+        hyp2,
+        Attribute::from_keyword(":hypothesis/predicted"),
+        Value::Double(ordered_float::OrderedFloat(0.8)),
+        tx,
+        Op::Assert,
+    ));
+    datoms.insert(Datom::new(
+        hyp2,
+        Attribute::from_keyword(":hypothesis/actual"),
+        Value::Double(ordered_float::OrderedFloat(0.4)),
+        tx,
+        Op::Assert,
+    ));
+    datoms.insert(Datom::new(
+        hyp2,
+        Attribute::from_keyword(":hypothesis/error"),
+        Value::Double(ordered_float::OrderedFloat(0.4)),
+        tx,
+        Op::Assert,
+    ));
+    datoms.insert(Datom::new(
+        hyp2,
+        Attribute::from_keyword(":hypothesis/boundary"),
+        Value::String("general".to_string()),
+        tx,
+        Op::Assert,
+    ));
+    datoms.insert(Datom::new(
+        hyp2,
+        Attribute::from_keyword(":hypothesis/completed"),
+        Value::Instant(1001),
+        tx,
+        Op::Assert,
+    ));
+    datoms.insert(Datom::new(
+        hyp2,
+        Attribute::from_keyword(":hypothesis/item-type"),
+        Value::String("block".to_string()),
+        tx,
+        Op::Assert,
+    ));
 
     let store = Store::from_datoms(datoms);
     let report = compute_calibration_metrics(&store);
 
-    let task_error = report.per_type_accuracy.get("task")
+    let task_error = report
+        .per_type_accuracy
+        .get("task")
         .expect("should have 'task' type entry");
-    let block_error = report.per_type_accuracy.get("block")
+    let block_error = report
+        .per_type_accuracy
+        .get("block")
         .expect("should have 'block' type entry");
 
     assert!(
@@ -800,11 +939,7 @@ fn hypothesis_count_matches_recorded() {
 #[test]
 fn hypothesis_completed_count_matches_actual() {
     // 3 completed, 2 incomplete
-    let entries = vec![
-        (0.5, 0.4, 1000),
-        (0.3, 0.2, 1001),
-        (0.8, 0.6, 1002),
-    ];
+    let entries = vec![(0.5, 0.4, 1000), (0.3, 0.2, 1001), (0.8, 0.6, 1002)];
     let base_store = store_with_completed_hypotheses(&entries);
     let mut datoms = base_store.datom_set().clone();
     let agent = AgentId::from_name("test:hyp");
@@ -814,13 +949,22 @@ fn hypothesis_completed_count_matches_actual() {
     for i in 0..2 {
         let hyp = EntityId::from_ident(&format!(":hypothesis/extra-inc-{i}"));
         let target = EntityId::from_ident(&format!(":task/extra-inc-{i}"));
-        datoms.insert(Datom::new(hyp, Attribute::from_keyword(":hypothesis/action"),
-            Value::Ref(target), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            hyp,
+            Attribute::from_keyword(":hypothesis/action"),
+            Value::Ref(target),
+            tx,
+            Op::Assert,
+        ));
     }
     let store = Store::from_datoms(datoms);
 
     assert_eq!(hypothesis_count(&store), 5, "5 total hypotheses");
-    assert_eq!(hypothesis_completed_count(&store), 3, "3 completed hypotheses");
+    assert_eq!(
+        hypothesis_completed_count(&store),
+        3,
+        "3 completed hypotheses"
+    );
 }
 
 /// Test: Stable trend when recent and all-time error are similar.

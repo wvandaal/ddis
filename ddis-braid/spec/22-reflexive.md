@@ -212,6 +212,82 @@ the section's purpose and relationship to other sections.
 
 ---
 
+### INV-REFLEXIVE-006: Second-Order Epistemic Closure
+
+**Traces to**: C7 (Self-Bootstrap), C9, INV-GUIDANCE-014, SEED.md §7 (Self-Improvement Loop)
+**Type**: Invariant
+**Stage**: 1
+**Statement**: The system applies its own coherence machinery (concept clustering,
+co-occurrence analysis, frontier recommendation) to its own observation layer using
+the same kernel functions used for domain knowledge. The result is surfaceable via
+a single CLI command (`braid observe list|search|show|recent`). Every observation
+retrieval command ends with a computed steering question.
+
+The steering question is the acquisition function rendered as natural language:
+```
+alpha(action | store) = E[delta_F(S)] / cost(action)
+```
+
+It is computed from three kernel primitives:
+1. `co_occurrence_matrix(store)` — concept pair relationships (bridge gaps)
+2. `frontier_recommendation(store, embedding)` — acquisition function candidates
+3. `concept_inventory(store)` — concept membership structure (coverage gaps)
+
+Zero LLM calls. Pure computation over the store's own concept graph.
+
+**Falsification conditions** (a-e):
+  (a) `braid observe list` output does not include a `steering_question` in JSON
+      or a steering line (prefixed `->`) in human/agent output.
+  (b) `braid observe search PATTERN` output lacks a steering question.
+  (c) `braid observe show ENTITY` output lacks a steering question.
+  (d) `braid observe recent N` output lacks a steering question.
+  (e) `braid observe TEXT` (creation mode) output lacks a steering question.
+
+**Algebraic property**: The steering question is a natural transformation from
+the concept graph functor to the string functor — it maps structural features
+of the knowledge topology into the token space where the LLM operates.
+
+**Verification**: V:PROP (unit test checks `steering_question.is_some()` for each
+code path; E2E checks `->` prefix in human output for all 5 subcommands)
+
+---
+
+### INV-REFLEXIVE-007: Fixed-Point Property
+
+**Traces to**: C7 (Self-Bootstrap), ADR-FOUNDATION-006
+**Type**: Invariant
+**Stage**: 1
+**Statement**: Functions used for second-order analysis (observations about observations)
+are identical to first-order functions (observations about the domain). No conditional
+branches distinguish meta-observations from domain observations.
+
+```
+apply(f, apply(f, data)) == apply(f, data)
+```
+
+Specifically:
+- `concept_inventory()` clusters ALL observations uniformly — domain and meta
+- `co_occurrence_matrix()` computes pairwise Jaccard for ALL concepts
+- `frontier_recommendation()` evaluates ALL concept boundaries
+- `score_entity()` ranks ALL observations by the same composite formula
+
+Agent identity resolution is also a fixed point:
+```
+resolve_agent_identity(resolve_agent_identity(x)) == resolve_agent_identity(x)
+```
+
+The three-tier cascade (explicit `--agent` flag > `BRAID_AGENT` env var > PID-derived
+`braid:pid-{PID}`) is idempotent — applying it twice produces the same result.
+
+**Falsification**: (a) Any kernel function that checks whether an observation is
+"about the store" vs "about the domain" and behaves differently. (b) Calling
+`resolve_agent_identity` twice with the same input produces different outputs.
+(c) The PID-derived fallback changes between successive calls within the same process.
+
+**Verification**: V:PROP
+
+---
+
 ## §22.3 Architectural Decision Records
 
 ### ADR-REFLEXIVE-001: Reflexive Divergence as Ninth Type

@@ -754,8 +754,7 @@ impl MaterializedViews {
                 // In a single-pass from_datoms build, the last Assert for each
                 // (entity, :task/status) wins (EAVT ordering ensures later txns
                 // overwrite earlier ones in BTreeMap::insert).
-                self.task_status_live
-                    .insert(d.entity, kw.clone());
+                self.task_status_live.insert(d.entity, kw.clone());
             }
         }
 
@@ -800,7 +799,11 @@ impl MaterializedViews {
                     _ => 1.0,
                 }
             };
-            let depth_sum: f64 = self.validation_depth.values().map(|d| depth_weight(*d)).sum();
+            let depth_sum: f64 = self
+                .validation_depth
+                .values()
+                .map(|d| depth_weight(*d))
+                .sum();
             (depth_sum / (spec_count * 1.0)).clamp(0.0, 1.0) // max depth_weight = 1.0
         } else {
             0.0
@@ -844,12 +847,11 @@ impl MaterializedViews {
                 0.0 // No methodology adoption at all
             } else {
                 // Base: 0.3 if any harvest exists, 0.2 if any observations exist
-                let base = if has_harvests { 0.3 } else { 0.0 }
-                    + if has_observations { 0.2 } else { 0.0 };
+                let base =
+                    if has_harvests { 0.3 } else { 0.0 } + if has_observations { 0.2 } else { 0.0 };
                 // Observation density bonus: more observations → more methodology
                 // Cap at 0.3 bonus (reaches cap at ~500 observations)
-                let obs_bonus =
-                    (self.observation_count as f64 / 500.0).min(1.0) * 0.3;
+                let obs_bonus = (self.observation_count as f64 / 500.0).min(1.0) * 0.3;
                 (base + obs_bonus).clamp(0.0, 1.0)
             }
         };
@@ -882,7 +884,11 @@ impl MaterializedViews {
                 scored += 1;
             }
             // Entities with coverage but no falsification
-            for e in self.coverage_impl_targets.iter().chain(self.task_covered.iter()) {
+            for e in self
+                .coverage_impl_targets
+                .iter()
+                .chain(self.task_covered.iter())
+            {
                 if !self.has_falsification.contains(e) && scored < total_specs {
                     score_sum += 0.4;
                     scored += 1;
@@ -997,6 +1003,69 @@ impl MaterializedViews {
     pub fn ref_graph_stats(&self) -> (u64, usize) {
         (self.ref_edge_count, self.ref_vertex_set.len())
     }
+
+    /// O(1) approximate spectral gap from ISP boundary statistics (INV-SPECTRAL-010).
+    ///
+    /// Uses the Cheeger inequality: λ₂/2 ≤ h(G) ≤ √(2λ₂) where h(G) is the
+    /// Cheeger constant (isoperimetric ratio). We approximate h(G) from the
+    /// ISP (Intent/Spec/Impl) partition structure already tracked incrementally:
+    ///
+    /// h_approx = cross_boundary_edges / min_partition_size
+    ///
+    /// where:
+    /// - cross_boundary_edges = |coverage_impl_targets| (entities with both spec + impl links)
+    /// - min_partition = min(|intent|, |spec|, |impl|) (smallest ISP partition)
+    ///
+    /// Then λ₂_approx = h² / 2 (Cheeger lower bound), clamped to [0, 1].
+    ///
+    /// Returns 1.0 for trivially connected graphs (< 2 entities) and 0.0 for
+    /// completely disconnected graphs (no cross-boundary edges).
+    ///
+    /// This is sufficient for the binary decision: coherent (λ₂ > threshold) vs
+    /// fragmented (λ₂ < threshold). Exact eigendecomposition is unnecessary for
+    /// routine operation (ADR-SPECTRAL-001).
+    pub fn approximate_spectral_gap(&self) -> f64 {
+        let intent_n = self.isp_intent_entities.len();
+        let spec_n = self.isp_spec_entities.len();
+        let impl_n = self.isp_impl_entities.len();
+        let total = intent_n + spec_n + impl_n;
+
+        if total < 2 {
+            return 1.0; // Trivially connected
+        }
+
+        // Cross-boundary edges: entities that bridge spec↔impl
+        // coverage_impl_targets = spec entities with at least one :impl/implements ref
+        let cross_boundary = self.coverage_impl_targets.len();
+
+        if cross_boundary == 0 {
+            return 0.0; // Completely disconnected ISP layers
+        }
+
+        // Minimum partition size (avoiding division by zero)
+        let min_partition = intent_n.min(spec_n).min(impl_n).max(1);
+
+        // Cheeger constant approximation
+        let h_approx = cross_boundary as f64 / min_partition as f64;
+
+        // Cheeger inequality lower bound: λ₂ ≥ h²/2
+        // Clamped to [0, 1] since λ₂ of a normalized Laplacian is in [0, 2]
+        (h_approx * h_approx / 2.0).min(1.0)
+    }
+
+    /// Estimated sessions to convergence from approximate spectral gap.
+    ///
+    /// Uses the mixing time bound: t_mix ≈ ln(n) / λ₂ where n = entity count
+    /// and λ₂ is the spectral gap. Returns f64::INFINITY when spectral gap ≈ 0
+    /// (disconnected graph — convergence impossible without new cross-links).
+    pub fn estimated_sessions_to_convergence(&self) -> f64 {
+        let gap = self.approximate_spectral_gap();
+        if gap < 1e-10 {
+            return f64::INFINITY;
+        }
+        let n = self.entity_count_for_phi.max(2) as f64;
+        n.ln() / gap
+    }
 }
 
 /// The 7-dimensional fitness gradient ΔF(S) (CE-5, INV-GUIDANCE-010).
@@ -1075,10 +1144,7 @@ impl Store {
             .push(d.clone());
         // VAET: index Ref-valued datoms (ADR-STORE-005, INV-STORE-IDX-003)
         if let Value::Ref(target) = &d.value {
-            self.vaet_index
-                .entry(*target)
-                .or_default()
-                .push(d.clone());
+            self.vaet_index.entry(*target).or_default().push(d.clone());
         }
         // AVET + LIVE: index Assert datoms (ADR-STORE-005, INV-STORE-IDX-004)
         if d.op == Op::Assert {
@@ -2123,10 +2189,7 @@ fn compute_delta_crystallization(datoms: &[Datom], store: &Store) -> f64 {
                         // Check if any referenced spec actually exists in the store
                         let refs = crate::task::parse_spec_refs(text);
                         for ref_id in &refs {
-                            let spec_ident = format!(
-                                ":spec/{}",
-                                ref_id.to_lowercase()
-                            );
+                            let spec_ident = format!(":spec/{}", ref_id.to_lowercase());
                             let spec_entity = EntityId::from_ident(&spec_ident);
                             if !store.entity_datoms(spec_entity).is_empty() {
                                 has_spec_ref = true;
@@ -3384,11 +3447,8 @@ mod tests {
         let schema_tx = TxId::new(1, 0, agent);
         let genesis = Store::genesis();
         let schema_datoms = crate::schema::full_schema_datoms(schema_tx);
-        let all: std::collections::BTreeSet<Datom> = genesis
-            .datoms()
-            .cloned()
-            .chain(schema_datoms)
-            .collect();
+        let all: std::collections::BTreeSet<Datom> =
+            genesis.datoms().cloned().chain(schema_datoms).collect();
         let mut store = Store::from_datoms(all);
         let ref_attr = Attribute::from_keyword(":task/depends-on");
 
@@ -3446,11 +3506,8 @@ mod tests {
         let schema_tx = TxId::new(1, 0, agent);
         let genesis = Store::genesis();
         let schema_datoms = crate::schema::full_schema_datoms(schema_tx);
-        let all: std::collections::BTreeSet<Datom> = genesis
-            .datoms()
-            .cloned()
-            .chain(schema_datoms)
-            .collect();
+        let all: std::collections::BTreeSet<Datom> =
+            genesis.datoms().cloned().chain(schema_datoms).collect();
         Store::from_datoms(all)
     }
 
@@ -3489,9 +3546,7 @@ mod tests {
 
         // Check: task close should NOT produce delta-crystallization datom
         // (delta = 0.0, which means no datom is written)
-        let tx_entity = EntityId::from_content(
-            &serde_json::to_vec(&receipt.tx_id).unwrap(),
-        );
+        let tx_entity = EntityId::from_content(&serde_json::to_vec(&receipt.tx_id).unwrap());
         let delta_attr = Attribute::from_keyword(":tx/delta-crystallization");
         let delta_val = store.live_value(tx_entity, &delta_attr);
         assert!(
@@ -3522,14 +3577,19 @@ mod tests {
             .unwrap();
         let receipt = store.transact(tx).unwrap();
 
-        let tx_entity = EntityId::from_content(
-            &serde_json::to_vec(&receipt.tx_id).unwrap(),
-        );
+        let tx_entity = EntityId::from_content(&serde_json::to_vec(&receipt.tx_id).unwrap());
         let delta_attr = Attribute::from_keyword(":tx/delta-crystallization");
         let delta_val = store.live_value(tx_entity, &delta_attr);
-        assert!(delta_val.is_some(), "unanchored observation should produce delta datom");
+        assert!(
+            delta_val.is_some(),
+            "unanchored observation should produce delta datom"
+        );
         if let Some(Value::Double(d)) = delta_val {
-            assert!(d.into_inner() < 0.0, "unanchored observation delta should be negative, got {}", d);
+            assert!(
+                d.into_inner() < 0.0,
+                "unanchored observation delta should be negative, got {}",
+                d
+            );
         }
     }
 
@@ -3555,14 +3615,19 @@ mod tests {
             .unwrap();
         let receipt = store.transact(tx).unwrap();
 
-        let tx_entity = EntityId::from_content(
-            &serde_json::to_vec(&receipt.tx_id).unwrap(),
-        );
+        let tx_entity = EntityId::from_content(&serde_json::to_vec(&receipt.tx_id).unwrap());
         let delta_attr = Attribute::from_keyword(":tx/delta-crystallization");
         let delta_val = store.live_value(tx_entity, &delta_attr);
-        assert!(delta_val.is_some(), "spec creation should produce delta datom");
+        assert!(
+            delta_val.is_some(),
+            "spec creation should produce delta datom"
+        );
         if let Some(Value::Double(d)) = delta_val {
-            assert!(d.into_inner() > 0.0, "spec creation delta should be positive, got {}", d);
+            assert!(
+                d.into_inner() > 0.0,
+                "spec creation delta should be positive, got {}",
+                d
+            );
         }
     }
 
@@ -3583,9 +3648,7 @@ mod tests {
             .unwrap();
         let receipt = store.transact(tx).unwrap();
 
-        let tx_entity = EntityId::from_content(
-            &serde_json::to_vec(&receipt.tx_id).unwrap(),
-        );
+        let tx_entity = EntityId::from_content(&serde_json::to_vec(&receipt.tx_id).unwrap());
         let delta_attr = Attribute::from_keyword(":tx/delta-crystallization");
         let delta_val = store.live_value(tx_entity, &delta_attr);
         // Decision: has_observation=true, has_decision=true → -0.1 + 0.1 = 0.0
@@ -3614,9 +3677,7 @@ mod tests {
             .unwrap();
         let receipt = store.transact(tx).unwrap();
 
-        let tx_entity = EntityId::from_content(
-            &serde_json::to_vec(&receipt.tx_id).unwrap(),
-        );
+        let tx_entity = EntityId::from_content(&serde_json::to_vec(&receipt.tx_id).unwrap());
         let delta_attr = Attribute::from_keyword(":tx/delta-crystallization");
         let count = store
             .entity_datoms(tx_entity)
@@ -3683,7 +3744,10 @@ mod tests {
         let d2 = store.live_value(tx2_entity, &delta_attr);
         assert!(d2.is_some(), "crystallization should produce delta datom");
         if let Some(Value::Double(v)) = d2 {
-            assert!(v.into_inner() > 0.0, "crystallization should be positive: {v}");
+            assert!(
+                v.into_inner() > 0.0,
+                "crystallization should be positive: {v}"
+            );
         }
     }
 
@@ -4499,7 +4563,10 @@ mod tests {
         store_a.merge(&store_b);
 
         // Views should reflect BOTH agents' contributions
-        assert!(store_a.views().spec_count > 0, "merged: spec elements from A");
+        assert!(
+            store_a.views().spec_count > 0,
+            "merged: spec elements from A"
+        );
         assert!(
             store_a.views().confidence_count > 0,
             "merged: confidence from B"
@@ -4564,7 +4631,8 @@ mod tests {
 
         // Store views must NOT be mutated
         assert_eq!(
-            store.views().spec_count, spec_count_before,
+            store.views().spec_count,
+            spec_count_before,
             "project_delta must not mutate store views"
         );
     }
@@ -4954,10 +5022,7 @@ mod tests {
         let has_retract = entity_datoms
             .iter()
             .any(|d| d.attribute == attr && d.op == Op::Retract);
-        assert!(
-            has_assert,
-            "merged store must contain the assertion datom"
-        );
+        assert!(has_assert, "merged store must contain the assertion datom");
         assert!(
             has_retract,
             "merged store must contain the retraction datom — retractions propagate via set union"
@@ -5085,8 +5150,7 @@ mod tests {
 
         // The entity must have BOTH attributes after merge (union of concurrent writes)
         let doc_value = store_a.live_value(shared_entity, &Attribute::from_keyword(":db/doc"));
-        let ident_value =
-            store_a.live_value(shared_entity, &Attribute::from_keyword(":db/ident"));
+        let ident_value = store_a.live_value(shared_entity, &Attribute::from_keyword(":db/ident"));
 
         assert!(
             doc_value.is_some(),
@@ -5125,8 +5189,7 @@ mod tests {
 
         // Both merge directions should converge to the same entity state
         let doc_b = store_b_copy.live_value(shared_entity, &Attribute::from_keyword(":db/doc"));
-        let ident_b =
-            store_b_copy.live_value(shared_entity, &Attribute::from_keyword(":db/ident"));
+        let ident_b = store_b_copy.live_value(shared_entity, &Attribute::from_keyword(":db/ident"));
         assert_eq!(
             doc_value, doc_b,
             "INV-STORE-004: commutativity — :db/doc must match regardless of merge direction"
@@ -5525,11 +5588,7 @@ mod tests {
                 Attribute::from_keyword(":task/title"),
                 Value::String("Test task one".into()),
             )
-            .assert(
-                task1,
-                status_attr.clone(),
-                Value::Keyword("open".into()),
-            )
+            .assert(task1, status_attr.clone(), Value::Keyword("open".into()))
             .commit(&store)
             .unwrap();
         store.transact(tx).unwrap();
@@ -5541,27 +5600,15 @@ mod tests {
                 Attribute::from_keyword(":task/title"),
                 Value::String("Test task two".into()),
             )
-            .assert(
-                task2,
-                status_attr.clone(),
-                Value::Keyword("open".into()),
-            )
+            .assert(task2, status_attr.clone(), Value::Keyword("open".into()))
             .commit(&store)
             .unwrap();
         store.transact(tx).unwrap();
 
         // Task 1: close it (retract open, assert closed)
         let tx = Transaction::new(agent, ProvenanceType::Observed, "close task 1")
-            .retract(
-                task1,
-                status_attr.clone(),
-                Value::Keyword("open".into()),
-            )
-            .assert(
-                task1,
-                status_attr.clone(),
-                Value::Keyword("closed".into()),
-            )
+            .retract(task1, status_attr.clone(), Value::Keyword("open".into()))
+            .assert(task1, status_attr.clone(), Value::Keyword("closed".into()))
             .commit(&store)
             .unwrap();
         store.transact(tx).unwrap();
@@ -5616,20 +5663,8 @@ mod tests {
         }
 
         // Tasks
-        assert_live_value_iso(
-            &store,
-            &rebuilt,
-            task1,
-            &status_attr,
-            ":task/test-task-001",
-        );
-        assert_live_value_iso(
-            &store,
-            &rebuilt,
-            task2,
-            &status_attr,
-            ":task/test-task-002",
-        );
+        assert_live_value_iso(&store, &rebuilt, task1, &status_attr, ":task/test-task-001");
+        assert_live_value_iso(&store, &rebuilt, task2, &status_attr, ":task/test-task-002");
 
         // Task 1 should be closed (retract-then-assert result)
         assert_eq!(
@@ -5955,11 +5990,7 @@ mod tests {
         let doc_attr = Attribute::from_keyword(":db/doc");
         let tx = Transaction::new(agent, ProvenanceType::Observed, "update")
             .retract(e0, doc_attr.clone(), Value::String("doc 0".into()))
-            .assert(
-                e0,
-                doc_attr.clone(),
-                Value::String("doc 0 updated".into()),
-            )
+            .assert(e0, doc_attr.clone(), Value::String("doc 0 updated".into()))
             .commit(&store)
             .unwrap();
         store.transact(tx).unwrap();

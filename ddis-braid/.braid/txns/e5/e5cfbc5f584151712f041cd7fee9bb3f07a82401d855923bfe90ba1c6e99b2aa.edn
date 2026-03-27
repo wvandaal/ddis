@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774641444/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b4e81039cbcc86ae6aa1a552d19494992560f7b7fe8d2b09fca65b503e82d473" :a :db/ident :v :recon/trace-b544be54b9140deb :op :assert}
+   {:e #blake3 "b4e81039cbcc86ae6aa1a552d19494992560f7b7fe8d2b09fca65b503e82d473" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "b4e81039cbcc86ae6aa1a552d19494992560f7b7fe8d2b09fca65b503e82d473" :a :recon/trace-neighborhood :v "CLI" :op :assert}
+   {:e #blake3 "b4e81039cbcc86ae6aa1a552d19494992560f7b7fe8d2b09fca65b503e82d473" :a :recon/trace-neighbors :v ":task/t-ad614aef" :op :assert}
+   {:e #blake3 "b4e81039cbcc86ae6aa1a552d19494992560f7b7fe8d2b09fca65b503e82d473" :a :recon/trace-refs :v "INV-CLI-006" :op :assert}
+ ]}

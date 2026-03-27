@@ -113,10 +113,7 @@ fn entity_degree(store: &Store, entity: EntityId) -> usize {
     for d in &datoms {
         if d.op == Op::Assert {
             if let Value::Ref(_) = &d.value {
-                if REF_ATTRIBUTES
-                    .iter()
-                    .any(|a| d.attribute.as_str() == *a)
-                {
+                if REF_ATTRIBUTES.iter().any(|a| d.attribute.as_str() == *a) {
                     degree += 1;
                 }
             }
@@ -226,10 +223,7 @@ pub fn propose_connections(
 /// Returns human-readable descriptions of structural changes:
 /// - Connecting to a previously isolated observation
 /// - Hub formation (3+ connections from one observation)
-pub fn detect_topological_events(
-    connections: &[ProposedConnection],
-    store: &Store,
-) -> Vec<String> {
+pub fn detect_topological_events(connections: &[ProposedConnection], store: &Store) -> Vec<String> {
     let mut events = Vec::new();
 
     if connections.is_empty() {
@@ -379,10 +373,7 @@ mod tests {
 
     #[test]
     fn test_jaccard_similarity_disjoint() {
-        let a: HashSet<String> = ["parser", "event"]
-            .iter()
-            .map(|s| s.to_string())
-            .collect();
+        let a: HashSet<String> = ["parser", "event"].iter().map(|s| s.to_string()).collect();
         let b: HashSet<String> = ["storage", "sqlite"]
             .iter()
             .map(|s| s.to_string())
@@ -413,10 +404,7 @@ mod tests {
 
     #[test]
     fn test_jaccard_similarity_one_empty() {
-        let a: HashSet<String> = ["parser", "event"]
-            .iter()
-            .map(|s| s.to_string())
-            .collect();
+        let a: HashSet<String> = ["parser", "event"].iter().map(|s| s.to_string()).collect();
         let b: HashSet<String> = HashSet::new();
         assert!(jaccard_similarity(&a, &b).abs() < 0.001);
     }
@@ -427,10 +415,7 @@ mod tests {
             .iter()
             .map(|s| s.to_string())
             .collect();
-        let b: HashSet<String> = ["parser", "event"]
-            .iter()
-            .map(|s| s.to_string())
-            .collect();
+        let b: HashSet<String> = ["parser", "event"].iter().map(|s| s.to_string()).collect();
         // intersection = 2, union = 3 → 0.667
         assert!((jaccard_similarity(&a, &b) - 2.0 / 3.0).abs() < 0.001);
     }
@@ -481,7 +466,10 @@ mod tests {
         let store = Store::genesis();
         let entity = EntityId::from_ident(":obs/new");
         let conns = propose_connections(&store, entity, "test observation about parsing");
-        assert!(conns.is_empty(), "empty store should produce no connections");
+        assert!(
+            conns.is_empty(),
+            "empty store should produce no connections"
+        );
     }
 
     #[test]
@@ -556,16 +544,13 @@ mod tests {
         let agent = crate::datom::AgentId::from_name("test");
 
         let obs1 = EntityId::from_content(b"obs1");
-        let tx = crate::store::Transaction::new(
-            agent,
-            crate::datom::ProvenanceType::Observed,
-            "test",
-        )
-        .assert(
-            obs1,
-            crate::datom::Attribute::from_keyword(":exploration/body"),
-            Value::String("parser events processing pipeline".to_string()),
-        );
+        let tx =
+            crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "test")
+                .assert(
+                    obs1,
+                    crate::datom::Attribute::from_keyword(":exploration/body"),
+                    Value::String("parser events processing pipeline".to_string()),
+                );
 
         let committed = tx.commit(&store).expect("commit should succeed");
         store.transact(committed).expect("transact should succeed");
@@ -573,10 +558,7 @@ mod tests {
         // Query with the same entity — should not connect to itself
         let conns = propose_connections(&store, obs1, "parser events processing pipeline");
         for conn in &conns {
-            assert_ne!(
-                conn.target, obs1,
-                "should not propose connection to self"
-            );
+            assert_ne!(conn.target, obs1, "should not propose connection to self");
         }
     }
 

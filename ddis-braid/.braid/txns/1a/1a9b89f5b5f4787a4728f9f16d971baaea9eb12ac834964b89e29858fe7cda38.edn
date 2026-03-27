@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774638842/0/d59f2ddac78f81ed00b2186b548aa227"
+ :tx/agent "d59f2ddac78f81ed00b2186b548aa227"
+ :tx/provenance :observed
+ :tx/rationale "Fixed 2 test failures caused by C1 enforcement: layout::tests::read_tx_verifies_content_hash and verify_integrity_detects_corruption. Both tests corrupt .edn files to verify hash detection, but write_tx now sets 0o444. Fix: chmod 0o644 before corruption in test code. Tests now pass. The third failure (daemon::tests::handle_with_observation_latency_plausible) is a timing-sensitive test unrelated to our changes."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "064a08f64a0672dd4c33d33b265d2bab3af8aa832b9f5fa77faa7552c7fa76b2" :a :db/doc :v "Fixed 2 test failures caused by C1 enforcement: layout::tests::read_tx_verifies_content_hash and verify_integrity_detects_corruption. Both tests corrupt .edn files to verify hash detection, but write_tx now sets 0o444. Fix: chmod 0o644 before corruption in test code. Tests now pass. The third failure (daemon::tests::handle_with_observation_latency_plausible) is a timing-sensitive test unrelated to our changes." :op :assert}
+   {:e #blake3 "064a08f64a0672dd4c33d33b265d2bab3af8aa832b9f5fa77faa7552c7fa76b2" :a :db/ident :v :observation/fixed-2-test-failures-caused-by-c1-enforcement-layouttest :op :assert}
+   {:e #blake3 "064a08f64a0672dd4c33d33b265d2bab3af8aa832b9f5fa77faa7552c7fa76b2" :a :exploration/body :v "Fixed 2 test failures caused by C1 enforcement: layout::tests::read_tx_verifies_content_hash and verify_integrity_detects_corruption. Both tests corrupt .edn files to verify hash detection, but write_tx now sets 0o444. Fix: chmod 0o644 before corruption in test code. Tests now pass. The third failure (daemon::tests::handle_with_observation_latency_plausible) is a timing-sensitive test unrelated to our changes." :op :assert}
+   {:e #blake3 "064a08f64a0672dd4c33d33b265d2bab3af8aa832b9f5fa77faa7552c7fa76b2" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "064a08f64a0672dd4c33d33b265d2bab3af8aa832b9f5fa77faa7552c7fa76b2" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "064a08f64a0672dd4c33d33b265d2bab3af8aa832b9f5fa77faa7552c7fa76b2" :a :exploration/content-hash :v #bytes "b65fb358a2f46340575acfb1221b6458f0d0585863f45da1cd368b468f0a267b" :op :assert}
+   {:e #blake3 "064a08f64a0672dd4c33d33b265d2bab3af8aa832b9f5fa77faa7552c7fa76b2" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "064a08f64a0672dd4c33d33b265d2bab3af8aa832b9f5fa77faa7552c7fa76b2" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "064a08f64a0672dd4c33d33b265d2bab3af8aa832b9f5fa77faa7552c7fa76b2" :a :exploration/source-session :v #blake3 "d0f54c4b57f4c4f5af176602c3cbf2e61bd39f66c3dc082f0586544dffcbdbb6" :op :assert}
+   {:e #blake3 "064a08f64a0672dd4c33d33b265d2bab3af8aa832b9f5fa77faa7552c7fa76b2" :a :exploration/tags :v :tag/DW0b :op :assert}
+   {:e #blake3 "064a08f64a0672dd4c33d33b265d2bab3af8aa832b9f5fa77faa7552c7fa76b2" :a :exploration/tags :v :tag/test-fix :op :assert}
+ ]}

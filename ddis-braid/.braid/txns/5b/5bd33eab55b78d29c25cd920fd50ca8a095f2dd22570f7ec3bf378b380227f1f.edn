@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774635296/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DS4-TEST: Multi-threaded dispatch — 6 tests including 50-agent simulation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :db/ident :v :task/t-45f009cd :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/created-at :v 1774635295 :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/description :v "TESTS for DS4 multi-threaded dispatch. UNIT: (1) test_concurrent_reads: Fork 20 threads, each sends braid_status request to daemon simultaneously. All 20 complete within 2× single-request time. Verify no lock contention errors. (2) test_read_during_write: One thread sends braid_observe. Simultaneously 10 threads send braid_status. All 11 complete. Status results are consistent (reflect either pre- or post-observe state). (3) test_thread_pool_bounded: Send 30 requests simultaneously (more than pool size 16). All 30 complete (some queued). No thread creation beyond pool max. (4) test_connection_timeout: Open socket, send partial request, wait 35s. Connection closed by daemon (30s timeout). Daemon continues serving other requests. CONCURRENT E2E: (5) test_50_agent_simulation: Fork 50 processes. Each sends 5 operations (2 observe + 2 status + 1 task_create) in random order. All 250 operations complete successfully. All 100 observations and 50 tasks in final store. No stale cache. No partial state. Wall time < 30s (proving concurrency — serial would be 50 × 3s = 150s). (6) test_write_consistency: Fork 20 processes. Each writes an observation with unique text. After all complete, braid query for all 20 texts → all found. Repeat 10 times to catch race conditions. FAILURE DIAGNOSTIC: Log per-thread: request type, start time, end time, lock acquisition time, response time. On timeout: dump thread pool state, pending request count, RwLock state (readers/writer held)." :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/id :v "t-45f009cd" :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/labels :v :label/concurrency :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/labels :v :label/daemon-scale :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/labels :v :label/ds4 :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/title :v "DS4-TEST: Multi-threaded dispatch — 6 tests including 50-agent simulation" :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/title-l0 :v "DS4-TEST" :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/title-l1 :v "DS4-TEST: Multi-threaded dispatch — 6 tests including 50-agent simulation" :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "b3e6fc5a00830d3268a5fa28f9fbf9705a42b587c31b2ba7ae182bfd2efde7e1" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -881,23 +881,51 @@ pub fn run(
             let statement = entity_datoms
                 .iter()
                 .find(|d| d.attribute == stmt_attr && d.op == Op::Assert)
-                .or_else(|| entity_datoms.iter().find(|d| d.attribute == elem_stmt_attr && d.op == Op::Assert))
-                .or_else(|| entity_datoms.iter().find(|d| d.attribute == body_attr && d.op == Op::Assert))
-                .or_else(|| entity_datoms.iter().find(|d| d.attribute == doc_attr && d.op == Op::Assert))
-                .and_then(|d| if let Value::String(s) = &d.value { Some(s.clone()) } else { None })
+                .or_else(|| {
+                    entity_datoms
+                        .iter()
+                        .find(|d| d.attribute == elem_stmt_attr && d.op == Op::Assert)
+                })
+                .or_else(|| {
+                    entity_datoms
+                        .iter()
+                        .find(|d| d.attribute == body_attr && d.op == Op::Assert)
+                })
+                .or_else(|| {
+                    entity_datoms
+                        .iter()
+                        .find(|d| d.attribute == doc_attr && d.op == Op::Assert)
+                })
+                .and_then(|d| {
+                    if let Value::String(s) = &d.value {
+                        Some(s.clone())
+                    } else {
+                        None
+                    }
+                })
                 .unwrap_or_default();
 
             let falsification = entity_datoms
                 .iter()
                 .find(|d| d.attribute == fals_attr && d.op == Op::Assert)
-                .and_then(|d| if let Value::String(s) = &d.value { Some(s.clone()) } else { None })
+                .and_then(|d| {
+                    if let Value::String(s) = &d.value {
+                        Some(s.clone())
+                    } else {
+                        None
+                    }
+                })
                 .unwrap_or_default();
 
             if statement.is_empty() {
                 continue;
             }
 
-            let test_body = if falsification.is_empty() { &statement } else { &falsification };
+            let test_body = if falsification.is_empty() {
+                &statement
+            } else {
+                &falsification
+            };
             let fbw = braid_kernel::witness::create_fbw(
                 link.spec_entity,
                 &statement,

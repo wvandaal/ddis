@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774619623/0/296ad7617e620ff6b2cec90300789a9e"
+ :tx/agent "296ad7617e620ff6b2cec90300789a9e"
+ :tx/provenance :observed
+ :tx/rationale "DEFECT-006 (MINOR): run_show at observe.rs:1700 does full O(D) store scan for incoming Ref links. Comment on line 1696 says 'via VAET index' but implementation is a linear scan over all datoms. At 153K datoms this is ~3ms. At projected 1M datoms ~20ms. The Store has a VAET index in MaterializedViews but no public reverse-lookup API. Fix: defer — create task for VAET reverse-lookup kernel API. Update comment to be accurate."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "81fce2e53608b27c26a12f6e13b593ba951264a36346c6c4f6abfdd4f8752d01" :a :db/doc :v "DEFECT-006 (MINOR): run_show at observe.rs:1700 does full O(D) store scan for incoming Ref links. Comment on line 1696 says 'via VAET index' but implementation is a linear scan over all datoms. At 153K datoms this is ~3ms. At projected 1M datoms ~20ms. The Store has a VAET index in MaterializedViews but no public reverse-lookup API. Fix: defer — create task for VAET reverse-lookup kernel API. Update comment to be accurate." :op :assert}
+   {:e #blake3 "81fce2e53608b27c26a12f6e13b593ba951264a36346c6c4f6abfdd4f8752d01" :a :db/ident :v :observation/defect-006-minor-run-show-at-observers1700-does-full-o :op :assert}
+   {:e #blake3 "81fce2e53608b27c26a12f6e13b593ba951264a36346c6c4f6abfdd4f8752d01" :a :exploration/body :v "DEFECT-006 (MINOR): run_show at observe.rs:1700 does full O(D) store scan for incoming Ref links. Comment on line 1696 says 'via VAET index' but implementation is a linear scan over all datoms. At 153K datoms this is ~3ms. At projected 1M datoms ~20ms. The Store has a VAET index in MaterializedViews but no public reverse-lookup API. Fix: defer — create task for VAET reverse-lookup kernel API. Update comment to be accurate." :op :assert}
+   {:e #blake3 "81fce2e53608b27c26a12f6e13b593ba951264a36346c6c4f6abfdd4f8752d01" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "81fce2e53608b27c26a12f6e13b593ba951264a36346c6c4f6abfdd4f8752d01" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "81fce2e53608b27c26a12f6e13b593ba951264a36346c6c4f6abfdd4f8752d01" :a :exploration/content-hash :v #bytes "da4f81a7da6ca362b261baf581616deec5fc3380ab0d5c4869552c1a7311e0d4" :op :assert}
+   {:e #blake3 "81fce2e53608b27c26a12f6e13b593ba951264a36346c6c4f6abfdd4f8752d01" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "81fce2e53608b27c26a12f6e13b593ba951264a36346c6c4f6abfdd4f8752d01" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "81fce2e53608b27c26a12f6e13b593ba951264a36346c6c4f6abfdd4f8752d01" :a :exploration/source-session :v #blake3 "d5623dbd02609c583a083ae155b8fd85ffbe6b46dae3891916fc25f6fc8ab4cc" :op :assert}
+ ]}

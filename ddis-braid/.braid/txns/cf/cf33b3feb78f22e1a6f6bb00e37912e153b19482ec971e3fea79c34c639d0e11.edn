@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774619920/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C9-REM-4: Fix 5 MINOR code defects in observe subcommands. (1) DEFECT-004: Remove redundant .to_string().to_string() at observe.rs:1680 — change to .to_string(). (2) DEFECT-005: Eliminate double .to_ascii_lowercase() in run_search at observe.rs:1595-1597 — restructure as filter_map with single lowercase per obs. (3) DEFECT-007: truncate_display at observe.rs:1809 must return Cow<str> with ellipsis marker when truncated. (4) DEFECT-008: Fix misleading comment at observe.rs:1696 — change 'via VAET index' to 'full scan — no VAET reverse-lookup API yet'. (5) DEFECT-009: run_show attrs.insert() overwrites cardinality-Many attributes — use entry API to accumulate as JSON arrays. ACCEPTANCE: (A) All 5 fixes compile. (B) cargo clippy zero warnings. (C) Existing tests still pass. (D) Multi-valued attribute test: observation with 2 tags shows both in JSON output."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :db/ident :v :task/t-15011349 :op :assert}
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :task/acceptance :v "(A) All 5 fixes compile. (B) cargo clippy zero warnings. (C) Existing tests still pass. (D) Multi-valued attribute test: observation with 2 tags shows both in JSON output." :op :assert}
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :task/body :v "ACCEPTANCE: (A) All 5 fixes compile. (B) cargo clippy zero warnings. (C) Existing tests still pass. (D) Multi-valued attribute test: observation with 2 tags shows both in JSON output." :op :assert}
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :task/created-at :v 1774619919 :op :assert}
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :task/id :v "t-15011349" :op :assert}
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :task/labels :v :label/C9 :op :assert}
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :task/labels :v :label/remediation :op :assert}
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :task/title :v "C9-REM-4: Fix 5 MINOR code defects in observe subcommands. (1) DEFECT-004: Remove redundant .to_string().to_string() at observe.rs:1680 — change to .to_string(). (2) DEFECT-005: Eliminate double .to_ascii_lowercase() in run_search at observe.rs:1595-1597 — restructure as filter_map with single lowercase per obs. (3) DEFECT-007: truncate_display at observe.rs:1809 must return Cow<str> with ellipsis marker when truncated. (4) DEFECT-008: Fix misleading comment at observe.rs:1696 — change 'via VAET index' to 'full scan — no VAET reverse-lookup API yet'. (5) DEFECT-009: run_show attrs.insert() overwrites cardinality-Many attributes — use entry API to accumulate as JSON arrays" :op :assert}
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :task/title-l0 :v "C9-REM-4" :op :assert}
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :task/title-l1 :v "C9-REM-4: Fix 5 MINOR code defects in observe subcommands" :op :assert}
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :task/traces-to :v #blake3 "9b7f536149cb59d2f140fb63f130493edb4275be8b76e31cea037b89060241d8" :op :assert}
+   {:e #blake3 "f27052e57dbd430dcc53aec291063d66a0e88a7b79ebffdc8a0a0ec45a7cdc03" :a :task/type :v :task.type/task :op :assert}
+ ]}

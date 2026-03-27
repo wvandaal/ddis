@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774619657/0/093d1439552bdf0b42cdd8a6cd64f0c3"
+ :tx/agent "093d1439552bdf0b42cdd8a6cd64f0c3"
+ :tx/provenance :observed
+ :tx/rationale "DEFECT-008 (MINOR): Misleading comment at observe.rs:1696 says 'Show links (incoming refs via VAET index)' but implementation at line 1700 is for d in store.datoms() — a full linear scan, not an index lookup. Comment should say 'full scan — no VAET reverse-lookup API yet'. Documentation accuracy matters for maintainability."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9b7b6f8df8e374665f067428ff067584b3894ed29bf2c2543031698d8068f616" :a :db/doc :v "DEFECT-008 (MINOR): Misleading comment at observe.rs:1696 says 'Show links (incoming refs via VAET index)' but implementation at line 1700 is for d in store.datoms() — a full linear scan, not an index lookup. Comment should say 'full scan — no VAET reverse-lookup API yet'. Documentation accuracy matters for maintainability." :op :assert}
+   {:e #blake3 "9b7b6f8df8e374665f067428ff067584b3894ed29bf2c2543031698d8068f616" :a :db/ident :v :observation/defect-008-minor-misleading-comment-at-observers1696-sa :op :assert}
+   {:e #blake3 "9b7b6f8df8e374665f067428ff067584b3894ed29bf2c2543031698d8068f616" :a :exploration/body :v "DEFECT-008 (MINOR): Misleading comment at observe.rs:1696 says 'Show links (incoming refs via VAET index)' but implementation at line 1700 is for d in store.datoms() — a full linear scan, not an index lookup. Comment should say 'full scan — no VAET reverse-lookup API yet'. Documentation accuracy matters for maintainability." :op :assert}
+   {:e #blake3 "9b7b6f8df8e374665f067428ff067584b3894ed29bf2c2543031698d8068f616" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "9b7b6f8df8e374665f067428ff067584b3894ed29bf2c2543031698d8068f616" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "9b7b6f8df8e374665f067428ff067584b3894ed29bf2c2543031698d8068f616" :a :exploration/content-hash :v #bytes "3b2b1297ccceff79d4bc12388488d03d1f9847a8ba5fcde5869469ed9300c6f3" :op :assert}
+   {:e #blake3 "9b7b6f8df8e374665f067428ff067584b3894ed29bf2c2543031698d8068f616" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "9b7b6f8df8e374665f067428ff067584b3894ed29bf2c2543031698d8068f616" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "9b7b6f8df8e374665f067428ff067584b3894ed29bf2c2543031698d8068f616" :a :exploration/source-session :v #blake3 "d5623dbd02609c583a083ae155b8fd85ffbe6b46dae3891916fc25f6fc8ab4cc" :op :assert}
+ ]}

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774631604/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DW2-TEST: 23 unit tests for marshal_command — 11 routable + 12 non-routable + property test"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :db/ident :v :task/t-f7926337 :op :assert}
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :task/created-at :v 1774631603 :op :assert}
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :task/description :v "TESTS for DW2 marshal_command. UNIT (11 positive): For each of the 11 routable commands, construct the Command variant with representative arguments and verify marshal_command returns the expected (tool_name, json). Include edge cases: (1) observe with all optional fields set. (2) observe with only text. (3) harvest with commit=true + force=true. (4) harvest with no flags (dry run). (5) task create with description + traces_to + labels. (6) go with task ID. (7) done with multiple IDs (only first should be used). (8) write assert with all 4 datom fields. (9) query with datalog string. (10) query with entity+attribute (no datalog). (11) next/status/guidance with no args. UNIT (12 negative): For each non-routable command, verify None returned: init, daemon, mcp, shell, trace, bilateral, merge, log, schema, verify, observe-list, task-list. PROPERTY TEST: For every routable command, the tool_name returned by marshal_command exists in the tool_definitions() tool list. This ensures marshaling and dispatch are always in sync. REGRESSION: After implementation, run full cargo test to ensure no existing behavior changes. FAILURE DIAGNOSTIC: On mismatch, print: (a) Command variant debug repr, (b) expected tool_name + args, (c) actual tool_name + args, (d) JSON diff." :op :assert}
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :task/id :v "t-f7926337" :op :assert}
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :task/labels :v :label/daemon-write-v2 :op :assert}
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :task/labels :v :label/wave2 :op :assert}
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :task/title :v "DW2-TEST: 23 unit tests for marshal_command — 11 routable + 12 non-routable + property test" :op :assert}
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :task/title-l0 :v "DW2-TEST" :op :assert}
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :task/title-l1 :v "DW2-TEST: 23 unit tests for marshal_command — 11 routable + 12 non-routable..." :op :assert}
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "ce2959179de1ff2b60e1ccc42489b69a39da88b56867758cf8649cd15ca4cd5a" :a :task/type :v :task.type/task :op :assert}
+ ]}

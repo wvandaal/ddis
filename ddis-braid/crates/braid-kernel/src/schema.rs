@@ -4853,7 +4853,10 @@ mod tests {
         };
         assert!(mode_real.is_lattice());
         if let ResolutionMode::Lattice { lattice_id } = mode_real {
-            assert_eq!(lattice_id, real_id, "Lattice should carry the real entity ID");
+            assert_eq!(
+                lattice_id, real_id,
+                "Lattice should carry the real entity ID"
+            );
             assert_ne!(
                 lattice_id,
                 ResolutionMode::LATTICE_ID_PLACEHOLDER,
@@ -4914,10 +4917,7 @@ mod tests {
         ];
         for attr_name in &required {
             let attr_def = schema.attribute(&Attribute::from_keyword(attr_name));
-            assert!(
-                attr_def.is_some(),
-                "AR-2: schema must contain {attr_name}"
-            );
+            assert!(attr_def.is_some(), "AR-2: schema must contain {attr_name}");
         }
 
         // Verify cardinalities: refs and neighbors are Many, neighborhood and command are One

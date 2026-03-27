@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774636513/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-4ebf7442"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/close-reason :v "Superseded by DW2 (t-c4f49cf9) which has full subcommand handling + 23 tests" :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/closed-at :v 1774636512 :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "69cb8061b838d6a512d386503998bb75a097d3f7ced7fd78ca0c254f40cabdad" :a :task/status :v :task.status/closed :op :assert}
+ ]}

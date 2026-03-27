@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774629916/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DAEMON-W3: Skip main.rs post-hooks when daemon-routed — CLI becomes zero-write thin client"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :db/ident :v :task/t-037f1043 :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/created-at :v 1774629915 :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/description :v "CONTEXT: main.rs:201-256 writes RFL-2 action prediction datoms to the main.rs LiveStore after command dispatch. This makes L1 dirty. When daemon-routed, the daemon already records runtime datoms (INV-DAEMON-003 via handle_with_observation). The main.rs RFL-2 is redundant AND harmful — it dirties L1, causing stale overwrite on drop. RATIONALE: When the daemon handles a command, ALL side effects (store writes, runtime datoms, action predictions) must be owned by the daemon. The CLI is a thin client that sends a request and renders the response. Zero writes by the CLI in daemon mode. APPROACH: (1) Track whether the command was daemon-routed (try_route_through_daemon returned Some). (2) If daemon-routed: skip ALL post-hooks (RFL-2, exit warning, refresh_if_needed). The daemon handled everything. Return immediately after rendering response. (3) If direct mode: existing post-hook behavior unchanged. (4) This means main.rs LiveStore stays clean for daemon-routed commands → flush on drop is a no-op. ACCEPTANCE: (1) After daemon-routed observe, main.rs LiveStore.is_dirty() == false. (2) Runtime datoms (:runtime/*) still recorded by daemon. (3) Action prediction datoms (:action/*) still recorded by daemon. (4) In direct mode, all post-hooks still fire. FILES: main.rs (~30 LOC). RISK: If any post-hook produces output the user expects to see (e.g., exit harvest warning), that output must be included in the daemon's response instead." :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/id :v "t-037f1043" :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/labels :v :label/daemon :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/labels :v :label/rfl2 :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/labels :v :label/wave3 :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/title :v "DAEMON-W3: Skip main.rs post-hooks when daemon-routed — CLI becomes zero-write thin client" :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/title-l0 :v "DAEMON-W3" :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/title-l1 :v "DAEMON-W3: Skip main.rs post-hooks when daemon-routed — CLI becomes zero-wr..." :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/traces-to :v #blake3 "7ceb3ac1150ab21287b5642e327ecec7a2d644e1f0772aab707f9c6106560932" :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/traces-to :v #blake3 "ea3136ed13d310da4d6b7ba2827ed4b78e0831763c5072c0fecc710cefec2292" :op :assert}
+   {:e #blake3 "13dfffff2c092801a46cedb522e9b15287b20078dc65733dc39fe318f998ef80" :a :task/type :v :task.type/task :op :assert}
+ ]}

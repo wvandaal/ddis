@@ -1076,10 +1076,32 @@ pub fn infer_stage_from_title(title: &str) -> i64 {
     }
 
     // Stage 1: coherence tooling + policy + extractor + substrate decoupling
-    for ns in ["BUDGET", "GUIDANCE", "WITNESS", "BILATERAL", "INTERFACE",
-               "REFLEXIVE", "POLICY", "EXTRACTOR", "SUBSTRATE", "CRB",
-               "ZCM", "TAP", "BAO", "RFL", "PERF", "META", "COTX",
-               "DMP", "SFE", "COF", "AGP", "TEST", "DAEMON", "MCP"] {
+    for ns in [
+        "BUDGET",
+        "GUIDANCE",
+        "WITNESS",
+        "BILATERAL",
+        "INTERFACE",
+        "REFLEXIVE",
+        "POLICY",
+        "EXTRACTOR",
+        "SUBSTRATE",
+        "CRB",
+        "ZCM",
+        "TAP",
+        "BAO",
+        "RFL",
+        "PERF",
+        "META",
+        "COTX",
+        "DMP",
+        "SFE",
+        "COF",
+        "AGP",
+        "TEST",
+        "DAEMON",
+        "MCP",
+    ] {
         if upper.starts_with(ns) || upper.contains(&format!("{ns}-")) {
             return 1;
         }
@@ -1389,11 +1411,17 @@ pub fn parse_acceptance_criteria(title: &str) -> Vec<String> {
     let section = &title[start + "ACCEPTANCE:".len()..];
 
     // Find end of acceptance section (next structured marker or end of string)
-    let section_end = ["APPROACH:", "BACKGROUND:", "DEPENDS-ON:", "TRACES TO:", "FILE:"]
-        .iter()
-        .filter_map(|marker| section.find(marker))
-        .min()
-        .unwrap_or(section.len());
+    let section_end = [
+        "APPROACH:",
+        "BACKGROUND:",
+        "DEPENDS-ON:",
+        "TRACES TO:",
+        "FILE:",
+    ]
+    .iter()
+    .filter_map(|marker| section.find(marker))
+    .min()
+    .unwrap_or(section.len());
 
     let section = &section[..section_end];
 
@@ -1402,7 +1430,8 @@ pub fn parse_acceptance_criteria(title: &str) -> Vec<String> {
     let mut current = String::new();
 
     for part in section.split('(') {
-        if part.len() >= 2 && part.as_bytes()[0].is_ascii_uppercase() && part.as_bytes()[1] == b')' {
+        if part.len() >= 2 && part.as_bytes()[0].is_ascii_uppercase() && part.as_bytes()[1] == b')'
+        {
             if !current.trim().is_empty() {
                 criteria.push(current.trim().to_string());
             }
@@ -1437,7 +1466,9 @@ pub fn extract_criterion_identifiers(criterion: &str) -> Vec<String> {
         }
         // snake_case: contains underscore and is all lowercase/numeric
         let is_snake = cleaned.contains('_')
-            && cleaned.chars().all(|c| c.is_lowercase() || c == '_' || c.is_numeric());
+            && cleaned
+                .chars()
+                .all(|c| c.is_lowercase() || c == '_' || c.is_numeric());
         // CamelCase: starts with uppercase, has at least one lowercase, 4+ chars
         let is_camel = cleaned.chars().next().is_some_and(|c| c.is_uppercase())
             && cleaned.chars().any(|c| c.is_lowercase())
@@ -2029,7 +2060,10 @@ mod tests {
     #[test]
     fn parse_spec_refs_comma_separated() {
         let refs = parse_spec_refs("Fix INV-STORE-001, INV-STORE-002, INV-STORE-003");
-        assert_eq!(refs, vec!["INV-STORE-001", "INV-STORE-002", "INV-STORE-003"]);
+        assert_eq!(
+            refs,
+            vec!["INV-STORE-001", "INV-STORE-002", "INV-STORE-003"]
+        );
     }
 
     #[test]
@@ -2469,8 +2503,12 @@ mod tests {
 
     #[test]
     fn short_title_strips_file_marker() {
-        let title = "SUBSTRATE-2: Decouple extract_task_files. FILE: crates/braid-kernel/src/topology.rs";
-        assert_eq!(short_title(title), "SUBSTRATE-2: Decouple extract_task_files");
+        let title =
+            "SUBSTRATE-2: Decouple extract_task_files. FILE: crates/braid-kernel/src/topology.rs";
+        assert_eq!(
+            short_title(title),
+            "SUBSTRATE-2: Decouple extract_task_files"
+        );
     }
 
     #[test]
@@ -2709,10 +2747,7 @@ mod tests {
             "task with full spec coverage should have positive confidence, got {}",
             evidence.confidence
         );
-        assert_eq!(
-            evidence.spec_coverage, 1,
-            "1 spec covered out of 1 total"
-        );
+        assert_eq!(evidence.spec_coverage, 1, "1 spec covered out of 1 total");
     }
 
     #[test]
@@ -2866,10 +2901,7 @@ mod tests {
         let results = audit_tasks_from_store(&store);
 
         let found = results.iter().find(|(t, _)| t.id == "t-recon-fp");
-        assert!(
-            found.is_some(),
-            "task should appear in audit results"
-        );
+        assert!(found.is_some(), "task should appear in audit results");
         let (_, evidence) = found.unwrap();
 
         // Key assertion: despite spec_coverage=1/1 and file_paths present,

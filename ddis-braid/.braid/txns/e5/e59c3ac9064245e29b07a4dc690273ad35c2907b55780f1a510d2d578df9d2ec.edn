@@ -1,0 +1,28 @@
+{:tx/id #hlc "1774624553/0/c3d89db29683c1a81cb5f0a24f045b16"
+ :tx/agent "c3d89db29683c1a81cb5f0a24f045b16"
+ :tx/provenance :derived
+ :tx/rationale "PERF-4b: reflexive FEGH — bridge hypotheses on self-model"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3900681743833dddf5459a180b2993cd0a2f802222f0333fe5bda2f3c2260f98" :a :db/doc :v "What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?" :op :assert}
+   {:e #blake3 "3900681743833dddf5459a180b2993cd0a2f802222f0333fe5bda2f3c2260f98" :a :db/ident :v :hypothesis/reflexive-1774624552469-0 :op :assert}
+   {:e #blake3 "3900681743833dddf5459a180b2993cd0a2f802222f0333fe5bda2f3c2260f98" :a :hypothesis/alpha :v 0.02972950131121393 :op :assert}
+   {:e #blake3 "3900681743833dddf5459a180b2993cd0a2f802222f0333fe5bda2f3c2260f98" :a :hypothesis/delta-fs :v 1.4864750655606966 :op :assert}
+   {:e #blake3 "3900681743833dddf5459a180b2993cd0a2f802222f0333fe5bda2f3c2260f98" :a :hypothesis/item-type :v "reflexive" :op :assert}
+   {:e #blake3 "3900681743833dddf5459a180b2993cd0a2f802222f0333fe5bda2f3c2260f98" :a :hypothesis/source-label :v "thinking about topology and coupling for ..." :op :assert}
+   {:e #blake3 "3900681743833dddf5459a180b2993cd0a2f802222f0333fe5bda2f3c2260f98" :a :hypothesis/target-label :v "AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ..." :op :assert}
+   {:e #blake3 "3ed73bc40592898345b50bab3ed1dd904ade28481457555b5ae2a7f78da8a584" :a :db/doc :v "What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?" :op :assert}
+   {:e #blake3 "3ed73bc40592898345b50bab3ed1dd904ade28481457555b5ae2a7f78da8a584" :a :db/ident :v :hypothesis/reflexive-1774624552469-2 :op :assert}
+   {:e #blake3 "3ed73bc40592898345b50bab3ed1dd904ade28481457555b5ae2a7f78da8a584" :a :hypothesis/alpha :v 0.018418005840907567 :op :assert}
+   {:e #blake3 "3ed73bc40592898345b50bab3ed1dd904ade28481457555b5ae2a7f78da8a584" :a :hypothesis/delta-fs :v 0.9209002920453784 :op :assert}
+   {:e #blake3 "3ed73bc40592898345b50bab3ed1dd904ade28481457555b5ae2a7f78da8a584" :a :hypothesis/item-type :v "reflexive" :op :assert}
+   {:e #blake3 "3ed73bc40592898345b50bab3ed1dd904ade28481457555b5ae2a7f78da8a584" :a :hypothesis/source-label :v "thinking about topology and coupling for ..." :op :assert}
+   {:e #blake3 "3ed73bc40592898345b50bab3ed1dd904ade28481457555b5ae2a7f78da8a584" :a :hypothesis/target-label :v "ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ..." :op :assert}
+   {:e #blake3 "b751dbb05a0f4fe47c531e0d36f8dc1fc502c1b401cc8fdd8968c1cfc3930339" :a :db/doc :v "What connects thinking about topology and coupling for ... to t-2fd51aac?" :op :assert}
+   {:e #blake3 "b751dbb05a0f4fe47c531e0d36f8dc1fc502c1b401cc8fdd8968c1cfc3930339" :a :db/ident :v :hypothesis/reflexive-1774624552469-1 :op :assert}
+   {:e #blake3 "b751dbb05a0f4fe47c531e0d36f8dc1fc502c1b401cc8fdd8968c1cfc3930339" :a :hypothesis/alpha :v 0.01884442534425121 :op :assert}
+   {:e #blake3 "b751dbb05a0f4fe47c531e0d36f8dc1fc502c1b401cc8fdd8968c1cfc3930339" :a :hypothesis/delta-fs :v 0.9422212672125605 :op :assert}
+   {:e #blake3 "b751dbb05a0f4fe47c531e0d36f8dc1fc502c1b401cc8fdd8968c1cfc3930339" :a :hypothesis/item-type :v "reflexive" :op :assert}
+   {:e #blake3 "b751dbb05a0f4fe47c531e0d36f8dc1fc502c1b401cc8fdd8968c1cfc3930339" :a :hypothesis/source-label :v "thinking about topology and coupling for ..." :op :assert}
+   {:e #blake3 "b751dbb05a0f4fe47c531e0d36f8dc1fc502c1b401cc8fdd8968c1cfc3930339" :a :hypothesis/target-label :v "t-2fd51aac" :op :assert}
+ ]}

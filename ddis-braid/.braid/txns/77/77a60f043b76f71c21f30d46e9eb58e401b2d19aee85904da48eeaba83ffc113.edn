@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774642510/0/d6880e160ad5086fdc8a79d44145cffd"
+ :tx/agent "d6880e160ad5086fdc8a79d44145cffd"
+ :tx/provenance :observed
+ :tx/rationale "DEEP REVIEW GAP 1: STEER-1v2 says 'Default ≤10 lines' but observe list has no --verbose flag. INV-CLI-006 says '--verbose expands to full detail.' The ObserveAction::List clap definition has only path and agent — no verbose flag. STEER-1v2 must ADD --verbose to List/Search/Show/Recent variants in ObserveAction. Default: summary (concept names + counts + stages, ≤10 lines). Verbose: full listing (all observations per concept). This is the Piagetian progressive disclosure from STEERING_MANIFOLD §3: complexity revealed gradually."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b97bc6173032898281b5931b9690c99bad544912fcf257052faa1a72fe11d10d" :a :db/doc :v "DEEP REVIEW GAP 1: STEER-1v2 says 'Default ≤10 lines' but observe list has no --verbose flag. INV-CLI-006 says '--verbose expands to full detail.' The ObserveAction::List clap definition has only path and agent — no verbose flag. STEER-1v2 must ADD --verbose to List/Search/Show/Recent variants in ObserveAction. Default: summary (concept names + counts + stages, ≤10 lines). Verbose: full listing (all observations per concept). This is the Piagetian progressive disclosure from STEERING_MANIFOLD §3: complexity revealed gradually." :op :assert}
+   {:e #blake3 "b97bc6173032898281b5931b9690c99bad544912fcf257052faa1a72fe11d10d" :a :db/ident :v :observation/deep-review-gap-1-steer-1v2-says-default-10-lines-but-ob :op :assert}
+   {:e #blake3 "b97bc6173032898281b5931b9690c99bad544912fcf257052faa1a72fe11d10d" :a :exploration/body :v "DEEP REVIEW GAP 1: STEER-1v2 says 'Default ≤10 lines' but observe list has no --verbose flag. INV-CLI-006 says '--verbose expands to full detail.' The ObserveAction::List clap definition has only path and agent — no verbose flag. STEER-1v2 must ADD --verbose to List/Search/Show/Recent variants in ObserveAction. Default: summary (concept names + counts + stages, ≤10 lines). Verbose: full listing (all observations per concept). This is the Piagetian progressive disclosure from STEERING_MANIFOLD §3: complexity revealed gradually." :op :assert}
+   {:e #blake3 "b97bc6173032898281b5931b9690c99bad544912fcf257052faa1a72fe11d10d" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "b97bc6173032898281b5931b9690c99bad544912fcf257052faa1a72fe11d10d" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "b97bc6173032898281b5931b9690c99bad544912fcf257052faa1a72fe11d10d" :a :exploration/content-hash :v #bytes "bc842546a158b2ed1b49ec9a088eb368b054faa88d3fe4f2e9336f81f8e6668c" :op :assert}
+   {:e #blake3 "b97bc6173032898281b5931b9690c99bad544912fcf257052faa1a72fe11d10d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b97bc6173032898281b5931b9690c99bad544912fcf257052faa1a72fe11d10d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b97bc6173032898281b5931b9690c99bad544912fcf257052faa1a72fe11d10d" :a :exploration/source-session :v #blake3 "ea5a426f665a728e2e9fac97e04b1f06da7b86f103876de583ed7d6c8b6e772f" :op :assert}
+   {:e #blake3 "fae6bab4ae67228919b5cb33125a73b8f93ce3787807c221eab47f3db1f87005" :a :db/ident :v :task/t-6299ef7c :op :assert}
+   {:e #blake3 "fae6bab4ae67228919b5cb33125a73b8f93ce3787807c221eab47f3db1f87005" :a :task/body :v "DEEP REVIEW GAP 1: STEER-1v2 says 'Default ≤10 lines' but observe list has no --verbose flag. INV-CLI-006 says '--verbose expands to full detail.' The ObserveAction::List clap definition has only path and agent — no verbose flag. STEER-1v2 must ADD --verbose to List/Search/Show/Recent variants in ObserveAction. Default: summary (concept names + counts + stages, ≤10 lines). Verbose: full listing (all observations per concept). This is the Piagetian progressive disclosure from STEERING_MANIFOLD §3: complexity revealed gradually." :op :assert}
+   {:e #blake3 "fae6bab4ae67228919b5cb33125a73b8f93ce3787807c221eab47f3db1f87005" :a :task/created-at :v 1774642509 :op :assert}
+   {:e #blake3 "fae6bab4ae67228919b5cb33125a73b8f93ce3787807c221eab47f3db1f87005" :a :task/id :v "t-6299ef7c" :op :assert}
+   {:e #blake3 "fae6bab4ae67228919b5cb33125a73b8f93ce3787807c221eab47f3db1f87005" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "fae6bab4ae67228919b5cb33125a73b8f93ce3787807c221eab47f3db1f87005" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "fae6bab4ae67228919b5cb33125a73b8f93ce3787807c221eab47f3db1f87005" :a :task/title :v "DEEP REVIEW GAP 1: STEER-1v2 says 'Default ≤10 lines' but observe list has no" :op :assert}
+   {:e #blake3 "fae6bab4ae67228919b5cb33125a73b8f93ce3787807c221eab47f3db1f87005" :a :task/type :v :task.type/task :op :assert}
+ ]}

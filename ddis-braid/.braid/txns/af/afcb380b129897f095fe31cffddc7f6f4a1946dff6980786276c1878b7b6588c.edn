@@ -1,0 +1,51 @@
+{:tx/id #hlc "1774647955/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 25 candidates from task 'Session 048: C9 Second-Order Epistemic Closure — implementation + cleanroom review + Option E plan'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "00461d9f1d90220c9e76b6199473410bdbffe128110dea8d46240abc9beba68e" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "05074c59be642fcbf534a49aa6be24d2bfe02b00428f0753488ecabb0809c125" :a :hypothesis/action :v #blake3 "11146360f74be633495a6342dd8200186db3c8cf4a9c36a3c12288606c58cf62" :op :assert}
+   {:e #blake3 "05074c59be642fcbf534a49aa6be24d2bfe02b00428f0753488ecabb0809c125" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "05074c59be642fcbf534a49aa6be24d2bfe02b00428f0753488ecabb0809c125" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "05074c59be642fcbf534a49aa6be24d2bfe02b00428f0753488ecabb0809c125" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "05074c59be642fcbf534a49aa6be24d2bfe02b00428f0753488ecabb0809c125" :a :hypothesis/predicted :v 1.0 :op :assert}
+   {:e #blake3 "05074c59be642fcbf534a49aa6be24d2bfe02b00428f0753488ecabb0809c125" :a :hypothesis/timestamp :v #inst 1774648003 :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :db/doc :v "Harvest session for task: Session 048: C9 Second-Order Epistemic Closure — implementation + cleanroom review + Option E plan" :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :db/ident :v :harvest/session-braid-user-1774647955 :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :harvest/accomplishments :v "What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; threshold check; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; What connects thinking about topology and coupling for ... to t-2fd51aac?; What connects thinking about topology and coupling for ... to t-2fd51aac?; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; Session entity: :recon/trace-a64ac8ac96b4f33e\nC9 SESSION SUMMARY: (1) C9-P5 observe subcommands IMPLEMENTED and verified — list/search/show/recent/create with backward compat. (2) C9-P4 agent identity IMPLEMENTED. (3) C9-P6 TF-IDF naming IMPLEMENTED. (4) C9-SPEC INV-REFLEXIVE-006/007 WRITTEN. (5) Recrystallization ONE-OFF RUN — uncategorized 68%→30%. (6) Concept split kernel function IMPLEMENTED by subagent (split_concept + fiedler_bisect made pub). (7) Cleanroom review found 9 defects (3 MAJOR test gaps, 6 MINOR). (8) Option E plan crystallized: REMEDIATION (10 tests + 5 fixes) → STEER (§4 templates + context embeddings + scoring unification + concept split wiring) → observation becomes CLI-COHERENCE reference implementation. (9) Deep review found 4 additional gaps (--verbose flag, score_entity visibility, vocabulary consistency, test lifecycle). All captured in revised v3 tasks. (10) 1665 kernel tests pass, clippy clean, fmt clean." :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :harvest/candidate-count :v 25 :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :harvest/codebase-snapshot :v "Codebase: 0 LOC across 0 source files\nTests: 2072 passing" :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :harvest/context-metrics :v "{\"candidates\":25,\"k_eff_estimated\":\"0.86\",\"observations\":0,\"output_tokens_est\":262,\"tasks_closed\":0,\"tx_count\":3,\"wall_elapsed_s\":3600}" :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :harvest/delta-summary :v "+356 datoms, +21 entities" :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :harvest/observation-count :v 2 :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :harvest/recommended-tasks :v "t-d9536d87,t-f12bff46,t-8e8cf412" :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :harvest/store-datom-count :v 176373 :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :harvest/store-entity-count :v 12988 :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: Session 048: C9 Second-Order Epistemic Closure — implementation + cleanroom review + Option E plan\nRun: `braid seed --task \"continue: Session 048: C9 Second-Order Epistemic Closure — implementation + cleanroom review + Option E plan\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :harvest/task :v "Session 048: C9 Second-Order Epistemic Closure — implementation + cleanroom review + Option E plan" :op :assert}
+   {:e #blake3 "6aa3bb8755a2c1efbcb0f4fcc62b2dacd7d6204d1eeff2fa8e99ce8b4101db86" :a :harvest/tx-since-last :v 13 :op :assert}
+   {:e #blake3 "92b9b98774df21925e48deaa31f68ae7aed24064f5aaabd6336605277bb7fcb6" :a :hypothesis/action :v #blake3 "44d5d397154b469c1d33bf5cb4da749089379e765e10f4b6ae4f21ac379b2780" :op :assert}
+   {:e #blake3 "92b9b98774df21925e48deaa31f68ae7aed24064f5aaabd6336605277bb7fcb6" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "92b9b98774df21925e48deaa31f68ae7aed24064f5aaabd6336605277bb7fcb6" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "92b9b98774df21925e48deaa31f68ae7aed24064f5aaabd6336605277bb7fcb6" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "92b9b98774df21925e48deaa31f68ae7aed24064f5aaabd6336605277bb7fcb6" :a :hypothesis/predicted :v 0.48619425089885904 :op :assert}
+   {:e #blake3 "92b9b98774df21925e48deaa31f68ae7aed24064f5aaabd6336605277bb7fcb6" :a :hypothesis/timestamp :v #inst 1774648003 :op :assert}
+   {:e #blake3 "a645b751e4ca9c5844fc80a1741efe9e09efa43080ea22b851e34e1418547512" :a :hypothesis/action :v #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :op :assert}
+   {:e #blake3 "a645b751e4ca9c5844fc80a1741efe9e09efa43080ea22b851e34e1418547512" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "a645b751e4ca9c5844fc80a1741efe9e09efa43080ea22b851e34e1418547512" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "a645b751e4ca9c5844fc80a1741efe9e09efa43080ea22b851e34e1418547512" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "a645b751e4ca9c5844fc80a1741efe9e09efa43080ea22b851e34e1418547512" :a :hypothesis/predicted :v 0.9271535250877685 :op :assert}
+   {:e #blake3 "a645b751e4ca9c5844fc80a1741efe9e09efa43080ea22b851e34e1418547512" :a :hypothesis/timestamp :v #inst 1774648003 :op :assert}
+   {:e #blake3 "e01d27332696b88285c5c0bcdc818b993a235365949760fdc9af1244d03a3c24" :a :db/ident :v :session/s-1774648003487 :op :assert}
+   {:e #blake3 "e01d27332696b88285c5c0bcdc818b993a235365949760fdc9af1244d03a3c24" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "e01d27332696b88285c5c0bcdc818b993a235365949760fdc9af1244d03a3c24" :a :session/current :v #blake3 "e01d27332696b88285c5c0bcdc818b993a235365949760fdc9af1244d03a3c24" :op :assert}
+   {:e #blake3 "e01d27332696b88285c5c0bcdc818b993a235365949760fdc9af1244d03a3c24" :a :session/start-datom-count :v 176408 :op :assert}
+   {:e #blake3 "e01d27332696b88285c5c0bcdc818b993a235365949760fdc9af1244d03a3c24" :a :session/start-fitness :v 0.6135046887460732 :op :assert}
+   {:e #blake3 "e01d27332696b88285c5c0bcdc818b993a235365949760fdc9af1244d03a3c24" :a :session/start-time :v "2026-03-27T21:46:43Z" :op :assert}
+   {:e #blake3 "e01d27332696b88285c5c0bcdc818b993a235365949760fdc9af1244d03a3c24" :a :session/started-at :v 1774648003 :op :assert}
+   {:e #blake3 "e01d27332696b88285c5c0bcdc818b993a235365949760fdc9af1244d03a3c24" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "e01d27332696b88285c5c0bcdc818b993a235365949760fdc9af1244d03a3c24" :a :session/task :v "## Session Synthesis Directive\n\n**Next session task**: continue: Session 048: C9 Second-Order Epistemic Closure — implementation + cleanroom review + Option E plan\nRun: `braid seed --task \"continue: Session 048: C9 Second-Order Epistemic Closure — implementation + cleanroom review + Option E plan\"` to start the next session.\n" :op :assert}
+ ]}

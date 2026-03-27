@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774619689/0/cba71ab8e86337427848a64a22259996"
+ :tx/agent "cba71ab8e86337427848a64a22259996"
+ :tx/provenance :observed
+ :tx/rationale "TASK-HYGIENE: C9 session completed 4 implementations (C9-SPEC, C9-P4, C9-P5, C9-P6) but tasks t-3115acf1 (C9-P5) and t-266f06d5 (C9-P4) remain status=open in the store. Also t-4e7c2524 and t-abccebc1 are duplicate test tasks superseded by t-9821a10e. Need to close implemented tasks and deduplicate test tasks. Also t-91059861 (C9-5 stagnation impl detail) is already done — detect_stagnation exists in methodology.rs."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "71f03cbe3530f20582419b7615cb14e44fe2fc9e14e28d92d0a8205c19db66b9" :a :db/doc :v "TASK-HYGIENE: C9 session completed 4 implementations (C9-SPEC, C9-P4, C9-P5, C9-P6) but tasks t-3115acf1 (C9-P5) and t-266f06d5 (C9-P4) remain status=open in the store. Also t-4e7c2524 and t-abccebc1 are duplicate test tasks superseded by t-9821a10e. Need to close implemented tasks and deduplicate test tasks. Also t-91059861 (C9-5 stagnation impl detail) is already done — detect_stagnation exists in methodology.rs." :op :assert}
+   {:e #blake3 "71f03cbe3530f20582419b7615cb14e44fe2fc9e14e28d92d0a8205c19db66b9" :a :db/ident :v :observation/task-hygiene-c9-session-completed-4-implementations-c9-spe :op :assert}
+   {:e #blake3 "71f03cbe3530f20582419b7615cb14e44fe2fc9e14e28d92d0a8205c19db66b9" :a :exploration/body :v "TASK-HYGIENE: C9 session completed 4 implementations (C9-SPEC, C9-P4, C9-P5, C9-P6) but tasks t-3115acf1 (C9-P5) and t-266f06d5 (C9-P4) remain status=open in the store. Also t-4e7c2524 and t-abccebc1 are duplicate test tasks superseded by t-9821a10e. Need to close implemented tasks and deduplicate test tasks. Also t-91059861 (C9-5 stagnation impl detail) is already done — detect_stagnation exists in methodology.rs." :op :assert}
+   {:e #blake3 "71f03cbe3530f20582419b7615cb14e44fe2fc9e14e28d92d0a8205c19db66b9" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "71f03cbe3530f20582419b7615cb14e44fe2fc9e14e28d92d0a8205c19db66b9" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "71f03cbe3530f20582419b7615cb14e44fe2fc9e14e28d92d0a8205c19db66b9" :a :exploration/content-hash :v #bytes "b54f7ee7e8be182d4be117fafdcb74fdd255d79b8a703f416c468f8d5081a909" :op :assert}
+   {:e #blake3 "71f03cbe3530f20582419b7615cb14e44fe2fc9e14e28d92d0a8205c19db66b9" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "71f03cbe3530f20582419b7615cb14e44fe2fc9e14e28d92d0a8205c19db66b9" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "71f03cbe3530f20582419b7615cb14e44fe2fc9e14e28d92d0a8205c19db66b9" :a :exploration/source-session :v #blake3 "d5623dbd02609c583a083ae155b8fd85ffbe6b46dae3891916fc25f6fc8ab4cc" :op :assert}
+ ]}

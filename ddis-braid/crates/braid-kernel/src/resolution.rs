@@ -1350,7 +1350,9 @@ mod tests {
             prop_oneof![
                 Just(ResolutionMode::Lww),
                 Just(ResolutionMode::Multi),
-                Just(ResolutionMode::Lattice { lattice_id: EntityId::ZERO }),
+                Just(ResolutionMode::Lattice {
+                    lattice_id: EntityId::ZERO
+                }),
             ]
         }
 

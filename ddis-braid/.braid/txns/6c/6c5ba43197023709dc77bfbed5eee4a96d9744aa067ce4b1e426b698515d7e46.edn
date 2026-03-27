@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774636631/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1ccb4e55"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/close-reason :v "Already implemented in commit e52f7f56 (INV-DAEMON-010)" :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/closed-at :v 1774636630 :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "5f0b8c3d457c5dce476fddd1de8a413aa4896a4d8abeb1a58ce4b7ffad5950c3" :a :task/status :v :task.status/closed :op :assert}
+ ]}

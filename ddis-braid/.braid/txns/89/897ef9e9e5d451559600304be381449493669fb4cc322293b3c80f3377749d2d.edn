@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774623061/0/a8f6328c60d2f2abd86722da3f75141e"
+ :tx/agent "a8f6328c60d2f2abd86722da3f75141e"
+ :tx/provenance :observed
+ :tx/rationale "testing concept crystallization with new TF-IDF naming algorithm to verify quality"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3c61bae84f3cd11f30c5c19a89715870afbcccf4c08b27269953f04c372a98ff" :a :db/ident :v :task/t-66ccccde :op :assert}
+   {:e #blake3 "3c61bae84f3cd11f30c5c19a89715870afbcccf4c08b27269953f04c372a98ff" :a :task/body :v "testing concept crystallization with new TF-IDF naming algorithm to verify quality" :op :assert}
+   {:e #blake3 "3c61bae84f3cd11f30c5c19a89715870afbcccf4c08b27269953f04c372a98ff" :a :task/created-at :v 1774623060 :op :assert}
+   {:e #blake3 "3c61bae84f3cd11f30c5c19a89715870afbcccf4c08b27269953f04c372a98ff" :a :task/id :v "t-66ccccde" :op :assert}
+   {:e #blake3 "3c61bae84f3cd11f30c5c19a89715870afbcccf4c08b27269953f04c372a98ff" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "3c61bae84f3cd11f30c5c19a89715870afbcccf4c08b27269953f04c372a98ff" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3c61bae84f3cd11f30c5c19a89715870afbcccf4c08b27269953f04c372a98ff" :a :task/title :v "testing concept crystallization with new TF-IDF naming algorithm to verify" :op :assert}
+   {:e #blake3 "3c61bae84f3cd11f30c5c19a89715870afbcccf4c08b27269953f04c372a98ff" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "58e361849087c5b891260016e08af2b121f8fa4def3dea90d6267370528e9442" :a :db/doc :v "testing concept crystallization with new TF-IDF naming algorithm to verify quality" :op :assert}
+   {:e #blake3 "58e361849087c5b891260016e08af2b121f8fa4def3dea90d6267370528e9442" :a :db/ident :v :observation/testing-concept-crystallization-with-new-tf-idf-naming-algor :op :assert}
+   {:e #blake3 "58e361849087c5b891260016e08af2b121f8fa4def3dea90d6267370528e9442" :a :exploration/body :v "testing concept crystallization with new TF-IDF naming algorithm to verify quality" :op :assert}
+   {:e #blake3 "58e361849087c5b891260016e08af2b121f8fa4def3dea90d6267370528e9442" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "58e361849087c5b891260016e08af2b121f8fa4def3dea90d6267370528e9442" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "58e361849087c5b891260016e08af2b121f8fa4def3dea90d6267370528e9442" :a :exploration/content-hash :v #bytes "f80cf5ca3aaef29c197bbb374b1b578e2cb23fb354148ed3bc87ef73477961e1" :op :assert}
+   {:e #blake3 "58e361849087c5b891260016e08af2b121f8fa4def3dea90d6267370528e9442" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "58e361849087c5b891260016e08af2b121f8fa4def3dea90d6267370528e9442" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "58e361849087c5b891260016e08af2b121f8fa4def3dea90d6267370528e9442" :a :exploration/source-session :v #blake3 "26c93d8623214ca55517c10b3ebbbcbf557c3d290fc04173e7a1c13a48277d13" :op :assert}
+ ]}

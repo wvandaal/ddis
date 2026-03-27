@@ -48,8 +48,9 @@ pub fn comment_prefixes_for_extension(ext: &str) -> Vec<&'static str> {
 
         // Hash-prefix languages
         "py" | "sh" | "bash" | "zsh" | "rb" | "yaml" | "yml" | "toml" | "r" | "pl" | "pm"
-        | "nix" | "jl" | "ex" | "exs" | "cr" | "nim" | "coffee" | "mk" | "cmake"
-        | "Makefile" => vec!["#"],
+        | "nix" | "jl" | "ex" | "exs" | "cr" | "nim" | "coffee" | "mk" | "cmake" | "Makefile" => {
+            vec!["#"]
+        }
 
         // Double-dash languages
         "sql" | "lua" | "hs" | "lhs" | "ada" | "adb" | "ads" | "erl" | "hrl" | "vhdl" => {
@@ -1120,9 +1121,14 @@ fn nested() {
     #[test]
     fn scan_unknown_ext_tries_all_prefixes() {
         // Acceptance (C): Unknown .foo files: both // and # patterns tried
-        let source = "// INV-STORE-001: slash-slash\n# ADR-QUERY-005: hash\n-- NEG-MERGE-001: dash-dash\n";
+        let source =
+            "// INV-STORE-001: slash-slash\n# ADR-QUERY-005: hash\n-- NEG-MERGE-001: dash-dash\n";
         let links = scan_source(source, "data/config.foo");
-        assert_eq!(links.len(), 3, "unknown ext should find all three spec refs");
+        assert_eq!(
+            links.len(),
+            3,
+            "unknown ext should find all three spec refs"
+        );
         let ids: BTreeSet<&str> = links.iter().map(|l| l.spec_id.as_str()).collect();
         assert!(ids.contains("INV-STORE-001"));
         assert!(ids.contains("ADR-QUERY-005"));
@@ -1150,10 +1156,7 @@ fn test_merge_001() {
         let source = "# INV-FOUNDATION-006: Substrate independence\nmanifest:\n  version: 1\n";
         let links = scan_source(source, "policy/ddis.yaml");
         assert_eq!(links.len(), 1);
-        assert_eq!(
-            links.iter().next().unwrap().spec_id,
-            "INV-FOUNDATION-006"
-        );
+        assert_eq!(links.iter().next().unwrap().spec_id, "INV-FOUNDATION-006");
     }
 
     #[test]

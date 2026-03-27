@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774623047/0/cd0cc020f49eaca440505aa993297a78"
+ :tx/agent "cd0cc020f49eaca440505aa993297a78"
+ :tx/provenance :observed
+ :tx/rationale "BEGIN INVESTIGATION: Stale cache issues since daemon performance work. Need to trace the exact data flow from write_tx through cache invalidation through load_store to understand where staleness enters. First principles: a cache is correct iff cache_content = f(source_of_truth). Staleness = cache_content ≠ f(source_of_truth). Must identify: (1) what is the source of truth, (2) what is the cache, (3) what is the invalidation protocol, (4) where does the protocol break."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4dd6b7ba0d4b36685c31db45b34445b699b909a10e7f9014871c4e75210da9c3" :a :db/doc :v "BEGIN INVESTIGATION: Stale cache issues since daemon performance work. Need to trace the exact data flow from write_tx through cache invalidation through load_store to understand where staleness enters. First principles: a cache is correct iff cache_content = f(source_of_truth). Staleness = cache_content ≠ f(source_of_truth). Must identify: (1) what is the source of truth, (2) what is the cache, (3) what is the invalidation protocol, (4) where does the protocol break." :op :assert}
+   {:e #blake3 "4dd6b7ba0d4b36685c31db45b34445b699b909a10e7f9014871c4e75210da9c3" :a :db/ident :v :observation/begin-investigation-stale-cache-issues-since-daemon-perform :op :assert}
+   {:e #blake3 "4dd6b7ba0d4b36685c31db45b34445b699b909a10e7f9014871c4e75210da9c3" :a :exploration/body :v "BEGIN INVESTIGATION: Stale cache issues since daemon performance work. Need to trace the exact data flow from write_tx through cache invalidation through load_store to understand where staleness enters. First principles: a cache is correct iff cache_content = f(source_of_truth). Staleness = cache_content ≠ f(source_of_truth). Must identify: (1) what is the source of truth, (2) what is the cache, (3) what is the invalidation protocol, (4) where does the protocol break." :op :assert}
+   {:e #blake3 "4dd6b7ba0d4b36685c31db45b34445b699b909a10e7f9014871c4e75210da9c3" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "4dd6b7ba0d4b36685c31db45b34445b699b909a10e7f9014871c4e75210da9c3" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "4dd6b7ba0d4b36685c31db45b34445b699b909a10e7f9014871c4e75210da9c3" :a :exploration/content-hash :v #bytes "d0b6f6caec3457de7b10bc28b4765ff76f83fb0167d7963cd7ae3ee7beba4af4" :op :assert}
+   {:e #blake3 "4dd6b7ba0d4b36685c31db45b34445b699b909a10e7f9014871c4e75210da9c3" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "4dd6b7ba0d4b36685c31db45b34445b699b909a10e7f9014871c4e75210da9c3" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "4dd6b7ba0d4b36685c31db45b34445b699b909a10e7f9014871c4e75210da9c3" :a :exploration/source-session :v #blake3 "26c93d8623214ca55517c10b3ebbbcbf557c3d290fc04173e7a1c13a48277d13" :op :assert}
+   {:e #blake3 "4dd6b7ba0d4b36685c31db45b34445b699b909a10e7f9014871c4e75210da9c3" :a :exploration/tags :v :tag/cache :op :assert}
+   {:e #blake3 "4dd6b7ba0d4b36685c31db45b34445b699b909a10e7f9014871c4e75210da9c3" :a :exploration/tags :v :tag/investigation :op :assert}
+   {:e #blake3 "4dd6b7ba0d4b36685c31db45b34445b699b909a10e7f9014871c4e75210da9c3" :a :exploration/tags :v :tag/stale :op :assert}
+ ]}

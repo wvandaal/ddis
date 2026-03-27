@@ -33,3 +33,11 @@ predicates = "3"
 [[bin]]
 name = "braid"
 path = "src/main.rs"
+
+[[bin]]
+name = "recrystallize"
+path = "src/bin/recrystallize.rs"
+
+[[bin]]
+name = "split_concepts"
+path = "src/bin/split_concepts.rs"

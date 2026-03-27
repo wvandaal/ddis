@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774619605/0/ebb7ed0ba73a5cdf6d96ef9a92e8eeca"
+ :tx/agent "ebb7ed0ba73a5cdf6d96ef9a92e8eeca"
+ :tx/provenance :observed
+ :tx/rationale "DEFECT-005 (MINOR): run_search at observe.rs:1595-1597 calls .to_ascii_lowercase() twice on same body — once in .filter() and once in .map(). Each call allocates a new String for every observation. With 1077 observations, that is 2154 unnecessary allocations. Fix: restructure as filter_map with single lowercase computation per observation."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c52139e9d139000ae80579585fa042e89a795d879cff5744fbecda825a79f0c8" :a :db/doc :v "DEFECT-005 (MINOR): run_search at observe.rs:1595-1597 calls .to_ascii_lowercase() twice on same body — once in .filter() and once in .map(). Each call allocates a new String for every observation. With 1077 observations, that is 2154 unnecessary allocations. Fix: restructure as filter_map with single lowercase computation per observation." :op :assert}
+   {:e #blake3 "c52139e9d139000ae80579585fa042e89a795d879cff5744fbecda825a79f0c8" :a :db/ident :v :observation/defect-005-minor-run-search-at-observers1595-1597-calls :op :assert}
+   {:e #blake3 "c52139e9d139000ae80579585fa042e89a795d879cff5744fbecda825a79f0c8" :a :exploration/body :v "DEFECT-005 (MINOR): run_search at observe.rs:1595-1597 calls .to_ascii_lowercase() twice on same body — once in .filter() and once in .map(). Each call allocates a new String for every observation. With 1077 observations, that is 2154 unnecessary allocations. Fix: restructure as filter_map with single lowercase computation per observation." :op :assert}
+   {:e #blake3 "c52139e9d139000ae80579585fa042e89a795d879cff5744fbecda825a79f0c8" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "c52139e9d139000ae80579585fa042e89a795d879cff5744fbecda825a79f0c8" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "c52139e9d139000ae80579585fa042e89a795d879cff5744fbecda825a79f0c8" :a :exploration/content-hash :v #bytes "5c94d0e7d1903ec887b2cfcce50b33e3ef65903277f3f41ac5878fdee554ad10" :op :assert}
+   {:e #blake3 "c52139e9d139000ae80579585fa042e89a795d879cff5744fbecda825a79f0c8" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "c52139e9d139000ae80579585fa042e89a795d879cff5744fbecda825a79f0c8" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "c52139e9d139000ae80579585fa042e89a795d879cff5744fbecda825a79f0c8" :a :exploration/source-session :v #blake3 "d5623dbd02609c583a083ae155b8fd85ffbe6b46dae3891916fc25f6fc8ab4cc" :op :assert}
+ ]}

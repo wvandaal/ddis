@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774619737/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-266f06d5"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/close-reason :v "C9-P4 implemented: resolve_agent_identity() three-tier cascade (flag > BRAID_AGENT > PID). Applied to observe dispatch + session auto-detect. INV-REFLEXIVE-007 idempotency holds." :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/closed-at :v 1774619736 :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "b88787a6a024d6aebb2db018990f14b75bc5ec53eab21ba86cf94643504000ea" :a :task/status :v :task.status/closed :op :assert}
+ ]}

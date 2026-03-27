@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774629811/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DAEMON-W0: Fix fingerprint — write_slim_cache must use known_hashes from LiveStore, not list_tx_hashes from disk"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :db/ident :v :task/t-1aef70b6 :op :assert}
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :task/created-at :v 1774629810 :op :assert}
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :task/description :v "CONTEXT: write_slim_cache() at layout.rs:569 calls list_tx_hashes() at flush time, listing ALL .edn files including ones other processes wrote. Fingerprint says 'I represent A,B,C,D' but store.bin only has A,B,C. Next reader: fingerprint match → cache hit → stale data. RATIONALE: The fingerprint must reflect what the store CONTAINS, not what the disk HAS. This is a cache validity invariant — the fingerprint is a promise about content. A false promise is worse than no promise (it actively prevents self-correction). APPROACH: (1) Change write_slim_cache(&self, store, known_hashes: &[String]) to accept known_hashes. (2) Compute fingerprint from known_hashes, not list_tx_hashes(). (3) LiveStore::flush() passes self.known_hashes (the hashes loaded + written by this instance). (4) When a stale flush occurs, fingerprint won't match disk → next reader gets cache miss → rebuilds correctly. ACCEPTANCE: (1) Unit test: flush with 5 known_hashes on disk with 7 total → next load: fingerprint mismatch → rebuilds with all 7. (2) proptest: fingerprint(subset) \\!= fingerprint(superset) when subset is a proper subset. FILES: layout.rs (~15 LOC), live_store.rs (~5 LOC). RISK: None — strictly more correct than current behavior." :op :assert}
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :task/id :v "t-1aef70b6" :op :assert}
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :task/labels :v :label/bug2 :op :assert}
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :task/labels :v :label/daemon :op :assert}
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :task/labels :v :label/wave0 :op :assert}
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :task/title :v "DAEMON-W0: Fix fingerprint — write_slim_cache must use known_hashes from LiveStore, not list_tx_hashes from disk" :op :assert}
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :task/title-l0 :v "DAEMON-W0" :op :assert}
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :task/title-l1 :v "DAEMON-W0: Fix fingerprint — write_slim_cache must use known_hashes from Li..." :op :assert}
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "360e8d5a13e6be96296061790e9ba5c1b3498468f5018cc55980d188de93edd7" :a :task/type :v :task.type/task :op :assert}
+ ]}

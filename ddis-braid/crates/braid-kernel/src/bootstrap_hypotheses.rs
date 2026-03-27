@@ -291,20 +291,18 @@ fn detect_test_infrastructure(root: &Path, hyps: &mut Vec<BootstrapHypothesis>) 
     };
 
     // JS/TS convention: *.test.ts, *.spec.ts, etc.
-    let js_test_count = count_files_matching(root, ".test.", 3, 0)
-        + count_files_matching(root, ".spec.", 3, 0);
+    let js_test_count =
+        count_files_matching(root, ".test.", 3, 0) + count_files_matching(root, ".spec.", 3, 0);
 
     // Python convention: test_*.py or *_test.py
-    let py_test_count = count_files_matching(root, "test_", 3, 0)
-        + count_files_matching(root, "_test.py", 3, 0);
+    let py_test_count =
+        count_files_matching(root, "test_", 3, 0) + count_files_matching(root, "_test.py", 3, 0);
 
     let total_tests = go_test_count + rust_test_dir_count + js_test_count + py_test_count;
 
     if total_tests > 0 {
         hyps.push(BootstrapHypothesis {
-            text: format!(
-                "{total_tests} test files found -- project has test infrastructure"
-            ),
+            text: format!("{total_tests} test files found -- project has test infrastructure"),
             confidence: 0.85,
             category: "testing".to_string(),
             evidence: format!("Counted {total_tests} test files (depth <= 3)"),
@@ -396,7 +394,10 @@ mod tests {
             .unwrap();
         let hyps = generate_bootstrap_hypotheses(root);
 
-        assert!(!hyps.is_empty(), "should generate hypotheses for braid project");
+        assert!(
+            !hyps.is_empty(),
+            "should generate hypotheses for braid project"
+        );
         assert!(
             hyps.iter()
                 .any(|h| h.text.contains("Rust") || h.text.contains("Cargo")),
@@ -440,11 +441,7 @@ mod tests {
         std::fs::create_dir_all(dir.join("internal/parser")).unwrap();
         std::fs::create_dir_all(dir.join("internal/storage")).unwrap();
         std::fs::write(dir.join("internal/parser/parser.go"), "package parser").unwrap();
-        std::fs::write(
-            dir.join("internal/parser/parser_test.go"),
-            "package parser",
-        )
-        .unwrap();
+        std::fs::write(dir.join("internal/parser/parser_test.go"), "package parser").unwrap();
 
         let hyps = generate_bootstrap_hypotheses(&dir);
 
@@ -536,10 +533,7 @@ mod tests {
         // Acceptance criterion F
         let hyps =
             generate_bootstrap_hypotheses(Path::new("/nonexistent/path/that/does/not/exist"));
-        assert!(
-            hyps.is_empty(),
-            "nonexistent path should return empty vec"
-        );
+        assert!(hyps.is_empty(), "nonexistent path should return empty vec");
     }
 
     #[test]

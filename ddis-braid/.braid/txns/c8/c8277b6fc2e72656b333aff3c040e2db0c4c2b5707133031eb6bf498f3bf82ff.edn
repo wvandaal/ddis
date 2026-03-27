@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774622610/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a123d44375fc498a0e1d5146f7cc5a5ed3f833cbe8c2dbb0a7737e377a797611" :a :db/ident :v :recon/trace-2f42bf2321b408e0 :op :assert}
+   {:e #blake3 "a123d44375fc498a0e1d5146f7cc5a5ed3f833cbe8c2dbb0a7737e377a797611" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "a123d44375fc498a0e1d5146f7cc5a5ed3f833cbe8c2dbb0a7737e377a797611" :a :recon/trace-neighborhood :v "REFLEXIVE" :op :assert}
+   {:e #blake3 "a123d44375fc498a0e1d5146f7cc5a5ed3f833cbe8c2dbb0a7737e377a797611" :a :recon/trace-neighbors :v ":task/t-4c10994e" :op :assert}
+   {:e #blake3 "a123d44375fc498a0e1d5146f7cc5a5ed3f833cbe8c2dbb0a7737e377a797611" :a :recon/trace-refs :v "INV-REFLEXIVE-007" :op :assert}
+ ]}

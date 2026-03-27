@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774619957/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VAET-API: Add reverse-lookup API to Store for incoming Ref datoms. CONTEXT: run_show (observe.rs:1700) does O(D) full scan to find entities referencing a target entity. The Store already has a VAET index in MaterializedViews but no public query method. APPROACH: Add pub fn ref_datoms(&self, target: EntityId) -> Vec<&Datom> to Store that uses the VAET index for O(log D) lookup. ACCEPTANCE: (A) ref_datoms returns all datoms where value == Ref(target). (B) Performance: O(log D) not O(D). (C) run_show refactored to use ref_datoms. DEPENDS-ON: none. FILE: crates/braid-kernel/src/store.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :db/ident :v :task/t-5b7f1c25 :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/acceptance :v "(A) ref_datoms returns all datoms where value == Ref(target). (B) Performance: O(log D) not O(D). (C) run_show refactored to use ref_datoms. DEPENDS-ON: none." :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/approach :v "Add pub fn ref_datoms(&self, target: EntityId) -> Vec<&Datom> to Store that uses the VAET index for O(log D) lookup." :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/body :v "APPROACH: Add pub fn ref_datoms(&self, target: EntityId) -> Vec<&Datom> to Store that uses the VAET index for O(log D) lookup. ACCEPTANCE: (A) ref_datoms returns all datoms where value == Ref(target). (B) Performance: O(log D) not O(D). (C) run_show refactored to use ref_datoms. DEPENDS-ON: none. FILE: crates/braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/created-at :v 1774619956 :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/files :v "crates/braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/id :v "t-5b7f1c25" :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/labels :v :label/performance :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/title :v "VAET-API: Add reverse-lookup API to Store for incoming Ref datoms. CONTEXT: run_show (observe.rs:1700) does O(D) full scan to find entities referencing a target entity. The Store already has a VAET index in MaterializedViews but no public query method" :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/title-l0 :v "VAET-API" :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/title-l1 :v "VAET-API: Add reverse-lookup API to Store for incoming Ref datoms" :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/traces-to :v #blake3 "192793a3a1efa8195c4a1f3cdff307e17d88478917e1e520ef6eb8651526cb67" :op :assert}
+   {:e #blake3 "18d78849ebb963a4cf01c81935d4b7395e588a59dbf3a90d045f5a41a2fed7d8" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -12,7 +12,6 @@ use braid_kernel::datom::AgentId;
 use braid_kernel::guidance::{derive_actions, format_actions};
 use braid_kernel::seed::{assemble_seed, group_state_entries, ContextSection};
 
-
 use crate::error::BraidError;
 use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};

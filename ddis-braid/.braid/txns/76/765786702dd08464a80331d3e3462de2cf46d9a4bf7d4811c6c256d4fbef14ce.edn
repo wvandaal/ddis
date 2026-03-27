@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774629882/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DAEMON-W2: Wire marshal_command into main.rs — pass &Command to try_route_through_daemon"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :db/ident :v :task/t-80969102 :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/created-at :v 1774629881 :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/description :v "CONTEXT: main.rs:116 passes &serde_json::json\\!({}) to try_route_through_daemon — all CLI arguments are lost. RATIONALE: The daemon routing function must receive the parsed Command to marshal it. This is the function composition: parse(cli_args) → Command → marshal → (tool_name, json_args) → JSON-RPC request → daemon. APPROACH: (1) Change try_route_through_daemon(store_path, cmd_name, &json\\!({})) to try_route_through_daemon(store_path, &cmd). (2) Inside try_route_through_daemon, call marshal_command(&cmd) to get Option<(tool_name, args)>. (3) On Some, build JSON-RPC request with tool_name and args. On None, return None (direct mode). (4) This also means cmd cannot be consumed before the daemon routing check — may need to borrow rather than move. ACCEPTANCE: (1) braid observe 'test' -c 0.8 with daemon running → observation appears with confidence 0.8. (2) braid task create 'test task' --priority 1 with daemon running → task created with priority 1. (3) All daemon-exempt commands still work in direct mode. (4) Daemon log shows received arguments matching CLI flags. FILES: main.rs (~15 LOC), daemon.rs (signature change ~5 LOC). RISK: The Command enum may need to be borrowed (&Command) rather than moved, since main.rs currently consumes it in commands::run(). May need to clone or restructure the dispatch." :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/id :v "t-80969102" :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/labels :v :label/daemon :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/labels :v :label/wave2 :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/labels :v :label/wiring :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/title :v "DAEMON-W2: Wire marshal_command into main.rs — pass &Command to try_route_through_daemon" :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/title-l0 :v "DAEMON-W2" :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/title-l1 :v "DAEMON-W2: Wire marshal_command into main.rs — pass &Command to try_route_t..." :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/traces-to :v #blake3 "9fd4f5afbb2842eb014f9571eb0bc0ae7fe0d3931a061f2bc5edd391f220a52e" :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "43fdd93b0371bcef5994caa5116be016ef64a5799f6d005532f4eb2afc079c43" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -124,12 +124,11 @@ impl PolicyConfig {
             let entity = d.entity;
             let entity_datoms = store.entity_datoms(entity);
 
-            let source = extract_string(&entity_datoms, ":policy/boundary-source")
-                .unwrap_or_default();
-            let target = extract_string(&entity_datoms, ":policy/boundary-target")
-                .unwrap_or_default();
-            let weight = extract_double(&entity_datoms, ":policy/boundary-weight")
-                .unwrap_or(0.0);
+            let source =
+                extract_string(&entity_datoms, ":policy/boundary-source").unwrap_or_default();
+            let target =
+                extract_string(&entity_datoms, ":policy/boundary-target").unwrap_or_default();
+            let weight = extract_double(&entity_datoms, ":policy/boundary-weight").unwrap_or(0.0);
             let report_template =
                 extract_string(&entity_datoms, ":policy/boundary-report-template");
 
@@ -178,8 +177,7 @@ impl PolicyConfig {
             let entity = d.entity;
             let entity_datoms = store.entity_datoms(entity);
 
-            let threshold = extract_long(&entity_datoms, ":policy/anomaly-threshold")
-                .unwrap_or(10);
+            let threshold = extract_long(&entity_datoms, ":policy/anomaly-threshold").unwrap_or(10);
             let message = extract_string(&entity_datoms, ":policy/anomaly-message")
                 .unwrap_or_else(|| format!("anomaly on {trigger}"));
 
@@ -221,12 +219,16 @@ impl PolicyConfig {
 
     /// Whether a given attribute matches any claim pattern.
     pub fn is_claim_attribute(&self, attr: &str) -> bool {
-        self.claim_patterns.iter().any(|p| attr_matches_pattern(attr, p))
+        self.claim_patterns
+            .iter()
+            .any(|p| attr_matches_pattern(attr, p))
     }
 
     /// Whether a given attribute matches any evidence pattern.
     pub fn is_evidence_attribute(&self, attr: &str) -> bool {
-        self.evidence_patterns.iter().any(|p| attr_matches_pattern(attr, p))
+        self.evidence_patterns
+            .iter()
+            .any(|p| attr_matches_pattern(attr, p))
     }
 
     /// Check if an attribute matches a pattern (static method for use by bilateral.rs).
@@ -332,7 +334,10 @@ pub fn validate_policy(config: &PolicyConfig) -> Vec<PolicyError> {
         if a.threshold <= 0 {
             errors.push(PolicyError {
                 entity: Some(a.entity),
-                constraint: format!("anomaly '{}' has non-positive threshold {}", a.trigger, a.threshold),
+                constraint: format!(
+                    "anomaly '{}' has non-positive threshold {}",
+                    a.trigger, a.threshold
+                ),
                 fix: "set :policy/anomaly-threshold to a positive integer".to_string(),
             });
         }
@@ -524,7 +529,10 @@ pub fn calibrate_boundary_weights(store: &Store) -> Vec<WeightAdjustment> {
 
     // Normalize recommended weights so they sum to ~1.0
     if !adjustments.is_empty() {
-        let total_adjusted: f64 = adjustments.iter().map(|a| a.recommended_weight).sum::<f64>();
+        let total_adjusted: f64 = adjustments
+            .iter()
+            .map(|a| a.recommended_weight)
+            .sum::<f64>();
         // Include unadjusted boundary weights in the normalization
         let unadjusted_total: f64 = config
             .boundaries
@@ -608,7 +616,10 @@ mod tests {
 
     #[test]
     fn attr_matches_exact() {
-        assert!(attr_matches_pattern(":spec/element-type", ":spec/element-type"));
+        assert!(attr_matches_pattern(
+            ":spec/element-type",
+            ":spec/element-type"
+        ));
         assert!(!attr_matches_pattern(":spec/element-type", ":spec/other"));
     }
 
@@ -810,7 +821,10 @@ mod tests {
     fn policy_from_store_with_boundary() {
         let store = make_policy_store();
         let config = PolicyConfig::from_store(&store);
-        assert!(config.is_some(), "store with boundary datoms should produce policy");
+        assert!(
+            config.is_some(),
+            "store with boundary datoms should produce policy"
+        );
         let config = config.unwrap();
         assert_eq!(config.boundaries.len(), 1);
         assert_eq!(config.boundaries[0].name, "test-coverage");
@@ -829,7 +843,10 @@ mod tests {
         let store = make_policy_store();
         let config = PolicyConfig::from_store(&store).unwrap();
         let errors = validate_policy(&config);
-        assert!(errors.is_empty(), "single boundary with weight 1.0 should be valid");
+        assert!(
+            errors.is_empty(),
+            "single boundary with weight 1.0 should be valid"
+        );
     }
 
     #[test]
@@ -849,7 +866,10 @@ mod tests {
     fn compute_fitness_from_policy_none_without_policy() {
         let store = Store::genesis();
         let fs = crate::bilateral::compute_fitness_from_policy(&store);
-        assert!(fs.is_none(), "genesis store should produce None (no policy)");
+        assert!(
+            fs.is_none(),
+            "genesis store should produce None (no policy)"
+        );
     }
 
     #[test]
@@ -935,17 +955,65 @@ mod tests {
 
         // Boundary 1: claim -> evidence (weight 0.6)
         let b1 = EntityId::from_ident(":policy/b1");
-        datoms.insert(Datom::new(b1, Attribute::from_keyword(":policy/boundary-name"), Value::String("b1".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b1, Attribute::from_keyword(":policy/boundary-source"), Value::String(":req/*".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b1, Attribute::from_keyword(":policy/boundary-target"), Value::String(":test/*".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b1, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(0.6)), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            b1,
+            Attribute::from_keyword(":policy/boundary-name"),
+            Value::String("b1".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b1,
+            Attribute::from_keyword(":policy/boundary-source"),
+            Value::String(":req/*".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b1,
+            Attribute::from_keyword(":policy/boundary-target"),
+            Value::String(":test/*".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b1,
+            Attribute::from_keyword(":policy/boundary-weight"),
+            Value::Double(ordered_float::OrderedFloat(0.6)),
+            tx,
+            Op::Assert,
+        ));
 
         // Boundary 2: spec -> impl (weight 0.4)
         let b2 = EntityId::from_ident(":policy/b2");
-        datoms.insert(Datom::new(b2, Attribute::from_keyword(":policy/boundary-name"), Value::String("b2".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b2, Attribute::from_keyword(":policy/boundary-source"), Value::String(":spec/*".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b2, Attribute::from_keyword(":policy/boundary-target"), Value::String(":impl/*".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b2, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(0.4)), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            b2,
+            Attribute::from_keyword(":policy/boundary-name"),
+            Value::String("b2".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b2,
+            Attribute::from_keyword(":policy/boundary-source"),
+            Value::String(":spec/*".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b2,
+            Attribute::from_keyword(":policy/boundary-target"),
+            Value::String(":impl/*".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b2,
+            Attribute::from_keyword(":policy/boundary-weight"),
+            Value::Double(ordered_float::OrderedFloat(0.4)),
+            tx,
+            Op::Assert,
+        ));
 
         let store = Store::from_datoms(datoms);
         let config = PolicyConfig::from_store(&store).unwrap();
@@ -968,16 +1036,58 @@ mod tests {
 
         // Need at least one boundary so from_store returns Some
         let b = EntityId::from_ident(":policy/dummy-boundary");
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-name"), Value::String("dummy".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-source"), Value::String(":a/*".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-target"), Value::String(":b/*".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(1.0)), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-name"),
+            Value::String("dummy".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-source"),
+            Value::String(":a/*".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-target"),
+            Value::String(":b/*".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-weight"),
+            Value::Double(ordered_float::OrderedFloat(1.0)),
+            tx,
+            Op::Assert,
+        ));
 
         // Anomaly detector
         let ad = EntityId::from_ident(":policy/anomaly-stale-tasks");
-        datoms.insert(Datom::new(ad, Attribute::from_keyword(":policy/anomaly-trigger"), Value::String(":task/status".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(ad, Attribute::from_keyword(":policy/anomaly-threshold"), Value::Long(5), tx, Op::Assert));
-        datoms.insert(Datom::new(ad, Attribute::from_keyword(":policy/anomaly-message"), Value::String("stale tasks detected".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            ad,
+            Attribute::from_keyword(":policy/anomaly-trigger"),
+            Value::String(":task/status".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            ad,
+            Attribute::from_keyword(":policy/anomaly-threshold"),
+            Value::Long(5),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            ad,
+            Attribute::from_keyword(":policy/anomaly-message"),
+            Value::String("stale tasks detected".into()),
+            tx,
+            Op::Assert,
+        ));
 
         let store = Store::from_datoms(datoms);
         let config = PolicyConfig::from_store(&store).unwrap();
@@ -995,15 +1105,51 @@ mod tests {
 
         // Need a boundary for from_store to return Some
         let b = EntityId::from_ident(":policy/cal-boundary");
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-name"), Value::String("cal".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-source"), Value::String(":x/*".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-target"), Value::String(":y/*".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(1.0)), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-name"),
+            Value::String("cal".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-source"),
+            Value::String(":x/*".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-target"),
+            Value::String(":y/*".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-weight"),
+            Value::Double(ordered_float::OrderedFloat(1.0)),
+            tx,
+            Op::Assert,
+        ));
 
         // Custom calibration params on a separate entity
         let cal = EntityId::from_ident(":policy/calibration");
-        datoms.insert(Datom::new(cal, Attribute::from_keyword(":policy/calibration-window"), Value::Long(50), tx, Op::Assert));
-        datoms.insert(Datom::new(cal, Attribute::from_keyword(":policy/calibration-threshold"), Value::Double(ordered_float::OrderedFloat(0.10)), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            cal,
+            Attribute::from_keyword(":policy/calibration-window"),
+            Value::Long(50),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            cal,
+            Attribute::from_keyword(":policy/calibration-threshold"),
+            Value::Double(ordered_float::OrderedFloat(0.10)),
+            tx,
+            Op::Assert,
+        ));
 
         let store = Store::from_datoms(datoms);
         let config = PolicyConfig::from_store(&store).unwrap();
@@ -1018,15 +1164,48 @@ mod tests {
         let mut datoms = Store::genesis().datom_set().clone();
 
         let b = EntityId::from_ident(":policy/templated");
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-name"), Value::String("with-template".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-source"), Value::String(":spec/*".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-target"), Value::String(":impl/*".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(1.0)), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-report-template"), Value::String("{name}: {coverage}% covered".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-name"),
+            Value::String("with-template".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-source"),
+            Value::String(":spec/*".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-target"),
+            Value::String(":impl/*".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-weight"),
+            Value::Double(ordered_float::OrderedFloat(1.0)),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-report-template"),
+            Value::String("{name}: {coverage}% covered".into()),
+            tx,
+            Op::Assert,
+        ));
 
         let store = Store::from_datoms(datoms);
         let config = PolicyConfig::from_store(&store).unwrap();
-        assert_eq!(config.boundaries[0].report_template.as_deref(), Some("{name}: {coverage}% covered"));
+        assert_eq!(
+            config.boundaries[0].report_template.as_deref(),
+            Some("{name}: {coverage}% covered")
+        );
     }
 
     #[test]
@@ -1037,18 +1216,60 @@ mod tests {
 
         // Need a boundary
         let b = EntityId::from_ident(":policy/pat-boundary");
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-name"), Value::String("pat".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-source"), Value::String(":a/*".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-target"), Value::String(":b/*".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(1.0)), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-name"),
+            Value::String("pat".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-source"),
+            Value::String(":a/*".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-target"),
+            Value::String(":b/*".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-weight"),
+            Value::Double(ordered_float::OrderedFloat(1.0)),
+            tx,
+            Op::Assert,
+        ));
 
         // Claim and evidence patterns
         let cp1 = EntityId::from_ident(":policy/cp1");
-        datoms.insert(Datom::new(cp1, Attribute::from_keyword(":policy/claim-pattern"), Value::String(":spec/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            cp1,
+            Attribute::from_keyword(":policy/claim-pattern"),
+            Value::String(":spec/*".into()),
+            tx,
+            Op::Assert,
+        ));
         let cp2 = EntityId::from_ident(":policy/cp2");
-        datoms.insert(Datom::new(cp2, Attribute::from_keyword(":policy/claim-pattern"), Value::String(":requirement/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            cp2,
+            Attribute::from_keyword(":policy/claim-pattern"),
+            Value::String(":requirement/*".into()),
+            tx,
+            Op::Assert,
+        ));
         let ep1 = EntityId::from_ident(":policy/ep1");
-        datoms.insert(Datom::new(ep1, Attribute::from_keyword(":policy/evidence-pattern"), Value::String(":witness/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            ep1,
+            Attribute::from_keyword(":policy/evidence-pattern"),
+            Value::String(":witness/*".into()),
+            tx,
+            Op::Assert,
+        ));
 
         let store = Store::from_datoms(datoms);
         let config = PolicyConfig::from_store(&store).unwrap();
@@ -1069,31 +1290,93 @@ mod tests {
 
         // Boundary: :claim/* → :evidence/*
         let b = EntityId::from_ident(":policy/cov-boundary");
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-name"), Value::String("coverage".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-source"), Value::String(":claim/*".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-target"), Value::String(":evidence/*".into()), tx, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(1.0)), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-name"),
+            Value::String("coverage".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-source"),
+            Value::String(":claim/*".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-target"),
+            Value::String(":evidence/*".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-weight"),
+            Value::Double(ordered_float::OrderedFloat(1.0)),
+            tx,
+            Op::Assert,
+        ));
 
         // 3 claim entities
         let c1 = EntityId::from_ident(":claim/c1");
-        datoms.insert(Datom::new(c1, Attribute::from_keyword(":claim/title"), Value::String("Claim 1".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            c1,
+            Attribute::from_keyword(":claim/title"),
+            Value::String("Claim 1".into()),
+            tx,
+            Op::Assert,
+        ));
         let c2 = EntityId::from_ident(":claim/c2");
-        datoms.insert(Datom::new(c2, Attribute::from_keyword(":claim/title"), Value::String("Claim 2".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            c2,
+            Attribute::from_keyword(":claim/title"),
+            Value::String("Claim 2".into()),
+            tx,
+            Op::Assert,
+        ));
         let c3 = EntityId::from_ident(":claim/c3");
-        datoms.insert(Datom::new(c3, Attribute::from_keyword(":claim/title"), Value::String("Claim 3".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            c3,
+            Attribute::from_keyword(":claim/title"),
+            Value::String("Claim 3".into()),
+            tx,
+            Op::Assert,
+        ));
 
         // 2 evidence entities covering c1 and c2
         let e1 = EntityId::from_ident(":evidence/e1");
-        datoms.insert(Datom::new(e1, Attribute::from_keyword(":evidence/covers"), Value::Ref(c1), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            e1,
+            Attribute::from_keyword(":evidence/covers"),
+            Value::Ref(c1),
+            tx,
+            Op::Assert,
+        ));
         let e2 = EntityId::from_ident(":evidence/e2");
-        datoms.insert(Datom::new(e2, Attribute::from_keyword(":evidence/covers"), Value::Ref(c2), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            e2,
+            Attribute::from_keyword(":evidence/covers"),
+            Value::Ref(c2),
+            tx,
+            Op::Assert,
+        ));
 
         let store = Store::from_datoms(datoms);
         let fs = crate::bilateral::compute_fitness_from_policy(&store).unwrap();
 
         // Coverage = 2/3 (c1 and c2 covered, c3 not)
-        assert!(fs.total > 0.5, "F(S) should reflect 2/3 coverage: {:.4}", fs.total);
-        assert!(fs.total < 1.0, "F(S) should not be 1.0 with incomplete coverage: {:.4}", fs.total);
+        assert!(
+            fs.total > 0.5,
+            "F(S) should reflect 2/3 coverage: {:.4}",
+            fs.total
+        );
+        assert!(
+            fs.total < 1.0,
+            "F(S) should not be 1.0 with incomplete coverage: {:.4}",
+            fs.total
+        );
     }
 
     #[test]
@@ -1105,34 +1388,85 @@ mod tests {
 
         // Boundary
         let b = EntityId::from_ident(":policy/mono-boundary");
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-name"), Value::String("mono".into()), tx1, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-source"), Value::String(":claim/*".into()), tx1, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-target"), Value::String(":evidence/*".into()), tx1, Op::Assert));
-        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(1.0)), tx1, Op::Assert));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-name"),
+            Value::String("mono".into()),
+            tx1,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-source"),
+            Value::String(":claim/*".into()),
+            tx1,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-target"),
+            Value::String(":evidence/*".into()),
+            tx1,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":policy/boundary-weight"),
+            Value::Double(ordered_float::OrderedFloat(1.0)),
+            tx1,
+            Op::Assert,
+        ));
 
         // 2 claims
         let c1 = EntityId::from_ident(":claim/mono-c1");
-        datoms.insert(Datom::new(c1, Attribute::from_keyword(":claim/title"), Value::String("C1".into()), tx1, Op::Assert));
+        datoms.insert(Datom::new(
+            c1,
+            Attribute::from_keyword(":claim/title"),
+            Value::String("C1".into()),
+            tx1,
+            Op::Assert,
+        ));
         let c2 = EntityId::from_ident(":claim/mono-c2");
-        datoms.insert(Datom::new(c2, Attribute::from_keyword(":claim/title"), Value::String("C2".into()), tx1, Op::Assert));
+        datoms.insert(Datom::new(
+            c2,
+            Attribute::from_keyword(":claim/title"),
+            Value::String("C2".into()),
+            tx1,
+            Op::Assert,
+        ));
 
         // 1 evidence covering c1
         let e1 = EntityId::from_ident(":evidence/mono-e1");
-        datoms.insert(Datom::new(e1, Attribute::from_keyword(":evidence/covers"), Value::Ref(c1), tx1, Op::Assert));
+        datoms.insert(Datom::new(
+            e1,
+            Attribute::from_keyword(":evidence/covers"),
+            Value::Ref(c1),
+            tx1,
+            Op::Assert,
+        ));
 
         let store1 = Store::from_datoms(datoms.clone());
         let fs1 = crate::bilateral::compute_fitness_from_policy(&store1).unwrap();
 
         // Add evidence covering c2
         let e2 = EntityId::from_ident(":evidence/mono-e2");
-        datoms.insert(Datom::new(e2, Attribute::from_keyword(":evidence/covers"), Value::Ref(c2), tx2, Op::Assert));
+        datoms.insert(Datom::new(
+            e2,
+            Attribute::from_keyword(":evidence/covers"),
+            Value::Ref(c2),
+            tx2,
+            Op::Assert,
+        ));
 
         let store2 = Store::from_datoms(datoms);
         let fs2 = crate::bilateral::compute_fitness_from_policy(&store2).unwrap();
 
-        assert!(fs2.total >= fs1.total,
+        assert!(
+            fs2.total >= fs1.total,
             "Adding evidence should not decrease F(S): before={:.4}, after={:.4}",
-            fs1.total, fs2.total);
+            fs1.total,
+            fs2.total
+        );
     }
 
     #[test]
@@ -1152,8 +1486,12 @@ mod tests {
             calibration: CalibrationConfig::default(),
         };
         let errors = validate_policy(&config);
-        assert!(errors.iter().any(|e| e.constraint.contains("outside [0, 1]")),
-            "weight > 1.0 should produce error");
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.constraint.contains("outside [0, 1]")),
+            "weight > 1.0 should produce error"
+        );
     }
 
     #[test]
@@ -1173,8 +1511,10 @@ mod tests {
             calibration: CalibrationConfig::default(),
         };
         let errors = validate_policy(&config);
-        assert!(errors.iter().any(|e| e.constraint.contains("empty target")),
-            "empty target pattern should produce error");
+        assert!(
+            errors.iter().any(|e| e.constraint.contains("empty target")),
+            "empty target pattern should produce error"
+        );
     }
 
     // ── PROPTESTS ──
@@ -1184,26 +1524,27 @@ mod tests {
     /// Strategy for a random valid BoundaryDef.
     fn arb_boundary_def() -> impl Strategy<Value = BoundaryDef> {
         (
-            "[a-z]{3,8}",                         // name
+            "[a-z]{3,8}", // name
             prop_oneof![
                 Just(":claim/*".to_string()),
                 Just(":spec/*".to_string()),
                 Just(":req/*".to_string()),
-            ],                                     // source
+            ], // source
             prop_oneof![
                 Just(":evidence/*".to_string()),
                 Just(":impl/*".to_string()),
                 Just(":test/*".to_string()),
-            ],                                     // target
-            0.01f64..=1.0,                         // weight (positive only)
-        ).prop_map(|(name, source, target, weight)| BoundaryDef {
-            entity: EntityId::from_ident(&format!(":policy/prop-{name}")),
-            name,
-            source_pattern: source,
-            target_pattern: target,
-            weight,
-            report_template: None,
-        })
+            ], // target
+            0.01f64..=1.0, // weight (positive only)
+        )
+            .prop_map(|(name, source, target, weight)| BoundaryDef {
+                entity: EntityId::from_ident(&format!(":policy/prop-{name}")),
+                name,
+                source_pattern: source,
+                target_pattern: target,
+                weight,
+                report_template: None,
+            })
     }
 
     /// Strategy for a random valid PolicyConfig with normalized weights.
@@ -1227,33 +1568,79 @@ mod tests {
     }
 
     /// Build a store from a PolicyConfig + some source/target entities.
-    fn store_from_policy_config(config: &PolicyConfig, source_count: usize, covered_count: usize) -> Store {
+    fn store_from_policy_config(
+        config: &PolicyConfig,
+        source_count: usize,
+        covered_count: usize,
+    ) -> Store {
         let agent = AgentId::from_name("proptest:policy");
         let tx = TxId::new(1000, 0, agent);
         let mut datoms = Store::genesis().datom_set().clone();
 
         // Transact the policy boundaries
         for b in &config.boundaries {
-            datoms.insert(Datom::new(b.entity, Attribute::from_keyword(":policy/boundary-name"), Value::String(b.name.clone()), tx, Op::Assert));
-            datoms.insert(Datom::new(b.entity, Attribute::from_keyword(":policy/boundary-source"), Value::String(b.source_pattern.clone()), tx, Op::Assert));
-            datoms.insert(Datom::new(b.entity, Attribute::from_keyword(":policy/boundary-target"), Value::String(b.target_pattern.clone()), tx, Op::Assert));
-            datoms.insert(Datom::new(b.entity, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(b.weight)), tx, Op::Assert));
+            datoms.insert(Datom::new(
+                b.entity,
+                Attribute::from_keyword(":policy/boundary-name"),
+                Value::String(b.name.clone()),
+                tx,
+                Op::Assert,
+            ));
+            datoms.insert(Datom::new(
+                b.entity,
+                Attribute::from_keyword(":policy/boundary-source"),
+                Value::String(b.source_pattern.clone()),
+                tx,
+                Op::Assert,
+            ));
+            datoms.insert(Datom::new(
+                b.entity,
+                Attribute::from_keyword(":policy/boundary-target"),
+                Value::String(b.target_pattern.clone()),
+                tx,
+                Op::Assert,
+            ));
+            datoms.insert(Datom::new(
+                b.entity,
+                Attribute::from_keyword(":policy/boundary-weight"),
+                Value::Double(ordered_float::OrderedFloat(b.weight)),
+                tx,
+                Op::Assert,
+            ));
         }
 
         // Create source entities (using the first boundary's source pattern)
         if let Some(first_boundary) = config.boundaries.first() {
-            let ns = first_boundary.source_pattern.trim_start_matches(':').trim_end_matches("/*");
+            let ns = first_boundary
+                .source_pattern
+                .trim_start_matches(':')
+                .trim_end_matches("/*");
             for i in 0..source_count {
                 let e = EntityId::from_ident(&format!(":{ns}/prop-{i}"));
-                datoms.insert(Datom::new(e, Attribute::from_keyword(&format!(":{ns}/title")), Value::String(format!("Source {i}")), tx, Op::Assert));
+                datoms.insert(Datom::new(
+                    e,
+                    Attribute::from_keyword(&format!(":{ns}/title")),
+                    Value::String(format!("Source {i}")),
+                    tx,
+                    Op::Assert,
+                ));
             }
 
             // Create target entities covering some sources
-            let tgt_ns = first_boundary.target_pattern.trim_start_matches(':').trim_end_matches("/*");
+            let tgt_ns = first_boundary
+                .target_pattern
+                .trim_start_matches(':')
+                .trim_end_matches("/*");
             for i in 0..covered_count.min(source_count) {
                 let src = EntityId::from_ident(&format!(":{ns}/prop-{i}"));
                 let tgt = EntityId::from_ident(&format!(":{tgt_ns}/prop-{i}"));
-                datoms.insert(Datom::new(tgt, Attribute::from_keyword(&format!(":{tgt_ns}/covers")), Value::Ref(src), tx, Op::Assert));
+                datoms.insert(Datom::new(
+                    tgt,
+                    Attribute::from_keyword(&format!(":{tgt_ns}/covers")),
+                    Value::Ref(src),
+                    tx,
+                    Op::Assert,
+                ));
             }
         }
 
@@ -1362,24 +1749,64 @@ mod tests {
         let mut datoms = Store::genesis().datom_set().clone();
 
         let b1 = EntityId::from_ident(":policy/boundary-coverage");
-        datoms.insert(Datom::new(b1, Attribute::from_keyword(":policy/boundary-name"),
-            Value::String("coverage".to_string()), tx, Op::Assert));
-        datoms.insert(Datom::new(b1, Attribute::from_keyword(":policy/boundary-source"),
-            Value::String(":spec/*".to_string()), tx, Op::Assert));
-        datoms.insert(Datom::new(b1, Attribute::from_keyword(":policy/boundary-target"),
-            Value::String(":impl/*".to_string()), tx, Op::Assert));
-        datoms.insert(Datom::new(b1, Attribute::from_keyword(":policy/boundary-weight"),
-            Value::Double(ordered_float::OrderedFloat(0.6)), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            b1,
+            Attribute::from_keyword(":policy/boundary-name"),
+            Value::String("coverage".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b1,
+            Attribute::from_keyword(":policy/boundary-source"),
+            Value::String(":spec/*".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b1,
+            Attribute::from_keyword(":policy/boundary-target"),
+            Value::String(":impl/*".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b1,
+            Attribute::from_keyword(":policy/boundary-weight"),
+            Value::Double(ordered_float::OrderedFloat(0.6)),
+            tx,
+            Op::Assert,
+        ));
 
         let b2 = EntityId::from_ident(":policy/boundary-depth");
-        datoms.insert(Datom::new(b2, Attribute::from_keyword(":policy/boundary-name"),
-            Value::String("depth".to_string()), tx, Op::Assert));
-        datoms.insert(Datom::new(b2, Attribute::from_keyword(":policy/boundary-source"),
-            Value::String(":claim/*".to_string()), tx, Op::Assert));
-        datoms.insert(Datom::new(b2, Attribute::from_keyword(":policy/boundary-target"),
-            Value::String(":evidence/*".to_string()), tx, Op::Assert));
-        datoms.insert(Datom::new(b2, Attribute::from_keyword(":policy/boundary-weight"),
-            Value::Double(ordered_float::OrderedFloat(0.4)), tx, Op::Assert));
+        datoms.insert(Datom::new(
+            b2,
+            Attribute::from_keyword(":policy/boundary-name"),
+            Value::String("depth".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b2,
+            Attribute::from_keyword(":policy/boundary-source"),
+            Value::String(":claim/*".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b2,
+            Attribute::from_keyword(":policy/boundary-target"),
+            Value::String(":evidence/*".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b2,
+            Attribute::from_keyword(":policy/boundary-weight"),
+            Value::Double(ordered_float::OrderedFloat(0.4)),
+            tx,
+            Op::Assert,
+        ));
 
         Store::from_datoms(datoms)
     }
@@ -1393,14 +1820,34 @@ mod tests {
 
         // Hypothesis targeting "coverage" boundary — over-predicted
         let h1 = EntityId::from_ident(":hypothesis/test-over");
-        datoms.insert(Datom::new(h1, Attribute::from_keyword(":hypothesis/boundary"),
-            Value::String("coverage".to_string()), tx1, Op::Assert));
-        datoms.insert(Datom::new(h1, Attribute::from_keyword(":hypothesis/predicted"),
-            Value::Double(ordered_float::OrderedFloat(0.5)), tx1, Op::Assert));
-        datoms.insert(Datom::new(h1, Attribute::from_keyword(":hypothesis/actual"),
-            Value::Double(ordered_float::OrderedFloat(0.1)), tx1, Op::Assert));
-        datoms.insert(Datom::new(h1, Attribute::from_keyword(":hypothesis/completed"),
-            Value::Instant(1774000000), tx1, Op::Assert));
+        datoms.insert(Datom::new(
+            h1,
+            Attribute::from_keyword(":hypothesis/boundary"),
+            Value::String("coverage".to_string()),
+            tx1,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            h1,
+            Attribute::from_keyword(":hypothesis/predicted"),
+            Value::Double(ordered_float::OrderedFloat(0.5)),
+            tx1,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            h1,
+            Attribute::from_keyword(":hypothesis/actual"),
+            Value::Double(ordered_float::OrderedFloat(0.1)),
+            tx1,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            h1,
+            Attribute::from_keyword(":hypothesis/completed"),
+            Value::Instant(1774000000),
+            tx1,
+            Op::Assert,
+        ));
 
         let store = Store::from_datoms(datoms);
         let adjustments = calibrate_boundary_weights(&store);

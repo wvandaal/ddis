@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774629945/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DAEMON-W4: Comprehensive verification — semantic equivalence, concurrency, fallback, performance"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :db/ident :v :task/t-340ae6a5 :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/created-at :v 1774629944 :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/description :v "CONTEXT: Final verification wave after all implementation waves complete. RATIONALE: The three invariants (INV-STORE-020 cache=fold(txns), INV-DAEMON-004 semantic equivalence, INV-STORE-022 stale cache prevention) must be verified together under realistic multi-agent conditions. APPROACH: (1) E2E-SEMANTIC: For each of 11 routable commands, run via daemon and direct mode on identical store. Compare output and store state. (2) E2E-CONCURRENT: 3 parallel processes run braid observe simultaneously. All 3 appear in store. Zero stale reads. (3) E2E-FALLBACK: Kill daemon → braid observe → braid status → observation visible (direct mode works). (4) E2E-FINGERPRINT: Two overlapping direct-mode LiveStores flush. BUG 2 fix ensures next load detects stale fingerprint. (5) PERF: braid observe through daemon < 500ms. braid status through daemon < 1s. (6) REGRESSION: cargo test (all 2043 tests pass). ACCEPTANCE: All 6 test categories pass. Stale cache impossible by construction (single daemon LiveStore) or self-correcting (direct mode fingerprint fix). FILES: new E2E test script + integration tests. RISK: E2E-CONCURRENT requires process management in test harness — use std::process::Command to fork parallel brais." :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/id :v "t-340ae6a5" :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/labels :v :label/daemon :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/labels :v :label/verification :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/labels :v :label/wave4 :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/title :v "DAEMON-W4: Comprehensive verification — semantic equivalence, concurrency, fallback, performance" :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/title-l0 :v "DAEMON-W4" :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/title-l1 :v "DAEMON-W4: Comprehensive verification — semantic equivalence, concurrency,..." :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/traces-to :v #blake3 "7ceb3ac1150ab21287b5642e327ecec7a2d644e1f0772aab707f9c6106560932" :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "d04a49ba6357de90d243760469321d7aba976a61f8e216683120515dde979923" :a :task/type :v :task.type/task :op :assert}
+ ]}

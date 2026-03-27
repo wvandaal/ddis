@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774631519/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DW1: Extend MCP tool schemas — add missing CLI parameters (tags, commit, force, etc.)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :db/ident :v :task/t-94db1f5e :op :assert}
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :task/created-at :v 1774631518 :op :assert}
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :task/description :v "PROBLEM: The MCP tool schemas (mcp.rs:115-311 tool_definitions()) are missing parameters that CLI commands accept. Without these, marshal_command cannot forward CLI flags to the daemon. GAPS IDENTIFIED: (A) braid_observe: missing 'tags' (array of strings, repeatable -t flag), missing 'no_auto_crystallize' (boolean). (B) braid_harvest: missing 'commit' (boolean), 'force' (boolean), 'guard' (boolean), 'no_reconcile' (boolean), 'knowledge' (object of key-value pairs). The MCP schema has 'task' and 'knowledge' but NOT commit/force/guard/no_reconcile. (C) braid_task_create: missing 'description' (string), 'traces_to' (array), 'labels' (array), 'force' (boolean). (D) braid_write: missing 'retract' mode (currently only assert). (E) braid_seed: OK as-is (task + budget). (F) braid_task_go/close/ready: OK as-is. APPROACH: For each missing parameter: (1) Add to the tool's inputSchema properties in tool_definitions(). (2) Add extraction logic in the tool_* handler function. (3) Pass through to the underlying command handler. SEMANTIC EQUIVALENCE (INV-DAEMON-004): For every CLI flag combination F, the daemon must produce the same output and store state as direct mode with F. Any flag the daemon cannot accept must cause fallback to direct mode. ACCEPTANCE: (1) tool_definitions() includes all parameters from CLI --help for each routable command. (2) Each new parameter is consumed in the tool handler. (3) Unit test: call_tool with each new parameter produces correct behavior. FILES: mcp.rs (~80 LOC — schema additions + handler changes). RISK: Adding parameters to MCP schema is a public API change. External MCP clients (if any) should not break since new params are optional." :op :assert}
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :task/id :v "t-94db1f5e" :op :assert}
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :task/labels :v :label/daemon-write-v2 :op :assert}
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :task/labels :v :label/wave1 :op :assert}
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :task/title :v "DW1: Extend MCP tool schemas — add missing CLI parameters (tags, commit, force, etc.)" :op :assert}
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :task/title-l0 :v "DW1" :op :assert}
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :task/title-l1 :v "DW1: Extend MCP tool schemas — add missing CLI parameters (tags, commit, fo..." :op :assert}
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :task/traces-to :v #blake3 "c98a301cb771f99f6ad7d0f953092228cfd0df7370c343e4bfdb3dbcac555bd6" :op :assert}
+   {:e #blake3 "7330ee5d9ecb6bab1e5a772c5639cf01513d7da9075dbed0c62f1c068e2daa27" :a :task/type :v :task.type/task :op :assert}
+ ]}

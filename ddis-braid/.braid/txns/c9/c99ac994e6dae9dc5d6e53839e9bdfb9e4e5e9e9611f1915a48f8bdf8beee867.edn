@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774641833/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :db/ident :v :recon/trace-b2234ca9edc881ad :op :assert}
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :recon/trace-neighborhood :v "CLI" :op :assert}
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :recon/trace-neighbors :v ":task/t-0d11a6c6" :op :assert}
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :recon/trace-neighbors :v ":task/t-0fbc62d9" :op :assert}
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :recon/trace-neighbors :v ":task/t-4c10994e" :op :assert}
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :recon/trace-neighbors :v ":task/t-5d313dc8" :op :assert}
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :recon/trace-neighbors :v ":task/t-70de9930" :op :assert}
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :recon/trace-neighbors :v ":task/t-ad614aef" :op :assert}
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :recon/trace-neighbors :v ":task/t-ddb6327f" :op :assert}
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :recon/trace-refs :v "INV-CLI-001" :op :assert}
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :recon/trace-refs :v "INV-CLI-003" :op :assert}
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :recon/trace-refs :v "INV-CLI-006" :op :assert}
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :recon/trace-refs :v "INV-REFLEXIVE-006" :op :assert}
+   {:e #blake3 "014fcc7e80cc5218527795f94322214552ec982f2d4474b2a2942f19a2d491bd" :a :recon/trace-refs :v "INV-REFLEXIVE-007" :op :assert}
+ ]}

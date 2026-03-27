@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774639523/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: iron-seq-3-1774639519"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9a06a1360719a82bb94cb3ef03aeb698219933f5fa17d80122039f6ebc04a0fe" :a :db/ident :v :task/t-505fcbbb :op :assert}
+   {:e #blake3 "9a06a1360719a82bb94cb3ef03aeb698219933f5fa17d80122039f6ebc04a0fe" :a :task/created-at :v 1774639522 :op :assert}
+   {:e #blake3 "9a06a1360719a82bb94cb3ef03aeb698219933f5fa17d80122039f6ebc04a0fe" :a :task/id :v "t-505fcbbb" :op :assert}
+   {:e #blake3 "9a06a1360719a82bb94cb3ef03aeb698219933f5fa17d80122039f6ebc04a0fe" :a :task/priority :v 4 :op :assert}
+   {:e #blake3 "9a06a1360719a82bb94cb3ef03aeb698219933f5fa17d80122039f6ebc04a0fe" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9a06a1360719a82bb94cb3ef03aeb698219933f5fa17d80122039f6ebc04a0fe" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9a06a1360719a82bb94cb3ef03aeb698219933f5fa17d80122039f6ebc04a0fe" :a :task/title :v "iron-seq-3-1774639519" :op :assert}
+   {:e #blake3 "9a06a1360719a82bb94cb3ef03aeb698219933f5fa17d80122039f6ebc04a0fe" :a :task/title-l0 :v "iron-seq-3-1774639519" :op :assert}
+   {:e #blake3 "9a06a1360719a82bb94cb3ef03aeb698219933f5fa17d80122039f6ebc04a0fe" :a :task/title-l1 :v "iron-seq-3-1774639519" :op :assert}
+   {:e #blake3 "9a06a1360719a82bb94cb3ef03aeb698219933f5fa17d80122039f6ebc04a0fe" :a :task/type :v :task.type/task :op :assert}
+ ]}

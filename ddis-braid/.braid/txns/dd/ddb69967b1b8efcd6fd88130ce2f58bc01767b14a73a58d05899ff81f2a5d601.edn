@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774635131/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DS1-TEST: WAL format verification — 9 tests including concurrent append + truncation recovery"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :db/ident :v :task/t-ab94bbe4 :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/created-at :v 1774635130 :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/description :v "TESTS for DS1 WAL format. UNIT: (1) test_append_read_roundtrip: Append 100 entries, read back, verify each TxFile matches (datom-by-datom comparison). (2) test_chain_hash_integrity: Append 50 entries. Read back. Verify each entry's chain_hash = BLAKE3(prev_chain_hash || content_hash). (3) test_crc_detects_corruption: Append 10 entries. Flip one byte in entry 5. Reader detects CRC mismatch at entry 5 and stops. Entries 1-4 returned intact. (4) test_truncation_recovery: Append 10 entries. Truncate file mid-entry-7. Reader returns entries 1-6 (complete entries before truncation). (5) test_empty_wal: Create empty WAL. Reader returns 0 entries. Writer appends first entry with genesis chain hash. (6) test_entries_since_lsn: Append 20 entries, record LSN at entry 10. entries_since(lsn_10) returns entries 11-20 only. PROPTEST: (7) For n=1..100 random TxFiles: append all → read back → verify lossless roundtrip. (8) For n=1..50: append, truncate at random valid entry boundary → entries_since(0) returns exactly the entries before truncation. CONCURRENT: (9) Fork 5 threads each appending 20 entries to same WAL file simultaneously. Read back. Verify all 100 entries present (order may vary but all complete). CRC + chain hash valid for each entry's own chain (not global order — concurrent append interleaves). FAILURE DIAGNOSTIC: On any failure, dump: WAL file size, expected entry count, actual entry count, byte offset of first corruption, hex dump of corrupted region." :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/id :v "t-ab94bbe4" :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/labels :v :label/WAL :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/labels :v :label/daemon-scale :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/labels :v :label/ds1 :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/title :v "DS1-TEST: WAL format verification — 9 tests including concurrent append + truncation recovery" :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/title-l0 :v "DS1-TEST" :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/title-l1 :v "DS1-TEST: WAL format verification — 9 tests including concurrent append + t..." :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/traces-to :v #blake3 "192793a3a1efa8195c4a1f3cdff307e17d88478917e1e520ef6eb8651526cb67" :op :assert}
+   {:e #blake3 "8ae66d141a17cadc302c681451a4f7c249349193c3ee044a1f35863d65d874c2" :a :task/type :v :task.type/task :op :assert}
+ ]}

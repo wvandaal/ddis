@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774629781/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DAEMON-WRITE: Complete daemon write-path migration — eliminate stale cache by construction"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :db/ident :v :task/t-21092c71 :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/created-at :v 1774629780 :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/description :v "Complete daemon write-path migration to eliminate stale cache by construction. Root cause: write commands bypass daemon (daemon.rs:849-852 only maps status+query). Two bugs compound: BUG 1 (has_new_external_txns mtime check is dead — txns/ mtime never changes) + BUG 2 (write_slim_cache fingerprint includes external hashes, masking staleness). The daemon already handles all 11 MCP tools. Fix is ~250 LOC of wiring: argument marshaling + routing + RFL-2 cleanup + verification. 5 waves with quality gates. ACCEPTANCE: (1) All write commands route through daemon when running. (2) No stale cache after concurrent writes. (3) store.bin = fold(txn_files) after every flush. (4) Semantic equivalence between daemon and direct mode. (5) Sub-500ms write commands through daemon." :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/id :v "t-21092c71" :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/labels :v :label/P0 :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/labels :v :label/daemon :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/labels :v :label/stale-cache :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/title :v "DAEMON-WRITE: Complete daemon write-path migration — eliminate stale cache by construction" :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/title-l0 :v "DAEMON-WRITE" :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/title-l1 :v "DAEMON-WRITE: Complete daemon write-path migration — eliminate stale cache..." :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/traces-to :v #blake3 "7ceb3ac1150ab21287b5642e327ecec7a2d644e1f0772aab707f9c6106560932" :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "2e524106df74854cf56f473f520c514919747c28c92a2fa7341d99c481bc2a28" :a :task/type :v :task.type/epic :op :assert}
+ ]}

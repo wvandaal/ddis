@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774596221/0/b8e441e4f79985cb700f4e8ea257c799"
+ :tx/agent "b8e441e4f79985cb700f4e8ea257c799"
+ :tx/provenance :observed
+ :tx/rationale "verification: all 5 INV-REFLEXIVE-006 conditions pass"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e0d30723e96bfdb99b8950dbe907d4d119903a5a0338e9f4eb0696069f5c22de" :a :db/doc :v "verification: all 5 INV-REFLEXIVE-006 conditions pass" :op :assert}
+   {:e #blake3 "e0d30723e96bfdb99b8950dbe907d4d119903a5a0338e9f4eb0696069f5c22de" :a :db/ident :v :observation/verification-all-5-inv-reflexive-006-conditions-pass :op :assert}
+   {:e #blake3 "e0d30723e96bfdb99b8950dbe907d4d119903a5a0338e9f4eb0696069f5c22de" :a :exploration/body :v "verification: all 5 INV-REFLEXIVE-006 conditions pass" :op :assert}
+   {:e #blake3 "e0d30723e96bfdb99b8950dbe907d4d119903a5a0338e9f4eb0696069f5c22de" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "e0d30723e96bfdb99b8950dbe907d4d119903a5a0338e9f4eb0696069f5c22de" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "e0d30723e96bfdb99b8950dbe907d4d119903a5a0338e9f4eb0696069f5c22de" :a :exploration/content-hash :v #bytes "91df6006127c0b3d61f56f442194c3df74eb6f73245991ac1048e77fa8351c8a" :op :assert}
+   {:e #blake3 "e0d30723e96bfdb99b8950dbe907d4d119903a5a0338e9f4eb0696069f5c22de" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "e0d30723e96bfdb99b8950dbe907d4d119903a5a0338e9f4eb0696069f5c22de" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "e0d30723e96bfdb99b8950dbe907d4d119903a5a0338e9f4eb0696069f5c22de" :a :exploration/source-session :v #blake3 "d5623dbd02609c583a083ae155b8fd85ffbe6b46dae3891916fc25f6fc8ab4cc" :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774619788/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: C9-REMEDIATION — Cleanroom review defect fixes for C9 Second-Order Epistemic Closure. 3 MAJOR test gaps (all_observations, compute_read_steering, resolve_agent_identity have zero unit tests despite being the functions that implement INV-REFLEXIVE-006 and INV-REFLEXIVE-007). 6 MINOR fixes (double to_string, double lowercase, missing ellipsis, misleading comment, multi-valued attrs in show, VAET reverse-lookup defer). Total: 10 unit tests + 5 code fixes. Pre-work before closing the C9 EPIC."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b5a757a2da3f38d03567fc7d3cdbb7f03d49a576fb494cb1b07cf74fa950f3a6" :a :db/ident :v :task/t-3ba0b004 :op :assert}
+   {:e #blake3 "b5a757a2da3f38d03567fc7d3cdbb7f03d49a576fb494cb1b07cf74fa950f3a6" :a :task/created-at :v 1774619787 :op :assert}
+   {:e #blake3 "b5a757a2da3f38d03567fc7d3cdbb7f03d49a576fb494cb1b07cf74fa950f3a6" :a :task/id :v "t-3ba0b004" :op :assert}
+   {:e #blake3 "b5a757a2da3f38d03567fc7d3cdbb7f03d49a576fb494cb1b07cf74fa950f3a6" :a :task/labels :v :label/C9 :op :assert}
+   {:e #blake3 "b5a757a2da3f38d03567fc7d3cdbb7f03d49a576fb494cb1b07cf74fa950f3a6" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "b5a757a2da3f38d03567fc7d3cdbb7f03d49a576fb494cb1b07cf74fa950f3a6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b5a757a2da3f38d03567fc7d3cdbb7f03d49a576fb494cb1b07cf74fa950f3a6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b5a757a2da3f38d03567fc7d3cdbb7f03d49a576fb494cb1b07cf74fa950f3a6" :a :task/title :v "EPIC: C9-REMEDIATION — Cleanroom review defect fixes for C9 Second-Order Epistemic Closure. 3 MAJOR test gaps (all_observations, compute_read_steering, resolve_agent_identity have zero unit tests despite being the functions that implement INV-REFLEXIVE-006 and INV-REFLEXIVE-007). 6 MINOR fixes (double to_string, double lowercase, missing ellipsis, misleading comment, multi-valued attrs in show, VAET reverse-lookup defer). Total: 10 unit tests + 5 code fixes. Pre-work before closing the C9 EPIC." :op :assert}
+   {:e #blake3 "b5a757a2da3f38d03567fc7d3cdbb7f03d49a576fb494cb1b07cf74fa950f3a6" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "b5a757a2da3f38d03567fc7d3cdbb7f03d49a576fb494cb1b07cf74fa950f3a6" :a :task/title-l1 :v "EPIC: C9-REMEDIATION — Cleanroom review defect fixes for C9 Second-Order Ep..." :op :assert}
+   {:e #blake3 "b5a757a2da3f38d03567fc7d3cdbb7f03d49a576fb494cb1b07cf74fa950f3a6" :a :task/traces-to :v #blake3 "47a1c7f472dd3729dfa4a14d0ed2dc63752c515b2268612725e7529b3053036d" :op :assert}
+   {:e #blake3 "b5a757a2da3f38d03567fc7d3cdbb7f03d49a576fb494cb1b07cf74fa950f3a6" :a :task/traces-to :v #blake3 "9b7f536149cb59d2f140fb63f130493edb4275be8b76e31cea037b89060241d8" :op :assert}
+   {:e #blake3 "b5a757a2da3f38d03567fc7d3cdbb7f03d49a576fb494cb1b07cf74fa950f3a6" :a :task/type :v :task.type/epic :op :assert}
+ ]}

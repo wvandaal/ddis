@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774619751/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-4e7c2524"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "215c22c1b3ee27f5ce214c41246c73a445c47a89cabfc04273e075444bc42a20" :a :task/close-reason :v "Superseded by t-9821a10e (C9-TEST-v2)" :op :assert}
+   {:e #blake3 "215c22c1b3ee27f5ce214c41246c73a445c47a89cabfc04273e075444bc42a20" :a :task/closed-at :v 1774619750 :op :assert}
+   {:e #blake3 "215c22c1b3ee27f5ce214c41246c73a445c47a89cabfc04273e075444bc42a20" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "215c22c1b3ee27f5ce214c41246c73a445c47a89cabfc04273e075444bc42a20" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774622954/0/435df06ca1ed0930b18c9b147b157ed7"
+ :tx/agent "435df06ca1ed0930b18c9b147b157ed7"
+ :tx/provenance :observed
+ :tx/rationale "test observation for steering quality audit"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f8f94c9b92e1bcdf3dffe8f7d408f58fc35d4305dc1d606a33e289284132c6a1" :a :db/doc :v "test observation for steering quality audit" :op :assert}
+   {:e #blake3 "f8f94c9b92e1bcdf3dffe8f7d408f58fc35d4305dc1d606a33e289284132c6a1" :a :db/ident :v :observation/test-observation-for-steering-quality-audit :op :assert}
+   {:e #blake3 "f8f94c9b92e1bcdf3dffe8f7d408f58fc35d4305dc1d606a33e289284132c6a1" :a :exploration/body :v "test observation for steering quality audit" :op :assert}
+   {:e #blake3 "f8f94c9b92e1bcdf3dffe8f7d408f58fc35d4305dc1d606a33e289284132c6a1" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "f8f94c9b92e1bcdf3dffe8f7d408f58fc35d4305dc1d606a33e289284132c6a1" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "f8f94c9b92e1bcdf3dffe8f7d408f58fc35d4305dc1d606a33e289284132c6a1" :a :exploration/content-hash :v #bytes "3f7d5638652afa696cbb7d7106d4949f34a5414a8e7e2a9c3c3422c5a96c9f26" :op :assert}
+   {:e #blake3 "f8f94c9b92e1bcdf3dffe8f7d408f58fc35d4305dc1d606a33e289284132c6a1" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f8f94c9b92e1bcdf3dffe8f7d408f58fc35d4305dc1d606a33e289284132c6a1" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f8f94c9b92e1bcdf3dffe8f7d408f58fc35d4305dc1d606a33e289284132c6a1" :a :exploration/source-session :v #blake3 "26c93d8623214ca55517c10b3ebbbcbf557c3d290fc04173e7a1c13a48277d13" :op :assert}
+ ]}

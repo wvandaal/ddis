@@ -1,0 +1,51 @@
+{:tx/id #hlc "1774622638/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 99 candidates from task 'C9 cleanroom review: 5 critical steering insights captured, 2 EPICs crystallized (REMEDIATION + STEER), 11 tasks total'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "25a21808b4bcb4ffdec60747afda742b022cbbc64a278ac69a159f3828ea549b" :a :db/ident :v :session/s-1774622664833 :op :assert}
+   {:e #blake3 "25a21808b4bcb4ffdec60747afda742b022cbbc64a278ac69a159f3828ea549b" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "25a21808b4bcb4ffdec60747afda742b022cbbc64a278ac69a159f3828ea549b" :a :session/current :v #blake3 "25a21808b4bcb4ffdec60747afda742b022cbbc64a278ac69a159f3828ea549b" :op :assert}
+   {:e #blake3 "25a21808b4bcb4ffdec60747afda742b022cbbc64a278ac69a159f3828ea549b" :a :session/start-datom-count :v 160556 :op :assert}
+   {:e #blake3 "25a21808b4bcb4ffdec60747afda742b022cbbc64a278ac69a159f3828ea549b" :a :session/start-fitness :v 0.6132377086823555 :op :assert}
+   {:e #blake3 "25a21808b4bcb4ffdec60747afda742b022cbbc64a278ac69a159f3828ea549b" :a :session/start-time :v "2026-03-27T14:44:24Z" :op :assert}
+   {:e #blake3 "25a21808b4bcb4ffdec60747afda742b022cbbc64a278ac69a159f3828ea549b" :a :session/started-at :v 1774622664 :op :assert}
+   {:e #blake3 "25a21808b4bcb4ffdec60747afda742b022cbbc64a278ac69a159f3828ea549b" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "25a21808b4bcb4ffdec60747afda742b022cbbc64a278ac69a159f3828ea549b" :a :session/task :v "## Session Synthesis Directive\n\n**Next session task**: continue: C9 cleanroom review: 5 critical steering insights captured, 2 EPICs crystallized (REMEDIATION + STEER), 11 tasks total\nRun: `braid seed --task \"continue: C9 cleanroom review: 5 critical steering insights captured, 2 EPICs crystallized (REMEDIATION + STEER), 11 tasks total\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "26c93d8623214ca55517c10b3ebbbcbf557c3d290fc04173e7a1c13a48277d13" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "8dab6d49539a94953a6a2187c86e5154878638aa0886073362182fa9d49da849" :a :hypothesis/action :v #blake3 "8f1d4c9ecc9e6965a8680d317a7a02d96814908e87f13d2352c84cdbc85a396d" :op :assert}
+   {:e #blake3 "8dab6d49539a94953a6a2187c86e5154878638aa0886073362182fa9d49da849" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "8dab6d49539a94953a6a2187c86e5154878638aa0886073362182fa9d49da849" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "8dab6d49539a94953a6a2187c86e5154878638aa0886073362182fa9d49da849" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "8dab6d49539a94953a6a2187c86e5154878638aa0886073362182fa9d49da849" :a :hypothesis/predicted :v 0.7789466428499286 :op :assert}
+   {:e #blake3 "8dab6d49539a94953a6a2187c86e5154878638aa0886073362182fa9d49da849" :a :hypothesis/timestamp :v #inst 1774622664 :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :db/doc :v "Harvest session for task: C9 cleanroom review: 5 critical steering insights captured, 2 EPICs crystallized (REMEDIATION + STEER), 11 tasks total" :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :db/ident :v :harvest/session-braid-user-1774622638 :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :harvest/accomplishments :v "Session entity: :recon/trace-343b46080479a46f; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to t-2fd51aac?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; Session entity: :recon/trace-966ced56331f6ed4; Session entity: :task/t-8fd10f95; Session entity: :recon/trace-dfa12b3daed73b03; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; Session entity: :recon/trace-b3c15a5111c58ad9; Session entity: :recon/trace-6f0f9d949508a09b; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; Session entity: :config/calibration-similarity-sum-sq; What connects thinking about topology and coupling for ... to t-2fd51aac?; Session entity: :task/t-cefb8177; Session entity: :recon/trace-7d8b2645f0ef52fb; Session entity: :recon/trace-a1f4407949b12638; Session entity: :task/t-85a83a62; Session entity: :recon/trace-b9fe098d4a6dabce; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; Session entity: :runtime/req-1156737112fe0218; Session entity: :recon/trace-0b11f71d1f276269; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; Session entity: :recon/trace-9e05fb7d980e468f; Session entity: :task/t-b42fd892; What connects thinking about topology and coupling for ... to t-2fd51aac?; Session entity: :runtime/req-9769f39dd5b8b71c; Session entity: :recon/trace-df3c818f52c81568; Session entity: :config/concept-join-threshold; Session entity: :runtime/req-f71c6edc0ca8d058; Session entity: :runtime/req-3a8d6b25d632b042; Session entity: :config/concept-sigmoid-temperature; Session entity: :config/calibration-similarity-count; Session entity: :recon/trace-a068da382506b6a7; Session entity: :config/calibration-similarity-sum; Session entity: :recon/trace-eb2d7aae6103b18c; Session entity: :runtime/req-7284081e6a5e65e5\nSession entity: :task/t-ef404261" :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :harvest/candidate-count :v 99 :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :harvest/codebase-snapshot :v "Codebase: 0 LOC across 0 source files\nTests: 2063 passing" :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :harvest/context-metrics :v "{\"candidates\":99,\"k_eff_estimated\":\"0.56\",\"observations\":5,\"output_tokens_est\":15015,\"tasks_closed\":2,\"tx_count\":91,\"wall_elapsed_s\":2394}" :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :harvest/delta-summary :v "+6594 datoms, +351 entities" :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :harvest/drift-score :v 1.053191489361702 :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :harvest/observation-count :v 5 :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :harvest/recommended-tasks :v "t-d9536d87,t-f12bff46,t-cefb8177" :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :harvest/store-datom-count :v 160521 :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :harvest/store-entity-count :v 12276 :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: C9 cleanroom review: 5 critical steering insights captured, 2 EPICs crystallized (REMEDIATION + STEER), 11 tasks total\nRun: `braid seed --task \"continue: C9 cleanroom review: 5 critical steering insights captured, 2 EPICs crystallized (REMEDIATION + STEER), 11 tasks total\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :harvest/task :v "C9 cleanroom review: 5 critical steering insights captured, 2 EPICs crystallized (REMEDIATION + STEER), 11 tasks total" :op :assert}
+   {:e #blake3 "929952637bf98e9639c18bba9941851fa83df7e2c0481df323b0ba9911f96b85" :a :harvest/tx-since-last :v 91 :op :assert}
+   {:e #blake3 "c55dc658a18505c97c9fd88b6463d09392632f333cc638aef372c9756f12b15a" :a :hypothesis/action :v #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :op :assert}
+   {:e #blake3 "c55dc658a18505c97c9fd88b6463d09392632f333cc638aef372c9756f12b15a" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "c55dc658a18505c97c9fd88b6463d09392632f333cc638aef372c9756f12b15a" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "c55dc658a18505c97c9fd88b6463d09392632f333cc638aef372c9756f12b15a" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "c55dc658a18505c97c9fd88b6463d09392632f333cc638aef372c9756f12b15a" :a :hypothesis/predicted :v 0.9157374074463154 :op :assert}
+   {:e #blake3 "c55dc658a18505c97c9fd88b6463d09392632f333cc638aef372c9756f12b15a" :a :hypothesis/timestamp :v #inst 1774622664 :op :assert}
+   {:e #blake3 "caf74a9baa6f4a8373b22858dcbb896bea8fa7e040fb028b2d68a84e627472a4" :a :hypothesis/action :v #blake3 "11146360f74be633495a6342dd8200186db3c8cf4a9c36a3c12288606c58cf62" :op :assert}
+   {:e #blake3 "caf74a9baa6f4a8373b22858dcbb896bea8fa7e040fb028b2d68a84e627472a4" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "caf74a9baa6f4a8373b22858dcbb896bea8fa7e040fb028b2d68a84e627472a4" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "caf74a9baa6f4a8373b22858dcbb896bea8fa7e040fb028b2d68a84e627472a4" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "caf74a9baa6f4a8373b22858dcbb896bea8fa7e040fb028b2d68a84e627472a4" :a :hypothesis/predicted :v 1.0 :op :assert}
+   {:e #blake3 "caf74a9baa6f4a8373b22858dcbb896bea8fa7e040fb028b2d68a84e627472a4" :a :hypothesis/timestamp :v #inst 1774622664 :op :assert}
+ ]}

@@ -282,7 +282,9 @@ fn is_braid_project(store: &Store) -> bool {
             return false;
         }
         match &d.value {
-            Value::Keyword(k) => braid_spec_prefixes.iter().any(|prefix| k.starts_with(prefix)),
+            Value::Keyword(k) => braid_spec_prefixes
+                .iter()
+                .any(|prefix| k.starts_with(prefix)),
             _ => false,
         }
     });
@@ -784,9 +786,7 @@ fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> St
         // knowledge about the managed project.
         let mut domain_obs: Vec<(u64, String)> = Vec::new();
         for datom in store.datoms() {
-            if datom.attribute.as_str() == ":db/doc"
-                && datom.op == Op::Assert
-            {
+            if datom.attribute.as_str() == ":db/doc" && datom.op == Op::Assert {
                 let is_obs = store.entity_datoms(datom.entity).iter().any(|d| {
                     d.attribute.as_str() == ":exploration/source"
                         && d.op == Op::Assert
@@ -1197,6 +1197,37 @@ fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> St
         }
     }
 
+    // === Cross-agent convergent findings (C9-P3) ===
+    //
+    // When multiple independent agents observe the same finding, surface it
+    // prominently. This is the key C9 insight: corroboration across independent
+    // sources is the strongest epistemic signal in the store.
+    let agreement_clusters = crate::concept::find_agreement_clusters(store, 0.3);
+    let multi_agent_clusters: Vec<_> = agreement_clusters
+        .iter()
+        .filter(|c| c.agents.len() >= 2)
+        .take(5)
+        .collect();
+    if !multi_agent_clusters.is_empty() {
+        let total_agents = crate::concept::agent_observation_groups(store).len();
+        parts.push(format!(
+            "Convergent findings ({} agents corroborate):",
+            total_agents
+        ));
+        for cluster in &multi_agent_clusters {
+            let topic_short: String = cluster.topic.chars().take(70).collect();
+            parts.push(format!(
+                "  [{}/{}] {} ({} obs, conf {:.2}-{:.2})",
+                cluster.agents.len(),
+                total_agents,
+                topic_short,
+                cluster.member_count,
+                cluster.confidence_range.0,
+                cluster.confidence_range.2,
+            ));
+        }
+    }
+
     parts.join("\n")
 }
 
@@ -1445,11 +1476,17 @@ pub fn compile_directives(task: &str) -> String {
         // Try to extract APPROACH section as fallback
         if let Some(approach_start) = task.find("APPROACH:") {
             let approach = &task[approach_start + "APPROACH:".len()..];
-            let approach_end = ["ACCEPTANCE:", "BACKGROUND:", "DEPENDS-ON:", "TRACES TO:", "FILE:"]
-                .iter()
-                .filter_map(|m| approach.find(m))
-                .min()
-                .unwrap_or(approach.len());
+            let approach_end = [
+                "ACCEPTANCE:",
+                "BACKGROUND:",
+                "DEPENDS-ON:",
+                "TRACES TO:",
+                "FILE:",
+            ]
+            .iter()
+            .filter_map(|m| approach.find(m))
+            .min()
+            .unwrap_or(approach.len());
             let approach_text = approach[..approach_end].trim();
             if !approach_text.is_empty() {
                 out.push_str(&format!(
@@ -1486,7 +1523,9 @@ pub fn compile_demonstrations(store: &Store, task: &str) -> Option<String> {
 
     // Extract features from the current task
     let current_files: std::collections::BTreeSet<String> =
-        crate::topology::extract_task_files(task).into_iter().collect();
+        crate::topology::extract_task_files(task)
+            .into_iter()
+            .collect();
     let current_refs = crate::task::parse_spec_refs(task);
     let current_namespace = current_refs
         .first()
@@ -1575,10 +1614,7 @@ pub fn compile_demonstrations(store: &Store, task: &str) -> Option<String> {
 
     let task = best_task?;
     let short = crate::task::short_title(&task.title);
-    let reason = task
-        .close_reason
-        .as_deref()
-        .unwrap_or("completed");
+    let reason = task.close_reason.as_deref().unwrap_or("completed");
     Some(format!("Example (solved): {} → {}", short, reason))
 }
 
@@ -2112,6 +2148,7 @@ fn score_entity(
     task_keywords: &[&str],
     max_tx_wall_time: u64,
     pagerank_scores: &BTreeMap<String, f64>,
+    corroboration_scores: &BTreeMap<EntityId, f64>,
 ) -> f64 {
     // Use entity index for O(1) lookup instead of O(N) scan
     let datoms = store.entity_datoms(entity);
@@ -2177,7 +2214,22 @@ fn score_entity(
         (-3.0 * normalized).exp()
     };
 
-    0.5 * relevance + 0.3 * significance + 0.2 * recency
+    // Corroboration: cross-agent agreement score (C9-P3).
+    //
+    // If this entity (observation) belongs to an agreement cluster from C9-P1,
+    // its corroboration score reflects how many independent agents confirm it.
+    // When no corroboration data exists (single-agent store or empty map),
+    // the weight redistributes to maintain backward compatibility:
+    // empty map → 0.5*rel + 0.3*sig + 0.2*rec (identical to original formula).
+    let corroboration = corroboration_scores.get(&entity).copied().unwrap_or(0.0);
+
+    if corroboration_scores.is_empty() {
+        // Backward-compatible path: original weights, no corroboration data.
+        0.5 * relevance + 0.3 * significance + 0.2 * recency
+    } else {
+        // C9-P3 path: redistribute weights to include corroboration.
+        0.4 * relevance + 0.25 * significance + 0.15 * recency + 0.2 * corroboration
+    }
 }
 
 /// Tokenize text for search relevance scoring.
@@ -2365,14 +2417,41 @@ pub fn assemble(
     let (graph, _id_map) = build_entity_graph(store);
     let pr_scores = pagerank(&graph, 20);
 
-    // Score and sort entities by relevance (with PageRank significance)
+    // Compute cross-agent corroboration scores (C9-P1/P3).
+    //
+    // Maps observation EntityId → agreement_score from find_agreement_clusters.
+    // If the store has < 2 agents, the map is empty → score_entity uses
+    // the original 0.5/0.3/0.2 formula (backward-compatible by construction).
+    let agreement_clusters = crate::concept::find_agreement_clusters(store, 0.3);
+    let mut corroboration_scores: BTreeMap<EntityId, f64> = BTreeMap::new();
+    for cluster in &agreement_clusters {
+        for &obs_id in &cluster.observation_ids {
+            corroboration_scores
+                .entry(obs_id)
+                .and_modify(|s| {
+                    if cluster.agreement_score > *s {
+                        *s = cluster.agreement_score;
+                    }
+                })
+                .or_insert(cluster.agreement_score);
+        }
+    }
+
+    // Score and sort entities by relevance (with PageRank significance + C9 corroboration)
     let mut scored: Vec<(EntityId, f64)> = neighborhood
         .entities
         .iter()
         .map(|&e| {
             (
                 e,
-                score_entity(store, e, &task_keywords, max_wall, &pr_scores),
+                score_entity(
+                    store,
+                    e,
+                    &task_keywords,
+                    max_wall,
+                    &pr_scores,
+                    &corroboration_scores,
+                ),
             )
         })
         .collect();
@@ -2621,7 +2700,7 @@ pub fn assemble(
         domain_entries.sort_by_key(|(t, _, _)| std::cmp::Reverse(*t));
 
         if !domain_entries.is_empty() {
-            let obs_cap = ((state_budget.saturating_sub(state_tokens)) / 25).max(3).min(10);
+            let obs_cap = ((state_budget.saturating_sub(state_tokens)) / 25).clamp(3, 10);
             let mut obs_lines = vec!["Domain observations (project knowledge):".to_string()];
             for (_, _, doc) in domain_entries.iter().take(obs_cap) {
                 obs_lines.push(format!("  - {}", truncate_chars(doc, 150)));
@@ -2644,10 +2723,7 @@ pub fn assemble(
         // no observations exist yet.
         let hypothesis_entities: Vec<(String, f64)> = store
             .datoms()
-            .filter(|d| {
-                d.attribute.as_str() == ":db/doc"
-                    && d.op == Op::Assert
-            })
+            .filter(|d| d.attribute.as_str() == ":db/doc" && d.op == Op::Assert)
             .filter_map(|d| {
                 let is_hyp = store.entity_datoms(d.entity).iter().any(|d2| {
                     d2.attribute.as_str() == ":exploration/category"
@@ -2658,16 +2734,22 @@ pub fn assemble(
                 });
                 if is_hyp {
                     if let Value::String(ref doc) = d.value {
-                        let conf = store.entity_datoms(d.entity).iter().find_map(|d2| {
-                            if d2.attribute.as_str() == ":exploration/confidence" && d2.op == Op::Assert {
-                                match d2.value {
-                                    Value::Double(f) => Some(f),
-                                    _ => None,
+                        let conf = store
+                            .entity_datoms(d.entity)
+                            .iter()
+                            .find_map(|d2| {
+                                if d2.attribute.as_str() == ":exploration/confidence"
+                                    && d2.op == Op::Assert
+                                {
+                                    match d2.value {
+                                        Value::Double(f) => Some(f),
+                                        _ => None,
+                                    }
+                                } else {
+                                    None
                                 }
-                            } else {
-                                None
-                            }
-                        }).unwrap_or(ordered_float::OrderedFloat(0.5));
+                            })
+                            .unwrap_or(ordered_float::OrderedFloat(0.5));
                         Some((doc.clone(), conf.into_inner()))
                     } else {
                         None
@@ -2681,7 +2763,11 @@ pub fn assemble(
         if !hypothesis_entities.is_empty() && state_tokens < state_budget.saturating_sub(50) {
             let mut hyp_lines = vec!["Bootstrap hypotheses:".to_string()];
             for (text, conf) in hypothesis_entities.iter().take(5) {
-                hyp_lines.push(format!("  - [conf={:.1}] {}", conf, truncate_chars(text, 120)));
+                hyp_lines.push(format!(
+                    "  - [conf={:.1}] {}",
+                    conf,
+                    truncate_chars(text, 120)
+                ));
             }
             let hyp_text = hyp_lines.join("\n");
             let hyp_tokens = hyp_text.split_whitespace().count() * 4 / 3;
@@ -2703,7 +2789,6 @@ pub fn assemble(
         // this can immediately start working: knows the types, patterns, commands,
         // and current focus. ~100 tokens, worth 10x that in orientation time saved.
         {
-
             // Derive current stage/status from most recent harvest task.
             // C8-FIX-3: Stage hints are braid-internal; external projects get
             // a session-count based status instead.
@@ -2820,8 +2905,14 @@ pub fn assemble(
                 && matches!(&datom.value, Value::Keyword(k) if k.starts_with(":spec/") && !k.starts_with(":spec."))
                 && !already_shown.contains(&datom.entity)
             {
-                let kw_score =
-                    score_entity(store, datom.entity, &task_keywords, max_wall, &pr_scores);
+                let kw_score = score_entity(
+                    store,
+                    datom.entity,
+                    &task_keywords,
+                    max_wall,
+                    &pr_scores,
+                    &corroboration_scores,
+                );
                 spec_scored.push((datom.entity, kw_score));
             }
         }
@@ -3262,8 +3353,8 @@ pub fn verify_seed(seed: &SeedOutput, store: &Store, budget: usize) -> SeedVerif
         ":session-trajectory",
         ":key-observations",
         ":spec-landscape",
-        ":domain-observations",   // CE-SEED: domain knowledge for external projects
-        ":bootstrap-hypotheses",  // CE-SEED: filesystem-inferred hypotheses
+        ":domain-observations", // CE-SEED: domain knowledge for external projects
+        ":bootstrap-hypotheses", // CE-SEED: filesystem-inferred hypotheses
     ]
     .iter()
     .map(|s| EntityId::from_ident(s))
@@ -3505,7 +3596,7 @@ mod tests {
         let entity = EntityId::from_ident(":db/ident");
         let (graph, _) = build_entity_graph(&store);
         let pr = crate::query::graph::pagerank(&graph, 20);
-        let score = score_entity(&store, entity, &["ident"], 100, &pr);
+        let score = score_entity(&store, entity, &["ident"], 100, &pr, &BTreeMap::new());
         assert!(score > 0.0, "matching entity should have positive score");
     }
 
@@ -3688,8 +3779,15 @@ mod tests {
         let pr = crate::query::graph::pagerank(&graph, 20);
 
         // Same keywords match both — but hub should score higher due to PageRank
-        let hub_score = score_entity(&store, hub, &["hub", "spoke"], 100, &pr);
-        let spoke_score = score_entity(&store, spoke_a, &["hub", "spoke"], 100, &pr);
+        let hub_score = score_entity(&store, hub, &["hub", "spoke"], 100, &pr, &BTreeMap::new());
+        let spoke_score = score_entity(
+            &store,
+            spoke_a,
+            &["hub", "spoke"],
+            100,
+            &pr,
+            &BTreeMap::new(),
+        );
 
         assert!(
             hub_score > spoke_score,
@@ -5278,8 +5376,11 @@ mod tests {
     #[test]
     fn orientation_includes_witness_activation() {
         let store = Store::genesis();
-        let text =
-            build_orientation(&store, &[], "Fix INV-WITNESS-002 challenge protocol regression");
+        let text = build_orientation(
+            &store,
+            &[],
+            "Fix INV-WITNESS-002 challenge protocol regression",
+        );
         assert!(
             text.contains("falsification"),
             "Orientation should contain witness activation with 'falsification': {text}"

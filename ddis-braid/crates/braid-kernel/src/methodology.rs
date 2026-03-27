@@ -280,8 +280,7 @@ pub fn compute_methodology_score(telemetry: &SessionTelemetry) -> MethodologySco
     let m4 = telemetry.harvest_quality;
     // CE-MT: Activity ratio — (observations + tasks) / 10, capped at 1.0.
     // 10 observations+tasks in a session = full credit. Even 3-4 gives 0.3-0.4.
-    let m5 = ((telemetry.session_observation_count + telemetry.session_task_count) as f64
-        / 10.0)
+    let m5 = ((telemetry.session_observation_count + telemetry.session_task_count) as f64 / 10.0)
         .min(1.0);
 
     let metrics = [m1, m2, m3, m4, m5];
@@ -436,13 +435,9 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
     // C8-FIX-5: Check for spec datoms via indexed lookup.
     let spec_type_attr = Attribute::from_keyword(":spec/element-type");
     let store_has_spec_datoms = !store.attribute_datoms(&spec_type_attr).is_empty()
-        || store
-            .attribute_datoms(&ident_attr)
-            .iter()
-            .any(|d| {
-                d.op == Op::Assert
-                    && matches!(&d.value, Value::Keyword(k) if k.starts_with(":spec/"))
-            });
+        || store.attribute_datoms(&ident_attr).iter().any(|d| {
+            d.op == Op::Assert && matches!(&d.value, Value::Keyword(k) if k.starts_with(":spec/"))
+        });
 
     let total_spec = if store_has_spec_datoms {
         raw_total_spec
@@ -621,8 +616,7 @@ pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
     // FIX-NAG: Fresh stores (<10 txns) have nothing worth harvesting yet.
     // Genesis + init detection + session auto-start generate ~5-8 system txns.
     // But always honor the k_eff emergency signal (signal_4).
-    let is_fresh = count_txns_since_last_harvest(store) < 10
-        && last_harvest_wall_time(store) == 0;
+    let is_fresh = count_txns_since_last_harvest(store) < 10 && last_harvest_wall_time(store) == 0;
 
     let velocity = tx_velocity(store);
     let threshold = dynamic_threshold(velocity);
@@ -1116,6 +1110,26 @@ pub struct ConcentrationSignal {
     pub suggestion: String,
 }
 
+/// Stagnation signal: F(S) has plateaued for too many bilateral cycles (C9-5).
+///
+/// Emitted when the fitness trajectory's range over the last `min_cycles`
+/// entries is less than `epsilon`. This indicates the system has reached
+/// a local optimum and needs structural intervention (verification sprint,
+/// new observations, or boundary weight recalibration).
+///
+/// Traces to: INV-BILATERAL-001, INV-GUIDANCE-010.
+#[derive(Clone, Debug, PartialEq)]
+pub struct StagnationSignal {
+    /// Current F(S) value (last trajectory entry).
+    pub current_fitness: f64,
+    /// Number of consecutive cycles within the stagnation band.
+    pub stagnant_cycles: usize,
+    /// Variance of F(S) over the stagnant window.
+    pub fitness_variance: f64,
+    /// Recommended corrective action.
+    pub recommendation: String,
+}
+
 /// Detect spec-neighborhood concentration from recent `:recon/trace` datoms.
 ///
 /// Scans `:recon/trace-neighborhood` datoms, groups by neighborhood, fires a
@@ -1156,12 +1170,29 @@ pub fn spec_neighborhood_concentration(store: &Store, window: usize) -> Vec<Conc
         .collect()
 }
 
+/// Graph fragmentation signal from approximate spectral gap (INV-DIVERGENCE-009).
+///
+/// Fires when the ISP boundary structure indicates knowledge silos:
+/// intent/spec/impl layers are weakly connected, meaning observations
+/// aren't flowing into specifications, or specifications aren't being
+/// implemented. The spectral gap measures how quickly information
+/// diffuses across the graph — a small gap means slow convergence.
+#[derive(Clone, Debug, PartialEq)]
+pub struct FragmentationSignal {
+    /// Approximate spectral gap (lambda_2) from Cheeger inequality on ISP partition.
+    pub spectral_gap: f64,
+    /// Estimated sessions to convergence (mixing time bound).
+    pub sessions_to_convergence: f64,
+    /// Human-readable recommendation.
+    pub recommendation: String,
+}
+
 /// Aggregated methodology gap counts for the status dashboard (INV-GUIDANCE-021).
 ///
 /// Each field counts a distinct gap type. The `total()` method sums all gaps.
 /// The `untested` and `stale_witnesses` fields are populated by the WITNESS
 /// subsystem via `witness::witness_gaps()`.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct MethodologyGaps {
     /// Observations containing spec IDs (INV-*, ADR-*, NEG-*) not yet
     /// crystallized into formal spec elements with `:spec/falsification`.
@@ -1175,6 +1206,11 @@ pub struct MethodologyGaps {
     pub stale_witnesses: u32,
     /// Spec neighborhoods with concentrated recent activity (AR-4).
     pub concentration: Vec<ConcentrationSignal>,
+    /// F(S) stagnation detection — trajectory flat for too many cycles (C9-5).
+    pub stagnation: Option<StagnationSignal>,
+    /// Graph fragmentation signal: approximate spectral gap below threshold (INV-DIVERGENCE-009).
+    /// When set, the entity graph's ISP layers are poorly connected — knowledge is siloed.
+    pub fragmentation: Option<FragmentationSignal>,
 }
 
 impl MethodologyGaps {
@@ -1185,6 +1221,8 @@ impl MethodologyGaps {
             + self.untested
             + self.stale_witnesses
             + self.concentration.len() as u32
+            + if self.stagnation.is_some() { 1 } else { 0 }
+            + if self.fragmentation.is_some() { 1 } else { 0 }
     }
 
     /// Returns true when no gaps exist in any category.
@@ -1223,6 +1261,34 @@ pub fn methodology_gaps(store: &Store) -> MethodologyGaps {
 
     let (untested_w, stale_w) = crate::witness::witness_gaps(store);
     let concentration = spec_neighborhood_concentration(store, 20);
+    let stagnation = detect_stagnation(store, 5, 0.05);
+
+    // INV-DIVERGENCE-009: Type 9 reflexive divergence detection via approximate spectral gap.
+    // Uses O(1) Cheeger approximation from MaterializedViews ISP boundary statistics.
+    let fragmentation_threshold =
+        crate::config::get_config(store, "spectral.fragmentation-threshold")
+            .and_then(|v| v.parse::<f64>().ok())
+            .unwrap_or(0.1); // Default: lambda_2 < 0.1 = fragmented (C9)
+
+    let gap = store.views().approximate_spectral_gap();
+    let fragmentation = if gap < fragmentation_threshold {
+        let sessions = store.views().estimated_sessions_to_convergence();
+        let rec = if gap < 0.01 {
+            "knowledge graph is disconnected — observations, specs, and implementations are siloed. Add :impl/implements links to connect spec elements to code.".to_string()
+        } else {
+            format!(
+                "knowledge graph is weakly connected (lambda_2={:.3}). Estimated {:.0} sessions to convergence. Add cross-boundary links.",
+                gap, sessions
+            )
+        };
+        Some(FragmentationSignal {
+            spectral_gap: gap,
+            sessions_to_convergence: sessions,
+            recommendation: rec,
+        })
+    } else {
+        None
+    };
 
     MethodologyGaps {
         crystallization,
@@ -1230,7 +1296,70 @@ pub fn methodology_gaps(store: &Store) -> MethodologyGaps {
         untested: untested_w,
         stale_witnesses: stale_w,
         concentration,
+        stagnation,
+        fragmentation,
     }
+}
+
+/// Detect F(S) stagnation from bilateral cycle history (C9-5).
+///
+/// Stagnation occurs when F(S) has changed by less than `epsilon`
+/// over `min_cycles` consecutive bilateral cycles. Uses the existing
+/// `load_trajectory()` from bilateral.rs which returns the F(S) history.
+///
+/// Returns `None` if the trajectory has fewer than `min_cycles` entries
+/// or if F(S) is actively changing (range >= epsilon).
+pub fn detect_stagnation(
+    store: &crate::store::Store,
+    min_cycles: usize,
+    epsilon: f64,
+) -> Option<StagnationSignal> {
+    let trajectory = crate::bilateral::load_trajectory(store);
+
+    if trajectory.len() < min_cycles {
+        return None;
+    }
+
+    // Take the last min_cycles values.
+    let window = &trajectory[trajectory.len() - min_cycles..];
+
+    // Compute range (max - min).
+    let min_val = window.iter().cloned().fold(f64::INFINITY, f64::min);
+    let max_val = window.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+    let range = max_val - min_val;
+
+    if range >= epsilon {
+        return None; // F(S) is actively changing.
+    }
+
+    // Compute variance.
+    let mean = window.iter().sum::<f64>() / window.len() as f64;
+    let variance = window.iter().map(|v| (v - mean).powi(2)).sum::<f64>() / window.len() as f64;
+
+    let current = *window.last().unwrap_or(&0.0);
+
+    // Build recommendation using untested INV count.
+    let untested = crate::witness::witness_gaps(store).0;
+    let recommendation = if untested > 0 {
+        format!(
+            "F(S) stagnant at {:.2} for {} cycles \
+             — verification sprint recommended: {} INVs need L2+ witnesses",
+            current, min_cycles, untested
+        )
+    } else {
+        format!(
+            "F(S) stagnant at {:.2} for {} cycles \
+             — add observations to under-explored areas or recalibrate boundary weights",
+            current, min_cycles
+        )
+    };
+
+    Some(StagnationSignal {
+        current_fitness: current,
+        stagnant_cycles: min_cycles,
+        fitness_variance: variance,
+        recommendation,
+    })
 }
 
 /// Activity-mode-adjusted gap counts for display (T6-1).
@@ -1286,8 +1415,9 @@ impl AdjustedGaps {
 /// The kernel function `methodology_gaps()` is unchanged -- it returns raw truth.
 /// This is a **display-layer** transformation only.
 pub fn adjust_gaps(raw: MethodologyGaps, mode: ActivityMode) -> AdjustedGaps {
-    // Concentration signals pass through unsuppressed in all modes.
+    // Concentration, stagnation, and fragmentation signals pass through unsuppressed in all modes.
     let concentration = raw.concentration.clone();
+    let fragmentation = raw.fragmentation.clone();
     let adjusted = match mode {
         ActivityMode::Implementation => MethodologyGaps {
             crystallization: scale_up(raw.crystallization, 0.1),
@@ -1295,6 +1425,8 @@ pub fn adjust_gaps(raw: MethodologyGaps, mode: ActivityMode) -> AdjustedGaps {
             untested: raw.untested,
             stale_witnesses: raw.stale_witnesses,
             concentration: concentration.clone(),
+            stagnation: raw.stagnation.clone(),
+            fragmentation: fragmentation.clone(),
         },
         ActivityMode::Specification => MethodologyGaps {
             crystallization: raw.crystallization,
@@ -1302,6 +1434,8 @@ pub fn adjust_gaps(raw: MethodologyGaps, mode: ActivityMode) -> AdjustedGaps {
             untested: scale_up(raw.untested, 0.3),
             stale_witnesses: raw.stale_witnesses,
             concentration: concentration.clone(),
+            stagnation: raw.stagnation.clone(),
+            fragmentation: fragmentation.clone(),
         },
         ActivityMode::Mixed => MethodologyGaps {
             crystallization: raw.crystallization,
@@ -1309,6 +1443,8 @@ pub fn adjust_gaps(raw: MethodologyGaps, mode: ActivityMode) -> AdjustedGaps {
             untested: raw.untested,
             stale_witnesses: raw.stale_witnesses,
             concentration,
+            stagnation: raw.stagnation.clone(),
+            fragmentation,
         },
     };
     AdjustedGaps {
@@ -1712,6 +1848,109 @@ mod tests {
             score.score >= 0.50,
             "M(t) should be >= 0.50 when harvest is recent, got {}",
             score.score
+        );
+    }
+
+    // ── C9-5 Stagnation Detection Tests ──────────────────────────────
+
+    #[test]
+    fn test_stagnation_short_trajectory() {
+        // Genesis store has no bilateral cycle data → None.
+        let store = crate::store::Store::genesis();
+        let result = detect_stagnation(&store, 5, 0.05);
+        assert!(result.is_none(), "Should return None for short trajectory");
+    }
+
+    #[test]
+    fn test_stagnation_flat_trajectory() {
+        use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, TxId, Value};
+        use ordered_float::OrderedFloat;
+
+        let mut store = crate::store::Store::genesis();
+        let agent = AgentId::from_name("test");
+
+        // Create 7 bilateral cycle datoms with near-constant F(S) ≈ 0.62.
+        let mut datoms = Vec::new();
+        for i in 0..7u64 {
+            let entity = EntityId::from_content(format!("bilateral:cycle:{}", i).as_bytes());
+            let tx = TxId::new(100 + i, 0, agent);
+            datoms.push(Datom::new(
+                entity,
+                Attribute::new(":db/ident").unwrap(),
+                Value::Keyword(format!(":bilateral/cycle-{}", i)),
+                tx,
+                Op::Assert,
+            ));
+            datoms.push(Datom::new(
+                entity,
+                Attribute::new(":bilateral/fitness").unwrap(),
+                Value::Double(OrderedFloat(0.62 + (i as f64) * 0.002)),
+                tx,
+                Op::Assert,
+            ));
+        }
+        store.apply_datoms(&datoms);
+
+        let result = detect_stagnation(&store, 5, 0.05);
+        assert!(
+            result.is_some(),
+            "Expected stagnation detection on flat trajectory"
+        );
+        let signal = result.unwrap();
+        assert!(
+            (signal.current_fitness - 0.632).abs() < 0.01,
+            "Expected fitness near 0.632, got {}",
+            signal.current_fitness
+        );
+        assert_eq!(signal.stagnant_cycles, 5);
+        assert!(signal.recommendation.contains("stagnant"));
+    }
+
+    #[test]
+    fn test_stagnation_improving_trajectory() {
+        use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, TxId, Value};
+        use ordered_float::OrderedFloat;
+
+        let mut store = crate::store::Store::genesis();
+        let agent = AgentId::from_name("test");
+
+        let values = [0.50, 0.55, 0.60, 0.65, 0.70];
+        let mut datoms = Vec::new();
+        for (i, fs) in values.iter().enumerate() {
+            let entity = EntityId::from_content(format!("bilateral:cycle:{}", i).as_bytes());
+            let tx = TxId::new(100 + i as u64, 0, agent);
+            datoms.push(Datom::new(
+                entity,
+                Attribute::new(":db/ident").unwrap(),
+                Value::Keyword(format!(":bilateral/cycle-{}", i)),
+                tx,
+                Op::Assert,
+            ));
+            datoms.push(Datom::new(
+                entity,
+                Attribute::new(":bilateral/fitness").unwrap(),
+                Value::Double(OrderedFloat(*fs)),
+                tx,
+                Op::Assert,
+            ));
+        }
+        store.apply_datoms(&datoms);
+
+        let result = detect_stagnation(&store, 5, 0.05);
+        assert!(
+            result.is_none(),
+            "Should not detect stagnation on improving trajectory"
+        );
+    }
+
+    #[test]
+    fn test_methodology_gaps_includes_stagnation_field() {
+        // On genesis store with no bilateral data, stagnation should be None.
+        let store = crate::store::Store::genesis();
+        let gaps = methodology_gaps(&store);
+        assert!(
+            gaps.stagnation.is_none(),
+            "Genesis store should have no stagnation signal"
         );
     }
 }

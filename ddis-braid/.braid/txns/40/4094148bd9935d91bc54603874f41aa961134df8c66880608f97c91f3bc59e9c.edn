@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774632392/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DW0b-TEST: Flush guard correctness — 6 tests including 20-iteration concurrent race test"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :db/ident :v :task/t-3310ea0d :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/created-at :v 1774632391 :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/description :v "TESTS for DW0b flush guard. CRITICAL TEST (The Iron Test): (1) test_concurrent_flush_no_data_loss: Create tempdir store. Fork two child processes: Process A writes observe 'alpha' and exits. Process B writes observe 'beta' and exits. Wait for both. Open store.bin. Verify BOTH alpha AND beta observations present. Repeat 20 times to catch race conditions. LOG: For each iteration: PIDs, flush order (which wrote store.bin last — check mtime), known_hashes at flush time, final datom count. UNIT: (2) test_flush_skips_when_unknown_hashes: Open LiveStore (knows 5 hashes). Write 2 .edn files directly to disk. Call flush(). Verify store.bin NOT overwritten (mtime unchanged). Verify dirty flag cleared (silently skipped). (3) test_flush_writes_when_all_known: Open LiveStore (knows 5). Write 1 txn through LiveStore (now knows 6). No external writes. Flush. Verify store.bin updated with 6 datoms. (4) test_flock_serializes_concurrent_flushes: Fork two processes, each opens LiveStore and writes 1 txn. Insert 100ms delay in one. Both try to flush. Verify final store.bin has ALL txns from both (flock serialized the read-check-write). (5) test_has_new_external_txns_removed: grep for 'has_new_external_txns' in live_store.rs. Verify 0 matches (or verify it's marked deprecated with a comment pointing to flush guard). PROPTEST: (6) For n=2..5 concurrent processes each writing m=1..3 txns, final store.bin datom count = genesis + sum(all txn datoms). Run 100 iterations. FAILURE DIAGNOSTIC: On any assertion failure, dump: (a) store.bin datom count, (b) expected datom count from .edn files, (c) which .edn hashes are in known_hashes vs disk, (d) flock timing log." :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/id :v "t-3310ea0d" :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/labels :v :label/daemon-write-v2 :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/labels :v :label/flush-guard :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/labels :v :label/wave0 :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/title :v "DW0b-TEST: Flush guard correctness — 6 tests including 20-iteration concurrent race test" :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/title-l0 :v "DW0b-TEST" :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/title-l1 :v "DW0b-TEST: Flush guard correctness — 6 tests including 20-iteration concurr..." :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/traces-to :v #blake3 "7ceb3ac1150ab21287b5642e327ecec7a2d644e1f0772aab707f9c6106560932" :op :assert}
+   {:e #blake3 "d27620551842df464c62feb1adb0da0218d6ea1457704044c39ed277cf961b2c" :a :task/type :v :task.type/task :op :assert}
+ ]}

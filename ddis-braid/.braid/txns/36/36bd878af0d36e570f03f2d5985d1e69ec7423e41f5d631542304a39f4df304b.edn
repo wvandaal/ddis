@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774635194/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DS2: Group commit thread — batch writes, single fsync, adaptive interval, DurabilityPermit response"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :db/ident :v :task/t-fdd704dd :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/created-at :v 1774635193 :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/description :v "CONTEXT: At 50 agents each writing 1 txn/s, individual fsyncs = 50/s. Group commit batches these into O(1/batch_interval) fsyncs regardless of agent count. RATIONALE: FrankenSQLite's WriteCoordinator decouples bulk payload persistence from commit ordering. For braid: datom construction (user code, milliseconds) is separated from store update (critical section, microseconds). The batch window amortizes fsync across concurrent writers. APPROACH: New module in daemon.rs or separate file (~200 LOC). Types: WriteRequest { tx_file: TxFile, response_tx: oneshot::Sender<Result<TxFilePath>> }. CommitThread owns: mpsc::Receiver<WriteRequest>, &mut Store (write access), WalWriter, checkpoint_lsn. Loop: (1) recv_timeout(batch_interval) to drain channel. (2) If batch non-empty: assign TxIds (HLC tick per entry). (3) Acquire write lock on RwLock<Store>. (4) apply_datoms for each tx in batch. (5) Release write lock. (6) Append all entries to WAL (single write() call). (7) fsync WAL. (8) Send Ok(TxFilePath) to each response_tx. ADAPTIVE BATCH INTERVAL: Start at 50ms. If channel is consistently non-empty after drain (high load), reduce to 5ms. If channel is consistently empty (low load), increase to 100ms. This gives low-latency under load and low-CPU when idle. DURABILITY GUARANTEE: CLI receives response ONLY after fsync completes. The DurabilityPermit pattern from asupersync: the response IS the permit — receiving it means the write is durable. ACCEPTANCE: (1) 50 concurrent writers → all writes visible in Store after batch completes. (2) Kill daemon after batch fsync but before CLI response → CLI retries → write already in WAL → idempotent (content-addressed). (3) Benchmark: 50 writers × 1 write/s = ~20 fsyncs/s (not 50). (4) proptest: any interleaving of N writers produces correct Store state. FILES: crates/braid/src/daemon.rs (CommitThread), crates/braid/src/live_store.rs (write path). RISK: oneshot channels add allocation overhead. For 50 agents this is negligible (~1μs per alloc). At 1000+ agents, consider arena-allocated response slots." :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/id :v "t-fdd704dd" :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/labels :v :label/daemon-scale :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/labels :v :label/ds2 :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/labels :v :label/group-commit :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/title :v "DS2: Group commit thread — batch writes, single fsync, adaptive interval, DurabilityPermit response" :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/title-l0 :v "DS2" :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/title-l1 :v "DS2: Group commit thread — batch writes, single fsync, adaptive interval, D..." :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "29d5708dcab50963877ecf0a85a1aa34987ff1d3ee7cab9cb42b95bce33a51d8" :a :task/type :v :task.type/task :op :assert}
+ ]}

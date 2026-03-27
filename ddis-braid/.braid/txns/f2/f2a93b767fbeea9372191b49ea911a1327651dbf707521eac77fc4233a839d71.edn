@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774629887/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DAEMON-W2-TEST: E2E tests for daemon-routed write commands with argument verification"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :db/ident :v :task/t-3cd28665 :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/created-at :v 1774629886 :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/description :v "TESTS for DAEMON-W2. E2E: (1) Start daemon. Run braid observe 'test observation' -c 0.9 --category theorem. Verify: daemon log shows braid_observe tool call with text='test observation', confidence=0.9, category='theorem'. braid query for the observation entity returns the correct attributes. (2) Start daemon. Run braid task create 'test task' --priority 1 --type bug. Verify: task appears in braid task search 'test task'. Priority is 1. Type is bug. (3) Start daemon. Run braid harvest --task 'test' --commit. Verify: harvest completes, session entity created. (4) NEGATIVE: braid init with daemon running → does NOT route through daemon (direct mode). Verify by checking daemon log has no init request. FAILURE DIAGNOSTIC: Each test logs daemon PID, socket path, request JSON, response JSON, and store datom count before/after." :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/id :v "t-3cd28665" :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/labels :v :label/daemon :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/labels :v :label/wave2 :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/title :v "DAEMON-W2-TEST: E2E tests for daemon-routed write commands with argument verification" :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/title-l0 :v "DAEMON-W2-TEST" :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/title-l1 :v "DAEMON-W2-TEST: E2E tests for daemon-routed write commands with argument veri..." :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "477af6a9cdddae0af66f5e0add3725cec165a431b88f0c2636a92340081cf916" :a :task/type :v :task.type/task :op :assert}
+ ]}

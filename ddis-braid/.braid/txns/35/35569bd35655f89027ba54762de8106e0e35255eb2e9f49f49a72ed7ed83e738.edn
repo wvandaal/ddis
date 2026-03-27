@@ -1,0 +1,51 @@
+{:tx/id #hlc "1774636655/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 47 candidates from task 'Task consolidation — duplicate analysis + WRITER-SPEC integration'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1f66298cd73ba79f2dcf454ba7bbd322d186165c5ecb0cbd8e8153cdba269918" :a :hypothesis/action :v #blake3 "44d5d397154b469c1d33bf5cb4da749089379e765e10f4b6ae4f21ac379b2780" :op :assert}
+   {:e #blake3 "1f66298cd73ba79f2dcf454ba7bbd322d186165c5ecb0cbd8e8153cdba269918" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "1f66298cd73ba79f2dcf454ba7bbd322d186165c5ecb0cbd8e8153cdba269918" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "1f66298cd73ba79f2dcf454ba7bbd322d186165c5ecb0cbd8e8153cdba269918" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "1f66298cd73ba79f2dcf454ba7bbd322d186165c5ecb0cbd8e8153cdba269918" :a :hypothesis/predicted :v 0.4837136033612557 :op :assert}
+   {:e #blake3 "1f66298cd73ba79f2dcf454ba7bbd322d186165c5ecb0cbd8e8153cdba269918" :a :hypothesis/timestamp :v #inst 1774636657 :op :assert}
+   {:e #blake3 "43af1fc59bc09820993232725cd795268adccc8ab89e06853e912b2d16ab4fa5" :a :hypothesis/action :v #blake3 "11146360f74be633495a6342dd8200186db3c8cf4a9c36a3c12288606c58cf62" :op :assert}
+   {:e #blake3 "43af1fc59bc09820993232725cd795268adccc8ab89e06853e912b2d16ab4fa5" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "43af1fc59bc09820993232725cd795268adccc8ab89e06853e912b2d16ab4fa5" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "43af1fc59bc09820993232725cd795268adccc8ab89e06853e912b2d16ab4fa5" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "43af1fc59bc09820993232725cd795268adccc8ab89e06853e912b2d16ab4fa5" :a :hypothesis/predicted :v 1.0 :op :assert}
+   {:e #blake3 "43af1fc59bc09820993232725cd795268adccc8ab89e06853e912b2d16ab4fa5" :a :hypothesis/timestamp :v #inst 1774636657 :op :assert}
+   {:e #blake3 "ac7852d95ca2e535ca403667955ca8ff7bd23ca9cdaf27608aec59a6c1e86901" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "d0f54c4b57f4c4f5af176602c3cbf2e61bd39f66c3dc082f0586544dffcbdbb6" :a :db/ident :v :session/s-1774636657966 :op :assert}
+   {:e #blake3 "d0f54c4b57f4c4f5af176602c3cbf2e61bd39f66c3dc082f0586544dffcbdbb6" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "d0f54c4b57f4c4f5af176602c3cbf2e61bd39f66c3dc082f0586544dffcbdbb6" :a :session/current :v #blake3 "d0f54c4b57f4c4f5af176602c3cbf2e61bd39f66c3dc082f0586544dffcbdbb6" :op :assert}
+   {:e #blake3 "d0f54c4b57f4c4f5af176602c3cbf2e61bd39f66c3dc082f0586544dffcbdbb6" :a :session/start-datom-count :v 169005 :op :assert}
+   {:e #blake3 "d0f54c4b57f4c4f5af176602c3cbf2e61bd39f66c3dc082f0586544dffcbdbb6" :a :session/start-fitness :v 0.6134841336761279 :op :assert}
+   {:e #blake3 "d0f54c4b57f4c4f5af176602c3cbf2e61bd39f66c3dc082f0586544dffcbdbb6" :a :session/start-time :v "2026-03-27T18:37:37Z" :op :assert}
+   {:e #blake3 "d0f54c4b57f4c4f5af176602c3cbf2e61bd39f66c3dc082f0586544dffcbdbb6" :a :session/started-at :v 1774636657 :op :assert}
+   {:e #blake3 "d0f54c4b57f4c4f5af176602c3cbf2e61bd39f66c3dc082f0586544dffcbdbb6" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "d0f54c4b57f4c4f5af176602c3cbf2e61bd39f66c3dc082f0586544dffcbdbb6" :a :session/task :v "## Session Synthesis Directive\n\n**Next session task**: continue: Task consolidation — duplicate analysis + WRITER-SPEC integration\nRun: `braid seed --task \"continue: Task consolidation — duplicate analysis + WRITER-SPEC integration\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "dae42d849fbda9d917ada0d10986971cde3639d93ce654da2c817e18caad7db3" :a :hypothesis/action :v #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :op :assert}
+   {:e #blake3 "dae42d849fbda9d917ada0d10986971cde3639d93ce654da2c817e18caad7db3" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "dae42d849fbda9d917ada0d10986971cde3639d93ce654da2c817e18caad7db3" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "dae42d849fbda9d917ada0d10986971cde3639d93ce654da2c817e18caad7db3" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "dae42d849fbda9d917ada0d10986971cde3639d93ce654da2c817e18caad7db3" :a :hypothesis/predicted :v 0.9221174519371678 :op :assert}
+   {:e #blake3 "dae42d849fbda9d917ada0d10986971cde3639d93ce654da2c817e18caad7db3" :a :hypothesis/timestamp :v #inst 1774636657 :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :db/doc :v "Harvest session for task: Task consolidation — duplicate analysis + WRITER-SPEC integration" :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :db/ident :v :harvest/session-braid-user-1774636655 :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :harvest/accomplishments :v "Session entity: :recon/trace-0469137c7b6be631; Session entity: :recon/trace-e1457cac8ebbd1ad; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; Session entity: :recon/trace-4b53b10fe5190cb0; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to t-2fd51aac?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; What connects thinking about topology and coupling for ... to t-2fd51aac?; Session entity: :recon/trace-57a05d411dbd54b1; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; Session entity: :recon/trace-c60bbf0699d7899a; Session entity: :recon/trace-ef6010e17a8ff8a6\nCRITICAL REVIEW FINDING: 10 existing tasks overlap with DAEMON-WRITE/DAEMON-SCALE tasks. The MOST important discovery: the WRITER-SPEC task (t-abb1f8b5) is MORE detailed than my DW5 — it has the exact Rust borrow pattern (NLL match with fallback), the command-by-command wiring order, strace verification methodology. My DW5 should be REPLACED by pointing to WRITER-SPEC. Similarly, DAEMON-ARGS (t-4ebf7442) is a weaker version of DW2. WRITER-4 (t-8900f57b) and DW4 (t-cfe0ca86) are COMPLEMENTARY: WRITER-4 fixes direct mode (restrict session detection), DW4 fixes daemon mode (skip post-hooks). Both needed. ACTION ITEMS: (1) Close t-4ebf7442 DAEMON-ARGS as superseded by DW2. (2) Close DW5 t-9a74911c as superseded by WRITER-SPEC t-abb1f8b5 (existing is better). (3) Wire WRITER-SPEC into DAEMON-WRITE epic. (4) Link WRITER-4 and DW4 as complementary. (5) Close t-994167b6 INV-DAEMON-010 and t-1ccb4e55 DAEMON-FIRST if implemented. (6) Wire t-5d804a1b INV-STORE-020 as parent of DW0. This consolidation reduces task duplication while preserving all insights from both this session and prior sessions." :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :harvest/candidate-count :v 47 :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :harvest/codebase-snapshot :v "Codebase: 0 LOC across 0 source files\nTests: 2063 passing" :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :harvest/context-metrics :v "{\"candidates\":47,\"k_eff_estimated\":\"0.71\",\"observations\":1,\"output_tokens_est\":2138,\"tasks_closed\":4,\"tx_count\":40,\"wall_elapsed_s\":787}" :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :harvest/delta-summary :v "+696 datoms, +38 entities" :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :harvest/observation-count :v 1 :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :harvest/recommended-tasks :v "t-d9536d87,t-f12bff46,t-8e8cf412" :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :harvest/store-datom-count :v 168970 :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :harvest/store-entity-count :v 12674 :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: Task consolidation — duplicate analysis + WRITER-SPEC integration\nRun: `braid seed --task \"continue: Task consolidation — duplicate analysis + WRITER-SPEC integration\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :harvest/task :v "Task consolidation — duplicate analysis + WRITER-SPEC integration" :op :assert}
+   {:e #blake3 "e86cabce84fbce8fee574a9033df095ecef442604e34035002d68c4f2e094995" :a :harvest/tx-since-last :v 40 :op :assert}
+ ]}

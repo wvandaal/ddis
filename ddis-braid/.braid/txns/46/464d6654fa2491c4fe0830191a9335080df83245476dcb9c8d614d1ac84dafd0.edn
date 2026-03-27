@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774631663/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DW4: Skip main.rs post-hooks when daemon-routed — prevent stale overwrite by keeping L1 clean"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :db/ident :v :task/t-cfe0ca86 :op :assert}
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :task/created-at :v 1774631662 :op :assert}
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :task/description :v "PROBLEM: main.rs:190-257 post-hooks (RFL-2 action recording, exit harvest warning, refresh_if_needed) dirty the main.rs LiveStore. When the daemon handles the command, these are REDUNDANT (daemon already does runtime datoms via INV-DAEMON-003) and HARMFUL (dirty L1 overwrites L2's correct flush on drop). THE SPECIFIC TRIGGER: RFL-2 at main.rs:201-256 writes :action/* datoms to L1 → L1 dirty → L1 drop → flush overwrites command's store.bin. This is the EXACT mechanism producing stale cache. APPROACH: (1) In DW3, set daemon_handled = true when try_route_through_daemon returns Some. (2) After command dispatch block, check daemon_handled. If true: skip ALL post-hooks (RFL-2, exit warning, refresh). Return immediately after printing daemon response. (3) If false (direct mode): existing post-hook behavior unchanged. (4) CRITICAL INVARIANT: When daemon_handled == true, main.rs LiveStore MUST be clean (is_dirty() == false). Add a debug_assert for this. (5) The daemon's handle_with_observation() already records :runtime/* datoms (equivalent to RFL-2). Verify this covers the same information as the CLI's RFL-2 path. ACCEPTANCE: (1) After daemon-routed observe: main.rs LiveStore.is_dirty() == false (debug_assert passes). (2) :runtime/* datoms recorded by daemon (query confirms). (3) In direct mode: RFL-2 still fires, exit warning still shows. (4) THE STALE CACHE TEST: braid task create 'X' → immediately braid task search 'X' → found (no stale cache). This is the PRIMARY acceptance criterion. FILES: main.rs (~20 LOC — conditional skip + debug_assert). RISK: If the daemon doesn't record everything RFL-2 records, there's information loss. Verify the daemon's handle_with_observation covers: command name, impact score, timestamp, recommended action." :op :assert}
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :task/id :v "t-cfe0ca86" :op :assert}
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :task/labels :v :label/daemon-write-v2 :op :assert}
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :task/labels :v :label/wave4 :op :assert}
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :task/title :v "DW4: Skip main.rs post-hooks when daemon-routed — prevent stale overwrite by keeping L1 clean" :op :assert}
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :task/title-l0 :v "DW4" :op :assert}
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :task/title-l1 :v "DW4: Skip main.rs post-hooks when daemon-routed — prevent stale overwrite b..." :op :assert}
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :task/traces-to :v #blake3 "7ceb3ac1150ab21287b5642e327ecec7a2d644e1f0772aab707f9c6106560932" :op :assert}
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :task/traces-to :v #blake3 "ea3136ed13d310da4d6b7ba2827ed4b78e0831763c5072c0fecc710cefec2292" :op :assert}
+   {:e #blake3 "ed1264d0063bec974046c49b6e983019d7fa6bca9f06680279e45988118fd977" :a :task/type :v :task.type/task :op :assert}
+ ]}

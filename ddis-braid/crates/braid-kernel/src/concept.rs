@@ -24,7 +24,7 @@
 
 use std::collections::{BTreeMap, HashMap, HashSet};
 
-use crate::datom::{Attribute, EntityId, Op, Value};
+use crate::datom::{AgentId, Attribute, EntityId, Op, Value};
 use crate::embedding::{bytes_to_embedding, cosine_similarity, embedding_to_bytes};
 use crate::store::Store;
 
@@ -126,7 +126,7 @@ pub fn find_nearest_concept(store: &Store, embedding: &[f32]) -> Option<(EntityI
     for (entity, concept_emb) in &latest {
         if concept_emb.len() == embedding.len() {
             let sim = cosine_similarity(concept_emb, embedding);
-            if best.map_or(true, |(_, s)| sim > s) {
+            if best.is_none_or(|(_, s)| sim > s) {
                 best = Some((*entity, sim));
             }
         }
@@ -212,7 +212,9 @@ pub fn assign_to_concepts(
             ConceptAssignment::Joined { similarity, .. } => *similarity,
             _ => 0.0,
         };
-        sim_b.partial_cmp(&sim_a).unwrap_or(std::cmp::Ordering::Equal)
+        sim_b
+            .partial_cmp(&sim_a)
+            .unwrap_or(std::cmp::Ordering::Equal)
     });
 
     matches
@@ -269,7 +271,9 @@ pub fn assign_to_concepts_soft(
             ConceptAssignment::Joined { strength, .. } => *strength,
             _ => 0.0,
         };
-        str_b.partial_cmp(&str_a).unwrap_or(std::cmp::Ordering::Equal)
+        str_b
+            .partial_cmp(&str_a)
+            .unwrap_or(std::cmp::Ordering::Equal)
     });
 
     matches
@@ -336,6 +340,9 @@ pub fn crystallize_concepts(
         clusters[best_i].extend(cluster_j);
     }
 
+    // Collect all observation texts as the IDF corpus (C9-P6).
+    let corpus_texts: Vec<&str> = observations.iter().map(|o| o.2.as_str()).collect();
+
     // Convert qualifying clusters to NewConcept.
     clusters
         .into_iter()
@@ -352,7 +359,7 @@ pub fn crystallize_concepts(
                 .map(|&i| observations[i].1.as_slice())
                 .collect();
 
-            let name = generate_concept_name(&member_texts);
+            let name = generate_concept_name(&member_texts, &corpus_texts);
             let description = format!("{} observations about {}", members.len(), name);
 
             let var = crate::embedding::variance(&member_embeddings, &cent);
@@ -374,6 +381,147 @@ pub fn crystallize_concepts(
             }
         })
         .collect()
+}
+
+/// Split an overgrown concept into sub-concepts using Fiedler bisection.
+///
+/// Takes the member embeddings of a single concept and recursively bisects
+/// until each sub-cluster has variance <= `split_threshold` or size < `min_split_size`.
+///
+/// The algorithm:
+/// 1. Compute internal variance. If <= threshold, return empty (no split needed).
+/// 2. Build NxN cosine similarity matrix from embeddings.
+/// 3. Fiedler bisect into two groups.
+/// 4. Recursively split each group if variance still exceeds threshold.
+/// 5. Generate TF-IDF names for each final sub-concept.
+///
+/// C9 compliant: `split_threshold` and `min_split_size` are caller-provided parameters.
+/// C8 compliant: no domain-specific logic — works for any concept cluster.
+///
+/// Returns empty Vec if no split is needed (variance already below threshold).
+pub fn split_concept(
+    member_embeddings: &[(EntityId, Vec<f32>, String)],
+    corpus_texts: &[&str],
+    split_threshold: f64,
+    min_split_size: usize,
+) -> Vec<NewConcept> {
+    if member_embeddings.len() < min_split_size * 2 {
+        return Vec::new();
+    }
+
+    // Compute internal variance of the full set.
+    let embeddings_ref: Vec<&[f32]> = member_embeddings.iter().map(|(_, e, _)| e.as_slice()).collect();
+    let cent = crate::embedding::centroid(&embeddings_ref);
+    let var = crate::embedding::variance(&embeddings_ref, &cent) as f64;
+
+    if var <= split_threshold {
+        return Vec::new();
+    }
+
+    // Build NxN cosine similarity matrix (f64 for fiedler_bisect).
+    let n = member_embeddings.len();
+    let mut sim_matrix: Vec<Vec<f64>> = vec![vec![0.0; n]; n];
+    for i in 0..n {
+        sim_matrix[i][i] = 1.0;
+        for j in (i + 1)..n {
+            let s = cosine_similarity(&member_embeddings[i].1, &member_embeddings[j].1) as f64;
+            // Clamp to non-negative for Laplacian construction.
+            let s = s.max(0.0);
+            sim_matrix[i][j] = s;
+            sim_matrix[j][i] = s;
+        }
+    }
+
+    // Recursive bisection.
+    let indices: Vec<usize> = (0..n).collect();
+    let mut final_groups: Vec<Vec<usize>> = Vec::new();
+    split_recursive(
+        member_embeddings,
+        &sim_matrix,
+        &indices,
+        split_threshold,
+        min_split_size,
+        &mut final_groups,
+    );
+
+    if final_groups.len() < 2 {
+        // Bisection didn't produce meaningful split.
+        return Vec::new();
+    }
+
+    // Generate sub-concepts from final groups.
+    let member_texts: Vec<&str> = member_embeddings.iter().map(|(_, _, t)| t.as_str()).collect();
+
+    final_groups
+        .into_iter()
+        .filter(|group| group.len() >= min_split_size)
+        .map(|group| {
+            let members: Vec<EntityId> = group.iter().map(|&i| member_embeddings[i].0).collect();
+            let group_embeddings: Vec<&[f32]> = group
+                .iter()
+                .map(|&i| member_embeddings[i].1.as_slice())
+                .collect();
+            let group_texts: Vec<&str> = group
+                .iter()
+                .map(|&i| member_texts[i])
+                .collect();
+
+            let centroid = crate::embedding::centroid(&group_embeddings);
+            let variance = crate::embedding::variance(&group_embeddings, &centroid) as f64;
+            let name = generate_concept_name(&group_texts, corpus_texts);
+            let description = format!("{} observations about {}", members.len(), name);
+            let entity = EntityId::from_content(format!("concept:{name}").as_bytes());
+            let total_weight = members.len() as f64;
+
+            NewConcept {
+                entity,
+                name,
+                description,
+                centroid,
+                members,
+                variance,
+                total_weight,
+            }
+        })
+        .collect()
+}
+
+/// Recursive helper for `split_concept`: bisects a group and recurses if sub-groups
+/// still exceed the variance threshold.
+fn split_recursive(
+    member_embeddings: &[(EntityId, Vec<f32>, String)],
+    sim_matrix: &[Vec<f64>],
+    indices: &[usize],
+    split_threshold: f64,
+    min_split_size: usize,
+    result: &mut Vec<Vec<usize>>,
+) {
+    // Compute variance of this group.
+    let group_embeddings: Vec<&[f32]> = indices
+        .iter()
+        .map(|&i| member_embeddings[i].1.as_slice())
+        .collect();
+    let cent = crate::embedding::centroid(&group_embeddings);
+    let var = crate::embedding::variance(&group_embeddings, &cent) as f64;
+
+    // Base case: variance is acceptable or group is too small to split further.
+    if var <= split_threshold || indices.len() < min_split_size * 2 {
+        result.push(indices.to_vec());
+        return;
+    }
+
+    // Bisect using Fiedler vector.
+    let (left, right) = crate::topology::fiedler_bisect(sim_matrix, indices);
+
+    // If bisection failed (one side empty), accept this group as-is.
+    if left.is_empty() || right.is_empty() {
+        result.push(indices.to_vec());
+        return;
+    }
+
+    // Recurse on each half.
+    split_recursive(member_embeddings, sim_matrix, &left, split_threshold, min_split_size, result);
+    split_recursive(member_embeddings, sim_matrix, &right, split_threshold, min_split_size, result);
 }
 
 /// List all concepts in the store, sorted by member count descending.
@@ -455,9 +603,8 @@ pub fn concept_inventory_with_innate(store: &Store) -> (Vec<ConceptSummary>, Has
                 } else if let Value::Bytes(ref b) = d.value {
                     // Legacy: older stores wrote variance as raw f64 LE bytes.
                     if b.len() == 8 {
-                        cs.variance = f64::from_le_bytes([
-                            b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7],
-                        ]);
+                        cs.variance =
+                            f64::from_le_bytes([b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]]);
                     }
                 }
             } else if d.attribute == weight_attr {
@@ -471,6 +618,201 @@ pub fn concept_inventory_with_innate(store: &Store) -> (Vec<ConceptSummary>, Has
     let mut result: Vec<ConceptSummary> = concepts.into_values().collect();
     result.sort_by_key(|c| std::cmp::Reverse(c.member_count));
     (result, innate_set)
+}
+
+// ===================================================================
+// Observation Retrieval (C9-P5 kernel helpers)
+// ===================================================================
+
+/// A single observation record with all key attributes (C9-P5).
+#[derive(Debug, Clone)]
+pub struct ObservationRecord {
+    /// The observation entity ID.
+    pub entity: EntityId,
+    /// The `:db/ident` value.
+    pub ident: String,
+    /// The `:exploration/body` text.
+    pub body: String,
+    /// The `:exploration/confidence` value (0.0-1.0).
+    pub confidence: f64,
+    /// The `:exploration/category` keyword (e.g. ":exploration.cat/observation").
+    pub category: String,
+    /// The concept this observation belongs to (if any).
+    pub concept: Option<EntityId>,
+    /// The concept name (if assigned to a concept).
+    pub concept_name: Option<String>,
+    /// The transaction wall-clock time (for recency sorting).
+    pub tx_wall_time: i64,
+}
+
+/// Collect all observations from the store in a single pass (C9-P5).
+///
+/// Returns observations sorted by `tx_wall_time` descending (most recent first).
+/// INV-REFLEXIVE-007: Same function for domain and meta observations.
+pub fn all_observations(store: &Store) -> Vec<ObservationRecord> {
+    let body_attr = Attribute::from_keyword(":exploration/body");
+    let ident_attr = Attribute::from_keyword(":db/ident");
+    let conf_attr = Attribute::from_keyword(":exploration/confidence");
+    let cat_attr = Attribute::from_keyword(":exploration/category");
+    let concept_ref_attr = Attribute::from_keyword(":exploration/concept");
+    let concept_name_attr = Attribute::from_keyword(":concept/name");
+
+    // Phase 1: Identify observation entities (those with :exploration/body).
+    let mut obs_bodies: BTreeMap<EntityId, String> = BTreeMap::new();
+    let mut obs_idents: BTreeMap<EntityId, String> = BTreeMap::new();
+    let mut obs_confs: BTreeMap<EntityId, f64> = BTreeMap::new();
+    let mut obs_cats: BTreeMap<EntityId, String> = BTreeMap::new();
+    let mut obs_concepts: BTreeMap<EntityId, EntityId> = BTreeMap::new();
+    let mut obs_tx_times: BTreeMap<EntityId, i64> = BTreeMap::new();
+    let mut concept_names: BTreeMap<EntityId, String> = BTreeMap::new();
+
+    for d in store.datoms() {
+        if d.op != Op::Assert {
+            continue;
+        }
+        if d.attribute == body_attr {
+            if let Value::String(ref s) = d.value {
+                obs_bodies.insert(d.entity, s.clone());
+                let wall = d.tx.wall_time() as i64;
+                obs_tx_times.entry(d.entity).or_insert(wall);
+            }
+        } else if d.attribute == ident_attr {
+            if let Value::Keyword(ref k) = d.value {
+                if k.starts_with(":observation/") || k.starts_with(":exploration/") {
+                    obs_idents.insert(d.entity, k.clone());
+                }
+            }
+        } else if d.attribute == conf_attr {
+            if let Value::Double(v) = d.value {
+                obs_confs.insert(d.entity, v.into_inner());
+            }
+        } else if d.attribute == cat_attr {
+            if let Value::Keyword(ref k) = d.value {
+                obs_cats.insert(d.entity, k.clone());
+            }
+        } else if d.attribute == concept_ref_attr {
+            if let Value::Ref(concept_e) = d.value {
+                obs_concepts.insert(d.entity, concept_e);
+            }
+        } else if d.attribute == concept_name_attr {
+            if let Value::String(ref s) = d.value {
+                concept_names.insert(d.entity, s.clone());
+            }
+        }
+    }
+
+    // Phase 2: Assemble records (only entities that have a body).
+    let mut records: Vec<ObservationRecord> = obs_bodies
+        .into_iter()
+        .map(|(entity, body)| {
+            let concept = obs_concepts.get(&entity).copied();
+            ObservationRecord {
+                entity,
+                ident: obs_idents.get(&entity).cloned().unwrap_or_default(),
+                body,
+                confidence: obs_confs.get(&entity).copied().unwrap_or(0.5),
+                category: obs_cats
+                    .get(&entity)
+                    .cloned()
+                    .unwrap_or_else(|| ":exploration.cat/observation".to_string()),
+                concept,
+                concept_name: concept.and_then(|c| concept_names.get(&c).cloned()),
+                tx_wall_time: obs_tx_times.get(&entity).copied().unwrap_or(0),
+            }
+        })
+        .collect();
+
+    // Sort by tx_wall_time descending (most recent first).
+    records.sort_by_key(|r| std::cmp::Reverse(r.tx_wall_time));
+    records
+}
+
+/// Group observations by their assigned concept (C9-P5).
+///
+/// Returns `(concept_summary, member_observations)` pairs sorted by member count descending.
+/// Observations without a concept are collected into a synthetic "Uncategorized" group.
+pub fn observations_by_concept(
+    store: &Store,
+) -> Vec<(Option<ConceptSummary>, Vec<ObservationRecord>)> {
+    let all = all_observations(store);
+    let inventory = concept_inventory(store);
+
+    // Group observations by concept entity.
+    let mut by_concept: BTreeMap<Option<EntityId>, Vec<ObservationRecord>> = BTreeMap::new();
+    for obs in all {
+        by_concept.entry(obs.concept).or_default().push(obs);
+    }
+
+    // Build result: match concept groups to ConceptSummary.
+    let concept_map: BTreeMap<EntityId, ConceptSummary> =
+        inventory.into_iter().map(|c| (c.entity, c)).collect();
+
+    let mut result: Vec<(Option<ConceptSummary>, Vec<ObservationRecord>)> = by_concept
+        .into_iter()
+        .map(|(concept_id, obs)| {
+            let summary = concept_id.and_then(|id| concept_map.get(&id).cloned());
+            (summary, obs)
+        })
+        .collect();
+
+    // Sort: named concepts first (by member count desc), uncategorized last.
+    result.sort_by(|a, b| {
+        let a_count = a.0.as_ref().map(|c| c.member_count).unwrap_or(0);
+        let b_count = b.0.as_ref().map(|c| c.member_count).unwrap_or(0);
+        let a_has = a.0.is_some() as u8;
+        let b_has = b.0.is_some() as u8;
+        b_has.cmp(&a_has).then(b_count.cmp(&a_count))
+    });
+    result
+}
+
+/// Compute a steering question for read-mode observe subcommands (C9-P5, INV-REFLEXIVE-006).
+///
+/// Priority cascade:
+/// 1. Frontier recommendation from context embedding
+/// 2. Co-occurrence gap (concept pair with Jaccard = 0)
+/// 3. Smallest concept (coverage gap)
+///
+/// Zero LLM calls — pure computation over the concept graph.
+pub fn compute_read_steering(store: &Store, context_embedding: Option<&[f32]>) -> Option<String> {
+    // Priority 1: Frontier recommendation from context embedding.
+    if let Some(emb) = context_embedding {
+        if let Some(rec) = frontier_recommendation(store, emb) {
+            return Some(format!(
+                "{}: {} -- {}",
+                match rec.kind {
+                    FrontierKind::Explore => "explore",
+                    FrontierKind::Deepen => "deepen",
+                    FrontierKind::Bridge => "bridge",
+                    FrontierKind::Narrow => "narrow",
+                },
+                rec.target,
+                rec.rationale
+            ));
+        }
+    }
+
+    // Priority 2: Co-occurrence gap (bridge between disconnected concepts).
+    let cooc = co_occurrence_matrix(store);
+    let gap = cooc
+        .iter()
+        .find(|c| c.jaccard < 0.01 && !c.name_a.is_empty() && !c.name_b.is_empty());
+    if let Some(gap) = gap {
+        return Some(format!("what connects {} to {}?", gap.name_a, gap.name_b));
+    }
+
+    // Priority 3: Smallest concept (coverage gap).
+    let inv = concept_inventory(store);
+    if let Some(smallest) = inv.last() {
+        if smallest.member_count < 3 {
+            return Some(format!(
+                "concept '{}' has only {} observations -- what else belongs here?",
+                smallest.name, smallest.member_count
+            ));
+        }
+    }
+
+    None
 }
 
 /// Check if a concept should be split (high internal variance).
@@ -557,8 +899,304 @@ pub fn co_occurrence_matrix(store: &Store) -> Vec<ConceptCoOccurrence> {
         }
     }
 
-    pairs.sort_by(|a, b| b.jaccard.partial_cmp(&a.jaccard).unwrap_or(std::cmp::Ordering::Equal));
+    pairs.sort_by(|a, b| {
+        b.jaccard
+            .partial_cmp(&a.jaccard)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     pairs
+}
+
+// ===================================================================
+// Agent Provenance & Agreement Detection (C9-P1)
+// ===================================================================
+
+/// Group of observations from a single agent (C9-P1 primitive).
+#[derive(Debug, Clone)]
+pub struct AgentObservationGroup {
+    /// The agent that created these observations.
+    pub agent: AgentId,
+    /// Human-readable agent name (hex of first 8 bytes).
+    pub agent_name: String,
+    /// Observation entity IDs created by this agent.
+    pub observations: Vec<EntityId>,
+}
+
+/// Cross-agent agreement cluster (C9-P1).
+///
+/// When multiple independent agents observe the same finding, the finding
+/// has higher epistemic certainty than any single observation.
+///
+/// Algebraic property: `agreement_score` is monotonically non-decreasing
+/// as confirming agents are added (join-semilattice over agent sets).
+#[derive(Debug, Clone)]
+pub struct AgreementCluster {
+    /// Representative topic (first 80 chars of highest-confidence member).
+    pub topic: String,
+    /// Distinct agents that contributed observations to this cluster.
+    pub agents: Vec<AgentId>,
+    /// All observation entity IDs in this cluster.
+    pub observation_ids: Vec<EntityId>,
+    /// Confidence range across cluster members: (min, mean, max).
+    pub confidence_range: (f64, f64, f64),
+    /// Fraction of total session agents that agree: `|agents| / |total_agents|`.
+    pub agreement_score: f64,
+    /// Number of member observations.
+    pub member_count: usize,
+}
+
+/// Group observations by creating agent (C9-P1).
+///
+/// Iterates observation entities (those with `:exploration/body`) and groups
+/// by the `AgentId` embedded in each datom's transaction. O(observations).
+pub fn agent_observation_groups(store: &Store) -> Vec<AgentObservationGroup> {
+    let attr = Attribute::from_keyword(":exploration/body");
+    let mut groups: HashMap<AgentId, Vec<EntityId>> = HashMap::new();
+
+    for datom in store.attribute_datoms(&attr) {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        let agent = datom.tx.agent;
+        groups.entry(agent).or_default().push(datom.entity);
+    }
+
+    // Deduplicate entities per agent (an entity may have multiple body datoms
+    // in append-only store due to retraction+re-assertion).
+    let mut result: Vec<AgentObservationGroup> = groups
+        .into_iter()
+        .map(|(agent, mut obs)| {
+            obs.sort();
+            obs.dedup();
+            let agent_name = format!(
+                "{:02x}{:02x}{:02x}{:02x}",
+                agent.as_bytes()[0],
+                agent.as_bytes()[1],
+                agent.as_bytes()[2],
+                agent.as_bytes()[3]
+            );
+            AgentObservationGroup {
+                agent,
+                agent_name,
+                observations: obs,
+            }
+        })
+        .collect();
+
+    result.sort_by_key(|a| std::cmp::Reverse(a.observations.len()));
+    result
+}
+
+/// Detect cross-agent agreement on findings (C9-P1).
+///
+/// Groups observations by agent, then uses word-token Jaccard similarity
+/// on observation titles (first 80 chars of `:exploration/body`) to find
+/// clusters where multiple agents independently describe the same finding.
+///
+/// Avoids the HashEmbedder concept-collapse problem by operating on raw
+/// text similarity rather than embeddings.
+///
+/// # Arguments
+/// * `store` - The datom store
+/// * `similarity_threshold` - Minimum Jaccard similarity to consider agreement (default: 0.3)
+pub fn find_agreement_clusters(store: &Store, similarity_threshold: f64) -> Vec<AgreementCluster> {
+    let groups = agent_observation_groups(store);
+    if groups.len() < 2 {
+        return Vec::new();
+    }
+
+    let total_agents = groups.len();
+
+    // Collect all observations with their agent and title text.
+    struct ObsInfo {
+        entity: EntityId,
+        agent: AgentId,
+        title: String,
+        confidence: f64,
+    }
+
+    let mut observations: Vec<ObsInfo> = Vec::new();
+    for group in &groups {
+        for &entity in &group.observations {
+            let body_attr = Attribute::from_keyword(":exploration/body");
+            let conf_attr = Attribute::from_keyword(":exploration/confidence");
+            let body = store
+                .live_value(entity, &body_attr)
+                .and_then(|v| match v {
+                    Value::String(s) => Some(s.as_str()),
+                    _ => None,
+                })
+                .unwrap_or("");
+            let title: String = body.chars().take(80).collect();
+            let confidence = store
+                .live_value(entity, &conf_attr)
+                .and_then(|v| match v {
+                    Value::Double(d) => Some(d.into_inner()),
+                    _ => None,
+                })
+                .unwrap_or(0.5);
+            observations.push(ObsInfo {
+                entity,
+                agent: group.agent,
+                title,
+                confidence,
+            });
+        }
+    }
+
+    if observations.is_empty() {
+        return Vec::new();
+    }
+
+    // Tokenize titles for Jaccard computation.
+    let tokenized: Vec<HashSet<String>> = observations
+        .iter()
+        .map(|o| {
+            crate::connections::tokenize(&o.title)
+                .into_iter()
+                .filter(|w| w.len() >= 3)
+                .collect()
+        })
+        .collect();
+
+    // Union-find for clustering agreeing observations.
+    let n = observations.len();
+    let mut parent: Vec<usize> = (0..n).collect();
+    let mut rank: Vec<usize> = vec![0; n];
+
+    fn find(parent: &mut [usize], i: usize) -> usize {
+        if parent[i] != i {
+            parent[i] = find(parent, parent[i]);
+        }
+        parent[i]
+    }
+
+    fn union(parent: &mut [usize], rank: &mut [usize], a: usize, b: usize) {
+        let ra = find(parent, a);
+        let rb = find(parent, b);
+        if ra == rb {
+            return;
+        }
+        if rank[ra] < rank[rb] {
+            parent[ra] = rb;
+        } else if rank[ra] > rank[rb] {
+            parent[rb] = ra;
+        } else {
+            parent[rb] = ra;
+            rank[ra] += 1;
+        }
+    }
+
+    // Compare pairs from DIFFERENT agents only.
+    for i in 0..n {
+        for j in (i + 1)..n {
+            if observations[i].agent == observations[j].agent {
+                continue; // Same agent — skip.
+            }
+            if tokenized[i].is_empty() || tokenized[j].is_empty() {
+                continue;
+            }
+            let intersection = tokenized[i].intersection(&tokenized[j]).count();
+            let union_size = tokenized[i].union(&tokenized[j]).count();
+            let jaccard = if union_size > 0 {
+                intersection as f64 / union_size as f64
+            } else {
+                0.0
+            };
+            if jaccard >= similarity_threshold {
+                union(&mut parent, &mut rank, i, j);
+            }
+        }
+    }
+
+    // Collect clusters.
+    let mut clusters_map: HashMap<usize, Vec<usize>> = HashMap::new();
+    for i in 0..n {
+        let root = find(&mut parent, i);
+        clusters_map.entry(root).or_default().push(i);
+    }
+
+    // Build AgreementCluster for each cluster with 2+ members.
+    let mut clusters: Vec<AgreementCluster> = Vec::new();
+    for members in clusters_map.values() {
+        if members.len() < 2 {
+            continue;
+        }
+
+        let mut agents: HashSet<AgentId> = HashSet::new();
+        let mut obs_ids: Vec<EntityId> = Vec::new();
+        let mut confidences: Vec<f64> = Vec::new();
+
+        for &idx in members {
+            agents.insert(observations[idx].agent);
+            obs_ids.push(observations[idx].entity);
+            confidences.push(observations[idx].confidence);
+        }
+
+        if agents.len() < 2 {
+            continue; // Same-agent cluster — not cross-agent agreement.
+        }
+
+        let min_conf = confidences.iter().cloned().fold(f64::INFINITY, f64::min);
+        let max_conf = confidences
+            .iter()
+            .cloned()
+            .fold(f64::NEG_INFINITY, f64::max);
+        let mean_conf = confidences.iter().sum::<f64>() / confidences.len() as f64;
+
+        // Pick topic from highest-confidence member.
+        let best_idx = members
+            .iter()
+            .max_by(|&&a, &&b| {
+                observations[a]
+                    .confidence
+                    .partial_cmp(&observations[b].confidence)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .copied()
+            .unwrap_or(members[0]);
+        let topic = observations[best_idx].title.clone();
+
+        let agent_vec: Vec<AgentId> = agents.into_iter().collect();
+        let agreement_score = agent_vec.len() as f64 / total_agents as f64;
+
+        clusters.push(AgreementCluster {
+            topic,
+            agents: agent_vec,
+            observation_ids: obs_ids,
+            confidence_range: (min_conf, mean_conf, max_conf),
+            agreement_score,
+            member_count: members.len(),
+        });
+    }
+
+    clusters.sort_by(|a, b| {
+        b.agreement_score
+            .partial_cmp(&a.agreement_score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then(b.member_count.cmp(&a.member_count))
+    });
+    clusters
+}
+
+/// Format agreement clusters for `braid status` display (C9-P1).
+pub fn format_agreement_summary(clusters: &[AgreementCluster], total_agents: usize) -> Vec<String> {
+    clusters
+        .iter()
+        .take(5)
+        .map(|c| {
+            let topic_short: String = c.topic.chars().take(60).collect();
+            format!(
+                "{} ({} obs, {}/{} agents, conf {:.2}-{:.2})",
+                topic_short,
+                c.member_count,
+                c.agents.len(),
+                total_agents,
+                c.confidence_range.0,
+                c.confidence_range.2,
+            )
+        })
+        .collect()
 }
 
 // ===================================================================
@@ -616,10 +1254,7 @@ pub struct FrontierRec {
 /// prefer the one most semantically distant (maximizes information gain).
 ///
 /// Returns `None` if the store has no packages, no concepts, or nothing to recommend.
-pub fn frontier_recommendation(
-    store: &Store,
-    current_embedding: &[f32],
-) -> Option<FrontierRec> {
+pub fn frontier_recommendation(store: &Store, current_embedding: &[f32]) -> Option<FrontierRec> {
     let mut candidates: Vec<FrontierRec> = Vec::new();
 
     // --- Candidate 1: Explore (unexplored packages with high connectivity) ---
@@ -635,7 +1270,11 @@ pub fn frontier_recommendation(
     candidates.extend(narrow_candidates(store));
 
     // Select the highest-scoring candidate.
-    candidates.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+    candidates.sort_by(|a, b| {
+        b.score
+            .partial_cmp(&a.score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     candidates.into_iter().next()
 }
 
@@ -717,7 +1356,11 @@ fn explore_candidates(store: &Store) -> Vec<FrontierRec> {
             let deps_str = if obs_names.len() <= 3 {
                 obs_names.join(", ")
             } else {
-                format!("{} + {} more", obs_names[..2].join(", "), obs_names.len() - 2)
+                format!(
+                    "{} + {} more",
+                    obs_names[..2].join(", "),
+                    obs_names.len() - 2
+                )
             };
             candidates.push(FrontierRec {
                 kind: FrontierKind::Explore,
@@ -790,7 +1433,8 @@ fn bridge_candidates(store: &Store) -> Vec<FrontierRec> {
             .unwrap_or(0);
 
         if a_count >= 2 && b_count >= 2 {
-            let score = (1.0 - pair.jaccard) * (a_count + b_count) as f64 / (2.0 * total_observations.max(1) as f64);
+            let score = (1.0 - pair.jaccard) * (a_count + b_count) as f64
+                / (2.0 * total_observations.max(1) as f64);
             candidates.push(FrontierRec {
                 kind: FrontierKind::Bridge,
                 target: format!("{} <-> {}", pair.name_a, pair.name_b),
@@ -858,10 +1502,7 @@ pub struct DiscrepancyBrief {
 /// `find_nearest_concept`).
 ///
 /// Returns `None` if no observations with embeddings exist.
-pub fn find_nearest_observation(
-    store: &Store,
-    target: &[f32],
-) -> Option<(EntityId, String, f32)> {
+pub fn find_nearest_observation(store: &Store, target: &[f32]) -> Option<(EntityId, String, f32)> {
     let embed_attr = Attribute::from_keyword(":exploration/embedding");
     let body_attr = Attribute::from_keyword(":exploration/body");
 
@@ -891,7 +1532,13 @@ pub fn find_nearest_observation(
     // Phase 3: retrieve body text for the best match.
     let body = store
         .live_value(entity, &body_attr)
-        .and_then(|v| if let Value::String(s) = v { Some(s.clone()) } else { None })
+        .and_then(|v| {
+            if let Value::String(s) = v {
+                Some(s.clone())
+            } else {
+                None
+            }
+        })
         .unwrap_or_default();
 
     Some((entity, body, similarity))
@@ -922,15 +1569,13 @@ pub fn compute_discrepancy_brief(
 
     // Get concept centroid.
     let emb_attr = Attribute::from_keyword(":concept/embedding");
-    let centroid = store
-        .live_value(concept_entity, &emb_attr)
-        .and_then(|v| {
-            if let Value::Bytes(b) = v {
-                Some(bytes_to_embedding(b))
-            } else {
-                None
-            }
-        })?;
+    let centroid = store.live_value(concept_entity, &emb_attr).and_then(|v| {
+        if let Value::Bytes(b) = v {
+            Some(bytes_to_embedding(b))
+        } else {
+            None
+        }
+    })?;
 
     if centroid.len() != observation_embedding.len() {
         return None;
@@ -1063,9 +1708,7 @@ pub fn situational_brief(
 
     match assignment {
         ConceptAssignment::Joined {
-            concept,
-            surprise,
-            ..
+            concept, surprise, ..
         } => {
             let name = concept_name_from_entity(store, *concept);
             if *surprise < 0.3 {
@@ -1078,9 +1721,7 @@ pub fn situational_brief(
                 // Medium surprise: concept + discrepancy keywords.
                 let detail = discrepancy
                     .map(format_discrepancy_brief)
-                    .unwrap_or_else(|| {
-                        format!("{name} (surprise={surprise:.2})")
-                    });
+                    .unwrap_or_else(|| format!("{name} (surprise={surprise:.2})"));
                 Some(SituationalBrief {
                     line: detail,
                     level: EpistemicLevel::Concept,
@@ -1089,9 +1730,7 @@ pub fn situational_brief(
                 // High surprise: new territory.
                 let detail = discrepancy
                     .map(format_discrepancy_brief)
-                    .unwrap_or_else(|| {
-                        format!("beyond {name} (surprise={surprise:.2})")
-                    });
+                    .unwrap_or_else(|| format!("beyond {name} (surprise={surprise:.2})"));
                 Some(SituationalBrief {
                     line: format!("NEW TERRITORY: {detail}"),
                     level: EpistemicLevel::Theory,
@@ -1349,6 +1988,240 @@ fn variance_1d(values: &[f32]) -> f32 {
     let n = values.len() as f32;
     let mean = values.iter().sum::<f32>() / n;
     values.iter().map(|v| (v - mean).powi(2)).sum::<f32>() / n
+}
+
+// ===================================================================
+// Observation Link Extraction (C9-P2)
+// ===================================================================
+
+/// Relationship type between linked observations (C9-P2).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum LinkRelation {
+    /// Source depends on / requires / is blocked by target.
+    DependsOn,
+    /// Source blocks / enables / unblocks target.
+    Blocks,
+    /// Source relates to / interacts with / complements target.
+    RelatesTo,
+}
+
+impl std::fmt::Display for LinkRelation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LinkRelation::DependsOn => write!(f, "depends-on"),
+            LinkRelation::Blocks => write!(f, "blocks"),
+            LinkRelation::RelatesTo => write!(f, "relates-to"),
+        }
+    }
+}
+
+/// A cross-reference extracted from observation text (C9-P2).
+///
+/// Links are idempotent: extracting twice from the same text produces
+/// the same links (content-addressed dedup via source+target pair).
+#[derive(Debug, Clone)]
+pub struct ExtractedLink {
+    /// The observation entity containing the reference.
+    pub source: EntityId,
+    /// The referenced entity (task, spec element, or other observation).
+    pub target: EntityId,
+    /// The classified relationship.
+    pub relationship: LinkRelation,
+    /// Surrounding text context (up to 100 chars around the reference).
+    pub context: String,
+}
+
+/// Classify a relationship from surrounding text context (C9-P2).
+fn classify_relation(context: &str) -> LinkRelation {
+    let lower = context.to_lowercase();
+    let depends_keywords = [
+        "depends on",
+        "requires",
+        "prerequisite",
+        "blocked by",
+        "needs",
+        "after",
+    ];
+    let blocks_keywords = ["blocks", "enables", "unblocks", "before"];
+
+    for kw in &depends_keywords {
+        if lower.contains(kw) {
+            return LinkRelation::DependsOn;
+        }
+    }
+    for kw in &blocks_keywords {
+        if lower.contains(kw) {
+            return LinkRelation::Blocks;
+        }
+    }
+    LinkRelation::RelatesTo
+}
+
+/// Check if a character sequence at `start` in `text` is a valid task ID (t-XXXXXXXX).
+fn is_task_id_at(text: &str, start: usize) -> Option<String> {
+    let remaining = &text[start..];
+    if !remaining.starts_with("t-") {
+        return None;
+    }
+    if remaining.len() < 10 {
+        return None;
+    }
+    let hex_part = &remaining[2..10];
+    if hex_part.chars().all(|c| c.is_ascii_hexdigit()) {
+        Some(remaining[..10].to_string())
+    } else {
+        None
+    }
+}
+
+/// Check if text at position matches a spec ref (INV-STORE-001, ADR-FOUNDATION-012, etc.).
+fn is_spec_ref_at(text: &str, start: usize) -> Option<String> {
+    let remaining = &text[start..];
+    let prefixes = ["INV-", "ADR-", "NEG-"];
+    let prefix = prefixes.iter().find(|p| remaining.starts_with(*p))?;
+    let after_prefix = &remaining[prefix.len()..];
+
+    // Expect uppercase namespace: [A-Z]+
+    let ns_end = after_prefix
+        .find(|c: char| !c.is_ascii_uppercase())
+        .unwrap_or(after_prefix.len());
+    if ns_end == 0 {
+        return None;
+    }
+
+    // Expect '-' then digits
+    let after_ns = &after_prefix[ns_end..];
+    if !after_ns.starts_with('-') {
+        return None;
+    }
+    let digits = &after_ns[1..];
+    let digit_end = digits
+        .find(|c: char| !c.is_ascii_digit())
+        .unwrap_or(digits.len());
+    if digit_end == 0 {
+        return None;
+    }
+
+    let total_len = prefix.len() + ns_end + 1 + digit_end;
+    Some(remaining[..total_len].to_string())
+}
+
+/// Extract context around a position in text (up to 100 chars each side).
+fn extract_context(text: &str, pos: usize, ref_len: usize) -> String {
+    let start = pos.saturating_sub(100);
+    let end = (pos + ref_len + 100).min(text.len());
+    text[start..end].to_string()
+}
+
+/// Extract cross-references from observation bodies and return as links (C9-P2).
+///
+/// Scans all observations for task IDs (`t-XXXXXXXX`), spec refs
+/// (`INV-STORE-001`, `ADR-FOUNDATION-012`, `NEG-MERGE-003`), and
+/// classifies the relationship by surrounding keywords.
+///
+/// Uses the existing `:exploration/depends-on` attribute (schema.rs:1888).
+pub fn extract_observation_links(store: &Store) -> Vec<ExtractedLink> {
+    let body_attr = Attribute::from_keyword(":exploration/body");
+    let ident_attr = Attribute::from_keyword(":db/ident");
+    let spec_id_attr = Attribute::from_keyword(":spec/id");
+    let mut links: Vec<ExtractedLink> = Vec::new();
+    let mut seen: HashSet<(EntityId, EntityId)> = HashSet::new();
+
+    // Build spec ID lookup: spec_id_string → EntityId.
+    let mut spec_id_map: HashMap<String, EntityId> = HashMap::new();
+    for datom in store.attribute_datoms(&spec_id_attr) {
+        if datom.op == Op::Assert {
+            if let Value::String(ref s) = datom.value {
+                spec_id_map.insert(s.clone(), datom.entity);
+            }
+        }
+    }
+
+    for datom in store.attribute_datoms(&body_attr) {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        let body = match &datom.value {
+            Value::String(s) => s.as_str(),
+            _ => continue,
+        };
+        let source = datom.entity;
+
+        // Scan for task IDs.
+        let mut pos = 0;
+        while pos < body.len() {
+            if let Some(task_id) = is_task_id_at(body, pos) {
+                let ident_kw = format!(":task/{}", task_id);
+                // Resolve task ID to entity via :db/ident lookup.
+                let target = store
+                    .avet_lookup(&ident_attr, &Value::Keyword(ident_kw.clone()))
+                    .first()
+                    .map(|d| d.entity);
+                if let Some(target_entity) = target {
+                    if source != target_entity && seen.insert((source, target_entity)) {
+                        let ctx = extract_context(body, pos, task_id.len());
+                        let rel = classify_relation(&ctx);
+                        links.push(ExtractedLink {
+                            source,
+                            target: target_entity,
+                            relationship: rel,
+                            context: ctx,
+                        });
+                    }
+                }
+                pos += task_id.len();
+            } else {
+                pos += 1;
+            }
+        }
+
+        // Scan for spec refs.
+        pos = 0;
+        while pos < body.len() {
+            if let Some(spec_ref) = is_spec_ref_at(body, pos) {
+                if let Some(&target_entity) = spec_id_map.get(&spec_ref) {
+                    if source != target_entity && seen.insert((source, target_entity)) {
+                        let ctx = extract_context(body, pos, spec_ref.len());
+                        let rel = classify_relation(&ctx);
+                        links.push(ExtractedLink {
+                            source,
+                            target: target_entity,
+                            relationship: rel,
+                            context: ctx,
+                        });
+                    }
+                }
+                pos += spec_ref.len();
+            } else {
+                pos += 1;
+            }
+        }
+    }
+
+    links.sort_by_key(|a| a.source);
+    links
+}
+
+/// Convert extracted links to datom triples for transaction (C9-P2).
+///
+/// Uses existing schema attributes:
+/// - `:exploration/depends-on` (Ref, Many) for DependsOn and Blocks
+/// - `:exploration/related-spec` (Ref, Many) for RelatesTo
+pub fn link_datoms(links: &[ExtractedLink]) -> Vec<(EntityId, Attribute, Value)> {
+    links
+        .iter()
+        .map(|link| {
+            let attr_name = match link.relationship {
+                LinkRelation::DependsOn | LinkRelation::Blocks => ":exploration/depends-on",
+                LinkRelation::RelatesTo => ":exploration/related-spec",
+            };
+            (
+                link.source,
+                Attribute::from_keyword(attr_name),
+                Value::Ref(link.target),
+            )
+        })
+        .collect()
 }
 
 // ===================================================================
@@ -1619,9 +2492,7 @@ pub fn compute_observe_steering_multi(
     // Line 1: Primary concept membership.
     let mut concept_line = match primary_assignment {
         ConceptAssignment::Joined {
-            concept,
-            surprise,
-            ..
+            concept, surprise, ..
         } => {
             let name = concept_name_from_entity(store, *concept);
             let count = concept_member_count(store, *concept);
@@ -1646,7 +2517,9 @@ pub fn compute_observe_steering_multi(
             .iter()
             .filter_map(|a| match a {
                 ConceptAssignment::Joined {
-                    concept, similarity, ..
+                    concept,
+                    similarity,
+                    ..
                 } => {
                     let name = concept_name_from_entity(store, *concept);
                     Some(format!("+ {name} (cosine={similarity:.2})"))
@@ -1695,10 +2568,9 @@ pub fn format_concept_status(store: &Store) -> Vec<String> {
     if inventory.is_empty() {
         // INQ-1-REV: Show "none yet" when no concepts exist (instead of empty vec).
         let obs_count = count_observations(store);
-        let min_cluster_size: usize =
-            crate::config::get_config(store, "concept.min-cluster-size")
-                .and_then(|v| v.parse().ok())
-                .unwrap_or(MIN_CLUSTER_SIZE);
+        let min_cluster_size: usize = crate::config::get_config(store, "concept.min-cluster-size")
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(MIN_CLUSTER_SIZE);
         if obs_count > 0 {
             return vec![format!(
                 "concepts: none yet ({obs_count}/{min_cluster_size} toward first concepts)"
@@ -1777,9 +2649,7 @@ pub fn format_concept_status(store: &Store) -> Vec<String> {
                     let sim = cosine_similarity(a, b);
                     lines.push(format!(
                         "concepts {} and {} are converging (cosine={:.2}, consider merging)",
-                        concepts_with_embeddings[i].name,
-                        concepts_with_embeddings[j].name,
-                        sim
+                        concepts_with_embeddings[i].name, concepts_with_embeddings[j].name, sim
                     ));
                 }
             }
@@ -1804,7 +2674,10 @@ pub fn format_concept_status(store: &Store) -> Vec<String> {
             .collect();
         lines.push(format!("bridge-gaps: {}", bridge_strs.join(", ")));
     } else if bridges.len() > 5 {
-        lines.push(format!("bridge-gaps: {} concept pairs with zero co-occurrence", bridges.len()));
+        lines.push(format!(
+            "bridge-gaps: {} concept pairs with zero co-occurrence",
+            bridges.len()
+        ));
     }
 
     lines
@@ -1882,7 +2755,9 @@ fn compute_steering_question(
     entity_matches: &[EntityMatch],
 ) -> Option<String> {
     match assignment {
-        ConceptAssignment::Joined { concept, surprise, .. } => {
+        ConceptAssignment::Joined {
+            concept, surprise, ..
+        } => {
             // Priority 1: If entity matches exist, suggest investigating specific entities.
             if entity_matches.len() >= 2 {
                 return Some(format!(
@@ -1912,14 +2787,9 @@ fn compute_steering_question(
                 .iter()
                 .find(|c| c.entity != *concept && c.member_count > 0);
 
-            if let Some(other_concept) = other {
-                Some(format!(
-                    "what connects {} to {}?",
-                    current_name, other_concept.name
-                ))
-            } else {
-                None
-            }
+            other.map(|other_concept| {
+                format!("what connects {} to {}?", current_name, other_concept.name)
+            })
         }
         ConceptAssignment::Uncategorized => {
             if !entity_matches.is_empty() {
@@ -1944,60 +2814,134 @@ fn compute_steering_question(
 /// Stopwords excluded from concept names (STEER-1b).
 /// Function words that carry zero semantic information.
 const CONCEPT_NAME_STOPWORDS: &[&str] = &[
-    "from", "with", "this", "that", "must", "have", "been", "into", "also",
-    "when", "what", "were", "does", "more", "some", "than", "then", "them",
-    "they", "will", "each", "only", "such", "very", "just", "most", "both",
-    "about", "which", "their", "would", "could", "should", "these", "those",
-    "there", "being", "where", "after", "other", "using", "every", "still",
-    "between", "through", "before", "during", "without", "another", "because",
-    "across", "concept", "observed", "observation",
+    "from",
+    "with",
+    "this",
+    "that",
+    "must",
+    "have",
+    "been",
+    "into",
+    "also",
+    "when",
+    "what",
+    "were",
+    "does",
+    "more",
+    "some",
+    "than",
+    "then",
+    "them",
+    "they",
+    "will",
+    "each",
+    "only",
+    "such",
+    "very",
+    "just",
+    "most",
+    "both",
+    "about",
+    "which",
+    "their",
+    "would",
+    "could",
+    "should",
+    "these",
+    "those",
+    "there",
+    "being",
+    "where",
+    "after",
+    "other",
+    "using",
+    "every",
+    "still",
+    "between",
+    "through",
+    "before",
+    "during",
+    "without",
+    "another",
+    "because",
+    "across",
+    "concept",
+    "observed",
+    "observation",
 ];
 
-fn generate_concept_name(texts: &[&str]) -> String {
-    if texts.is_empty() {
+/// Generate a human-readable concept name using TF-IDF (C9-P6).
+///
+/// `member_texts` — observation bodies belonging to this concept cluster.
+/// `corpus_texts` — ALL observation bodies (the IDF universe).
+///
+/// Algorithm: TF within concept members, IDF across full corpus.
+/// Top 3 distinguishing keywords joined by hyphen.
+///
+/// INV-REFLEXIVE-007: Same function for domain and meta observations.
+fn generate_concept_name(member_texts: &[&str], corpus_texts: &[&str]) -> String {
+    if member_texts.is_empty() {
         return "unnamed".to_string();
     }
 
-    // Document frequency: how many member texts contain each word.
-    // Majority-keyword: rank by DF (characterization > distinction).
-    let mut df: HashMap<String, usize> = HashMap::new();
-    let n_docs = texts.len();
-
-    for text in texts {
+    // Phase 1: TF — term frequency within member texts.
+    // Raw count of each word across ALL member texts / total member tokens.
+    let mut tf_count: HashMap<String, usize> = HashMap::new();
+    let mut total_tokens: usize = 0;
+    for text in member_texts {
         let words = crate::connections::tokenize(text);
-        let unique: HashSet<String> = words.into_iter().collect();
-        for word in unique {
-            // Filter: skip stopwords and short words.
+        for word in &words {
             if word.len() < 4 || CONCEPT_NAME_STOPWORDS.contains(&word.as_str()) {
                 continue;
             }
-            *df.entry(word).or_insert(0) += 1;
+            *tf_count.entry(word.clone()).or_insert(0) += 1;
+            total_tokens += 1;
+        }
+    }
+    if total_tokens == 0 {
+        return "unnamed".to_string();
+    }
+
+    // Phase 2: IDF — inverse document frequency across corpus.
+    // df = number of corpus documents containing the term.
+    let corpus_n = corpus_texts.len().max(1);
+    let mut corpus_df: HashMap<String, usize> = HashMap::new();
+    for text in corpus_texts {
+        let words = crate::connections::tokenize(text);
+        let unique: HashSet<String> = words.into_iter().collect();
+        for word in unique {
+            if word.len() < 4 || CONCEPT_NAME_STOPWORDS.contains(&word.as_str()) {
+                continue;
+            }
+            *corpus_df.entry(word).or_insert(0) += 1;
         }
     }
 
-    // Rank by document frequency descending (words in the most member texts).
-    let mut ranked: Vec<(String, usize)> = df.into_iter().collect();
-    ranked.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
-
-    // Take top 2 words appearing in >50% of members.
-    let majority_threshold = (n_docs + 1) / 2; // ceil(n/2)
-    let majority: Vec<&str> = ranked
+    // Phase 3: TF-IDF score per term.
+    let mut scores: Vec<(String, f64)> = tf_count
         .iter()
-        .filter(|(_, count)| *count >= majority_threshold)
-        .take(2)
-        .map(|(w, _)| w.as_str())
+        .map(|(word, &count)| {
+            let tf = count as f64 / total_tokens as f64;
+            let df = corpus_df.get(word).copied().unwrap_or(0);
+            let idf = (1.0 + corpus_n as f64 / (1.0 + df as f64)).ln();
+            (word.clone(), tf * idf)
+        })
+        .filter(|(_, score)| *score > 0.0)
         .collect();
 
-    if !majority.is_empty() {
-        return majority.join("-");
-    }
+    // Sort by TF-IDF descending, break ties alphabetically for determinism.
+    scores.sort_by(|a, b| {
+        b.1.partial_cmp(&a.1)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.0.cmp(&b.0))
+    });
 
-    // Fallback: take the single highest-DF word regardless of threshold.
-    if let Some((word, _)) = ranked.first() {
-        return word.clone();
+    // Take top 3 distinguishing keywords.
+    let top: Vec<&str> = scores.iter().take(3).map(|(w, _)| w.as_str()).collect();
+    if top.is_empty() {
+        return "unnamed".to_string();
     }
-
-    "unnamed".to_string()
+    top.join("-")
 }
 
 // ===================================================================
@@ -2185,7 +3129,7 @@ mod tests {
             "error returns ignored in storage",
             "error propagation missing in events",
         ];
-        let name = generate_concept_name(texts);
+        let name = generate_concept_name(texts, texts);
         assert!(
             name.contains("error"),
             "concept name should contain dominant keyword 'error', got '{name}'"
@@ -2274,7 +3218,7 @@ mod tests {
 
     #[test]
     fn generate_concept_name_empty() {
-        assert_eq!(generate_concept_name(&[]), "unnamed");
+        assert_eq!(generate_concept_name(&[], &[]), "unnamed");
     }
 
     // -- CCE-2b surprise-weighted centroid tests --
@@ -2818,11 +3762,7 @@ mod tests {
     fn test_all_equal_surprise_produces_equal_weight_centroid() {
         let surprise = 0.2f32;
         let w = surprise_weight(surprise, DEFAULT_ALPHA);
-        let members = [
-            [1.0f32, 0.0, 0.0],
-            [0.0f32, 1.0, 0.0],
-            [0.0f32, 0.0, 1.0],
-        ];
+        let members = [[1.0f32, 0.0, 0.0], [0.0f32, 1.0, 0.0], [0.0f32, 0.0, 1.0]];
 
         // Equal-weight centroid = simple mean.
         let ew: Vec<f32> = (0..3)
@@ -3053,21 +3993,18 @@ mod tests {
         let agent = AgentId::from_name("test");
 
         let concept_e = EntityId::from_content(b"concept-error-handling");
-        let tx = crate::store::Transaction::new(
-            agent,
-            crate::datom::ProvenanceType::Observed,
-            "test",
-        )
-        .assert(
-            concept_e,
-            Attribute::from_keyword(":db/ident"),
-            Value::Keyword(":concept/error-handling".into()),
-        )
-        .assert(
-            concept_e,
-            Attribute::from_keyword(":concept/name"),
-            Value::String("error-handling".into()),
-        );
+        let tx =
+            crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "test")
+                .assert(
+                    concept_e,
+                    Attribute::from_keyword(":db/ident"),
+                    Value::Keyword(":concept/error-handling".into()),
+                )
+                .assert(
+                    concept_e,
+                    Attribute::from_keyword(":concept/name"),
+                    Value::String("error-handling".into()),
+                );
         let committed = tx.commit(&store).expect("commit");
         store.transact(committed).expect("transact");
 
@@ -3158,9 +4095,13 @@ mod tests {
         let emb = make_embedder();
 
         // Create 3 concepts with different embeddings.
-        for (i, text) in ["alpha concept test", "beta concept test", "gamma concept test"]
-            .iter()
-            .enumerate()
+        for (i, text) in [
+            "alpha concept test",
+            "beta concept test",
+            "gamma concept test",
+        ]
+        .iter()
+        .enumerate()
         {
             let ce = EntityId::from_content(format!("concept-{i}").as_bytes());
             let embedding = emb.embed(text);
@@ -3243,36 +4184,30 @@ mod tests {
 
         // First embedding: "alpha beta gamma"
         let emb_v1 = emb.embed("alpha beta gamma");
-        let tx1 = crate::store::Transaction::new(
-            agent,
-            crate::datom::ProvenanceType::Observed,
-            "v1",
-        )
-        .assert(
-            ce,
-            Attribute::from_keyword(":concept/name"),
-            Value::String("updateable".into()),
-        )
-        .assert(
-            ce,
-            Attribute::from_keyword(":concept/embedding"),
-            Value::Bytes(crate::embedding::embedding_to_bytes(&emb_v1)),
-        );
+        let tx1 =
+            crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "v1")
+                .assert(
+                    ce,
+                    Attribute::from_keyword(":concept/name"),
+                    Value::String("updateable".into()),
+                )
+                .assert(
+                    ce,
+                    Attribute::from_keyword(":concept/embedding"),
+                    Value::Bytes(crate::embedding::embedding_to_bytes(&emb_v1)),
+                );
         let committed = tx1.commit(&store).expect("commit");
         store.transact(committed).expect("transact");
 
         // Second embedding: "delta epsilon zeta" (different content)
         let emb_v2 = emb.embed("delta epsilon zeta");
-        let tx2 = crate::store::Transaction::new(
-            agent,
-            crate::datom::ProvenanceType::Observed,
-            "v2",
-        )
-        .assert(
-            ce,
-            Attribute::from_keyword(":concept/embedding"),
-            Value::Bytes(crate::embedding::embedding_to_bytes(&emb_v2)),
-        );
+        let tx2 =
+            crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "v2")
+                .assert(
+                    ce,
+                    Attribute::from_keyword(":concept/embedding"),
+                    Value::Bytes(crate::embedding::embedding_to_bytes(&emb_v2)),
+                );
         let committed = tx2.commit(&store).expect("commit");
         store.transact(committed).expect("transact");
 
@@ -3373,7 +4308,10 @@ mod tests {
 
         let new_obs = emb.embed("error handling validation module returns");
         let result = find_nearest_concept(&store, &new_obs);
-        assert!(result.is_some(), "new similar observation should match emergent concept");
+        assert!(
+            result.is_some(),
+            "new similar observation should match emergent concept"
+        );
     }
 
     /// Split recommendation fires for high-variance concept.
@@ -3383,31 +4321,28 @@ mod tests {
         let agent = AgentId::from_name("test");
 
         let ce = EntityId::from_content(b"concept-broad");
-        let tx = crate::store::Transaction::new(
-            agent,
-            crate::datom::ProvenanceType::Observed,
-            "test",
-        )
-        .assert(
-            ce,
-            Attribute::from_keyword(":concept/name"),
-            Value::String("broad-concept".into()),
-        )
-        .assert(
-            ce,
-            Attribute::from_keyword(":concept/member-count"),
-            Value::Long(10),
-        )
-        .assert(
-            ce,
-            Attribute::from_keyword(":concept/variance"),
-            Value::Double(ordered_float::OrderedFloat(0.8)),
-        )
-        .assert(
-            ce,
-            Attribute::from_keyword(":concept/embedding"),
-            Value::Bytes(crate::embedding::embedding_to_bytes(&[1.0f32; 256])),
-        );
+        let tx =
+            crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "test")
+                .assert(
+                    ce,
+                    Attribute::from_keyword(":concept/name"),
+                    Value::String("broad-concept".into()),
+                )
+                .assert(
+                    ce,
+                    Attribute::from_keyword(":concept/member-count"),
+                    Value::Long(10),
+                )
+                .assert(
+                    ce,
+                    Attribute::from_keyword(":concept/variance"),
+                    Value::Double(ordered_float::OrderedFloat(0.8)),
+                )
+                .assert(
+                    ce,
+                    Attribute::from_keyword(":concept/embedding"),
+                    Value::Bytes(crate::embedding::embedding_to_bytes(&[1.0f32; 256])),
+                );
         let committed = tx.commit(&store).expect("commit");
         store.transact(committed).expect("transact");
 
@@ -3501,46 +4436,40 @@ mod tests {
         // Create a concept with "v1" embedding.
         let ce = EntityId::from_content(b"reembed-test");
         let emb_v1 = emb.embed("original embedding text here");
-        let tx1 = crate::store::Transaction::new(
-            agent,
-            crate::datom::ProvenanceType::Observed,
-            "v1",
-        )
-        .assert(
-            ce,
-            Attribute::from_keyword(":concept/name"),
-            Value::String("reembed-test".into()),
-        )
-        .assert(
-            ce,
-            Attribute::from_keyword(":concept/embedding"),
-            Value::Bytes(crate::embedding::embedding_to_bytes(&emb_v1)),
-        )
-        .assert(
-            ce,
-            Attribute::from_keyword(":concept/embedder-type"),
-            Value::Keyword(":embedder/hash".into()),
-        );
+        let tx1 =
+            crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "v1")
+                .assert(
+                    ce,
+                    Attribute::from_keyword(":concept/name"),
+                    Value::String("reembed-test".into()),
+                )
+                .assert(
+                    ce,
+                    Attribute::from_keyword(":concept/embedding"),
+                    Value::Bytes(crate::embedding::embedding_to_bytes(&emb_v1)),
+                )
+                .assert(
+                    ce,
+                    Attribute::from_keyword(":concept/embedder-type"),
+                    Value::Keyword(":embedder/hash".into()),
+                );
         let committed = tx1.commit(&store).expect("commit");
         store.transact(committed).expect("transact");
 
         // "Re-embed" with a different embedding (simulating hash→model migration).
         let emb_v2 = emb.embed("completely different embedding text now");
-        let tx2 = crate::store::Transaction::new(
-            agent,
-            crate::datom::ProvenanceType::Derived,
-            "reembed",
-        )
-        .assert(
-            ce,
-            Attribute::from_keyword(":concept/embedding"),
-            Value::Bytes(crate::embedding::embedding_to_bytes(&emb_v2)),
-        )
-        .assert(
-            ce,
-            Attribute::from_keyword(":concept/embedder-type"),
-            Value::Keyword(":embedder/model2vec".into()),
-        );
+        let tx2 =
+            crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Derived, "reembed")
+                .assert(
+                    ce,
+                    Attribute::from_keyword(":concept/embedding"),
+                    Value::Bytes(crate::embedding::embedding_to_bytes(&emb_v2)),
+                )
+                .assert(
+                    ce,
+                    Attribute::from_keyword(":concept/embedder-type"),
+                    Value::Keyword(":embedder/model2vec".into()),
+                );
         let committed = tx2.commit(&store).expect("commit");
         store.transact(committed).expect("transact");
 
@@ -3570,10 +4499,13 @@ mod tests {
             "error handling missing in storage database layer",
             "error propagation fails across event pipeline",
         ];
-        let name = generate_concept_name(texts);
+        let name = generate_concept_name(texts, texts);
         assert!(
-            name.contains("error") || name.contains("handling") || name.contains("cascade")
-                || name.contains("storage") || name.contains("pipeline"),
+            name.contains("error")
+                || name.contains("handling")
+                || name.contains("cascade")
+                || name.contains("storage")
+                || name.contains("pipeline"),
             "error handling concept should have meaningful name, got: '{name}'"
         );
         // Must not contain stopwords.
@@ -3593,7 +4525,7 @@ mod tests {
             "event replay uses append-only logging for recovery",
             "event stream processing with idempotent consumers",
         ];
-        let name = generate_concept_name(texts);
+        let name = generate_concept_name(texts, texts);
         assert!(
             name.contains("event"),
             "event concept should contain 'event', got: '{name}'"
@@ -3609,8 +4541,8 @@ mod tests {
             vec!["these patterns should have been using conventions across modules"],
         ];
         for texts in &test_cases {
-            let refs: Vec<&str> = texts.iter().map(|s| *s).collect();
-            let name = generate_concept_name(&refs);
+            let refs: Vec<&str> = texts.to_vec();
+            let name = generate_concept_name(&refs, &refs);
             for stop in CONCEPT_NAME_STOPWORDS {
                 assert!(
                     !name.split('-').any(|w| w == *stop),
@@ -3625,8 +4557,11 @@ mod tests {
     #[test]
     fn test_naming_single_member() {
         let texts = &["deterministic materialization engine processes events"];
-        let name = generate_concept_name(texts);
-        assert!(!name.is_empty() && name != "unnamed", "single member should produce a name, got: '{name}'");
+        let name = generate_concept_name(texts, texts);
+        assert!(
+            !name.is_empty() && name != "unnamed",
+            "single member should produce a name, got: '{name}'"
+        );
     }
 
     /// STEER-2: HashEmbedder uses default threshold (0.65).
@@ -3745,15 +4680,13 @@ mod tests {
             } = assignment
             {
                 let emb_attr = Attribute::from_keyword(":concept/embedding");
-                let old_centroid = store
-                    .live_value(*concept, &emb_attr)
-                    .and_then(|v| {
-                        if let Value::Bytes(b) = v {
-                            Some(crate::embedding::bytes_to_embedding(b))
-                        } else {
-                            None
-                        }
-                    });
+                let old_centroid = store.live_value(*concept, &emb_attr).and_then(|v| {
+                    if let Value::Bytes(b) = v {
+                        Some(crate::embedding::bytes_to_embedding(b))
+                    } else {
+                        None
+                    }
+                });
 
                 if let Some(old_cent) = old_centroid {
                     let sw = surprise_weight(*surprise, DEFAULT_ALPHA);
@@ -3848,15 +4781,16 @@ mod tests {
         }
 
         let matrix = co_occurrence_matrix(&store);
-        assert!(!matrix.is_empty(), "co-occurrence matrix should have entries");
+        assert!(
+            !matrix.is_empty(),
+            "co-occurrence matrix should have entries"
+        );
 
         // Find the alpha-beta pair.
-        let pair = matrix
-            .iter()
-            .find(|p| {
-                (p.concept_a == concept_a && p.concept_b == concept_b)
-                    || (p.concept_a == concept_b && p.concept_b == concept_a)
-            });
+        let pair = matrix.iter().find(|p| {
+            (p.concept_a == concept_a && p.concept_b == concept_b)
+                || (p.concept_a == concept_b && p.concept_b == concept_a)
+        });
         assert!(pair.is_some(), "should find alpha-beta pair");
         let pair = pair.unwrap();
         // |A ∩ B| = 3, |A| = 5, |B| = 5+3=8 unique obs... wait.
@@ -3925,7 +4859,11 @@ mod tests {
                 || (p.concept_a == concept_b && p.concept_b == concept_a)
         });
         assert!(pair.is_some());
-        assert_eq!(pair.unwrap().jaccard, 0.0, "disjoint sets should have Jaccard = 0");
+        assert_eq!(
+            pair.unwrap().jaccard,
+            0.0,
+            "disjoint sets should have Jaccard = 0"
+        );
     }
 
     /// (7) co_occurrence_matrix: subset relationship.
@@ -4026,9 +4964,7 @@ mod tests {
         let comp_from = Attribute::from_keyword(":composition/from");
         let comp_to = Attribute::from_keyword(":composition/to");
         for &target_idx in &[2, 3, 4] {
-            let edge_entity = EntityId::from_content(
-                format!("edge-0-{target_idx}").as_bytes(),
-            );
+            let edge_entity = EntityId::from_content(format!("edge-0-{target_idx}").as_bytes());
             store.apply_datoms(&[Datom::new(
                 edge_entity,
                 comp_from.clone(),
@@ -4066,7 +5002,10 @@ mod tests {
 
         let current_emb = emb.embed("test observation");
         let rec = frontier_recommendation(&store, &current_emb);
-        assert!(rec.is_some(), "should recommend exploring unexplored packages");
+        assert!(
+            rec.is_some(),
+            "should recommend exploring unexplored packages"
+        );
         let rec = rec.unwrap();
         assert_eq!(rec.kind, FrontierKind::Explore, "should be Explore kind");
         assert!(
@@ -4110,14 +5049,19 @@ mod tests {
         store.apply_datoms(&[Datom::new(
             concept,
             Attribute::from_keyword(":concept/embedding"),
-            Value::Bytes(crate::embedding::embedding_to_bytes(&emb.embed("uncertain topic"))),
+            Value::Bytes(crate::embedding::embedding_to_bytes(
+                &emb.embed("uncertain topic"),
+            )),
             tx,
             Op::Assert,
         )]);
 
         let current_emb = emb.embed("different topic entirely");
         let rec = frontier_recommendation(&store, &current_emb);
-        assert!(rec.is_some(), "should recommend deepening high-variance concept");
+        assert!(
+            rec.is_some(),
+            "should recommend deepening high-variance concept"
+        );
         let rec = rec.unwrap();
         assert_eq!(rec.kind, FrontierKind::Deepen, "should be Deepen kind");
         assert_eq!(rec.target, "uncertain-concept");
@@ -4182,7 +5126,10 @@ mod tests {
 
         let current_emb = emb.embed("something unrelated");
         let rec = frontier_recommendation(&store, &current_emb);
-        assert!(rec.is_some(), "should recommend bridging disconnected concepts");
+        assert!(
+            rec.is_some(),
+            "should recommend bridging disconnected concepts"
+        );
         let rec = rec.unwrap();
         assert_eq!(rec.kind, FrontierKind::Bridge, "should be Bridge kind");
         assert!(
@@ -4314,7 +5261,10 @@ mod tests {
             for j in (i + 1)..matrix.len() {
                 let duplicate = matrix[i].concept_a == matrix[j].concept_b
                     && matrix[i].concept_b == matrix[j].concept_a;
-                assert!(!duplicate, "co-occurrence matrix should not have duplicate pairs");
+                assert!(
+                    !duplicate,
+                    "co-occurrence matrix should not have duplicate pairs"
+                );
             }
         }
     }
@@ -4347,37 +5297,62 @@ mod tests {
         for target_idx in 2..10 {
             let edge = EntityId::from_content(format!("edge-0-{target_idx}").as_bytes());
             store.apply_datoms(&[Datom::new(
-                edge, comp_from.clone(), Value::Ref(pkgs[0]), tx, Op::Assert,
+                edge,
+                comp_from.clone(),
+                Value::Ref(pkgs[0]),
+                tx,
+                Op::Assert,
             )]);
             store.apply_datoms(&[Datom::new(
-                edge, comp_to.clone(), Value::Ref(pkgs[target_idx]), tx, Op::Assert,
+                edge,
+                comp_to.clone(),
+                Value::Ref(pkgs[target_idx]),
+                tx,
+                Op::Assert,
             )]);
         }
         // Mark module-0 as explored.
         let mentions_attr = Attribute::from_keyword(":exploration/mentions-entity");
         let obs = EntityId::from_content(b"obs-bound-1");
         store.apply_datoms(&[Datom::new(
-            obs, mentions_attr, Value::Ref(pkgs[0]), tx, Op::Assert,
+            obs,
+            mentions_attr,
+            Value::Ref(pkgs[0]),
+            tx,
+            Op::Assert,
         )]);
 
         // Create a high-variance concept.
         let concept = EntityId::from_content(b"concept:variance-test");
         store.apply_datoms(&[Datom::new(
-            concept, Attribute::from_keyword(":concept/name"),
-            Value::String("variance-test".into()), tx, Op::Assert,
+            concept,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("variance-test".into()),
+            tx,
+            Op::Assert,
         )]);
         store.apply_datoms(&[Datom::new(
-            concept, Attribute::from_keyword(":concept/member-count"),
-            Value::Long(10), tx, Op::Assert,
+            concept,
+            Attribute::from_keyword(":concept/member-count"),
+            Value::Long(10),
+            tx,
+            Op::Assert,
         )]);
         store.apply_datoms(&[Datom::new(
-            concept, Attribute::from_keyword(":concept/variance"),
-            Value::Double(ordered_float::OrderedFloat(0.45)), tx, Op::Assert,
+            concept,
+            Attribute::from_keyword(":concept/variance"),
+            Value::Double(ordered_float::OrderedFloat(0.45)),
+            tx,
+            Op::Assert,
         )]);
         store.apply_datoms(&[Datom::new(
-            concept, Attribute::from_keyword(":concept/embedding"),
-            Value::Bytes(crate::embedding::embedding_to_bytes(&emb.embed("variance topic"))),
-            tx, Op::Assert,
+            concept,
+            Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(crate::embedding::embedding_to_bytes(
+                &emb.embed("variance topic"),
+            )),
+            tx,
+            Op::Assert,
         )]);
 
         let current_emb = emb.embed("test observation");
@@ -4386,7 +5361,8 @@ mod tests {
             assert!(
                 r.score >= 0.0 && r.score <= 1.0,
                 "frontier score should be in [0, 1], got {} for kind {:?}",
-                r.score, r.kind
+                r.score,
+                r.kind
             );
         }
     }
@@ -4408,21 +5384,32 @@ mod tests {
             (concept_high, "high-var", 0.45),
         ] {
             store.apply_datoms(&[Datom::new(
-                *concept, Attribute::from_keyword(":concept/name"),
-                Value::String(name.to_string()), tx, Op::Assert,
+                *concept,
+                Attribute::from_keyword(":concept/name"),
+                Value::String(name.to_string()),
+                tx,
+                Op::Assert,
             )]);
             store.apply_datoms(&[Datom::new(
-                *concept, Attribute::from_keyword(":concept/member-count"),
-                Value::Long(5), tx, Op::Assert,
+                *concept,
+                Attribute::from_keyword(":concept/member-count"),
+                Value::Long(5),
+                tx,
+                Op::Assert,
             )]);
             store.apply_datoms(&[Datom::new(
-                *concept, Attribute::from_keyword(":concept/variance"),
-                Value::Double(ordered_float::OrderedFloat(*variance)), tx, Op::Assert,
+                *concept,
+                Attribute::from_keyword(":concept/variance"),
+                Value::Double(ordered_float::OrderedFloat(*variance)),
+                tx,
+                Op::Assert,
             )]);
             store.apply_datoms(&[Datom::new(
-                *concept, Attribute::from_keyword(":concept/embedding"),
+                *concept,
+                Attribute::from_keyword(":concept/embedding"),
                 Value::Bytes(crate::embedding::embedding_to_bytes(&emb.embed(name))),
-                tx, Op::Assert,
+                tx,
+                Op::Assert,
             )]);
         }
 
@@ -4448,8 +5435,11 @@ mod tests {
             let name = format!(":pkg/mod-{i}");
             let e = EntityId::from_ident(&name);
             store.apply_datoms(&[Datom::new(
-                e, Attribute::from_keyword(":db/ident"),
-                Value::Keyword(name), tx, Op::Assert,
+                e,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(name),
+                tx,
+                Op::Assert,
             )]);
             pkgs.push(e);
         }
@@ -4459,38 +5449,63 @@ mod tests {
         for idx in 2..5 {
             let edge = EntityId::from_content(format!("edge-c-{idx}").as_bytes());
             store.apply_datoms(&[Datom::new(
-                edge, comp_from.clone(), Value::Ref(pkgs[0]), tx, Op::Assert,
+                edge,
+                comp_from.clone(),
+                Value::Ref(pkgs[0]),
+                tx,
+                Op::Assert,
             )]);
             store.apply_datoms(&[Datom::new(
-                edge, comp_to.clone(), Value::Ref(pkgs[idx]), tx, Op::Assert,
+                edge,
+                comp_to.clone(),
+                Value::Ref(pkgs[idx]),
+                tx,
+                Op::Assert,
             )]);
         }
         let mentions = Attribute::from_keyword(":exploration/mentions-entity");
         for &pkg in &pkgs[0..2] {
             let obs = EntityId::from_content(format!("obs-c-{:?}", pkg).as_bytes());
             store.apply_datoms(&[Datom::new(
-                obs, mentions.clone(), Value::Ref(pkg), tx, Op::Assert,
+                obs,
+                mentions.clone(),
+                Value::Ref(pkg),
+                tx,
+                Op::Assert,
             )]);
         }
 
         // Create a high-variance concept with members = total observations.
         let concept = EntityId::from_content(b"concept:commensurate");
         store.apply_datoms(&[Datom::new(
-            concept, Attribute::from_keyword(":concept/name"),
-            Value::String("commensurate".into()), tx, Op::Assert,
+            concept,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("commensurate".into()),
+            tx,
+            Op::Assert,
         )]);
         store.apply_datoms(&[Datom::new(
-            concept, Attribute::from_keyword(":concept/member-count"),
-            Value::Long(5), tx, Op::Assert,
+            concept,
+            Attribute::from_keyword(":concept/member-count"),
+            Value::Long(5),
+            tx,
+            Op::Assert,
         )]);
         store.apply_datoms(&[Datom::new(
-            concept, Attribute::from_keyword(":concept/variance"),
-            Value::Double(ordered_float::OrderedFloat(0.4)), tx, Op::Assert,
+            concept,
+            Attribute::from_keyword(":concept/variance"),
+            Value::Double(ordered_float::OrderedFloat(0.4)),
+            tx,
+            Op::Assert,
         )]);
         store.apply_datoms(&[Datom::new(
-            concept, Attribute::from_keyword(":concept/embedding"),
-            Value::Bytes(crate::embedding::embedding_to_bytes(&emb.embed("distant topic entirely"))),
-            tx, Op::Assert,
+            concept,
+            Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(crate::embedding::embedding_to_bytes(
+                &emb.embed("distant topic entirely"),
+            )),
+            tx,
+            Op::Assert,
         )]);
 
         let current_emb = emb.embed("observation about something");
@@ -4499,7 +5514,11 @@ mod tests {
         let r = rec.unwrap();
         // Both types should produce scores in reasonable range (not 0 or wildly different).
         assert!(r.score > 0.0, "winning score should be positive");
-        assert!(r.score <= 1.0, "winning score should be at most 1.0, got {}", r.score);
+        assert!(
+            r.score <= 1.0,
+            "winning score should be at most 1.0, got {}",
+            r.score
+        );
     }
 
     /// Regression guard: single-scan co_occurrence_matrix matches expected Jaccard.
@@ -4514,12 +5533,18 @@ mod tests {
         let concept_a = EntityId::from_content(b"concept:scan-a");
         let concept_b = EntityId::from_content(b"concept:scan-b");
         store.apply_datoms(&[Datom::new(
-            concept_a, Attribute::from_keyword(":concept/name"),
-            Value::String("scan-a".into()), tx, Op::Assert,
+            concept_a,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("scan-a".into()),
+            tx,
+            Op::Assert,
         )]);
         store.apply_datoms(&[Datom::new(
-            concept_b, Attribute::from_keyword(":concept/name"),
-            Value::String("scan-b".into()), tx, Op::Assert,
+            concept_b,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("scan-b".into()),
+            tx,
+            Op::Assert,
         )]);
 
         let concept_attr = Attribute::from_keyword(":exploration/concept");
@@ -4527,20 +5552,32 @@ mod tests {
         for i in 0..4 {
             let obs = EntityId::from_content(format!("obs-scan-a-{i}").as_bytes());
             store.apply_datoms(&[Datom::new(
-                obs, concept_attr.clone(), Value::Ref(concept_a), tx, Op::Assert,
+                obs,
+                concept_attr.clone(),
+                Value::Ref(concept_a),
+                tx,
+                Op::Assert,
             )]);
         }
         for i in 0..4 {
             let obs = EntityId::from_content(format!("obs-scan-b-{i}").as_bytes());
             store.apply_datoms(&[Datom::new(
-                obs, concept_attr.clone(), Value::Ref(concept_b), tx, Op::Assert,
+                obs,
+                concept_attr.clone(),
+                Value::Ref(concept_b),
+                tx,
+                Op::Assert,
             )]);
         }
         // 2 shared: obs-scan-a-0 and obs-scan-a-1 also in B.
         for i in 0..2 {
             let obs = EntityId::from_content(format!("obs-scan-a-{i}").as_bytes());
             store.apply_datoms(&[Datom::new(
-                obs, concept_attr.clone(), Value::Ref(concept_b), tx, Op::Assert,
+                obs,
+                concept_attr.clone(),
+                Value::Ref(concept_b),
+                tx,
+                Op::Assert,
             )]);
         }
 
@@ -4574,7 +5611,9 @@ mod tests {
             "",
         ];
         for text in &texts {
-            if text.is_empty() { continue; }
+            if text.is_empty() {
+                continue;
+            }
             let v = emb.embed(text);
             for threshold in &[0.01_f32, 0.2, 0.5, 0.9] {
                 let assignments = assign_to_concepts(&store, &v, *threshold);
@@ -4602,21 +5641,34 @@ mod tests {
         // Only one concept with high variance -> only Deepen.
         let concept = EntityId::from_content(b"concept:only-deepen");
         store.apply_datoms(&[Datom::new(
-            concept, Attribute::from_keyword(":concept/name"),
-            Value::String("only-deepen".into()), tx, Op::Assert,
+            concept,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("only-deepen".into()),
+            tx,
+            Op::Assert,
         )]);
         store.apply_datoms(&[Datom::new(
-            concept, Attribute::from_keyword(":concept/member-count"),
-            Value::Long(5), tx, Op::Assert,
+            concept,
+            Attribute::from_keyword(":concept/member-count"),
+            Value::Long(5),
+            tx,
+            Op::Assert,
         )]);
         store.apply_datoms(&[Datom::new(
-            concept, Attribute::from_keyword(":concept/variance"),
-            Value::Double(ordered_float::OrderedFloat(0.4)), tx, Op::Assert,
+            concept,
+            Attribute::from_keyword(":concept/variance"),
+            Value::Double(ordered_float::OrderedFloat(0.4)),
+            tx,
+            Op::Assert,
         )]);
         store.apply_datoms(&[Datom::new(
-            concept, Attribute::from_keyword(":concept/embedding"),
-            Value::Bytes(crate::embedding::embedding_to_bytes(&emb.embed("only deepen topic"))),
-            tx, Op::Assert,
+            concept,
+            Attribute::from_keyword(":concept/embedding"),
+            Value::Bytes(crate::embedding::embedding_to_bytes(
+                &emb.embed("only deepen topic"),
+            )),
+            tx,
+            Op::Assert,
         )]);
 
         let current_emb = emb.embed("something entirely different");
@@ -4624,7 +5676,11 @@ mod tests {
         assert!(rec.is_some(), "should recommend deepening");
         let r = rec.unwrap();
         assert_eq!(r.kind, FrontierKind::Deepen);
-        assert!(r.score >= 0.0 && r.score <= 1.0, "score should be in [0,1], got {}", r.score);
+        assert!(
+            r.score >= 0.0 && r.score <= 1.0,
+            "score should be in [0,1], got {}",
+            r.score
+        );
     }
 
     /// Verify that assign_to_concepts uses the latest embedding when multiple
@@ -4805,22 +5861,36 @@ mod tests {
             let obs = EntityId::from_content(format!("obs-close-{i}").as_bytes());
             let obs_emb = emb.embed(&format!("specific topic about testing verification {i}"));
             store.apply_datoms(&[Datom::new(
-                obs, concept_ref_attr.clone(), Value::Ref(concept), tx, Op::Assert,
+                obs,
+                concept_ref_attr.clone(),
+                Value::Ref(concept),
+                tx,
+                Op::Assert,
             )]);
             store.apply_datoms(&[Datom::new(
-                obs, obs_emb_attr.clone(),
-                Value::Bytes(embedding_to_bytes(&obs_emb)), tx, Op::Assert,
+                obs,
+                obs_emb_attr.clone(),
+                Value::Bytes(embedding_to_bytes(&obs_emb)),
+                tx,
+                Op::Assert,
             )]);
         }
         for i in 0..5 {
             let obs = EntityId::from_content(format!("obs-far-{i}").as_bytes());
             let obs_emb = emb.embed(&format!("completely different unrelated words {i}"));
             store.apply_datoms(&[Datom::new(
-                obs, concept_ref_attr.clone(), Value::Ref(concept), tx, Op::Assert,
+                obs,
+                concept_ref_attr.clone(),
+                Value::Ref(concept),
+                tx,
+                Op::Assert,
             )]);
             store.apply_datoms(&[Datom::new(
-                obs, obs_emb_attr.clone(),
-                Value::Bytes(embedding_to_bytes(&obs_emb)), tx, Op::Assert,
+                obs,
+                obs_emb_attr.clone(),
+                Value::Bytes(embedding_to_bytes(&obs_emb)),
+                tx,
+                Op::Assert,
             )]);
         }
 
@@ -4828,7 +5898,7 @@ mod tests {
         assert!(result.is_some(), "should calibrate with 10 observations");
         let (threshold, temperature) = result.unwrap();
         assert!(
-            threshold >= 0.1 && threshold <= 0.9,
+            (0.1..=0.9).contains(&threshold),
             "threshold should be in Otsu sweep range [0.10, 0.90], got {threshold}"
         );
         assert!(
@@ -4852,7 +5922,8 @@ mod tests {
         assert!(
             loose.len() >= tight.len(),
             "lower min_strength should give >= matches: loose={} vs tight={}",
-            loose.len(), tight.len()
+            loose.len(),
+            tight.len()
         );
 
         // All returned assignments should have strength >= min_strength
@@ -4875,8 +5946,14 @@ mod tests {
 
         let assignments = assign_to_concepts_soft(&store, &obs_emb, 0.3, 0.1, 0.01);
         for w in assignments.windows(2) {
-            let s_a = match &w[0] { ConceptAssignment::Joined { strength, .. } => *strength, _ => 0.0 };
-            let s_b = match &w[1] { ConceptAssignment::Joined { strength, .. } => *strength, _ => 0.0 };
+            let s_a = match &w[0] {
+                ConceptAssignment::Joined { strength, .. } => *strength,
+                _ => 0.0,
+            };
+            let s_b = match &w[1] {
+                ConceptAssignment::Joined { strength, .. } => *strength,
+                _ => 0.0,
+            };
             assert!(
                 s_a >= s_b - 1e-6,
                 "should be sorted by strength desc: {s_a} < {s_b}"
@@ -4896,8 +5973,11 @@ mod tests {
             .map(|i| {
                 let e = EntityId::from_content(format!("concept:narrow-{i}").as_bytes());
                 store.apply_datoms(&[Datom::new(
-                    e, Attribute::from_keyword(":concept/name"),
-                    Value::String(format!("narrow-{i}")), tx, Op::Assert,
+                    e,
+                    Attribute::from_keyword(":concept/name"),
+                    Value::String(format!("narrow-{i}")),
+                    tx,
+                    Op::Assert,
                 )]);
                 e
             })
@@ -4909,7 +5989,11 @@ mod tests {
             let obs = EntityId::from_content(format!("obs-narrow-{i}").as_bytes());
             for concept in &concepts {
                 store.apply_datoms(&[Datom::new(
-                    obs, concept_attr.clone(), Value::Ref(*concept), tx, Op::Assert,
+                    obs,
+                    concept_attr.clone(),
+                    Value::Ref(*concept),
+                    tx,
+                    Op::Assert,
                 )]);
             }
         }
@@ -4932,12 +6016,18 @@ mod tests {
         let concept_a = EntityId::from_content(b"concept:healthy-a");
         let concept_b = EntityId::from_content(b"concept:healthy-b");
         store.apply_datoms(&[Datom::new(
-            concept_a, Attribute::from_keyword(":concept/name"),
-            Value::String("healthy-a".into()), tx, Op::Assert,
+            concept_a,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("healthy-a".into()),
+            tx,
+            Op::Assert,
         )]);
         store.apply_datoms(&[Datom::new(
-            concept_b, Attribute::from_keyword(":concept/name"),
-            Value::String("healthy-b".into()), tx, Op::Assert,
+            concept_b,
+            Attribute::from_keyword(":concept/name"),
+            Value::String("healthy-b".into()),
+            tx,
+            Op::Assert,
         )]);
 
         let concept_attr = Attribute::from_keyword(":exploration/concept");
@@ -4945,11 +6035,19 @@ mod tests {
         for i in 0..5 {
             let obs_a = EntityId::from_content(format!("obs-ha-{i}").as_bytes());
             store.apply_datoms(&[Datom::new(
-                obs_a, concept_attr.clone(), Value::Ref(concept_a), tx, Op::Assert,
+                obs_a,
+                concept_attr.clone(),
+                Value::Ref(concept_a),
+                tx,
+                Op::Assert,
             )]);
             let obs_b = EntityId::from_content(format!("obs-hb-{i}").as_bytes());
             store.apply_datoms(&[Datom::new(
-                obs_b, concept_attr.clone(), Value::Ref(concept_b), tx, Op::Assert,
+                obs_b,
+                concept_attr.clone(),
+                Value::Ref(concept_b),
+                tx,
+                Op::Assert,
             )]);
         }
 
@@ -5148,8 +6246,7 @@ mod tests {
         );
 
         // Crystallize.
-        let new_concepts =
-            crystallize_concepts(&observations, JOIN_THRESHOLD, MIN_CLUSTER_SIZE);
+        let new_concepts = crystallize_concepts(&observations, JOIN_THRESHOLD, MIN_CLUSTER_SIZE);
         assert!(
             !new_concepts.is_empty(),
             "3 similar observations should produce at least 1 concept"
@@ -5358,9 +6455,438 @@ mod tests {
             !body.is_empty(),
             "nearest observation should have non-empty body"
         );
-        assert!(
-            sim > 0.0,
-            "cosine similarity should be positive, got {sim}"
+        assert!(sim > 0.0, "cosine similarity should be positive, got {sim}");
+    }
+
+    // ── C9-P1 Agent Provenance & Agreement Detection Tests ───────────
+
+    #[test]
+    fn test_agent_groups_single_agent() {
+        use crate::datom::{AgentId, Datom, TxId};
+
+        let mut store = crate::store::Store::genesis();
+        let agent = AgentId::from_name("sole-agent");
+        let attr = Attribute::from_keyword(":exploration/body");
+
+        let mut datoms = Vec::new();
+        for i in 0..5u64 {
+            let entity = EntityId::from_content(format!("obs:{}", i).as_bytes());
+            let tx = TxId::new(100 + i, 0, agent);
+            datoms.push(Datom::new(
+                entity,
+                attr.clone(),
+                Value::String(format!("observation number {}", i)),
+                tx,
+                Op::Assert,
+            ));
+        }
+        store.apply_datoms(&datoms);
+
+        let groups = agent_observation_groups(&store);
+        assert_eq!(groups.len(), 1, "Should have exactly 1 agent group");
+        assert_eq!(
+            groups[0].observations.len(),
+            5,
+            "Agent should have 5 observations"
         );
+        assert_eq!(groups[0].agent, agent);
+    }
+
+    #[test]
+    fn test_agent_groups_multi_agent() {
+        use crate::datom::{AgentId, Datom, TxId};
+
+        let mut store = crate::store::Store::genesis();
+        let agent_a = AgentId::from_name("agent-alpha");
+        let agent_b = AgentId::from_name("agent-beta");
+        let agent_c = AgentId::from_name("agent-gamma");
+        let attr = Attribute::from_keyword(":exploration/body");
+
+        let mut datoms = Vec::new();
+        // Agent A: 3 observations
+        for i in 0..3u64 {
+            let entity = EntityId::from_content(format!("obs-a:{}", i).as_bytes());
+            let tx = TxId::new(100 + i, 0, agent_a);
+            datoms.push(Datom::new(
+                entity,
+                attr.clone(),
+                Value::String(format!("agent alpha observation {}", i)),
+                tx,
+                Op::Assert,
+            ));
+        }
+        // Agent B: 2 observations
+        for i in 0..2u64 {
+            let entity = EntityId::from_content(format!("obs-b:{}", i).as_bytes());
+            let tx = TxId::new(200 + i, 0, agent_b);
+            datoms.push(Datom::new(
+                entity,
+                attr.clone(),
+                Value::String(format!("agent beta observation {}", i)),
+                tx,
+                Op::Assert,
+            ));
+        }
+        // Agent C: 1 observation
+        let entity_c = EntityId::from_content(b"obs-c:0");
+        let tx_c = TxId::new(300, 0, agent_c);
+        datoms.push(Datom::new(
+            entity_c,
+            attr.clone(),
+            Value::String("agent gamma observation".to_string()),
+            tx_c,
+            Op::Assert,
+        ));
+
+        store.apply_datoms(&datoms);
+
+        let groups = agent_observation_groups(&store);
+        assert_eq!(groups.len(), 3, "Should have 3 agent groups");
+        // Sorted by count descending: A(3), B(2), C(1)
+        assert_eq!(groups[0].observations.len(), 3);
+        assert_eq!(groups[1].observations.len(), 2);
+        assert_eq!(groups[2].observations.len(), 1);
+    }
+
+    #[test]
+    fn test_agreement_cluster_formation() {
+        use crate::datom::{AgentId, Datom, TxId};
+
+        let mut store = crate::store::Store::genesis();
+        let agent_a = AgentId::from_name("audit-agent-1");
+        let agent_b = AgentId::from_name("audit-agent-2");
+        let agent_c = AgentId::from_name("audit-agent-3");
+        let body_attr = Attribute::from_keyword(":exploration/body");
+        let conf_attr = Attribute::from_keyword(":exploration/confidence");
+
+        let mut datoms = Vec::new();
+
+        // All 3 agents observe "F(S) stagnation" with different wording
+        let obs = [
+            (
+                "a1",
+                agent_a,
+                "F(S) has been stagnant at 0.62 for thirteen sessions without improvement",
+            ),
+            (
+                "b1",
+                agent_b,
+                "Fitness score F(S) stuck at 0.62 for thirteen sessions needs verification sprint",
+            ),
+            (
+                "c1",
+                agent_c,
+                "F(S) stagnant at 0.62 for thirteen sessions recommend verification work",
+            ),
+        ];
+
+        for (id_suffix, agent, text) in &obs {
+            let entity = EntityId::from_content(format!("obs:{}", id_suffix).as_bytes());
+            let tx = TxId::new(100, 0, *agent);
+            datoms.push(Datom::new(
+                entity,
+                body_attr.clone(),
+                Value::String(text.to_string()),
+                tx,
+                Op::Assert,
+            ));
+            datoms.push(Datom::new(
+                entity,
+                conf_attr.clone(),
+                Value::Double(ordered_float::OrderedFloat(0.9)),
+                tx,
+                Op::Assert,
+            ));
+        }
+        store.apply_datoms(&datoms);
+
+        let clusters = find_agreement_clusters(&store, 0.3);
+        assert!(
+            !clusters.is_empty(),
+            "Should find at least one agreement cluster"
+        );
+        let top = &clusters[0];
+        assert!(
+            top.agents.len() >= 2,
+            "Top cluster should have 2+ agents, got {}",
+            top.agents.len()
+        );
+        assert!(
+            top.agreement_score >= 0.5,
+            "Agreement score should be >= 0.5, got {}",
+            top.agreement_score
+        );
+    }
+
+    #[test]
+    fn test_agreement_no_false_positive() {
+        use crate::datom::{AgentId, Datom, TxId};
+
+        let mut store = crate::store::Store::genesis();
+        let agent_a = AgentId::from_name("agent-1");
+        let agent_b = AgentId::from_name("agent-2");
+        let agent_c = AgentId::from_name("agent-3");
+        let attr = Attribute::from_keyword(":exploration/body");
+
+        let mut datoms = Vec::new();
+        // Completely unrelated observations
+        let obs = [
+            (
+                "a",
+                agent_a,
+                "The weather in Paris is lovely this time of year",
+            ),
+            (
+                "b",
+                agent_b,
+                "Quantum computing uses superposition for parallel computation",
+            ),
+            (
+                "c",
+                agent_c,
+                "Ancient Roman aqueducts transported water across valleys",
+            ),
+        ];
+        for (id, agent, text) in &obs {
+            let entity = EntityId::from_content(format!("obs:{}", id).as_bytes());
+            let tx = TxId::new(100, 0, *agent);
+            datoms.push(Datom::new(
+                entity,
+                attr.clone(),
+                Value::String(text.to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+        store.apply_datoms(&datoms);
+
+        let clusters = find_agreement_clusters(&store, 0.3);
+        // No cluster should have agreement_score > 1/3
+        for c in &clusters {
+            assert!(
+                c.agreement_score <= 0.34,
+                "Unrelated topics should not form high-agreement clusters, got {}",
+                c.agreement_score
+            );
+        }
+    }
+
+    #[test]
+    fn test_agreement_empty_store() {
+        let store = crate::store::Store::genesis();
+        let clusters = find_agreement_clusters(&store, 0.3);
+        assert!(
+            clusters.is_empty(),
+            "Genesis store should have no agreement clusters"
+        );
+    }
+
+    #[test]
+    fn test_format_agreement_summary() {
+        let clusters = vec![AgreementCluster {
+            topic: "F(S) stagnant at 0.62 for many sessions".to_string(),
+            agents: vec![
+                AgentId::from_name("a"),
+                AgentId::from_name("b"),
+                AgentId::from_name("c"),
+            ],
+            observation_ids: vec![],
+            confidence_range: (0.85, 0.90, 0.95),
+            agreement_score: 1.0,
+            member_count: 5,
+        }];
+        let lines = format_agreement_summary(&clusters, 3);
+        assert_eq!(lines.len(), 1);
+        assert!(lines[0].contains("3/3 agents"));
+        assert!(lines[0].contains("5 obs"));
+        assert!(lines[0].contains("0.85"));
+    }
+
+    // ── C9-P2 Observation Link Extraction Tests ──────────────────────
+
+    #[test]
+    fn test_classify_relation_depends() {
+        assert_eq!(
+            classify_relation("this depends on that"),
+            LinkRelation::DependsOn
+        );
+        assert_eq!(
+            classify_relation("requires the fix"),
+            LinkRelation::DependsOn
+        );
+        assert_eq!(
+            classify_relation("blocked by upstream"),
+            LinkRelation::DependsOn
+        );
+    }
+
+    #[test]
+    fn test_classify_relation_blocks() {
+        assert_eq!(classify_relation("blocks downstream"), LinkRelation::Blocks);
+        assert_eq!(
+            classify_relation("enables the next step"),
+            LinkRelation::Blocks
+        );
+    }
+
+    #[test]
+    fn test_classify_relation_default() {
+        assert_eq!(
+            classify_relation("see also the other finding"),
+            LinkRelation::RelatesTo
+        );
+        assert_eq!(
+            classify_relation("no keywords here"),
+            LinkRelation::RelatesTo
+        );
+    }
+
+    #[test]
+    fn test_is_task_id_at() {
+        assert_eq!(
+            is_task_id_at("see t-abcd1234 here", 4),
+            Some("t-abcd1234".to_string())
+        );
+        assert_eq!(
+            is_task_id_at("t-0000ffff", 0),
+            Some("t-0000ffff".to_string())
+        );
+        assert_eq!(is_task_id_at("t-xyz", 0), None); // too short
+        assert_eq!(is_task_id_at("t-ZZZZZZZZ", 0), None); // not hex
+    }
+
+    #[test]
+    fn test_is_spec_ref_at() {
+        assert_eq!(
+            is_spec_ref_at("see INV-STORE-001 here", 4),
+            Some("INV-STORE-001".to_string())
+        );
+        assert_eq!(
+            is_spec_ref_at("ADR-FOUNDATION-012", 0),
+            Some("ADR-FOUNDATION-012".to_string())
+        );
+        assert_eq!(
+            is_spec_ref_at("NEG-MERGE-003 text", 0),
+            Some("NEG-MERGE-003".to_string())
+        );
+        assert_eq!(is_spec_ref_at("INV-lowercase-001", 0), None);
+        assert_eq!(is_spec_ref_at("not a ref", 0), None);
+    }
+
+    #[test]
+    fn test_extract_links_empty_store() {
+        let store = crate::store::Store::genesis();
+        let links = extract_observation_links(&store);
+        assert!(
+            links.is_empty(),
+            "Genesis store should have no observation links"
+        );
+    }
+
+    #[test]
+    fn test_extract_links_with_task_ref() {
+        use crate::datom::{AgentId, Datom, TxId};
+
+        let mut store = crate::store::Store::genesis();
+        let agent = AgentId::from_name("test");
+
+        // Create a task entity with known ID.
+        let task_entity = EntityId::from_content(b"task:abcd1234");
+        let obs_entity = EntityId::from_content(b"obs:with-ref");
+        let tx = TxId::new(100, 0, agent);
+        let ident_attr = Attribute::from_keyword(":db/ident");
+        let body_attr = Attribute::from_keyword(":exploration/body");
+
+        let datoms = vec![
+            Datom::new(
+                task_entity,
+                ident_attr.clone(),
+                Value::Keyword(":task/t-abcd1234".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                obs_entity,
+                body_attr.clone(),
+                Value::String("This observation depends on t-abcd1234 for completion".to_string()),
+                tx,
+                Op::Assert,
+            ),
+        ];
+        store.apply_datoms(&datoms);
+
+        let links = extract_observation_links(&store);
+        assert!(
+            !links.is_empty(),
+            "Should extract at least one link from observation referencing task"
+        );
+        let link = &links[0];
+        assert_eq!(link.source, obs_entity);
+        assert_eq!(link.target, task_entity);
+        assert_eq!(link.relationship, LinkRelation::DependsOn);
+    }
+
+    #[test]
+    fn test_extract_links_dedup() {
+        use crate::datom::{AgentId, Datom, TxId};
+
+        let mut store = crate::store::Store::genesis();
+        let agent = AgentId::from_name("test");
+        let task_entity = EntityId::from_content(b"task:dup");
+        let obs_entity = EntityId::from_content(b"obs:dup-ref");
+        let tx = TxId::new(100, 0, agent);
+
+        let datoms = vec![
+            Datom::new(
+                task_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":task/t-00001111".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                obs_entity,
+                Attribute::from_keyword(":exploration/body"),
+                Value::String(
+                    "see t-00001111 and also t-00001111 and again t-00001111".to_string(),
+                ),
+                tx,
+                Op::Assert,
+            ),
+        ];
+        store.apply_datoms(&datoms);
+
+        let links = extract_observation_links(&store);
+        // Should have exactly 1 link despite 3 mentions.
+        let count = links
+            .iter()
+            .filter(|l| l.source == obs_entity && l.target == task_entity)
+            .count();
+        assert_eq!(
+            count, 1,
+            "Duplicate references should produce exactly 1 link"
+        );
+    }
+
+    #[test]
+    fn test_link_datoms_conversion() {
+        let links = vec![
+            ExtractedLink {
+                source: EntityId::from_content(b"obs:a"),
+                target: EntityId::from_content(b"task:b"),
+                relationship: LinkRelation::DependsOn,
+                context: "depends on".to_string(),
+            },
+            ExtractedLink {
+                source: EntityId::from_content(b"obs:a"),
+                target: EntityId::from_content(b"spec:c"),
+                relationship: LinkRelation::RelatesTo,
+                context: "see also".to_string(),
+            },
+        ];
+        let datoms = link_datoms(&links);
+        assert_eq!(datoms.len(), 2);
+        assert_eq!(datoms[0].1.as_str(), ":exploration/depends-on");
+        assert_eq!(datoms[1].1.as_str(), ":exploration/related-spec");
     }
 }

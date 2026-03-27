@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774635075/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DAEMON-SCALE: Option F Hybrid WAL — group commit + PASSIVE checkpoint + multi-threaded dispatch"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :db/ident :v :task/t-94c133c7 :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/created-at :v 1774635074 :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/description :v "Option F Hybrid WAL architecture: separate VISIBILITY (in-memory Store), DURABILITY (WAL append+fsync), and GIT-READINESS (.edn file generation) into three independent concerns, each optimized independently. Motivated by FrankenSQLite WAL patterns + asupersync structured concurrency + the insight that braid's grow-only set model is SIMPLER than a database (no MVCC, no page locking, no GC needed — set insertion commutes). COMPONENTS: (1) WAL format + writer (append-only binary with CRC + hash chain). (2) Group commit thread (channel-based write batching, single fsync per batch — O(1) fsyncs regardless of agent count). (3) PASSIVE checkpoint (background WAL→edn conversion, non-blocking). (4) RwLock<Store> multi-threaded dispatch (unlimited read concurrency, microsecond write critical section). (5) Crash recovery (checkpoint + WAL replay + edn regeneration). PERFORMANCE TARGET: 50 agents at 1 write/s with <5ms write latency and <100ms read latency. DEPENDS-ON: DAEMON-WRITE epic (DW0-DW4 provide CLI→daemon routing that this epic's daemon internals serve). AXIOLOGICAL ALIGNMENT: C1 (WAL is append-only, .edn immutable), C2 (.edn filenames remain BLAKE3), C4 (.edn files remain the CRDT merge unit — WAL is local/ephemeral), Git (edn = git source of truth, WAL never enters git)." :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/id :v "t-94c133c7" :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/labels :v :label/P0 :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/labels :v :label/WAL :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/labels :v :label/daemon-scale :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/title :v "DAEMON-SCALE: Option F Hybrid WAL — group commit + PASSIVE checkpoint + multi-threaded dispatch" :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/title-l0 :v "DAEMON-SCALE" :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/title-l1 :v "DAEMON-SCALE: Option F Hybrid WAL — group commit + PASSIVE checkpoint + mul..." :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/traces-to :v #blake3 "192793a3a1efa8195c4a1f3cdff307e17d88478917e1e520ef6eb8651526cb67" :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/traces-to :v #blake3 "c2a77b04e631f1087740a74b4f34ad3f08243b1b8f394f270412b820cdb8adc1" :op :assert}
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/type :v :task.type/epic :op :assert}
+ ]}

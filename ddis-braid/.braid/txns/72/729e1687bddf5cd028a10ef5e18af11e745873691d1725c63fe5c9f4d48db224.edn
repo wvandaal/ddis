@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774635291/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DS4: Multi-threaded daemon dispatch — RwLock<Store>, thread pool, concurrent reads"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :db/ident :v :task/t-69562080 :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/created-at :v 1774635290 :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/description :v "CONTEXT: daemon.rs:984-1029 is single-threaded synchronous accept. At 50 agents, requests serialize behind each other. A 3s status computation blocks all other agents for 3s. RATIONALE: Braid's grow-only set model means reads NEVER conflict with writes (set insertion commutes with set membership query). This is the fundamental property that enables unlimited read concurrency. Unlike a database, braid has NO read-write conflicts at the data level — only at the INDEX level (BTreeSet insertion), which is brief (microseconds). APPROACH: Replace the accept loop (~50 LOC change). Main thread: listener.accept() → spawn handler thread from pool. Handler thread: (1) Parse JSON-RPC request. (2) For read operations (status, query, guidance, task_ready): acquire RwLock::read() on Store (shared, unlimited concurrency). Execute tool handler. Release lock. Respond. (3) For write operations (observe, harvest, task_create, write_assert, task_go, task_close): submit WriteRequest to group commit channel (DS2). Await response on oneshot channel. Respond to CLI. Thread pool: bounded (8-16 threads), long-lived. Use std::thread::scope or a bounded threadpool crate. RWLOCK CHOICE: parking_lot::RwLock (fair, no writer starvation, reader-biased but with configurable fairness). Or std::sync::RwLock (simpler, sufficient for 50 agents). INVARIANT: INV-DAEMON-002 (store consistent with disk): refresh_if_needed() runs in the commit thread before each batch (not per-request — batch amortizes the check). ACCEPTANCE: (1) 10 concurrent status requests complete in < 2× single-request time (proving concurrency). (2) Write during concurrent reads: read results are consistent (either pre-write or post-write, never partial). (3) Thread pool does not grow beyond max_threads. (4) Connection timeout still works (30s). FILES: crates/braid/src/daemon.rs (~100 LOC refactor of serve_daemon). RISK: RwLock contention under write-heavy load (50 concurrent writes). Mitigated by DS2: writes go through commit channel, not direct lock acquisition. The RwLock exclusive hold is only during the commit thread's apply_datoms (~100μs)." :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/id :v "t-69562080" :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/labels :v :label/concurrency :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/labels :v :label/daemon-scale :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/labels :v :label/ds4 :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/title :v "DS4: Multi-threaded daemon dispatch — RwLock<Store>, thread pool, concurrent reads" :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/title-l0 :v "DS4" :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/title-l1 :v "DS4: Multi-threaded daemon dispatch — RwLock<Store>, thread pool, concurren..." :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/traces-to :v #blake3 "b915aba2c5c3849fdb12f2980f4f01f969f7e6d278238a8e7b8488282d3e9c93" :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "b3b7df4cd6dc763a475d49ce8d5286a1318496cadf42fe9126cb4a06943459b4" :a :task/type :v :task.type/task :op :assert}
+ ]}

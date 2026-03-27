@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774619837/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-REFLEXIVE-007 \"Fixed-Point Property\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1732a6ff8ab8272adbf880cf5d1c8b27cd888f5436c5a272623d7c316f324695" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "1732a6ff8ab8272adbf880cf5d1c8b27cd888f5436c5a272623d7c316f324695" :a :db/doc :v "Fixed-Point Property" :op :assert}
+   {:e #blake3 "1732a6ff8ab8272adbf880cf5d1c8b27cd888f5436c5a272623d7c316f324695" :a :db/ident :v :spec/inv-reflexive-007 :op :assert}
+   {:e #blake3 "1732a6ff8ab8272adbf880cf5d1c8b27cd888f5436c5a272623d7c316f324695" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "1732a6ff8ab8272adbf880cf5d1c8b27cd888f5436c5a272623d7c316f324695" :a :spec/id :v "INV-REFLEXIVE-007" :op :assert}
+   {:e #blake3 "1732a6ff8ab8272adbf880cf5d1c8b27cd888f5436c5a272623d7c316f324695" :a :spec/namespace :v :spec.ns/REFLEXIVE :op :assert}
+   {:e #blake3 "1732a6ff8ab8272adbf880cf5d1c8b27cd888f5436c5a272623d7c316f324695" :a :spec/statement :v "Functions used for second-order analysis are identical to first-order functions. resolve_agent_identity(resolve_agent_identity(x)) == resolve_agent_identity(x) for all inputs. Three-tier cascade is idempotent." :op :assert}
+   {:e #blake3 "68657f45eee88ddef9b164b713772708c6d60bb6155dc6aafcd5c28c9bc638c8" :a :db/ident :v :task/t-4c10994e :op :assert}
+   {:e #blake3 "68657f45eee88ddef9b164b713772708c6d60bb6155dc6aafcd5c28c9bc638c8" :a :task/created-at :v 1774619836 :op :assert}
+   {:e #blake3 "68657f45eee88ddef9b164b713772708c6d60bb6155dc6aafcd5c28c9bc638c8" :a :task/id :v "t-4c10994e" :op :assert}
+   {:e #blake3 "68657f45eee88ddef9b164b713772708c6d60bb6155dc6aafcd5c28c9bc638c8" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "68657f45eee88ddef9b164b713772708c6d60bb6155dc6aafcd5c28c9bc638c8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "68657f45eee88ddef9b164b713772708c6d60bb6155dc6aafcd5c28c9bc638c8" :a :task/title :v "Implement INV-REFLEXIVE-007: Fixed-Point Property" :op :assert}
+   {:e #blake3 "68657f45eee88ddef9b164b713772708c6d60bb6155dc6aafcd5c28c9bc638c8" :a :task/traces-to :v #blake3 "1732a6ff8ab8272adbf880cf5d1c8b27cd888f5436c5a272623d7c316f324695" :op :assert}
+   {:e #blake3 "68657f45eee88ddef9b164b713772708c6d60bb6155dc6aafcd5c28c9bc638c8" :a :task/type :v :task.type/task :op :assert}
+ ]}

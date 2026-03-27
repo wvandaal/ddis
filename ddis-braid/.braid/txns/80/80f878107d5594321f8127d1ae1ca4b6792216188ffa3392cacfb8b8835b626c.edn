@@ -1,0 +1,51 @@
+{:tx/id #hlc "1774629120/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 30 candidates from task 'Daemon write-path migration proposal'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "13b00e324457e76effff2e946f18f8efdcca6eb818131514ef27ca5a85d6528e" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "35ec568d2114472a07a7d65ec0dacdd6f7b95670ab9de60d3db5a5affbaf505b" :a :db/ident :v :session/s-1774629133309 :op :assert}
+   {:e #blake3 "35ec568d2114472a07a7d65ec0dacdd6f7b95670ab9de60d3db5a5affbaf505b" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "35ec568d2114472a07a7d65ec0dacdd6f7b95670ab9de60d3db5a5affbaf505b" :a :session/current :v #blake3 "35ec568d2114472a07a7d65ec0dacdd6f7b95670ab9de60d3db5a5affbaf505b" :op :assert}
+   {:e #blake3 "35ec568d2114472a07a7d65ec0dacdd6f7b95670ab9de60d3db5a5affbaf505b" :a :session/start-datom-count :v 158777 :op :assert}
+   {:e #blake3 "35ec568d2114472a07a7d65ec0dacdd6f7b95670ab9de60d3db5a5affbaf505b" :a :session/start-fitness :v 0.6131862565314012 :op :assert}
+   {:e #blake3 "35ec568d2114472a07a7d65ec0dacdd6f7b95670ab9de60d3db5a5affbaf505b" :a :session/start-time :v "2026-03-27T16:32:13Z" :op :assert}
+   {:e #blake3 "35ec568d2114472a07a7d65ec0dacdd6f7b95670ab9de60d3db5a5affbaf505b" :a :session/started-at :v 1774629133 :op :assert}
+   {:e #blake3 "35ec568d2114472a07a7d65ec0dacdd6f7b95670ab9de60d3db5a5affbaf505b" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "35ec568d2114472a07a7d65ec0dacdd6f7b95670ab9de60d3db5a5affbaf505b" :a :session/task :v "## Session Synthesis Directive\n\n**Next session task**: continue: Daemon write-path migration proposal\nRun: `braid seed --task \"continue: Daemon write-path migration proposal\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :db/doc :v "Harvest session for task: Daemon write-path migration proposal" :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :db/ident :v :harvest/session-braid-user-1774629120 :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :harvest/accomplishments :v "Session entity: :session/s-1774629096; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; What connects thinking about topology and coupling for ... to t-2fd51aac?; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; What connects thinking about topology and coupling for ... to t-2fd51aac?; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to t-2fd51aac?; Session entity: :runtime/req-1156737112fe0218; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to t-2fd51aac?; Session entity: :runtime/req-9769f39dd5b8b71c; Session entity: :runtime/req-f71c6edc0ca8d058; Session entity: :runtime/req-3a8d6b25d632b042; Session entity: :runtime/req-7284081e6a5e65e5" :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :harvest/candidate-count :v 30 :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :harvest/codebase-snapshot :v "Codebase: 0 LOC across 0 source files\nTests: 2063 passing" :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :harvest/context-metrics :v "{\"candidates\":30,\"k_eff_estimated\":\"0.86\",\"observations\":0,\"output_tokens_est\":257,\"tasks_closed\":0,\"tx_count\":3,\"wall_elapsed_s\":3600}" :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :harvest/delta-summary :v "+4815 datoms, +297 entities" :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :harvest/recommended-tasks :v "t-d9536d87,t-f12bff46,t-56b8f57e" :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :harvest/store-datom-count :v 158742 :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :harvest/store-entity-count :v 12222 :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: Daemon write-path migration proposal\nRun: `braid seed --task \"continue: Daemon write-path migration proposal\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :harvest/task :v "Daemon write-path migration proposal" :op :assert}
+   {:e #blake3 "4332d92e028b44547b335feaa9e39f143e526992fb3a4b2ab07b8573839424ed" :a :harvest/tx-since-last :v 17 :op :assert}
+   {:e #blake3 "62c4c7152a3d2bd0f96671af6b0aacb4c1bdb56d0006ca01aa240f52a21c7e35" :a :hypothesis/action :v #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :op :assert}
+   {:e #blake3 "62c4c7152a3d2bd0f96671af6b0aacb4c1bdb56d0006ca01aa240f52a21c7e35" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "62c4c7152a3d2bd0f96671af6b0aacb4c1bdb56d0006ca01aa240f52a21c7e35" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "62c4c7152a3d2bd0f96671af6b0aacb4c1bdb56d0006ca01aa240f52a21c7e35" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "62c4c7152a3d2bd0f96671af6b0aacb4c1bdb56d0006ca01aa240f52a21c7e35" :a :hypothesis/predicted :v 0.3423981981813667 :op :assert}
+   {:e #blake3 "62c4c7152a3d2bd0f96671af6b0aacb4c1bdb56d0006ca01aa240f52a21c7e35" :a :hypothesis/timestamp :v #inst 1774629133 :op :assert}
+   {:e #blake3 "8803db18ed4891800cbf5d250e470a4663328cdebba839d9179a9cf4843b6d51" :a :hypothesis/action :v #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :op :assert}
+   {:e #blake3 "8803db18ed4891800cbf5d250e470a4663328cdebba839d9179a9cf4843b6d51" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "8803db18ed4891800cbf5d250e470a4663328cdebba839d9179a9cf4843b6d51" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "8803db18ed4891800cbf5d250e470a4663328cdebba839d9179a9cf4843b6d51" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "8803db18ed4891800cbf5d250e470a4663328cdebba839d9179a9cf4843b6d51" :a :hypothesis/predicted :v 0.6379940462286748 :op :assert}
+   {:e #blake3 "8803db18ed4891800cbf5d250e470a4663328cdebba839d9179a9cf4843b6d51" :a :hypothesis/timestamp :v #inst 1774629133 :op :assert}
+   {:e #blake3 "dc8987ab156fc6bfb0b44e6914f505e4b5e6a5428fe4f4f03e31267a02de12c8" :a :hypothesis/action :v #blake3 "11146360f74be633495a6342dd8200186db3c8cf4a9c36a3c12288606c58cf62" :op :assert}
+   {:e #blake3 "dc8987ab156fc6bfb0b44e6914f505e4b5e6a5428fe4f4f03e31267a02de12c8" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "dc8987ab156fc6bfb0b44e6914f505e4b5e6a5428fe4f4f03e31267a02de12c8" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "dc8987ab156fc6bfb0b44e6914f505e4b5e6a5428fe4f4f03e31267a02de12c8" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "dc8987ab156fc6bfb0b44e6914f505e4b5e6a5428fe4f4f03e31267a02de12c8" :a :hypothesis/predicted :v 0.7879755554608265 :op :assert}
+   {:e #blake3 "dc8987ab156fc6bfb0b44e6914f505e4b5e6a5428fe4f4f03e31267a02de12c8" :a :hypothesis/timestamp :v #inst 1774629133 :op :assert}
+ ]}

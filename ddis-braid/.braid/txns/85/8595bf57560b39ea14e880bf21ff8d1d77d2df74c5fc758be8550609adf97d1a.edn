@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774635200/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DS2-TEST: Group commit verification — 8 tests including 50-writer concurrency + fsync counting"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :db/ident :v :task/t-f9c3b10b :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/created-at :v 1774635199 :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/description :v "TESTS for DS2 group commit. UNIT: (1) test_single_write_batched: Send 1 write request. Commit thread processes batch of 1. Response received with correct TxFilePath. Store contains the datom. (2) test_batch_of_10: Send 10 requests rapidly. Commit thread processes as single batch. All 10 responses received. Store has all 10 transactions. WAL has 10 entries in single write() call (verify via strace or WAL entry count). (3) test_adaptive_interval: Under sustained load (100 writes/s), verify batch interval decreases toward 5ms. Under no load, verify interval increases toward 100ms. (4) test_durability_guarantee: Send write, kill daemon process between WAL fsync and response delivery. Restart daemon. Write recovered from WAL. (5) test_txid_monotonicity: In a batch of N writes, each TxId is strictly greater than the previous. HLC monotonicity preserved within batch. CONCURRENT: (6) test_50_concurrent_writers: Fork 50 threads, each sends 10 write requests to commit thread. All 500 writes complete. Store has all 500 datom sets. TxIds form a monotonic sequence. (7) test_write_read_interleave: While commit thread is processing a batch, read requests (status) execute concurrently on the shared read lock. Verify reads never see partial batch state. BENCHMARK: (8) Measure fsync count at 50 writes/s over 10 seconds. Expected: ~200 fsyncs (20/s × 10s), not 500. Log batch sizes and fsync timestamps. FAILURE DIAGNOSTIC: On failure, log batch contents (TxIds, datom counts), channel queue depth, batch interval at time of failure, WAL entry count." :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/id :v "t-f9c3b10b" :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/labels :v :label/daemon-scale :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/labels :v :label/ds2 :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/labels :v :label/group-commit :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/title :v "DS2-TEST: Group commit verification — 8 tests including 50-writer concurrency + fsync counting" :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/title-l0 :v "DS2-TEST" :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/title-l1 :v "DS2-TEST: Group commit verification — 8 tests including 50-writer concurren..." :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "cb0a94e721c4a8bd05a6376da093873c7ba9d654bf3b574e476ede19b8eab5bc" :a :task/type :v :task.type/task :op :assert}
+ ]}

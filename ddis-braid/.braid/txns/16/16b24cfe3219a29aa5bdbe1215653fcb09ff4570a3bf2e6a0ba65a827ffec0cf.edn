@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774642671/0/014f02ff6aaefe9695c9ffb0d5fa99f6"
+ :tx/agent "014f02ff6aaefe9695c9ffb0d5fa99f6"
+ :tx/provenance :observed
+ :tx/rationale "DEEP REVIEW GAP 4: REM-2 tests compute_read_steering's CURRENT signature (returns Option<String>). STEER-2v2 CHANGES the signature to return ObserveSteering. This means REM-2's tests will need updating when STEER-2v2 lands. This is EXPECTED and CORRECT — REM-2 verifies the current implementation works, STEER-2v2 modifies it. The REM-2 tests serve as regression guards during STEER-2v2 development: if the signature change breaks the priority cascade logic, the old tests catch it (after adapting the assertion to the new type). Note this explicitly in REM-2 so the implementer knows."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3d237a224292be5dfb49cb39b66fdedad8d5197a1131dc2dbf0b27539f08fdf8" :a :db/doc :v "DEEP REVIEW GAP 4: REM-2 tests compute_read_steering's CURRENT signature (returns Option<String>). STEER-2v2 CHANGES the signature to return ObserveSteering. This means REM-2's tests will need updating when STEER-2v2 lands. This is EXPECTED and CORRECT — REM-2 verifies the current implementation works, STEER-2v2 modifies it. The REM-2 tests serve as regression guards during STEER-2v2 development: if the signature change breaks the priority cascade logic, the old tests catch it (after adapting the assertion to the new type). Note this explicitly in REM-2 so the implementer knows." :op :assert}
+   {:e #blake3 "3d237a224292be5dfb49cb39b66fdedad8d5197a1131dc2dbf0b27539f08fdf8" :a :db/ident :v :observation/deep-review-gap-4-rem-2-tests-compute-read-steerings-curre :op :assert}
+   {:e #blake3 "3d237a224292be5dfb49cb39b66fdedad8d5197a1131dc2dbf0b27539f08fdf8" :a :exploration/body :v "DEEP REVIEW GAP 4: REM-2 tests compute_read_steering's CURRENT signature (returns Option<String>). STEER-2v2 CHANGES the signature to return ObserveSteering. This means REM-2's tests will need updating when STEER-2v2 lands. This is EXPECTED and CORRECT — REM-2 verifies the current implementation works, STEER-2v2 modifies it. The REM-2 tests serve as regression guards during STEER-2v2 development: if the signature change breaks the priority cascade logic, the old tests catch it (after adapting the assertion to the new type). Note this explicitly in REM-2 so the implementer knows." :op :assert}
+   {:e #blake3 "3d237a224292be5dfb49cb39b66fdedad8d5197a1131dc2dbf0b27539f08fdf8" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "3d237a224292be5dfb49cb39b66fdedad8d5197a1131dc2dbf0b27539f08fdf8" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "3d237a224292be5dfb49cb39b66fdedad8d5197a1131dc2dbf0b27539f08fdf8" :a :exploration/content-hash :v #bytes "4209721f7a019e885597ec3ad6994e8677b41ec983798643a0a87b665e84d90d" :op :assert}
+   {:e #blake3 "3d237a224292be5dfb49cb39b66fdedad8d5197a1131dc2dbf0b27539f08fdf8" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "3d237a224292be5dfb49cb39b66fdedad8d5197a1131dc2dbf0b27539f08fdf8" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "3d237a224292be5dfb49cb39b66fdedad8d5197a1131dc2dbf0b27539f08fdf8" :a :exploration/source-session :v #blake3 "ea5a426f665a728e2e9fac97e04b1f06da7b86f103876de583ed7d6c8b6e772f" :op :assert}
+ ]}

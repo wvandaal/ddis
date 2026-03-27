@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774619820/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-REFLEXIVE-006 \"Second-Order Epistemic Closure\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9eaa5d15eccb6b6eff47ebf68e7bbf7f97e097ea093d5749bd5a5d62848a9d1a" :a :db/ident :v :task/t-5d313dc8 :op :assert}
+   {:e #blake3 "9eaa5d15eccb6b6eff47ebf68e7bbf7f97e097ea093d5749bd5a5d62848a9d1a" :a :task/created-at :v 1774619819 :op :assert}
+   {:e #blake3 "9eaa5d15eccb6b6eff47ebf68e7bbf7f97e097ea093d5749bd5a5d62848a9d1a" :a :task/id :v "t-5d313dc8" :op :assert}
+   {:e #blake3 "9eaa5d15eccb6b6eff47ebf68e7bbf7f97e097ea093d5749bd5a5d62848a9d1a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "9eaa5d15eccb6b6eff47ebf68e7bbf7f97e097ea093d5749bd5a5d62848a9d1a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9eaa5d15eccb6b6eff47ebf68e7bbf7f97e097ea093d5749bd5a5d62848a9d1a" :a :task/title :v "Implement INV-REFLEXIVE-006: Second-Order Epistemic Closure" :op :assert}
+   {:e #blake3 "9eaa5d15eccb6b6eff47ebf68e7bbf7f97e097ea093d5749bd5a5d62848a9d1a" :a :task/traces-to :v #blake3 "fd3932565d198246f66b7c7680b001248069cb1854000a453669da67f723b3d2" :op :assert}
+   {:e #blake3 "9eaa5d15eccb6b6eff47ebf68e7bbf7f97e097ea093d5749bd5a5d62848a9d1a" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "fd3932565d198246f66b7c7680b001248069cb1854000a453669da67f723b3d2" :a :comonad/depth :v 0 :op :assert}
+   {:e #blake3 "fd3932565d198246f66b7c7680b001248069cb1854000a453669da67f723b3d2" :a :db/doc :v "Second-Order Epistemic Closure" :op :assert}
+   {:e #blake3 "fd3932565d198246f66b7c7680b001248069cb1854000a453669da67f723b3d2" :a :db/ident :v :spec/inv-reflexive-006 :op :assert}
+   {:e #blake3 "fd3932565d198246f66b7c7680b001248069cb1854000a453669da67f723b3d2" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "fd3932565d198246f66b7c7680b001248069cb1854000a453669da67f723b3d2" :a :spec/id :v "INV-REFLEXIVE-006" :op :assert}
+   {:e #blake3 "fd3932565d198246f66b7c7680b001248069cb1854000a453669da67f723b3d2" :a :spec/namespace :v :spec.ns/REFLEXIVE :op :assert}
+   {:e #blake3 "fd3932565d198246f66b7c7680b001248069cb1854000a453669da67f723b3d2" :a :spec/statement :v "Every observe subcommand (list, search, show, recent, create) includes a computed steering question derived from co_occurrence_matrix, frontier_recommendation, and concept_inventory. Zero LLM calls. Five falsification conditions (a-e): one per subcommand." :op :assert}
+ ]}

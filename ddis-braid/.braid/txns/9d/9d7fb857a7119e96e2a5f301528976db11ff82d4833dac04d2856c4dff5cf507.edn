@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774631493/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DW0-TEST: Fingerprint correctness — 4 unit tests + 1 proptest + 1 E2E script"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :db/ident :v :task/t-57ae3c58 :op :assert}
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :task/created-at :v 1774631492 :op :assert}
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :task/description :v "UNIT TESTS: (1) test_fingerprint_uses_known_hashes: Create tempdir store with 5 txns via DiskLayout::init + write_tx. Open LiveStore (knows 5). Write 2 more .edn files directly to disk (simulating external process). Call live.flush(). Read meta.json — verify tx_hashes array has exactly 5 entries, not 7. Verify fingerprint computed from those 5. (2) test_stale_flush_triggers_rebuild: After test 1, open a NEW LiveStore. list_tx_hashes returns 7. txn_fingerprint(7) ≠ meta.txn_fingerprint(5). read_slim_cache returns None (cache miss). Store rebuilt from all 7 .edn files. Verify store.len() includes datoms from all 7. (3) test_fresh_flush_is_cache_hit: Create store, open LiveStore, write 3 txns through LiveStore, flush. Reopen. Verify cache HIT (fingerprint matches). Verify store.len() correct. PROPTEST: (4) proptest_subset_fingerprint_differs: Generate n random hashes (5..20). Take subset of size k<n. Verify txn_fingerprint(subset) ≠ txn_fingerprint(full). Run 1000 iterations. FAILURE DIAGNOSTIC: On test failure, print: (a) meta.json tx_hashes array, (b) list_tx_hashes() result, (c) both fingerprints, (d) diff of hash sets. E2E SCRIPT: (5) scripts/e2e_fingerprint.sh: Start braid in tempdir. Run braid observe 'X'. In background, write a raw .edn file to txns/ (simulating concurrent agent). Run braid observe 'Y'. Run braid status. Verify BOTH X and Y appear. If Y missing → fingerprint bug still present." :op :assert}
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :task/id :v "t-57ae3c58" :op :assert}
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :task/labels :v :label/daemon-write-v2 :op :assert}
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :task/labels :v :label/wave0 :op :assert}
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :task/title :v "DW0-TEST: Fingerprint correctness — 4 unit tests + 1 proptest + 1 E2E script" :op :assert}
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :task/title-l0 :v "DW0-TEST" :op :assert}
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :task/title-l1 :v "DW0-TEST: Fingerprint correctness — 4 unit tests + 1 proptest + 1 E2E script" :op :assert}
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "bb596a426e029e1af6ba0f0e55ced35d84d14223e1a810f97a4940a645ddef5a" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774619705/0/6fac38bf0255e7a3198cd8a09bc3bb69"
+ :tx/agent "6fac38bf0255e7a3198cd8a09bc3bb69"
+ :tx/provenance :observed
+ :tx/rationale "VALIDATION-PROTOCOL: C9 E2E acceptance requires 8 checks — (1) braid init on fresh dir, (2) create 10 obs across 3 topics with 3 agents, (3) observe list groups by concept, (4) observe search ranks correctly, (5) observe recent orders by time, (6) observe show displays all attrs+links, (7) steering_question non-null in all 4 JSON responses, (8) braid seed surfaces convergent findings. Pass criteria: all 8 pass. Falsification: any steering_question:null violates INV-REFLEXIVE-006."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "45d34ffebd8bc0117a6b9d07a286988037de7fe72361db4bcb5eed87318cfe0f" :a :db/doc :v "VALIDATION-PROTOCOL: C9 E2E acceptance requires 8 checks — (1) braid init on fresh dir, (2) create 10 obs across 3 topics with 3 agents, (3) observe list groups by concept, (4) observe search ranks correctly, (5) observe recent orders by time, (6) observe show displays all attrs+links, (7) steering_question non-null in all 4 JSON responses, (8) braid seed surfaces convergent findings. Pass criteria: all 8 pass. Falsification: any steering_question:null violates INV-REFLEXIVE-006." :op :assert}
+   {:e #blake3 "45d34ffebd8bc0117a6b9d07a286988037de7fe72361db4bcb5eed87318cfe0f" :a :db/ident :v :observation/validation-protocol-c9-e2e-acceptance-requires-8-checks :op :assert}
+   {:e #blake3 "45d34ffebd8bc0117a6b9d07a286988037de7fe72361db4bcb5eed87318cfe0f" :a :exploration/body :v "VALIDATION-PROTOCOL: C9 E2E acceptance requires 8 checks — (1) braid init on fresh dir, (2) create 10 obs across 3 topics with 3 agents, (3) observe list groups by concept, (4) observe search ranks correctly, (5) observe recent orders by time, (6) observe show displays all attrs+links, (7) steering_question non-null in all 4 JSON responses, (8) braid seed surfaces convergent findings. Pass criteria: all 8 pass. Falsification: any steering_question:null violates INV-REFLEXIVE-006." :op :assert}
+   {:e #blake3 "45d34ffebd8bc0117a6b9d07a286988037de7fe72361db4bcb5eed87318cfe0f" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "45d34ffebd8bc0117a6b9d07a286988037de7fe72361db4bcb5eed87318cfe0f" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "45d34ffebd8bc0117a6b9d07a286988037de7fe72361db4bcb5eed87318cfe0f" :a :exploration/content-hash :v #bytes "a1257b2da3b111a7d72afe511783fee3c578a4f3c5828ea1b81fa65d7cd28da8" :op :assert}
+   {:e #blake3 "45d34ffebd8bc0117a6b9d07a286988037de7fe72361db4bcb5eed87318cfe0f" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "45d34ffebd8bc0117a6b9d07a286988037de7fe72361db4bcb5eed87318cfe0f" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "45d34ffebd8bc0117a6b9d07a286988037de7fe72361db4bcb5eed87318cfe0f" :a :exploration/source-session :v #blake3 "d5623dbd02609c583a083ae155b8fd85ffbe6b46dae3891916fc25f6fc8ab4cc" :op :assert}
+ ]}

@@ -1,0 +1,52 @@
+{:tx/id #hlc "1774640952/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 1226 candidates from task 'DAEMON-WRITE Phase 1 COMPLETE — all core tasks + verification shipped'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "24a3cb3cc7ff8c289041770fd0cdbc332629efc02476a3344b3800777486ed80" :a :hypothesis/action :v #blake3 "44d5d397154b469c1d33bf5cb4da749089379e765e10f4b6ae4f21ac379b2780" :op :assert}
+   {:e #blake3 "24a3cb3cc7ff8c289041770fd0cdbc332629efc02476a3344b3800777486ed80" :a :hypothesis/boundary :v "spec<->impl" :op :assert}
+   {:e #blake3 "24a3cb3cc7ff8c289041770fd0cdbc332629efc02476a3344b3800777486ed80" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "24a3cb3cc7ff8c289041770fd0cdbc332629efc02476a3344b3800777486ed80" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "24a3cb3cc7ff8c289041770fd0cdbc332629efc02476a3344b3800777486ed80" :a :hypothesis/predicted :v 0.40392226302050394 :op :assert}
+   {:e #blake3 "24a3cb3cc7ff8c289041770fd0cdbc332629efc02476a3344b3800777486ed80" :a :hypothesis/timestamp :v #inst 1774641174 :op :assert}
+   {:e #blake3 "4315802bfb31b49be3f10ee5a249ec0d5c43ec24dee93c44222ceff83b3edb58" :a :hypothesis/action :v #blake3 "eb63bf79026566e3fa0d1914b14b345b4ad2c45c0c377724753b8972f3a9c5cd" :op :assert}
+   {:e #blake3 "4315802bfb31b49be3f10ee5a249ec0d5c43ec24dee93c44222ceff83b3edb58" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "4315802bfb31b49be3f10ee5a249ec0d5c43ec24dee93c44222ceff83b3edb58" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "4315802bfb31b49be3f10ee5a249ec0d5c43ec24dee93c44222ceff83b3edb58" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "4315802bfb31b49be3f10ee5a249ec0d5c43ec24dee93c44222ceff83b3edb58" :a :hypothesis/predicted :v 0.7701136083238278 :op :assert}
+   {:e #blake3 "4315802bfb31b49be3f10ee5a249ec0d5c43ec24dee93c44222ceff83b3edb58" :a :hypothesis/timestamp :v #inst 1774641174 :op :assert}
+   {:e #blake3 "53bfb0941e332e6ca8f854f41e478582298c601134e5295aeee330deebdb5716" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :db/doc :v "Harvest session for task: DAEMON-WRITE Phase 1 COMPLETE — all core tasks + verification shipped" :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :db/ident :v :harvest/session-braid-user-1774640952 :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/accomplishments :v "Session entity: :task/t-eef40a70; What connects thinking about topology and coupling for ... to AUDIT ARCH-SOUNDNESS: Subsystem soundness classification — ...?; What connects thinking about topology and coupling for ... to t-2fd51aac?; Session entity: :recon/trace-cf11a34416c160e2; What connects thinking about topology and coupling for ... to ADR-FOUNDATION-017: THE HYPOTHETICO-DEDUCTIVE LOOP. The complete ...?; Session entity: :recon/trace-97e89dd30b575ff3; Session entity: :recon/trace-80337f70f9c5f82f; Session entity: :recon/trace-c935da15ba9d69df; Session entity: :recon/trace-2622df11399a33e1; Session entity: :recon/trace-6376c8346eeca3c1; Session entity: :recon/trace-3ea723a6266be98b; Session entity: :recon/trace-09c91203f76fc200; Session entity: :recon/trace-0a8adfc8010a8c0b; Session entity: :recon/trace-b6b962703955351e; Session entity: :runtime/req-14c6941c1cf1e0d5; Session entity: :recon/trace-960bc26012375c46; Session entity: :runtime/req-32d698f927c02865; Session entity: :recon/trace-bba53600394d04be; Session entity: :recon/trace-7dbfec3e38d8b1be" :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/candidate-count :v 1226 :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/codebase-snapshot :v "Codebase: 0 LOC across 0 source files\nTests: 2072 passing" :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/context-metrics :v "{\"candidates\":1226,\"k_eff_estimated\":\"0.62\",\"observations\":0,\"output_tokens_est\":15130,\"tasks_closed\":7,\"tx_count\":56,\"wall_elapsed_s\":1168}" :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/delta-summary :v "+4394 datoms, +67 entities" :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/git-summary :v "branch=main, 3 commits, 11 files (+2275/-387)\n  0c360e00 DAEMON-WRITE verification: 9 integration tests + E2E script\n  49a6ac7c C10: CLI coherence as hard constraint enforced by braid's own machinery\n  a889ec2d DAEMON-WRITE: Fix stale cache + complete write-path routing (DW0-DW4)\nHot files:\n  ddis-braid/crates/braid/tests/daemon_write.rs (647 lines changed)\n  ddis-braid/crates/braid/src/daemon.rs (545 lines changed)\n  ddis-braid/crates/braid/src/commands/mod.rs (446 lines changed)\n  ddis-braid/docs/audits/session-047/DAEMON_MIGRATION_PROPOSAL.md (301 lines changed)\n  ddis-braid/crates/braid/src/mcp.rs (218 lines changed)\n  ddis-braid/crates/braid/src/live_store.rs (120 lines changed)\n  ddis-braid/docs/design/CLI_COHERENCE_SPEC.md (98 lines changed)\n  ddis-braid/scripts/e2e_daemon_write.sh (89 lines changed)" :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/recommended-tasks :v "t-d9536d87,t-f12bff46,t-8e8cf412" :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/store-datom-count :v 174509 :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/store-entity-count :v 12832 :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: DAEMON-WRITE Phase 1 COMPLETE — all core tasks + verification shipped\nRun: `braid seed --task \"continue: DAEMON-WRITE Phase 1 COMPLETE — all core tasks + verification shipped\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/task :v "DAEMON-WRITE Phase 1 COMPLETE — all core tasks + verification shipped" :op :assert}
+   {:e #blake3 "a83fd3d7b4e1e7008e607f87166aecb00b1e24dc6c17e24449f13ce239b7e96f" :a :harvest/tx-since-last :v 56 :op :assert}
+   {:e #blake3 "b64f9687537a8c0016afe50d4db2847e69772e84460812b43ec50b7092da9b03" :a :hypothesis/action :v #blake3 "11146360f74be633495a6342dd8200186db3c8cf4a9c36a3c12288606c58cf62" :op :assert}
+   {:e #blake3 "b64f9687537a8c0016afe50d4db2847e69772e84460812b43ec50b7092da9b03" :a :hypothesis/boundary :v "general" :op :assert}
+   {:e #blake3 "b64f9687537a8c0016afe50d4db2847e69772e84460812b43ec50b7092da9b03" :a :hypothesis/confidence :v 0.5 :op :assert}
+   {:e #blake3 "b64f9687537a8c0016afe50d4db2847e69772e84460812b43ec50b7092da9b03" :a :hypothesis/item-type :v "task" :op :assert}
+   {:e #blake3 "b64f9687537a8c0016afe50d4db2847e69772e84460812b43ec50b7092da9b03" :a :hypothesis/predicted :v 0.9481899851484269 :op :assert}
+   {:e #blake3 "b64f9687537a8c0016afe50d4db2847e69772e84460812b43ec50b7092da9b03" :a :hypothesis/timestamp :v #inst 1774641174 :op :assert}
+   {:e #blake3 "ea5a426f665a728e2e9fac97e04b1f06da7b86f103876de583ed7d6c8b6e772f" :a :db/ident :v :session/s-1774641174548 :op :assert}
+   {:e #blake3 "ea5a426f665a728e2e9fac97e04b1f06da7b86f103876de583ed7d6c8b6e772f" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "ea5a426f665a728e2e9fac97e04b1f06da7b86f103876de583ed7d6c8b6e772f" :a :session/current :v #blake3 "ea5a426f665a728e2e9fac97e04b1f06da7b86f103876de583ed7d6c8b6e772f" :op :assert}
+   {:e #blake3 "ea5a426f665a728e2e9fac97e04b1f06da7b86f103876de583ed7d6c8b6e772f" :a :session/start-datom-count :v 174545 :op :assert}
+   {:e #blake3 "ea5a426f665a728e2e9fac97e04b1f06da7b86f103876de583ed7d6c8b6e772f" :a :session/start-fitness :v 0.6135041547043291 :op :assert}
+   {:e #blake3 "ea5a426f665a728e2e9fac97e04b1f06da7b86f103876de583ed7d6c8b6e772f" :a :session/start-time :v "2026-03-27T19:52:54Z" :op :assert}
+   {:e #blake3 "ea5a426f665a728e2e9fac97e04b1f06da7b86f103876de583ed7d6c8b6e772f" :a :session/started-at :v 1774641174 :op :assert}
+   {:e #blake3 "ea5a426f665a728e2e9fac97e04b1f06da7b86f103876de583ed7d6c8b6e772f" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "ea5a426f665a728e2e9fac97e04b1f06da7b86f103876de583ed7d6c8b6e772f" :a :session/task :v "## Session Synthesis Directive\n\n**Next session task**: continue: DAEMON-WRITE Phase 1 COMPLETE — all core tasks + verification shipped\nRun: `braid seed --task \"continue: DAEMON-WRITE Phase 1 COMPLETE — all core tasks + verification shipped\"` to start the next session.\n" :op :assert}
+ ]}

@@ -170,11 +170,7 @@ pub fn detect_session_start(store: &Store) -> bool {
 /// - `:session/current` — self-referential Ref marking this as the active session
 ///
 /// The caller is responsible for wrapping these in a `TxFile` and writing them.
-pub fn create_session_start_datoms(
-    store: &Store,
-    agent: AgentId,
-    tx: TxId,
-) -> Vec<Datom> {
+pub fn create_session_start_datoms(store: &Store, agent: AgentId, tx: TxId) -> Vec<Datom> {
     create_session_start_datoms_with_name(store, agent, tx, "braid:session")
 }
 
@@ -319,8 +315,8 @@ pub fn days_to_ymd(days: u64) -> (u64, u64, u64) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::{BTreeMap, BTreeSet};
     use crate::budget::GuidanceLevel;
+    use std::collections::{BTreeMap, BTreeSet};
 
     // Verifies: INV-GUIDANCE-008 — M(t) Methodology Adherence Score
     // Verifies: ADR-GUIDANCE-005 — Unified Guidance as M(t) x R(t) x T(t)
@@ -1941,7 +1937,9 @@ mod tests {
             .unwrap_or_else(|e| panic!("failed to read {}: {}", harvest_path.display(), e));
 
         // Filter out test-only calls
-        let in_test_module = harvest_src.find("#[cfg(test)]").unwrap_or(harvest_src.len());
+        let in_test_module = harvest_src
+            .find("#[cfg(test)]")
+            .unwrap_or(harvest_src.len());
         let production_only: Vec<_> = harvest_src[..in_test_module]
             .lines()
             .filter(|l| l.contains("surprisal_score(") && !l.trim().starts_with("//"))
@@ -3641,7 +3639,11 @@ mod tests {
                     concept_dampening: 1.0,
                 },
                 acquisition_score: crate::budget::AcquisitionScore::from_factors(
-                    crate::budget::ObservationKind::Task, 0.7, 1.0, 1.0, 1.0,
+                    crate::budget::ObservationKind::Task,
+                    0.7,
+                    1.0,
+                    1.0,
+                    1.0,
                     crate::budget::ObservationCost::zero(),
                 ),
             },
@@ -3665,7 +3667,11 @@ mod tests {
                     concept_dampening: 1.0,
                 },
                 acquisition_score: crate::budget::AcquisitionScore::from_factors(
-                    crate::budget::ObservationKind::Task, 0.3, 1.0, 1.0, 1.0,
+                    crate::budget::ObservationKind::Task,
+                    0.3,
+                    1.0,
+                    1.0,
+                    1.0,
                     crate::budget::ObservationCost::zero(),
                 ),
             },
@@ -3673,11 +3679,17 @@ mod tests {
 
         let datoms = record_hypotheses(&routings, 3, tx);
         // 2 recommendations x 6 datoms each = 12 (UAQ-4: +item-type)
-        assert_eq!(datoms.len(), 12, "expected 6 datoms per hypothesis, got {}", datoms.len());
+        assert_eq!(
+            datoms.len(),
+            12,
+            "expected 6 datoms per hypothesis, got {}",
+            datoms.len()
+        );
 
         // Check first hypothesis has all 6 attributes
         let first_entity = datoms[0].entity;
-        let attrs: Vec<String> = datoms.iter()
+        let attrs: Vec<String> = datoms
+            .iter()
             .filter(|d| d.entity == first_entity)
             .map(|d| d.attribute.as_str().to_string())
             .collect();
@@ -3716,13 +3728,20 @@ mod tests {
                 concept_dampening: 1.0,
             },
             acquisition_score: crate::budget::AcquisitionScore::from_factors(
-                crate::budget::ObservationKind::Task, 0.0, 1.0, 1.0, 1.0,
+                crate::budget::ObservationKind::Task,
+                0.0,
+                1.0,
+                1.0,
+                1.0,
                 crate::budget::ObservationCost::zero(),
             ),
         }];
 
         let datoms = record_hypotheses(&routings, 3, tx);
-        assert!(datoms.is_empty(), "zero-impact should produce no hypotheses");
+        assert!(
+            datoms.is_empty(),
+            "zero-impact should produce no hypotheses"
+        );
     }
 
     /// HL-2: hypothesis_count on empty store is 0.
@@ -6348,14 +6367,8 @@ mod tests {
             attrs.contains(":session/start-datom-count"),
             "missing :session/start-datom-count"
         );
-        assert!(
-            attrs.contains(":session/agent"),
-            "missing :session/agent"
-        );
-        assert!(
-            attrs.contains(":session/status"),
-            "missing :session/status"
-        );
+        assert!(attrs.contains(":session/agent"), "missing :session/agent");
+        assert!(attrs.contains(":session/status"), "missing :session/status");
         assert!(
             attrs.contains(":session/current"),
             "missing :session/current"
@@ -6384,7 +6397,10 @@ mod tests {
                 f
             );
         } else {
-            panic!("start-fitness should be a Double, got {:?}", fitness_datom.value);
+            panic!(
+                "start-fitness should be a Double, got {:?}",
+                fitness_datom.value
+            );
         }
 
         // Verify :session/start-datom-count is a Long >= 0
@@ -6575,10 +6591,7 @@ mod tests {
         // "INV-ONLY" has only 2 parts: returns full string as fallback
         assert_eq!(extract_spec_namespace("INV-ONLY"), "INV-ONLY");
         // Extra parts: still returns index 1
-        assert_eq!(
-            extract_spec_namespace("INV-TOPOLOGY-001-EXTRA"),
-            "TOPOLOGY"
-        );
+        assert_eq!(extract_spec_namespace("INV-TOPOLOGY-001-EXTRA"), "TOPOLOGY");
     }
 
     /// Helper: create a store with full schema + extra datoms for graph neighbor tests.
@@ -6587,10 +6600,7 @@ mod tests {
     }
 
     /// Helper: rebuild a store from its datoms + extras.
-    fn graph_store_with(
-        store: &Store,
-        extra: impl IntoIterator<Item = Datom>,
-    ) -> Store {
+    fn graph_store_with(store: &Store, extra: impl IntoIterator<Item = Datom>) -> Store {
         routing_store_with(store, extra)
     }
 
@@ -6623,8 +6633,8 @@ mod tests {
         let store = graph_store_with(&store, spec_datoms);
 
         // Task A traces-to spec entity
-        let (task_a_entity, datoms_a) = crate::task::create_task_datoms(
-            crate::task::CreateTaskParams {
+        let (task_a_entity, datoms_a) =
+            crate::task::create_task_datoms(crate::task::CreateTaskParams {
                 title: "Task Alpha (no keywords overlap)",
                 description: None,
                 priority: 1,
@@ -6632,13 +6642,12 @@ mod tests {
                 tx,
                 traces_to: &[spec_entity],
                 labels: &[],
-            },
-        );
+            });
         let store = graph_store_with(&store, datoms_a);
 
         // Task B also traces-to spec entity
-        let (task_b_entity, datoms_b) = crate::task::create_task_datoms(
-            crate::task::CreateTaskParams {
+        let (task_b_entity, datoms_b) =
+            crate::task::create_task_datoms(crate::task::CreateTaskParams {
                 title: "Task Bravo (completely different words)",
                 description: None,
                 priority: 2,
@@ -6646,17 +6655,14 @@ mod tests {
                 tx,
                 traces_to: &[spec_entity],
                 labels: &[],
-            },
-        );
+            });
         let store = graph_store_with(&store, datoms_b);
 
         // Query neighbors for INV-STORE-001
-        let neighbors =
-            spec_graph_neighbors(&store, &["INV-STORE-001".to_string()]);
+        let neighbors = spec_graph_neighbors(&store, &["INV-STORE-001".to_string()]);
 
         // Both tasks should appear as neighbors
-        let neighbor_entities: Vec<EntityId> =
-            neighbors.iter().map(|(e, _)| *e).collect();
+        let neighbor_entities: Vec<EntityId> = neighbors.iter().map(|(e, _)| *e).collect();
         assert!(
             neighbor_entities.contains(&task_a_entity),
             "Task A should be found as a neighbor via shared spec ref"
@@ -6712,8 +6718,8 @@ mod tests {
         ];
 
         // One task traces-to rare spec
-        let (_rare_task, rare_datoms) = crate::task::create_task_datoms(
-            crate::task::CreateTaskParams {
+        let (_rare_task, rare_datoms) =
+            crate::task::create_task_datoms(crate::task::CreateTaskParams {
                 title: "Rare spec task only one ref",
                 description: None,
                 priority: 1,
@@ -6721,15 +6727,14 @@ mod tests {
                 tx,
                 traces_to: &[rare_spec],
                 labels: &[],
-            },
-        );
+            });
         extra_datoms.extend(rare_datoms);
 
         // Five tasks trace-to popular spec
         for i in 0..5 {
             let title = format!("Popular spec task number {}", i);
-            let (_, popular_datoms) = crate::task::create_task_datoms(
-                crate::task::CreateTaskParams {
+            let (_, popular_datoms) =
+                crate::task::create_task_datoms(crate::task::CreateTaskParams {
                     title: &title,
                     description: None,
                     priority: 2,
@@ -6737,17 +6742,14 @@ mod tests {
                     tx,
                     traces_to: &[popular_spec],
                     labels: &[],
-                },
-            );
+                });
             extra_datoms.extend(popular_datoms);
         }
 
         let store = graph_store_with(&store, extra_datoms);
 
-        let rare_neighbors =
-            spec_graph_neighbors(&store, &["INV-RARE-001".to_string()]);
-        let popular_neighbors =
-            spec_graph_neighbors(&store, &["INV-POPULAR-001".to_string()]);
+        let rare_neighbors = spec_graph_neighbors(&store, &["INV-RARE-001".to_string()]);
+        let popular_neighbors = spec_graph_neighbors(&store, &["INV-POPULAR-001".to_string()]);
 
         // Get the max score from each
         let rare_max = rare_neighbors
@@ -6820,8 +6822,8 @@ mod tests {
         ];
 
         // Task 1 traces-to Spec A (direct)
-        let (task_1_entity, task_1_datoms) = crate::task::create_task_datoms(
-            crate::task::CreateTaskParams {
+        let (task_1_entity, task_1_datoms) =
+            crate::task::create_task_datoms(crate::task::CreateTaskParams {
                 title: "Direct task on spec alpha",
                 description: None,
                 priority: 1,
@@ -6829,13 +6831,12 @@ mod tests {
                 tx,
                 traces_to: &[spec_a],
                 labels: &[],
-            },
-        );
+            });
         extra_datoms.extend(task_1_datoms);
 
         // Task 2 traces-to Spec B (indirect via spec A -> spec B)
-        let (task_2_entity, task_2_datoms) = crate::task::create_task_datoms(
-            crate::task::CreateTaskParams {
+        let (task_2_entity, task_2_datoms) =
+            crate::task::create_task_datoms(crate::task::CreateTaskParams {
                 title: "Indirect task on spec beta",
                 description: None,
                 priority: 2,
@@ -6843,8 +6844,7 @@ mod tests {
                 tx,
                 traces_to: &[spec_b],
                 labels: &[],
-            },
-        );
+            });
         extra_datoms.extend(task_2_datoms);
 
         let store = graph_store_with(&store, extra_datoms);
@@ -6852,11 +6852,9 @@ mod tests {
         // Query for INV-ALPHA-001 neighbors: should find both tasks.
         // Task 1 is 0-hop (directly traces to alpha).
         // Task 2 is 1-hop (traces to beta, which alpha traces-to).
-        let neighbors =
-            spec_graph_neighbors(&store, &["INV-ALPHA-001".to_string()]);
+        let neighbors = spec_graph_neighbors(&store, &["INV-ALPHA-001".to_string()]);
 
-        let neighbor_entities: Vec<EntityId> =
-            neighbors.iter().map(|(e, _)| *e).collect();
+        let neighbor_entities: Vec<EntityId> = neighbors.iter().map(|(e, _)| *e).collect();
         assert!(
             neighbor_entities.contains(&task_1_entity),
             "Task 1 should appear as 0-hop neighbor"
@@ -6937,8 +6935,8 @@ mod tests {
         ];
 
         // Task with completely different keywords but traces-to the spec
-        let (_task_entity, task_datoms) = crate::task::create_task_datoms(
-            crate::task::CreateTaskParams {
+        let (_task_entity, task_datoms) =
+            crate::task::create_task_datoms(crate::task::CreateTaskParams {
                 title: "Zyxwvuts completely unrelated words",
                 description: None,
                 priority: 1,
@@ -6946,8 +6944,7 @@ mod tests {
                 tx,
                 traces_to: &[spec_entity],
                 labels: &[],
-            },
-        );
+            });
         extra_datoms.extend(task_datoms);
 
         let store = graph_store_with(&store, extra_datoms);
@@ -6960,9 +6957,9 @@ mod tests {
         );
 
         // The task should appear in results via graph (even though keywords don't match)
-        let has_graph_task = results.iter().any(|r| {
-            r.source.contains("graph") || r.source == "task"
-        });
+        let has_graph_task = results
+            .iter()
+            .any(|r| r.source.contains("graph") || r.source == "task");
         // At minimum, the spec element itself should appear via keyword match on "foobar"
         let has_spec = results.iter().any(|r| r.source == "spec");
         assert!(
@@ -7110,10 +7107,16 @@ mod tests {
             "should include TOPOLOGY"
         );
 
-        let iface = signals.iter().find(|s| s.neighborhood == "INTERFACE").unwrap();
+        let iface = signals
+            .iter()
+            .find(|s| s.neighborhood == "INTERFACE")
+            .unwrap();
         assert_eq!(iface.trace_count, 5);
 
-        let topo = signals.iter().find(|s| s.neighborhood == "TOPOLOGY").unwrap();
+        let topo = signals
+            .iter()
+            .find(|s| s.neighborhood == "TOPOLOGY")
+            .unwrap();
         assert_eq!(topo.trace_count, 3);
     }
 }

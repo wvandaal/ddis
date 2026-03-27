@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774632113/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: test-pain-point"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1b6b20265e1ed3aaebc19c77b81beaca4a6540af67f2d898880263ef8a77bf37" :a :db/ident :v :task/t-1d6e4ddd :op :assert}
+   {:e #blake3 "1b6b20265e1ed3aaebc19c77b81beaca4a6540af67f2d898880263ef8a77bf37" :a :task/created-at :v 1774632112 :op :assert}
+   {:e #blake3 "1b6b20265e1ed3aaebc19c77b81beaca4a6540af67f2d898880263ef8a77bf37" :a :task/id :v "t-1d6e4ddd" :op :assert}
+   {:e #blake3 "1b6b20265e1ed3aaebc19c77b81beaca4a6540af67f2d898880263ef8a77bf37" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "1b6b20265e1ed3aaebc19c77b81beaca4a6540af67f2d898880263ef8a77bf37" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1b6b20265e1ed3aaebc19c77b81beaca4a6540af67f2d898880263ef8a77bf37" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1b6b20265e1ed3aaebc19c77b81beaca4a6540af67f2d898880263ef8a77bf37" :a :task/title :v "test-pain-point" :op :assert}
+   {:e #blake3 "1b6b20265e1ed3aaebc19c77b81beaca4a6540af67f2d898880263ef8a77bf37" :a :task/title-l0 :v "test-pain-point" :op :assert}
+   {:e #blake3 "1b6b20265e1ed3aaebc19c77b81beaca4a6540af67f2d898880263ef8a77bf37" :a :task/title-l1 :v "test-pain-point" :op :assert}
+   {:e #blake3 "1b6b20265e1ed3aaebc19c77b81beaca4a6540af67f2d898880263ef8a77bf37" :a :task/type :v :task.type/task :op :assert}
+ ]}

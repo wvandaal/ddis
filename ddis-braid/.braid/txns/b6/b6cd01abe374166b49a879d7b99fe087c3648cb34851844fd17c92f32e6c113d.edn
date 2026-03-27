@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774631690/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DW5: Direct-mode hardening — pass pre_opened LiveStore to ALL commands, not just status"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :db/ident :v :task/t-9a74911c :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/created-at :v 1774631689 :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/description :v "CONTEXT: Even after daemon migration, direct mode (daemon not running or command non-routable) still has the overlapping-LiveStore problem. DW0 (fingerprint fix) makes staleness self-correcting (one-load transient) but does not PREVENT the stale flush. This task eliminates it by construction. APPROACH: main.rs:126-132 already opens ONE LiveStore for all non-init commands. But commands::run (mod.rs:2435-2457) only passes pre_opened to status. ALL other commands open their own. The fix: (1) Change commands::run to pass &mut LiveStore to every command handler, not just status. (2) Each command handler accepts live: &mut LiveStore instead of path: &Path. (3) Remove LiveStore::open calls from command handlers. (4) Post-hooks use the same LiveStore. One open, one flush, one owner. SCOPE: ~25 command handler signatures change. This is a mechanical refactor — each handler replaces let mut live = LiveStore::open(path)? with using the passed &mut LiveStore. The handlers that currently open their own store do identical work (open → load from cache) — the pre-opened store is exactly equivalent. ALGEBRAIC PROPERTY: With a single LiveStore, flush() is a total function from memory→disk. No partial states, no races, no overlapping writers. INV-STORE-020 holds by construction. ACCEPTANCE: (1) grep 'LiveStore::open' crates/braid/src/commands/ returns 0 matches (except tests). (2) All 2043 tests pass. (3) braid task create 'X' → braid task search 'X' → found (no stale cache in direct mode). RISK: Some commands may need mutable access patterns that conflict with the single LiveStore borrow. Specifically: harvest does complex multi-step operations that may need to re-read after writes. These can use live.store() (immutable borrow) between write_tx calls. PRIORITY: P1 (not blocking — DW0 provides self-correction as defense in depth)." :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/id :v "t-9a74911c" :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/labels :v :label/daemon-write-v2 :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/labels :v :label/wave5 :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/title :v "DW5: Direct-mode hardening — pass pre_opened LiveStore to ALL commands, not just status" :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/title-l0 :v "DW5" :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/title-l1 :v "DW5: Direct-mode hardening — pass pre_opened LiveStore to ALL commands, not..." :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/traces-to :v #blake3 "7ceb3ac1150ab21287b5642e327ecec7a2d644e1f0772aab707f9c6106560932" :op :assert}
+   {:e #blake3 "2e93a0ef8ee5c5b8c0c6d71a5512e3b2461338e77922e91a9aaa9df6f231df5c" :a :task/type :v :task.type/task :op :assert}
+ ]}

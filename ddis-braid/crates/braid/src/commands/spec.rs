@@ -135,10 +135,7 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         let crit_entity = EntityId::from_ident(&format!(
             ":falsification/{}-{}",
             args.id.to_lowercase().replace('/', "-"),
-            fals.chars()
-                .take(30)
-                .collect::<String>()
-                .replace(' ', "-")
+            fals.chars().take(30).collect::<String>().replace(' ', "-")
         ));
         datoms.push(Datom::new(
             crit_entity,

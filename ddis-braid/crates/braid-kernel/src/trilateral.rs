@@ -458,10 +458,7 @@ pub fn check_coherence_fast(store: &Store) -> CoherenceReport {
     let w_is = 0.4;
     let w_sp = 0.6;
     let phi = (w_is * d_is as f64 + w_sp * d_sp as f64) / n_max;
-    let components = DivergenceComponents {
-        d_is,
-        d_sp,
-    };
+    let components = DivergenceComponents { d_is, d_sp };
 
     // Beta_1: still O(N) — requires graph structure.
     // TODO(UA-1 future): maintain adjacency incrementally for O(1) beta_1.

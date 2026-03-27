@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774639545/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: iron-seq-5-1774639540"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4a3c1f6541dd00904dcb4f8417d5f87deee09f68ec92f65c0f10ffe01b5e5d73" :a :db/ident :v :task/t-730c5108 :op :assert}
+   {:e #blake3 "4a3c1f6541dd00904dcb4f8417d5f87deee09f68ec92f65c0f10ffe01b5e5d73" :a :task/created-at :v 1774639544 :op :assert}
+   {:e #blake3 "4a3c1f6541dd00904dcb4f8417d5f87deee09f68ec92f65c0f10ffe01b5e5d73" :a :task/id :v "t-730c5108" :op :assert}
+   {:e #blake3 "4a3c1f6541dd00904dcb4f8417d5f87deee09f68ec92f65c0f10ffe01b5e5d73" :a :task/priority :v 4 :op :assert}
+   {:e #blake3 "4a3c1f6541dd00904dcb4f8417d5f87deee09f68ec92f65c0f10ffe01b5e5d73" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4a3c1f6541dd00904dcb4f8417d5f87deee09f68ec92f65c0f10ffe01b5e5d73" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4a3c1f6541dd00904dcb4f8417d5f87deee09f68ec92f65c0f10ffe01b5e5d73" :a :task/title :v "iron-seq-5-1774639540" :op :assert}
+   {:e #blake3 "4a3c1f6541dd00904dcb4f8417d5f87deee09f68ec92f65c0f10ffe01b5e5d73" :a :task/title-l0 :v "iron-seq-5-1774639540" :op :assert}
+   {:e #blake3 "4a3c1f6541dd00904dcb4f8417d5f87deee09f68ec92f65c0f10ffe01b5e5d73" :a :task/title-l1 :v "iron-seq-5-1774639540" :op :assert}
+   {:e #blake3 "4a3c1f6541dd00904dcb4f8417d5f87deee09f68ec92f65c0f10ffe01b5e5d73" :a :task/type :v :task.type/task :op :assert}
+ ]}

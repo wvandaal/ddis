@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774635249/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DS3-TEST: Checkpoint verification — 7 tests including non-blocking proof + harvest integration"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :db/ident :v :task/t-4e7bf629 :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/created-at :v 1774635248 :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/description :v "TESTS for DS3 PASSIVE checkpoint. UNIT: (1) test_passive_converts_wal_to_edn: Write 50 WAL entries. Start checkpoint thread. Wait 3 × checkpoint_interval. Verify 50 .edn files exist with correct BLAKE3-named filenames. (2) test_full_checkpoint_blocks: Write 50 WAL entries. Call full_checkpoint(). Verify function returns ONLY after all 50 .edn files exist (not before). (3) test_passive_nonblocking: Start checkpoint thread. Measure write latency for 100 writes. Compare to write latency without checkpoint thread. Verify < 5% overhead (checkpoint does not contend with writes). (4) test_incremental_checkpoint: Write 20 entries. Checkpoint. Write 20 more. Checkpoint. Verify only the second 20 are processed in the second checkpoint (last_checkpoint_lsn tracks progress). (5) test_edn_content_matches_wal: Write 10 entries to WAL. Checkpoint. For each .edn file: parse EDN, compare datoms to WAL entry's TxFile. Byte-exact match. (6) test_truncate_reclaims_space: Write 100 entries (estimate ~40KB WAL). Full checkpoint. Truncate. Verify WAL file size < 5KB (only header remains). E2E: (7) test_harvest_triggers_full_checkpoint: Start daemon. Write 50 observations via CLI. Run braid harvest --commit. Verify all 50 .edn files exist BEFORE harvest returns. git status .braid/txns/ shows 50 new files. FAILURE DIAGNOSTIC: Log checkpoint_lsn before and after, WAL entry count, .edn file count, any write errors." :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/id :v "t-4e7bf629" :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/labels :v :label/checkpoint :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/labels :v :label/daemon-scale :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/labels :v :label/ds3 :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/title :v "DS3-TEST: Checkpoint verification — 7 tests including non-blocking proof + harvest integration" :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/title-l0 :v "DS3-TEST" :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/title-l1 :v "DS3-TEST: Checkpoint verification — 7 tests including non-blocking proof +..." :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/traces-to :v #blake3 "192793a3a1efa8195c4a1f3cdff307e17d88478917e1e520ef6eb8651526cb67" :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "adae96c730598c1a0e4a68b0f0984540b5b70ecd364bee91eb71a2aaf816cd33" :a :task/type :v :task.type/task :op :assert}
+ ]}

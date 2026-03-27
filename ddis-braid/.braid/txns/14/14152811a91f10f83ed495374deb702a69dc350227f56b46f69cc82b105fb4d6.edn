@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774635400/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DS7: Comprehensive scale verification — 7 categories, 50-agent simulation, durability proof, git round-trip"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :db/ident :v :task/t-56c06582 :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/created-at :v 1774635399 :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/description :v "COMPREHENSIVE VERIFICATION for DAEMON-SCALE. SEVEN TEST CATEGORIES: === CAT 1: SEMANTIC EQUIVALENCE (INV-DAEMON-004) === Run each of 11 routable commands via WAL-backed daemon AND via direct mode on identical store. Compare output and store state. All must match. === CAT 2: WRITE THROUGHPUT (50 AGENTS) === Fork 50 processes, each sends 10 writes. All 500 complete in < 30s. All 500 datom sets in store. fsync count < 200 (group commit working). Zero stale cache reads. === CAT 3: READ CONCURRENCY === Fork 20 processes sending status simultaneously while 10 processes write. All 30 complete. Read results consistent. Wall time < 2× single-read time (proving read concurrency). === CAT 4: DURABILITY === Write 100 txns. SIGKILL daemon at random point. Restart. Count recovered txns >= txns that received DurabilityPermit (CLI got response). Count lost txns = txns in flight at kill time (no CLI response — expected loss). Run 20 iterations to cover different kill points. === CAT 5: GIT READINESS === Write 100 txns to daemon. Run braid harvest --commit (triggers FULL checkpoint). git status .braid/txns/ shows exactly 100 new .edn files. git add + git commit succeeds. Clone to separate directory. braid status on clone shows all 100 txns. === CAT 6: THREE-LEVEL RECOVERY === (a) Fast: checkpoint + WAL delta. (b) Medium: corrupt WAL, recover from checkpoint + edn delta. (c) Slow: corrupt checkpoint, recover from edn-only. All three produce identical Store state. === CAT 7: REGRESSION === cargo test — all existing tests pass. braid status shows correct metrics. Performance: braid observe < 5ms through daemon. braid status < 100ms through daemon (warm). === E2E SCRIPT === scripts/e2e_daemon_scale.sh (~500 lines). Each test: isolated tempdir, daemon start, operations, assertions with detailed logging (daemon PID, WAL size, checkpoint LSN, .edn count, datom count, timing). On failure: full diagnostic dump." :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/id :v "t-56c06582" :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/labels :v :label/daemon-scale :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/labels :v :label/ds7 :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/labels :v :label/verification :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/title :v "DS7: Comprehensive scale verification — 7 categories, 50-agent simulation, durability proof, git round-trip" :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/title-l0 :v "DS7" :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/title-l1 :v "DS7: Comprehensive scale verification — 7 categories, 50-agent simulation,..." :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/traces-to :v #blake3 "192793a3a1efa8195c4a1f3cdff307e17d88478917e1e520ef6eb8651526cb67" :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/traces-to :v #blake3 "c2a77b04e631f1087740a74b4f34ad3f08243b1b8f394f270412b820cdb8adc1" :op :assert}
+   {:e #blake3 "521f084a789746410383eec40ee3061f6ca5918411eb0b1aeda43c08fec2ac86" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774629518/0/2a8340aff0f8dcddc1c5438e3e449bae"
+ :tx/agent "2a8340aff0f8dcddc1c5438e3e449bae"
+ :tx/provenance :observed
+ :tx/rationale "PROPOSAL COMPLETE: Daemon write-path migration. Root cause: CLI argument marshaling not implemented for write commands — 2 lines in daemon.rs:849-852 are the entire gap. The daemon already handles all 11 MCP tools. Fix: ~250 LOC across 4 files in 5 waves. Wave 0: fix BUG 2 (fingerprint from known_hashes). Wave 1: marshal_command() for 11 CLI→MCP mappings. Wave 2: wire into main.rs. Wave 3: remove RFL-2 from main.rs LiveStore. Wave 4: verification. Written to docs/audits/session-047/DAEMON_MIGRATION_PROPOSAL.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f36f0fb2f89bfa746368907a2cd1a80c3a1dfb1055c87d167dccbe227c7673d2" :a :db/doc :v "PROPOSAL COMPLETE: Daemon write-path migration. Root cause: CLI argument marshaling not implemented for write commands — 2 lines in daemon.rs:849-852 are the entire gap. The daemon already handles all 11 MCP tools. Fix: ~250 LOC across 4 files in 5 waves. Wave 0: fix BUG 2 (fingerprint from known_hashes). Wave 1: marshal_command() for 11 CLI→MCP mappings. Wave 2: wire into main.rs. Wave 3: remove RFL-2 from main.rs LiveStore. Wave 4: verification. Written to docs/audits/session-047/DAEMON_MIGRATION_PROPOSAL.md" :op :assert}
+   {:e #blake3 "f36f0fb2f89bfa746368907a2cd1a80c3a1dfb1055c87d167dccbe227c7673d2" :a :db/ident :v :observation/proposal-complete-daemon-write-path-migration-root-cause :op :assert}
+   {:e #blake3 "f36f0fb2f89bfa746368907a2cd1a80c3a1dfb1055c87d167dccbe227c7673d2" :a :exploration/body :v "PROPOSAL COMPLETE: Daemon write-path migration. Root cause: CLI argument marshaling not implemented for write commands — 2 lines in daemon.rs:849-852 are the entire gap. The daemon already handles all 11 MCP tools. Fix: ~250 LOC across 4 files in 5 waves. Wave 0: fix BUG 2 (fingerprint from known_hashes). Wave 1: marshal_command() for 11 CLI→MCP mappings. Wave 2: wire into main.rs. Wave 3: remove RFL-2 from main.rs LiveStore. Wave 4: verification. Written to docs/audits/session-047/DAEMON_MIGRATION_PROPOSAL.md" :op :assert}
+   {:e #blake3 "f36f0fb2f89bfa746368907a2cd1a80c3a1dfb1055c87d167dccbe227c7673d2" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "f36f0fb2f89bfa746368907a2cd1a80c3a1dfb1055c87d167dccbe227c7673d2" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "f36f0fb2f89bfa746368907a2cd1a80c3a1dfb1055c87d167dccbe227c7673d2" :a :exploration/content-hash :v #bytes "1bcb8d7a02791b3884d9cc1251a69ee7b10a11d210ff5d4836ee077808b7c5af" :op :assert}
+   {:e #blake3 "f36f0fb2f89bfa746368907a2cd1a80c3a1dfb1055c87d167dccbe227c7673d2" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f36f0fb2f89bfa746368907a2cd1a80c3a1dfb1055c87d167dccbe227c7673d2" :a :exploration/related-spec :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "f36f0fb2f89bfa746368907a2cd1a80c3a1dfb1055c87d167dccbe227c7673d2" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f36f0fb2f89bfa746368907a2cd1a80c3a1dfb1055c87d167dccbe227c7673d2" :a :exploration/source-session :v #blake3 "13b00e324457e76effff2e946f18f8efdcca6eb818131514ef27ca5a85d6528e" :op :assert}
+   {:e #blake3 "f36f0fb2f89bfa746368907a2cd1a80c3a1dfb1055c87d167dccbe227c7673d2" :a :exploration/tags :v :tag/daemon :op :assert}
+   {:e #blake3 "f36f0fb2f89bfa746368907a2cd1a80c3a1dfb1055c87d167dccbe227c7673d2" :a :exploration/tags :v :tag/migration :op :assert}
+   {:e #blake3 "f36f0fb2f89bfa746368907a2cd1a80c3a1dfb1055c87d167dccbe227c7673d2" :a :exploration/tags :v :tag/proposal :op :assert}
+ ]}

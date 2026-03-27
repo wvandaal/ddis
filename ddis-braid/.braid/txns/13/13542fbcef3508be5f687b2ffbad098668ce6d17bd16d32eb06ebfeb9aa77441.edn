@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774632365/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :db/ident :v :recon/trace-af1987c3ef68ee2e :op :assert}
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :recon/trace-neighborhood :v "STORE" :op :assert}
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :recon/trace-neighbors :v ":task/t-0a1ef40a" :op :assert}
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :recon/trace-neighbors :v ":task/t-1250a47c" :op :assert}
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :recon/trace-neighbors :v ":task/t-2aee8163" :op :assert}
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :recon/trace-neighbors :v ":task/t-449ec46d" :op :assert}
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :recon/trace-neighbors :v ":task/t-5d804a1b" :op :assert}
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :recon/trace-neighbors :v ":task/t-9ca466d5" :op :assert}
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :recon/trace-neighbors :v ":task/t-ab65c62c" :op :assert}
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :recon/trace-neighbors :v ":task/t-bbd407e0" :op :assert}
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :recon/trace-neighbors :v ":task/t-d73f32f0" :op :assert}
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :recon/trace-neighbors :v ":task/t-dac5f985" :op :assert}
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :recon/trace-refs :v "INV-STORE-020" :op :assert}
+   {:e #blake3 "14d54a8e901eade9df1c125882d1aef6b7434c42a4dfea55c31121acd9c95ea8" :a :recon/trace-refs :v "INV-STORE-022" :op :assert}
+ ]}

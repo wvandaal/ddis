@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774623080/0/d04268de68b52921e0956637cc93f852"
+ :tx/agent "d04268de68b52921e0956637cc93f852"
+ :tx/provenance :observed
+ :tx/rationale "testing TF-IDF naming on fresh crystallization"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b00b4e646c875790e07afe59e2867e0c404e67756af29cf7d3b090a5100a0665" :a :db/doc :v "testing TF-IDF naming on fresh crystallization" :op :assert}
+   {:e #blake3 "b00b4e646c875790e07afe59e2867e0c404e67756af29cf7d3b090a5100a0665" :a :db/ident :v :observation/testing-tf-idf-naming-on-fresh-crystallization :op :assert}
+   {:e #blake3 "b00b4e646c875790e07afe59e2867e0c404e67756af29cf7d3b090a5100a0665" :a :exploration/body :v "testing TF-IDF naming on fresh crystallization" :op :assert}
+   {:e #blake3 "b00b4e646c875790e07afe59e2867e0c404e67756af29cf7d3b090a5100a0665" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "b00b4e646c875790e07afe59e2867e0c404e67756af29cf7d3b090a5100a0665" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "b00b4e646c875790e07afe59e2867e0c404e67756af29cf7d3b090a5100a0665" :a :exploration/content-hash :v #bytes "5b7791742c7f61bdd481523030db34cda866d1703ff9dd11b3df3db8ece1b094" :op :assert}
+   {:e #blake3 "b00b4e646c875790e07afe59e2867e0c404e67756af29cf7d3b090a5100a0665" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b00b4e646c875790e07afe59e2867e0c404e67756af29cf7d3b090a5100a0665" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b00b4e646c875790e07afe59e2867e0c404e67756af29cf7d3b090a5100a0665" :a :exploration/source-session :v #blake3 "26c93d8623214ca55517c10b3ebbbcbf557c3d290fc04173e7a1c13a48277d13" :op :assert}
+ ]}

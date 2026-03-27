@@ -295,7 +295,8 @@ pub fn run(
                         evidence.spec_total,
                         evidence.criteria_confidence.unwrap_or(0.0) * 100.0,
                     );
-                    let close = braid_kernel::task::close_task_datoms(task.entity, &attest, recon_tx);
+                    let close =
+                        braid_kernel::task::close_task_datoms(task.entity, &attest, recon_tx);
                     reconcile_datoms.extend(close);
 
                     // Record completion method
@@ -335,8 +336,7 @@ pub fn run(
                     let title_display = braid_kernel::task::short_title(&task.title);
                     out.push_str(&format!("  [{pct:>3}%] {} \"{title_display}\"\n", task.id));
                 }
-                let close_ids: Vec<&str> =
-                    auto_close.iter().map(|(t, _)| t.id.as_str()).collect();
+                let close_ids: Vec<&str> = auto_close.iter().map(|(t, _)| t.id.as_str()).collect();
                 out.push_str(&format!(
                     "  close: braid task close {}\n",
                     close_ids.join(" ")
@@ -781,10 +781,7 @@ pub fn run(
         };
 
         // Resolve next task from synthesis directive or harvest task
-        let next_task = narrative
-            .synthesis_directive
-            .as_deref()
-            .unwrap_or(&task);
+        let next_task = narrative.synthesis_directive.as_deref().unwrap_or(&task);
 
         // 9 session datoms: 8 standard + :session/task
         all_datoms.extend([
@@ -893,15 +890,13 @@ pub fn run(
             // Load embeddings and body text for uncategorized observations.
             let mut observations = Vec::new();
             for &eid in &uncategorized_entities {
-                let emb = store
-                    .live_value(eid, &embed_attr)
-                    .and_then(|v| {
-                        if let Value::Bytes(b) = v {
-                            Some(braid_kernel::embedding::bytes_to_embedding(b))
-                        } else {
-                            None
-                        }
-                    });
+                let emb = store.live_value(eid, &embed_attr).and_then(|v| {
+                    if let Value::Bytes(b) = v {
+                        Some(braid_kernel::embedding::bytes_to_embedding(b))
+                    } else {
+                        None
+                    }
+                });
                 let body = store
                     .live_value(eid, &body_attr)
                     .and_then(|v| {
@@ -931,8 +926,7 @@ pub fn run(
 
                 let mut crystallized_names = Vec::new();
                 for concept in &new_concepts {
-                    let concept_datoms =
-                        braid_kernel::concept::concept_to_datoms(concept, now);
+                    let concept_datoms = braid_kernel::concept::concept_to_datoms(concept, now);
                     for (e, a, v) in concept_datoms {
                         all_datoms.push(Datom::new(e, a, v, harvest_tx_id, Op::Assert));
                     }

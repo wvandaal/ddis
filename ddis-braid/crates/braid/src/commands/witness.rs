@@ -474,9 +474,7 @@ pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidE
             braid_kernel::budget::OutputPrecedence::Speculative
         };
         context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
-            precedence,
-            display,
-            10,
+            precedence, display, 10,
         ));
     }
 
@@ -540,10 +538,8 @@ pub fn run_generate(path: &Path, commit: bool) -> Result<CommandOutput, BraidErr
     // Step 2: L2 promotion for Kani proofs + Stateright models
     let kani_bindings = witness::kani_proof_bindings();
     let sr_bindings = witness::stateright_model_bindings();
-    let (kani_datoms, kani_count) =
-        witness::promote_tests_to_l2(store, &kani_bindings, tx_id);
-    let (sr_datoms, sr_count) =
-        witness::promote_tests_to_l2(store, &sr_bindings, tx_id);
+    let (kani_datoms, kani_count) = witness::promote_tests_to_l2(store, &kani_bindings, tx_id);
+    let (sr_datoms, sr_count) = witness::promote_tests_to_l2(store, &sr_bindings, tx_id);
     datoms.extend(kani_datoms);
     datoms.extend(sr_datoms);
 
@@ -590,8 +586,7 @@ pub fn run_generate(path: &Path, commit: bool) -> Result<CommandOutput, BraidErr
         .iter()
         .map(|(a, b, c)| (a.as_str(), b.as_str(), c.as_str()))
         .collect();
-    let (trace_datoms, trace_count) =
-        witness::promote_tests_to_l2(store, &trace_refs, tx_id);
+    let (trace_datoms, trace_count) = witness::promote_tests_to_l2(store, &trace_refs, tx_id);
     datoms.extend(trace_datoms);
 
     let total_count = l1_count + kani_count + sr_count + trace_count;
@@ -613,7 +608,9 @@ pub fn run_generate(path: &Path, commit: bool) -> Result<CommandOutput, BraidErr
             datoms,
         };
         live.write_tx(&tx)?;
-        out.push_str(&format!("committed: {datom_count} datoms ({total_count} witnesses)\n"));
+        out.push_str(&format!(
+            "committed: {datom_count} datoms ({total_count} witnesses)\n"
+        ));
     } else if !datoms.is_empty() && !commit {
         out.push_str("dry-run: use --commit to transact\n");
     } else {

@@ -761,11 +761,7 @@ impl ContextBlock {
     /// This eliminates the `attention: None` bifurcation — all blocks participate
     /// in UAQ ranking from creation. Callers with richer signals (calibration,
     /// novelty from presentation count) should construct `AcquisitionScore` directly.
-    pub fn new_scored(
-        precedence: OutputPrecedence,
-        content: String,
-        tokens: usize,
-    ) -> Self {
+    pub fn new_scored(precedence: OutputPrecedence, content: String, tokens: usize) -> Self {
         let impact = match precedence {
             OutputPrecedence::System => 1.0,
             OutputPrecedence::Methodology => 0.8,
@@ -858,7 +854,11 @@ impl ActionProjection {
 
         // Pyramid disclosure: tell the LLM what was omitted and how to access it.
         if !omitted.is_empty() {
-            out.push_str(&format!("[+{} omitted: {}]\n", omitted.len(), omitted.join(", ")));
+            out.push_str(&format!(
+                "[+{} omitted: {}]\n",
+                omitted.len(),
+                omitted.join(", ")
+            ));
         }
 
         if !self.evidence_pointer.is_empty() {
@@ -1409,13 +1409,18 @@ fn array_to_tsv(arr: &[serde_json::Value]) -> String {
     // Array of objects: header + rows.
     if let Some(serde_json::Value::Object(first)) = arr.first() {
         let keys: Vec<&String> = first.keys().collect();
-        let mut out = keys.iter().map(|k| escape_tsv(k)).collect::<Vec<_>>().join("\t");
+        let mut out = keys
+            .iter()
+            .map(|k| escape_tsv(k))
+            .collect::<Vec<_>>()
+            .join("\t");
         out.push('\n');
         for item in arr {
             if let serde_json::Value::Object(obj) = item {
-                let row: Vec<String> = keys.iter().map(|k| {
-                    obj.get(*k).map(value_to_cell).unwrap_or_default()
-                }).collect();
+                let row: Vec<String> = keys
+                    .iter()
+                    .map(|k| obj.get(*k).map(value_to_cell).unwrap_or_default())
+                    .collect();
                 out.push_str(&row.join("\t"));
                 out.push('\n');
             } else {
@@ -1448,7 +1453,9 @@ fn object_to_tsv(map: &serde_json::Map<String, serde_json::Value>) -> String {
 
     // Object with a prominent array field (e.g., "tasks", "results", "commands"):
     // extract the array and render as table.
-    for key in &["tasks", "results", "items", "commands", "datoms", "entities"] {
+    for key in &[
+        "tasks", "results", "items", "commands", "datoms", "entities",
+    ] {
         if let Some(serde_json::Value::Array(arr)) = map.get(*key) {
             if !arr.is_empty() {
                 return array_to_tsv(arr);
@@ -1468,13 +1475,19 @@ fn object_to_tsv(map: &serde_json::Map<String, serde_json::Value>) -> String {
 }
 
 /// Render ACP JSON as TSV: action row, then context block rows.
-fn acp_to_tsv(acp: &serde_json::Value, full: &serde_json::Map<String, serde_json::Value>) -> String {
+fn acp_to_tsv(
+    acp: &serde_json::Value,
+    full: &serde_json::Map<String, serde_json::Value>,
+) -> String {
     let mut out = String::new();
 
     // Action row.
     if let Some(action) = acp.get("action") {
         let cmd = action.get("command").and_then(|v| v.as_str()).unwrap_or("");
-        let rationale = action.get("rationale").and_then(|v| v.as_str()).unwrap_or("");
+        let rationale = action
+            .get("rationale")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
         let impact = action.get("impact").and_then(|v| v.as_f64()).unwrap_or(0.0);
         out.push_str("action\tcommand\trationale\timpact\n");
         out.push_str(&format!(
@@ -1490,7 +1503,10 @@ fn acp_to_tsv(acp: &serde_json::Value, full: &serde_json::Map<String, serde_json
         if !blocks.is_empty() {
             out.push_str("block\tprecedence\tcontent\ttokens\n");
             for block in blocks {
-                let prec = block.get("precedence").and_then(|v| v.as_str()).unwrap_or("");
+                let prec = block
+                    .get("precedence")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
                 let content = block.get("content").and_then(|v| v.as_str()).unwrap_or("");
                 let tokens = block.get("tokens").and_then(|v| v.as_u64()).unwrap_or(0);
                 out.push_str(&format!(
@@ -1661,7 +1677,7 @@ mod tests {
         // Em-dash is 3 bytes (E2 80 94)
         let s = "hello \u{2014} world"; // "hello — world"
         assert_eq!(s.as_bytes()[6], 0xE2); // em-dash starts at byte 6
-        // Truncate at 7: lands inside em-dash → backs up to 6 ("hello ")
+                                           // Truncate at 7: lands inside em-dash → backs up to 6 ("hello ")
         let t7 = safe_truncate_bytes(s, 7);
         assert!(t7.is_char_boundary(t7.len()));
         assert_eq!(t7, "hello ");
@@ -2080,7 +2096,10 @@ mod tests {
     #[test]
     fn enforce_ceiling_compresses_over_budget() {
         // 400 lines -> ~500 tokens, ceiling=50 -> must compress
-        let text = (0..400).map(|i| format!("line {i}")).collect::<Vec<_>>().join("\n");
+        let text = (0..400)
+            .map(|i| format!("line {i}"))
+            .collect::<Vec<_>>()
+            .join("\n");
         let result = enforce_ceiling(&text, 50);
         assert!(
             result.len() < text.len(),
@@ -2094,7 +2113,10 @@ mod tests {
 
     #[test]
     fn enforce_ceiling_compression_preserves_header() {
-        let text = (0..100).map(|i| format!("line {i}")).collect::<Vec<_>>().join("\n");
+        let text = (0..100)
+            .map(|i| format!("line {i}"))
+            .collect::<Vec<_>>()
+            .join("\n");
         let ceiling = 30;
         let result = enforce_ceiling(&text, ceiling);
         assert!(
@@ -2461,16 +2483,8 @@ mod tests {
                 impact: 0.5,
             },
             context: vec![
-                ContextBlock::new_scored(
-                    OutputPrecedence::System,
-                    "BLOCK-A".to_string(),
-                    5,
-                ),
-                ContextBlock::new_scored(
-                    OutputPrecedence::Methodology,
-                    "BLOCK-B".to_string(),
-                    10,
-                ),
+                ContextBlock::new_scored(OutputPrecedence::System, "BLOCK-A".to_string(), 5),
+                ContextBlock::new_scored(OutputPrecedence::Methodology, "BLOCK-B".to_string(), 10),
                 ContextBlock::new_scored(
                     OutputPrecedence::UserRequested,
                     "BLOCK-C".to_string(),
@@ -2678,7 +2692,10 @@ mod tests {
         // serde_json::Map iterates in insertion order for small maps,
         // but we test each line is present rather than exact ordering.
         assert!(tsv.contains("a\t1\n"), "should contain a\\t1, got: {tsv}");
-        assert!(tsv.contains("b\thello\n"), "should contain b\\thello, got: {tsv}");
+        assert!(
+            tsv.contains("b\thello\n"),
+            "should contain b\\thello, got: {tsv}"
+        );
         // Exactly 2 lines (2 key-value pairs).
         assert_eq!(tsv.lines().count(), 2, "should have 2 lines, got: {tsv}");
     }
@@ -2691,8 +2708,16 @@ mod tests {
         let lines: Vec<&str> = tsv.lines().collect();
         assert_eq!(lines.len(), 3, "header + 2 data rows, got: {tsv}");
         // Header line should contain "id" and "p".
-        assert!(lines[0].contains("id"), "header should contain 'id': {}", lines[0]);
-        assert!(lines[0].contains("p"), "header should contain 'p': {}", lines[0]);
+        assert!(
+            lines[0].contains("id"),
+            "header should contain 'id': {}",
+            lines[0]
+        );
+        assert!(
+            lines[0].contains("p"),
+            "header should contain 'p': {}",
+            lines[0]
+        );
         // Data rows.
         assert!(tsv.contains("t-1"), "should contain t-1, got: {tsv}");
         assert!(tsv.contains("t-2"), "should contain t-2, got: {tsv}");
@@ -2704,7 +2729,10 @@ mod tests {
         let json = serde_json::json!({"key": "has\ttab"});
         let tsv = json_to_tsv(&json);
         assert!(!tsv.contains("has\ttab"), "tab in value should be escaped");
-        assert!(tsv.contains("has tab"), "tab should become space, got: {tsv}");
+        assert!(
+            tsv.contains("has tab"),
+            "tab should become space, got: {tsv}"
+        );
     }
 
     /// Newlines in values are escaped to spaces.
@@ -2713,8 +2741,15 @@ mod tests {
         let json = serde_json::json!({"key": "line1\nline2"});
         let tsv = json_to_tsv(&json);
         // The value should not introduce a spurious row boundary.
-        assert_eq!(tsv.lines().count(), 1, "newline in value should be escaped, got: {tsv}");
-        assert!(tsv.contains("line1 line2"), "newline should become space, got: {tsv}");
+        assert_eq!(
+            tsv.lines().count(),
+            1,
+            "newline in value should be escaped, got: {tsv}"
+        );
+        assert!(
+            tsv.contains("line1 line2"),
+            "newline should become space, got: {tsv}"
+        );
     }
 
     /// ACP JSON renders action row + context block rows.
@@ -2735,15 +2770,27 @@ mod tests {
         });
         let tsv = json_to_tsv(&json);
         // Action header + data row.
-        assert!(tsv.contains("action\tcommand\trationale\timpact"), "action header missing: {tsv}");
-        assert!(tsv.contains("braid go t-test"), "action command missing: {tsv}");
+        assert!(
+            tsv.contains("action\tcommand\trationale\timpact"),
+            "action header missing: {tsv}"
+        );
+        assert!(
+            tsv.contains("braid go t-test"),
+            "action command missing: {tsv}"
+        );
         assert!(tsv.contains("0.42"), "action impact missing: {tsv}");
         // Context block header + data row.
-        assert!(tsv.contains("block\tprecedence\tcontent\ttokens"), "block header missing: {tsv}");
+        assert!(
+            tsv.contains("block\tprecedence\tcontent\ttokens"),
+            "block header missing: {tsv}"
+        );
         assert!(tsv.contains("System"), "block precedence missing: {tsv}");
         assert!(tsv.contains("store info"), "block content missing: {tsv}");
         // Evidence.
-        assert!(tsv.contains("evidence\tbraid status"), "evidence missing: {tsv}");
+        assert!(
+            tsv.contains("evidence\tbraid status"),
+            "evidence missing: {tsv}"
+        );
     }
 
     /// Null/empty JSON produces empty string.
@@ -2761,7 +2808,11 @@ mod tests {
         let tsv = json_to_tsv(&json);
         let lines: Vec<&str> = tsv.lines().collect();
         assert_eq!(lines.len(), 3, "header + 2 rows, got: {tsv}");
-        assert!(lines[0].contains("name"), "header should have 'name': {}", lines[0]);
+        assert!(
+            lines[0].contains("name"),
+            "header should have 'name': {}",
+            lines[0]
+        );
     }
 
     /// Bare array of primitives renders one value per line.

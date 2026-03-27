@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774639362/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-cefb8177"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8f1d4c9ecc9e6965a8680d317a7a02d96814908e87f13d2352c84cdbc85a396d" :a :task/close-reason :v "Superseded by revised STEER-1 aligned with CLI_COHERENCE_SPEC.md §4 output templates" :op :assert}
+   {:e #blake3 "8f1d4c9ecc9e6965a8680d317a7a02d96814908e87f13d2352c84cdbc85a396d" :a :task/closed-at :v 1774639361 :op :assert}
+   {:e #blake3 "8f1d4c9ecc9e6965a8680d317a7a02d96814908e87f13d2352c84cdbc85a396d" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "8f1d4c9ecc9e6965a8680d317a7a02d96814908e87f13d2352c84cdbc85a396d" :a :task/status :v :task.status/closed :op :assert}
+ ]}

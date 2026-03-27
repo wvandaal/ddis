@@ -54,25 +54,25 @@ fn run_get(path: &Path, key: &str) -> Result<CommandOutput, BraidError> {
     let live = LiveStore::open(path)?;
     let store = live.store();
 
-    let (human, value_str, source) =
-        if let Some(val) = braid_kernel::config::get_config(store, key) {
-            (format!("{key} = {val}\n"), val, "store")
+    let (human, value_str, source) = if let Some(val) = braid_kernel::config::get_config(store, key)
+    {
+        (format!("{key} = {val}\n"), val, "store")
+    } else {
+        let defaults = braid_kernel::config::defaults();
+        if let Some((default_val, desc)) = defaults.get(key) {
+            (
+                format!("{key} = {default_val} (default: {desc})\n"),
+                default_val.to_string(),
+                "default",
+            )
         } else {
-            let defaults = braid_kernel::config::defaults();
-            if let Some((default_val, desc)) = defaults.get(key) {
-                (
-                    format!("{key} = {default_val} (default: {desc})\n"),
-                    default_val.to_string(),
-                    "default",
-                )
-            } else {
-                (
-                    format!("{key}: not set (no default)\n"),
-                    String::new(),
-                    "unset",
-                )
-            }
-        };
+            (
+                format!("{key}: not set (no default)\n"),
+                String::new(),
+                "unset",
+            )
+        }
+    };
 
     let json = serde_json::json!({
         "operation": "get",

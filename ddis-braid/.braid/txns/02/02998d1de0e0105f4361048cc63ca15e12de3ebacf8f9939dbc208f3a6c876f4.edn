@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774644284/0/1c9978be005568438228b139d73d8e77"
+ :tx/agent "1c9978be005568438228b139d73d8e77"
+ :tx/provenance :observed
+ :tx/rationale "threshold check"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "347b9e5bf87eca9357183a3bf23a5e70bae5d12de51a487ee899bb66278c9da9" :a :db/doc :v "threshold check" :op :assert}
+   {:e #blake3 "347b9e5bf87eca9357183a3bf23a5e70bae5d12de51a487ee899bb66278c9da9" :a :db/ident :v :observation/threshold-check :op :assert}
+   {:e #blake3 "347b9e5bf87eca9357183a3bf23a5e70bae5d12de51a487ee899bb66278c9da9" :a :exploration/body :v "threshold check" :op :assert}
+   {:e #blake3 "347b9e5bf87eca9357183a3bf23a5e70bae5d12de51a487ee899bb66278c9da9" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "347b9e5bf87eca9357183a3bf23a5e70bae5d12de51a487ee899bb66278c9da9" :a :exploration/confidence :v 0.1 :op :assert}
+   {:e #blake3 "347b9e5bf87eca9357183a3bf23a5e70bae5d12de51a487ee899bb66278c9da9" :a :exploration/content-hash :v #bytes "89fd3ce4988da55111aced2ca8908c1fc25f3a128fb8dd9b60cc2224b4577bed" :op :assert}
+   {:e #blake3 "347b9e5bf87eca9357183a3bf23a5e70bae5d12de51a487ee899bb66278c9da9" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "347b9e5bf87eca9357183a3bf23a5e70bae5d12de51a487ee899bb66278c9da9" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "347b9e5bf87eca9357183a3bf23a5e70bae5d12de51a487ee899bb66278c9da9" :a :exploration/source-session :v #blake3 "d0f54c4b57f4c4f5af176602c3cbf2e61bd39f66c3dc082f0586544dffcbdbb6" :op :assert}
+ ]}

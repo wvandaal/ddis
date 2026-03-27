@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774619766/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-91059861"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "73a18d005cef46d69357daf06659e3e5cc06a779cf4826e190344fd4aceaa6ae" :a :task/close-reason :v "Already implemented: detect_stagnation exists in methodology.rs" :op :assert}
+   {:e #blake3 "73a18d005cef46d69357daf06659e3e5cc06a779cf4826e190344fd4aceaa6ae" :a :task/closed-at :v 1774619765 :op :assert}
+   {:e #blake3 "73a18d005cef46d69357daf06659e3e5cc06a779cf4826e190344fd4aceaa6ae" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "73a18d005cef46d69357daf06659e3e5cc06a779cf4826e190344fd4aceaa6ae" :a :task/status :v :task.status/closed :op :assert}
+ ]}

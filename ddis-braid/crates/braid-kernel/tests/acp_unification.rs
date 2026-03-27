@@ -13,7 +13,7 @@
 //! Traces to: SEED.md §4 (datom abstraction), ADR-FOUNDATION-024/025 (UAQ)
 
 use braid_kernel::budget::{
-    novelty_from_count, ActionProjection, AcquisitionScore, ContextBlock, ObservationCost,
+    novelty_from_count, AcquisitionScore, ActionProjection, ContextBlock, ObservationCost,
     ObservationKind, OutputPrecedence, ProjectedAction,
 };
 use braid_kernel::datom::{AgentId, Attribute, Op, Value};
@@ -32,7 +32,9 @@ use braid_kernel::store::Store;
 #[test]
 fn new_scored_system_impact() {
     let block = ContextBlock::new_scored(OutputPrecedence::System, "system info".into(), 10);
-    let score = block.attention.expect("new_scored must produce Some(attention)");
+    let score = block
+        .attention
+        .expect("new_scored must produce Some(attention)");
     assert!(
         (score.expected_delta_fs - 1.0).abs() < 0.01,
         "System precedence should produce ~1.0 impact (product of factors), got {}",
@@ -46,7 +48,9 @@ fn new_scored_system_impact() {
 fn new_scored_methodology_impact() {
     let block =
         ContextBlock::new_scored(OutputPrecedence::Methodology, "methodology info".into(), 10);
-    let score = block.attention.expect("new_scored must produce Some(attention)");
+    let score = block
+        .attention
+        .expect("new_scored must produce Some(attention)");
     // Impact factor is 0.8, but expected_delta_fs = impact * relevance * novelty * confidence
     // With defaults (1.0, 1.0, 1.0), expected_delta_fs = 0.8
     assert!(
@@ -60,9 +64,10 @@ fn new_scored_methodology_impact() {
 /// Direct answers to user queries have moderate-high priority.
 #[test]
 fn new_scored_user_requested_impact() {
-    let block =
-        ContextBlock::new_scored(OutputPrecedence::UserRequested, "user answer".into(), 10);
-    let score = block.attention.expect("new_scored must produce Some(attention)");
+    let block = ContextBlock::new_scored(OutputPrecedence::UserRequested, "user answer".into(), 10);
+    let score = block
+        .attention
+        .expect("new_scored must produce Some(attention)");
     assert!(
         (score.expected_delta_fs - 0.6).abs() < 0.01,
         "UserRequested precedence should produce 0.6 expected_delta_fs, got {}",
@@ -74,9 +79,10 @@ fn new_scored_user_requested_impact() {
 /// Suggestions and alternatives have lower priority than direct answers.
 #[test]
 fn new_scored_speculative_impact() {
-    let block =
-        ContextBlock::new_scored(OutputPrecedence::Speculative, "suggestion".into(), 10);
-    let score = block.attention.expect("new_scored must produce Some(attention)");
+    let block = ContextBlock::new_scored(OutputPrecedence::Speculative, "suggestion".into(), 10);
+    let score = block
+        .attention
+        .expect("new_scored must produce Some(attention)");
     assert!(
         (score.expected_delta_fs - 0.4).abs() < 0.01,
         "Speculative precedence should produce 0.4 expected_delta_fs, got {}",
@@ -89,7 +95,9 @@ fn new_scored_speculative_impact() {
 #[test]
 fn new_scored_ambient_impact() {
     let block = ContextBlock::new_scored(OutputPrecedence::Ambient, "background".into(), 10);
-    let score = block.attention.expect("new_scored must produce Some(attention)");
+    let score = block
+        .attention
+        .expect("new_scored must produce Some(attention)");
     assert!(
         (score.expected_delta_fs - 0.2).abs() < 0.01,
         "Ambient precedence should produce 0.2 expected_delta_fs, got {}",
@@ -126,8 +134,7 @@ fn new_scored_always_has_attention() {
 #[test]
 fn new_scored_token_cost_propagates() {
     let tokens = 42;
-    let block =
-        ContextBlock::new_scored(OutputPrecedence::Methodology, "content".into(), tokens);
+    let block = ContextBlock::new_scored(OutputPrecedence::Methodology, "content".into(), tokens);
     let score = block.attention.expect("must have attention");
     assert!(
         (score.cost.attention_tokens - tokens) == 0,
@@ -266,9 +273,7 @@ fn record_block_presentations_retraction() {
             }
         }
         let committed = tx.commit(&store).expect("commit must succeed");
-        store
-            .transact(committed)
-            .expect("transact must succeed");
+        store.transact(committed).expect("transact must succeed");
     }
 
     // Now count LIVE :attention/presentation-count datoms for this label.
@@ -279,14 +284,11 @@ fn record_block_presentations_retraction() {
         .filter(|d| {
             // Only consider datoms for the entity with our test label
             let label_attr = Attribute::from_keyword(":attention/block-label");
-            store
-                .entity_datoms(d.entity)
-                .iter()
-                .any(|ed| {
-                    ed.attribute == label_attr
-                        && ed.op == Op::Assert
-                        && matches!(&ed.value, Value::String(s) if s == label)
-                })
+            store.entity_datoms(d.entity).iter().any(|ed| {
+                ed.attribute == label_attr
+                    && ed.op == Op::Assert
+                    && matches!(&ed.value, Value::String(s) if s == label)
+            })
         })
         .collect();
 
@@ -320,7 +322,10 @@ fn record_block_presentations_retraction() {
         })
         .max()
         .expect("should have at least one assert");
-    assert_eq!(live_value, 3, "LIVE presentation count should be 3 after 3 rounds");
+    assert_eq!(
+        live_value, 3,
+        "LIVE presentation count should be 3 after 3 rounds"
+    );
 }
 
 // ===========================================================================
@@ -508,10 +513,7 @@ fn from_command_output_produces_valid_acp() {
         .attention
         .as_ref()
         .expect("from_command_output block must have attention score");
-    assert!(
-        score.alpha > 0.0,
-        "System block must have positive alpha"
-    );
+    assert!(score.alpha > 0.0, "System block must have positive alpha");
     assert!(
         (score.expected_delta_fs - 1.0).abs() < 0.01,
         "System block should have ~1.0 expected_delta_fs (System impact factor)"

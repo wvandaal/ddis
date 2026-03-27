@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774642588/0/955e994ae1f48537728b0d3d5c5cfd7e"
+ :tx/agent "955e994ae1f48537728b0d3d5c5cfd7e"
+ :tx/provenance :observed
+ :tx/rationale "DEEP REVIEW GAP 3: No task addresses INV-CLI-002 VOCABULARY consistency for observe outputs. CLI_COHERENCE_SPEC §6 defines canonical terms: 'observation' (never 'finding', 'insight', 'entry'). Current observe list output uses 'obs' as abbreviation in concept summary ('246 obs'). Current search output uses 'results' not 'observations'. Current recent uses 'observations' (correct). These vocabulary inconsistencies across subcommands violate INV-CLI-002. Fix should be part of STEER-1v2: all observe outputs use 'observation(s)' as the canonical noun, consistently."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "68cdc57cbb838db5a1a4c3c27b17b50baadcceb1682f7829f47d72df0c858698" :a :db/ident :v :task/t-d2ca5d60 :op :assert}
+   {:e #blake3 "68cdc57cbb838db5a1a4c3c27b17b50baadcceb1682f7829f47d72df0c858698" :a :task/body :v "DEEP REVIEW GAP 3: No task addresses INV-CLI-002 VOCABULARY consistency for observe outputs. CLI_COHERENCE_SPEC §6 defines canonical terms: 'observation' (never 'finding', 'insight', 'entry'). Current observe list output uses 'obs' as abbreviation in concept summary ('246 obs'). Current search output uses 'results' not 'observations'. Current recent uses 'observations' (correct). These vocabulary inconsistencies across subcommands violate INV-CLI-002. Fix should be part of STEER-1v2: all observe outputs use 'observation(s)' as the canonical noun, consistently." :op :assert}
+   {:e #blake3 "68cdc57cbb838db5a1a4c3c27b17b50baadcceb1682f7829f47d72df0c858698" :a :task/created-at :v 1774642587 :op :assert}
+   {:e #blake3 "68cdc57cbb838db5a1a4c3c27b17b50baadcceb1682f7829f47d72df0c858698" :a :task/id :v "t-d2ca5d60" :op :assert}
+   {:e #blake3 "68cdc57cbb838db5a1a4c3c27b17b50baadcceb1682f7829f47d72df0c858698" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "68cdc57cbb838db5a1a4c3c27b17b50baadcceb1682f7829f47d72df0c858698" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "68cdc57cbb838db5a1a4c3c27b17b50baadcceb1682f7829f47d72df0c858698" :a :task/title :v "DEEP REVIEW GAP 3: No task addresses INV-CLI-002 VOCABULARY consistency for" :op :assert}
+   {:e #blake3 "68cdc57cbb838db5a1a4c3c27b17b50baadcceb1682f7829f47d72df0c858698" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "b6a7b5a7787c434f079387278f879decf38451aa040ce2702cfb44c2f10d04ee" :a :db/doc :v "DEEP REVIEW GAP 3: No task addresses INV-CLI-002 VOCABULARY consistency for observe outputs. CLI_COHERENCE_SPEC §6 defines canonical terms: 'observation' (never 'finding', 'insight', 'entry'). Current observe list output uses 'obs' as abbreviation in concept summary ('246 obs'). Current search output uses 'results' not 'observations'. Current recent uses 'observations' (correct). These vocabulary inconsistencies across subcommands violate INV-CLI-002. Fix should be part of STEER-1v2: all observe outputs use 'observation(s)' as the canonical noun, consistently." :op :assert}
+   {:e #blake3 "b6a7b5a7787c434f079387278f879decf38451aa040ce2702cfb44c2f10d04ee" :a :db/ident :v :observation/deep-review-gap-3-no-task-addresses-inv-cli-002-vocabulary :op :assert}
+   {:e #blake3 "b6a7b5a7787c434f079387278f879decf38451aa040ce2702cfb44c2f10d04ee" :a :exploration/body :v "DEEP REVIEW GAP 3: No task addresses INV-CLI-002 VOCABULARY consistency for observe outputs. CLI_COHERENCE_SPEC §6 defines canonical terms: 'observation' (never 'finding', 'insight', 'entry'). Current observe list output uses 'obs' as abbreviation in concept summary ('246 obs'). Current search output uses 'results' not 'observations'. Current recent uses 'observations' (correct). These vocabulary inconsistencies across subcommands violate INV-CLI-002. Fix should be part of STEER-1v2: all observe outputs use 'observation(s)' as the canonical noun, consistently." :op :assert}
+   {:e #blake3 "b6a7b5a7787c434f079387278f879decf38451aa040ce2702cfb44c2f10d04ee" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "b6a7b5a7787c434f079387278f879decf38451aa040ce2702cfb44c2f10d04ee" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "b6a7b5a7787c434f079387278f879decf38451aa040ce2702cfb44c2f10d04ee" :a :exploration/content-hash :v #bytes "7ed8c1a4488cb279a0c5bdf3549d2412079a66b23773d650af04849d5ed3a925" :op :assert}
+   {:e #blake3 "b6a7b5a7787c434f079387278f879decf38451aa040ce2702cfb44c2f10d04ee" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b6a7b5a7787c434f079387278f879decf38451aa040ce2702cfb44c2f10d04ee" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b6a7b5a7787c434f079387278f879decf38451aa040ce2702cfb44c2f10d04ee" :a :exploration/source-session :v #blake3 "ea5a426f665a728e2e9fac97e04b1f06da7b86f103876de583ed7d6c8b6e772f" :op :assert}
+ ]}

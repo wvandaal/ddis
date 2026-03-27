@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774622984/0/cc2cc7a9bd0d730f5677f336c10bfc5e"
+ :tx/agent "cc2cc7a9bd0d730f5677f336c10bfc5e"
+ :tx/provenance :observed
+ :tx/rationale "the cascade module has ignored error returns from Exec calls"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e55bbb1adc6ea35a85c7d7c03f4283e0ebe177274a790c828aeefc8400d216f8" :a :db/doc :v "the cascade module has ignored error returns from Exec calls" :op :assert}
+   {:e #blake3 "e55bbb1adc6ea35a85c7d7c03f4283e0ebe177274a790c828aeefc8400d216f8" :a :db/ident :v :observation/the-cascade-module-has-ignored-error-returns-from-exec-calls :op :assert}
+   {:e #blake3 "e55bbb1adc6ea35a85c7d7c03f4283e0ebe177274a790c828aeefc8400d216f8" :a :exploration/body :v "the cascade module has ignored error returns from Exec calls" :op :assert}
+   {:e #blake3 "e55bbb1adc6ea35a85c7d7c03f4283e0ebe177274a790c828aeefc8400d216f8" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "e55bbb1adc6ea35a85c7d7c03f4283e0ebe177274a790c828aeefc8400d216f8" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "e55bbb1adc6ea35a85c7d7c03f4283e0ebe177274a790c828aeefc8400d216f8" :a :exploration/content-hash :v #bytes "28c8696302acb7e4a716a6f553de43c0787b527d61fe0e182156ec45e94fedff" :op :assert}
+   {:e #blake3 "e55bbb1adc6ea35a85c7d7c03f4283e0ebe177274a790c828aeefc8400d216f8" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "e55bbb1adc6ea35a85c7d7c03f4283e0ebe177274a790c828aeefc8400d216f8" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "e55bbb1adc6ea35a85c7d7c03f4283e0ebe177274a790c828aeefc8400d216f8" :a :exploration/source-session :v #blake3 "26c93d8623214ca55517c10b3ebbbcbf557c3d290fc04173e7a1c13a48277d13" :op :assert}
+ ]}

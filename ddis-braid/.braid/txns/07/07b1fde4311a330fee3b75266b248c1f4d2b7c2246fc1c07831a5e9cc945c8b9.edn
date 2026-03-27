@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774635466/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DAEMON-SCALE depends on DAEMON-WRITE (CLI routing prerequisite)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "eeac1602ae449e5b20e2ca23715dd820254845385f48bd22959f2110dbfc425a" :a :task/depends-on :v :task/t-21092c71 :op :assert}
+ ]}

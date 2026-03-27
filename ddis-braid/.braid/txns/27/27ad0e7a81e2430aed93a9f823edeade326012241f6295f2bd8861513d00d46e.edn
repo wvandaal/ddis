@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774631636/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "29fcad0ffc20748c131e1d358785be6f7a68231908c0656da6f644c3c6b8ec34" :a :db/ident :v :recon/trace-2f7c1e9f6bfcdc5a :op :assert}
+   {:e #blake3 "29fcad0ffc20748c131e1d358785be6f7a68231908c0656da6f644c3c6b8ec34" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "29fcad0ffc20748c131e1d358785be6f7a68231908c0656da6f644c3c6b8ec34" :a :recon/trace-neighborhood :v "DAEMON" :op :assert}
+   {:e #blake3 "29fcad0ffc20748c131e1d358785be6f7a68231908c0656da6f644c3c6b8ec34" :a :recon/trace-neighbors :v ":impl/braid.src.mcp.inv-interface-003" :op :assert}
+   {:e #blake3 "29fcad0ffc20748c131e1d358785be6f7a68231908c0656da6f644c3c6b8ec34" :a :recon/trace-neighbors :v ":task/t-4753c96e" :op :assert}
+   {:e #blake3 "29fcad0ffc20748c131e1d358785be6f7a68231908c0656da6f644c3c6b8ec34" :a :recon/trace-neighbors :v ":task/t-4ebf7442" :op :assert}
+   {:e #blake3 "29fcad0ffc20748c131e1d358785be6f7a68231908c0656da6f644c3c6b8ec34" :a :recon/trace-neighbors :v ":task/t-994167b6" :op :assert}
+   {:e #blake3 "29fcad0ffc20748c131e1d358785be6f7a68231908c0656da6f644c3c6b8ec34" :a :recon/trace-neighbors :v ":task/t-e3d271c3" :op :assert}
+   {:e #blake3 "29fcad0ffc20748c131e1d358785be6f7a68231908c0656da6f644c3c6b8ec34" :a :recon/trace-refs :v "INV-DAEMON-004" :op :assert}
+   {:e #blake3 "29fcad0ffc20748c131e1d358785be6f7a68231908c0656da6f644c3c6b8ec34" :a :recon/trace-refs :v "INV-DAEMON-010" :op :assert}
+   {:e #blake3 "29fcad0ffc20748c131e1d358785be6f7a68231908c0656da6f644c3c6b8ec34" :a :recon/trace-refs :v "INV-INTERFACE-003" :op :assert}
+ ]}

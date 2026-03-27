@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774635395/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DS6: Integration — wire WAL+commit+checkpoint+threadpool into daemon, rename store.bin→checkpoint.bin"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :db/ident :v :task/t-04183d5b :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/created-at :v 1774635394 :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/description :v "CONTEXT: DS1-DS5 are individual components. DS6 wires them together into the unified daemon architecture and renames store.bin → checkpoint.bin. APPROACH: (1) RENAME: store.bin → checkpoint.bin in all code paths. .cache/store.bin → .cache/checkpoint.bin. Update layout.rs (read_slim_cache, write_slim_cache), live_store.rs (open, flush), daemon.rs (shutdown). Semantic change: checkpoint is a daemon recovery artifact, not a shared cache. (2) DAEMON STARTUP: serve_daemon() creates: WalWriter, CommitThread (with mpsc channel), CheckpointThread, ThreadPool. Wires them together. (3) DAEMON SHUTDOWN: FULL checkpoint → all WAL entries flushed to .edn. Write checkpoint.bin. Truncate WAL. Clean shutdown. (4) WRITE DISPATCH: handle_connection routes write tools to CommitThread via channel. Read tools execute directly with read lock. (5) .GITIGNORE: Add wal.bin and checkpoint.bin to .braid/.gitignore (they are local/ephemeral — .edn files are git-tracked). ACCEPTANCE: (1) Full daemon lifecycle: start → 100 writes → 50 reads → shutdown → restart → all data present. (2) grep store.bin crates/ returns 0 matches (fully renamed). (3) .braid/.gitignore includes wal.bin and checkpoint.bin. (4) WAL file exists during daemon run, does not exist after clean shutdown (truncated). FILES: daemon.rs (~200 LOC refactor), layout.rs (rename ~20 LOC), live_store.rs (rename ~10 LOC), .gitignore (~2 lines)." :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/id :v "t-04183d5b" :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/labels :v :label/daemon-scale :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/labels :v :label/ds6 :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/labels :v :label/integration :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/title :v "DS6: Integration — wire WAL+commit+checkpoint+threadpool into daemon, rename store.bin→checkpoint.bin" :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/title-l0 :v "DS6" :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/title-l1 :v "DS6: Integration — wire WAL+commit+checkpoint+threadpool into daemon, renam..." :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/traces-to :v #blake3 "192793a3a1efa8195c4a1f3cdff307e17d88478917e1e520ef6eb8651526cb67" :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "379e2dab09383b2b0ffe76bf660339db703fef7a56d843c0e77b9fc2c25f2244" :a :task/type :v :task.type/task :op :assert}
+ ]}

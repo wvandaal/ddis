@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774631465/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DW0: Fix cache fingerprint — compute from LiveStore known_hashes, not disk list_tx_hashes"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :db/ident :v :task/t-3fc3324f :op :assert}
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :task/created-at :v 1774631464 :op :assert}
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :task/description :v "PROBLEM: layout.rs write_slim_cache() calls list_tx_hashes() at FLUSH TIME, listing ALL .edn files on disk — including those from other processes. Fingerprint says 'I know A,B,C,D' but store.bin only has A,B,C. Next reader: fingerprint match → cache hit → stale. PROVEN: We demonstrated this exact failure during task creation — tasks were invisible until rm .braid/.cache/store.bin. ROOT CAUSE: The fingerprint is a promise about content. Computing it from the disk (what EXISTS) instead of from the store (what we LOADED) makes it a false promise. APPROACH: (1) Change write_slim_cache(store) → write_slim_cache(store, known_hashes: &[String]). (2) Compute txn_fingerprint from known_hashes, not list_tx_hashes(). (3) LiveStore::flush() passes self.known_hashes. (4) Update write_index_cache similarly if it exists. ALGEBRAIC PROPERTY: fingerprint is a hash over a SET of hashes. When the set is a proper subset of the disk set, fingerprint(subset) ≠ fingerprint(disk) iff the hash function is collision-resistant (BLAKE3 guarantees this). Therefore a stale flush ALWAYS produces a fingerprint mismatch on the next load. Staleness becomes transient. EDGE CASES: (a) Empty known_hashes (fresh store) → fingerprint('') → unique, forces full rebuild on next load. Correct. (b) known_hashes == disk_hashes (no concurrent writes) → fingerprint matches → cache hit. Correct. (c) known_hashes ⊂ disk_hashes (concurrent writes) → fingerprint mismatch → cache miss → incremental rebuild picks up missing hashes. Correct. ACCEPTANCE: (1) Unit test: create store with 5 txns, open LiveStore, external process writes 2 more, flush, verify meta.json fingerprint has 5 hashes not 7. (2) Unit test: reopen → fingerprint(7) ≠ meta(5) → cache miss → rebuild includes all 7. (3) proptest: for any proper subset S ⊂ T, fingerprint(S) ≠ fingerprint(T). FILES: layout.rs (~15 LOC change to write_slim_cache + write_index_cache), live_store.rs (~5 LOC change to flush). RISK: None — strictly more correct." :op :assert}
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :task/id :v "t-3fc3324f" :op :assert}
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :task/labels :v :label/daemon-write-v2 :op :assert}
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :task/labels :v :label/wave0 :op :assert}
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :task/title :v "DW0: Fix cache fingerprint — compute from LiveStore known_hashes, not disk list_tx_hashes" :op :assert}
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :task/title-l0 :v "DW0" :op :assert}
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :task/title-l1 :v "DW0: Fix cache fingerprint — compute from LiveStore known_hashes, not disk..." :op :assert}
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :task/traces-to :v #blake3 "56052253b4640cb8d4a12b24f8bfbe77d52250ae9e6b4920af2343432e35f957" :op :assert}
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :task/traces-to :v #blake3 "7ceb3ac1150ab21287b5642e327ecec7a2d644e1f0772aab707f9c6106560932" :op :assert}
+   {:e #blake3 "289e0e8b7b3fe01fba7c01c495d172d28f974470ff7a65fd210037b97cee883b" :a :task/type :v :task.type/task :op :assert}
+ ]}

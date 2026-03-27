@@ -758,7 +758,8 @@ pub fn compute_fitness_from_policy(store: &Store) -> Option<FitnessScore> {
         }
 
         // Find covered source entities
-        let covered_entities = covered_entity_set(store, &boundary.source_pattern, &boundary.target_pattern);
+        let covered_entities =
+            covered_entity_set(store, &boundary.source_pattern, &boundary.target_pattern);
 
         // DC-2: Depth-weighted coverage (ADR-FOUNDATION-020).
         // Each source entity's contribution is weighted by its comonadic depth.
@@ -832,7 +833,9 @@ pub fn compute_fitness_from_policy(store: &Store) -> Option<FitnessScore> {
 fn entities_matching_pattern(store: &Store, pattern: &str) -> std::collections::BTreeSet<EntityId> {
     let mut entities = std::collections::BTreeSet::new();
     for d in store.datoms() {
-        if d.op == Op::Assert && crate::policy::PolicyConfig::attr_matches(d.attribute.as_str(), pattern) {
+        if d.op == Op::Assert
+            && crate::policy::PolicyConfig::attr_matches(d.attribute.as_str(), pattern)
+        {
             entities.insert(d.entity);
         }
     }
@@ -840,11 +843,17 @@ fn entities_matching_pattern(store: &Store, pattern: &str) -> std::collections::
 }
 
 /// Get the set of source entities covered by target entities.
-fn covered_entity_set(store: &Store, source_pattern: &str, target_pattern: &str) -> std::collections::BTreeSet<EntityId> {
+fn covered_entity_set(
+    store: &Store,
+    source_pattern: &str,
+    target_pattern: &str,
+) -> std::collections::BTreeSet<EntityId> {
     let source_entities = entities_matching_pattern(store, source_pattern);
     let mut target_entities = std::collections::BTreeSet::new();
     for d in store.datoms() {
-        if d.op == Op::Assert && crate::policy::PolicyConfig::attr_matches(d.attribute.as_str(), target_pattern) {
+        if d.op == Op::Assert
+            && crate::policy::PolicyConfig::attr_matches(d.attribute.as_str(), target_pattern)
+        {
             target_entities.insert(d.entity);
         }
     }
@@ -1032,11 +1041,10 @@ fn compute_validation(store: &Store) -> f64 {
         spec_count += 1;
 
         // Check for depth datom (WP9 path)
-        let depth = latest_assert(&datoms, &spec_depth_attr)
-            .and_then(|d| match &d.value {
-                Value::Long(v) => Some(*v),
-                _ => None,
-            });
+        let depth = latest_assert(&datoms, &spec_depth_attr).and_then(|d| match &d.value {
+            Value::Long(v) => Some(*v),
+            _ => None,
+        });
 
         if let Some(d) = depth {
             has_any_depth = true;
@@ -1091,8 +1099,8 @@ fn compute_depth_weighted_coverage(store: &Store) -> f64 {
                 // Default to 1 (syntactic) for impl links without explicit depth —
                 // they passed the trace scanner which is Level 1 verification.
                 let impl_datoms = store.entity_datoms(impl_entity);
-                let explicit_depth = latest_assert(&impl_datoms, &impl_depth_attr)
-                    .and_then(|d| match &d.value {
+                let explicit_depth =
+                    latest_assert(&impl_datoms, &impl_depth_attr).and_then(|d| match &d.value {
                         Value::Long(v) => Some(*v),
                         _ => None,
                     });
@@ -2555,10 +2563,24 @@ pub fn observation_boundary(store: &Store) -> Option<(usize, usize, f64)> {
     let boundary = crate::methodology::last_harvest_wall_time(store);
 
     let positive_keywords: &[&str] = &[
-        "aligned", "passes", "correct", "verified", "matches", "works", "valid", "confirmed",
+        "aligned",
+        "passes",
+        "correct",
+        "verified",
+        "matches",
+        "works",
+        "valid",
+        "confirmed",
     ];
     let negative_keywords: &[&str] = &[
-        "divergent", "broken", "missing", "incorrect", "fails", "wrong", "invalid", "violated",
+        "divergent",
+        "broken",
+        "missing",
+        "incorrect",
+        "fails",
+        "wrong",
+        "invalid",
+        "violated",
     ];
 
     let mut aligned = 0usize;
@@ -3300,7 +3322,10 @@ mod tests {
     fn dc2_depth_weight_properties() {
         for d in 0..=4 {
             let w = depth_weight(d);
-            assert!((0.0..=1.0).contains(&w), "depth_weight({d})={w} out of [0,1]");
+            assert!(
+                (0.0..=1.0).contains(&w),
+                "depth_weight({d})={w} out of [0,1]"
+            );
             if d > 0 {
                 assert!(
                     w > depth_weight(d - 1),
@@ -4338,10 +4363,8 @@ mod tests {
         // Simulate a sawtooth depth trajectory: depths [0, 1, 2, 3, 0, 1, 2, 0]
         // Map through depth_weight to get F(S)-like values
         let depth_trajectory: Vec<i64> = vec![0, 1, 2, 3, 0, 1, 2, 0];
-        let weight_trajectory: Vec<f64> = depth_trajectory
-            .iter()
-            .map(|&d| depth_weight(d))
-            .collect();
+        let weight_trajectory: Vec<f64> =
+            depth_trajectory.iter().map(|&d| depth_weight(d)).collect();
 
         // The trajectory should be: [0.0, 0.15, 0.4, 0.7, 0.0, 0.15, 0.4, 0.0]
         // This is clearly non-monotonic (drops from 0.7 to 0.0)
@@ -4430,10 +4453,7 @@ mod tests {
         );
 
         // The F(S) weight trajectory is monotonically increasing [0.0, 0.15, 0.4, 0.7, 1.0]
-        let weight_trajectory: Vec<f64> = depth_history
-            .iter()
-            .map(|&d| depth_weight(d))
-            .collect();
+        let weight_trajectory: Vec<f64> = depth_history.iter().map(|&d| depth_weight(d)).collect();
         let analysis = analyze_convergence(&weight_trajectory);
         assert!(
             analysis.is_monotonic,
@@ -4443,9 +4463,7 @@ mod tests {
         // Anti-Goodhart signal: perfect survival + monotonic convergence to max depth
         // without ANY depth resets is suspicious. The convergence_rate should be positive
         // but the zero-surprise property (rate == 1.0 with no drops) is the warning signal.
-        let has_any_depth_reset = weight_trajectory
-            .windows(2)
-            .any(|w| w[1] < w[0] - 1e-10);
+        let has_any_depth_reset = weight_trajectory.windows(2).any(|w| w[1] < w[0] - 1e-10);
         assert!(
             !has_any_depth_reset,
             "echo chamber should have zero depth resets (the suspicious property)"
@@ -4633,7 +4651,10 @@ mod tests {
             datoms.insert(d);
         }
         datoms.insert(harvest_marker_datom(harvest_tx));
-        datoms.insert(observation_datom("APP-INV-001 is ALIGNED with implementation", obs_tx));
+        datoms.insert(observation_datom(
+            "APP-INV-001 is ALIGNED with implementation",
+            obs_tx,
+        ));
         datoms.insert(observation_datom(
             "INV-STORE-002 verified and passes all checks",
             TxId::new(201, 0, agent),
@@ -4706,7 +4727,10 @@ mod tests {
         }
         datoms.insert(harvest_marker_datom(harvest_tx));
         // Observations that mention "aligned" but have no spec refs
-        datoms.insert(observation_datom("The implementation is aligned with expectations", obs_tx));
+        datoms.insert(observation_datom(
+            "The implementation is aligned with expectations",
+            obs_tx,
+        ));
         datoms.insert(observation_datom(
             "Code passes all tests and works correctly",
             TxId::new(201, 0, agent),

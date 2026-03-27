@@ -226,8 +226,17 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
                         category: HarvestCategory::Observation,
                         confidence: gap_confidence,
                         weight: {
-                            let s = surprisal_score(&gap.to_string(), gap_confidence, profile.entity, store);
-                            weight_for_with_surprisal(gap_confidence, HarvestCategory::Observation, s)
+                            let s = surprisal_score(
+                                &gap.to_string(),
+                                gap_confidence,
+                                profile.entity,
+                                store,
+                            );
+                            weight_for_with_surprisal(
+                                gap_confidence,
+                                HarvestCategory::Observation,
+                                s,
+                            )
                         },
                         reconciliation_type: reconciliation_type_for(HarvestCategory::Observation)
                             .to_string(),
@@ -272,7 +281,12 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
                 category,
                 confidence,
                 weight: {
-                    let s = surprisal_score(&format!("{label}{doc_summary}"), confidence, profile.entity, store);
+                    let s = surprisal_score(
+                        &format!("{label}{doc_summary}"),
+                        confidence,
+                        profile.entity,
+                        store,
+                    );
                     weight_for_with_surprisal(confidence, category, s)
                 },
                 reconciliation_type: reconciliation_type_for(category).to_string(),
@@ -303,7 +317,11 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
                 category: cat,
                 confidence: 0.8,
                 weight: {
-                    let text = if let crate::datom::Value::String(ref s) = value { s.as_str() } else { "" };
+                    let text = if let crate::datom::Value::String(ref s) = value {
+                        s.as_str()
+                    } else {
+                        ""
+                    };
                     let s = surprisal_score(text, 0.8, entity, store);
                     weight_for_with_surprisal(0.8, cat, s)
                 },

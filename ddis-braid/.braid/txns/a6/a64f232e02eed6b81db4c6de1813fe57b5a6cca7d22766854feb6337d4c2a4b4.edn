@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774624559/0/7d5c629f339c941b920ad6114cc58fba"
+ :tx/agent "7d5c629f339c941b920ad6114cc58fba"
+ :tx/provenance :observed
+ :tx/rationale "ANALYSIS: Evaluating fix strategies for the two-bug stale cache problem. The fundamental invariant is INV-STORE-020: store.bin = fold(txn_files). There are exactly three classes of fix: (A) fix the staleness detection so the guard works, (B) fix the cache write so it can't be stale, (C) eliminate the architecture that creates overlapping LiveStores. These are not mutually exclusive."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0e294bd6adbc1a72073eb124e2a11c6bf232a85654fd1630a8dd45015e7ade71" :a :db/doc :v "ANALYSIS: Evaluating fix strategies for the two-bug stale cache problem. The fundamental invariant is INV-STORE-020: store.bin = fold(txn_files). There are exactly three classes of fix: (A) fix the staleness detection so the guard works, (B) fix the cache write so it can't be stale, (C) eliminate the architecture that creates overlapping LiveStores. These are not mutually exclusive." :op :assert}
+   {:e #blake3 "0e294bd6adbc1a72073eb124e2a11c6bf232a85654fd1630a8dd45015e7ade71" :a :db/ident :v :observation/analysis-evaluating-fix-strategies-for-the-two-bug-stale-ca :op :assert}
+   {:e #blake3 "0e294bd6adbc1a72073eb124e2a11c6bf232a85654fd1630a8dd45015e7ade71" :a :exploration/body :v "ANALYSIS: Evaluating fix strategies for the two-bug stale cache problem. The fundamental invariant is INV-STORE-020: store.bin = fold(txn_files). There are exactly three classes of fix: (A) fix the staleness detection so the guard works, (B) fix the cache write so it can't be stale, (C) eliminate the architecture that creates overlapping LiveStores. These are not mutually exclusive." :op :assert}
+   {:e #blake3 "0e294bd6adbc1a72073eb124e2a11c6bf232a85654fd1630a8dd45015e7ade71" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "0e294bd6adbc1a72073eb124e2a11c6bf232a85654fd1630a8dd45015e7ade71" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "0e294bd6adbc1a72073eb124e2a11c6bf232a85654fd1630a8dd45015e7ade71" :a :exploration/content-hash :v #bytes "c6e9adcb4e4c6cbc55f6ca2167a964a0dab44abf524b60aa16de9fae9f3a50bf" :op :assert}
+   {:e #blake3 "0e294bd6adbc1a72073eb124e2a11c6bf232a85654fd1630a8dd45015e7ade71" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "0e294bd6adbc1a72073eb124e2a11c6bf232a85654fd1630a8dd45015e7ade71" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "0e294bd6adbc1a72073eb124e2a11c6bf232a85654fd1630a8dd45015e7ade71" :a :exploration/source-session :v #blake3 "26c93d8623214ca55517c10b3ebbbcbf557c3d290fc04173e7a1c13a48277d13" :op :assert}
+   {:e #blake3 "0e294bd6adbc1a72073eb124e2a11c6bf232a85654fd1630a8dd45015e7ade71" :a :exploration/tags :v :tag/cache :op :assert}
+   {:e #blake3 "0e294bd6adbc1a72073eb124e2a11c6bf232a85654fd1630a8dd45015e7ade71" :a :exploration/tags :v :tag/fix-analysis :op :assert}
+   {:e #blake3 "0e294bd6adbc1a72073eb124e2a11c6bf232a85654fd1630a8dd45015e7ade71" :a :exploration/tags :v :tag/investigation :op :assert}
+ ]}

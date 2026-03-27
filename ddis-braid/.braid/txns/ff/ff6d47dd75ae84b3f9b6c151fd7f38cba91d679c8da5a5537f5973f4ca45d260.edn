@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774639470/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: IRON-TEST-1774639463"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9e4b1b68806dace37c23eae7f478090a7ffff7c6538bf1def4f2073331d52aff" :a :db/ident :v :task/t-3f5eec45 :op :assert}
+   {:e #blake3 "9e4b1b68806dace37c23eae7f478090a7ffff7c6538bf1def4f2073331d52aff" :a :task/created-at :v 1774639469 :op :assert}
+   {:e #blake3 "9e4b1b68806dace37c23eae7f478090a7ffff7c6538bf1def4f2073331d52aff" :a :task/id :v "t-3f5eec45" :op :assert}
+   {:e #blake3 "9e4b1b68806dace37c23eae7f478090a7ffff7c6538bf1def4f2073331d52aff" :a :task/priority :v 4 :op :assert}
+   {:e #blake3 "9e4b1b68806dace37c23eae7f478090a7ffff7c6538bf1def4f2073331d52aff" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9e4b1b68806dace37c23eae7f478090a7ffff7c6538bf1def4f2073331d52aff" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9e4b1b68806dace37c23eae7f478090a7ffff7c6538bf1def4f2073331d52aff" :a :task/title :v "IRON-TEST-1774639463" :op :assert}
+   {:e #blake3 "9e4b1b68806dace37c23eae7f478090a7ffff7c6538bf1def4f2073331d52aff" :a :task/title-l0 :v "IRON-TEST-1774639463" :op :assert}
+   {:e #blake3 "9e4b1b68806dace37c23eae7f478090a7ffff7c6538bf1def4f2073331d52aff" :a :task/title-l1 :v "IRON-TEST-1774639463" :op :assert}
+   {:e #blake3 "9e4b1b68806dace37c23eae7f478090a7ffff7c6538bf1def4f2073331d52aff" :a :task/type :v :task.type/task :op :assert}
+ ]}

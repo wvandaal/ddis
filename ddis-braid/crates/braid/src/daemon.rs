@@ -1096,7 +1096,7 @@ pub fn try_route_through_daemon(
     // DW3: Write commands get a 2s timeout (fall back to direct mode if daemon is busy
     // processing a long status request). Read commands get 10s (status can take a while).
     let is_read_command = matches!(
-        &*tool_name,
+        tool_name,
         "braid_status" | "braid_query" | "braid_guidance" | "braid_task_ready"
     );
     let read_timeout = if is_read_command { 10 } else { 2 };

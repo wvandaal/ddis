@@ -663,7 +663,7 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
                 session_boost: 1.0,
                 gradient_delta: 0.0, // Populated in compute_routing_from_store
                 observation_dampening: 1.0, // Populated in compute_routing_from_store
-                concept_dampening: 1.0,   // Populated in compute_routing_from_store
+                concept_dampening: 1.0, // Populated in compute_routing_from_store
             };
 
             let values = [
@@ -689,9 +689,9 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
             let acquisition_score = AcquisitionScore::from_factors(
                 ObservationKind::Task,
                 impact,
-                1.0, // relevance: enriched in compute_routing_from_store
-                1.0, // novelty: enriched in compute_routing_from_store
-                1.0, // confidence: enriched in compute_routing_from_store
+                1.0,                     // relevance: enriched in compute_routing_from_store
+                1.0,                     // novelty: enriched in compute_routing_from_store
+                1.0,                     // confidence: enriched in compute_routing_from_store
                 ObservationCost::zero(), // cost: enriched in compute_routing_from_store
             );
 
@@ -731,9 +731,7 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
 /// Returns the routings and the `CalibrationReport` that was used to compute
 /// per-type confidence factors. Callers that also need calibration (e.g., for
 /// methodology context blocks) should use this to avoid redundant O(H*K) scans.
-pub fn compute_routing_with_calibration(
-    store: &Store,
-) -> (Vec<TaskRouting>, CalibrationReport) {
+pub fn compute_routing_with_calibration(store: &Store) -> (Vec<TaskRouting>, CalibrationReport) {
     let routings = compute_routing_from_store_inner(store);
     // The calibration was already computed inside; recompute here for the return.
     // This is still cheaper than having BOTH routing AND context compute it.
@@ -805,9 +803,7 @@ fn observation_coverage(store: &Store) -> BTreeMap<String, usize> {
 /// part, and lowercases it.
 fn extract_oar_namespace(spec_ref: &str) -> String {
     let parts: Vec<&str> = spec_ref.split('-').collect();
-    if parts.len() >= 3 {
-        parts[1].to_lowercase()
-    } else if parts.len() == 2 {
+    if parts.len() >= 2 {
         parts[1].to_lowercase()
     } else {
         spec_ref.to_lowercase()
@@ -1080,8 +1076,7 @@ fn compute_routing_from_store_inner(store: &Store) -> Vec<TaskRouting> {
         for d in store.datoms() {
             if d.op == Op::Assert && d.attribute == concept_emb_attr {
                 if let Value::Bytes(ref b) = d.value {
-                    latest_concept_embs
-                        .insert(d.entity, crate::embedding::bytes_to_embedding(b));
+                    latest_concept_embs.insert(d.entity, crate::embedding::bytes_to_embedding(b));
                 }
             }
         }
@@ -1089,25 +1084,18 @@ fn compute_routing_from_store_inner(store: &Store) -> Vec<TaskRouting> {
             latest_concept_embs.into_iter().collect();
 
         if !concept_embeddings.is_empty() {
-            let embedder =
-                crate::embedding::HashEmbedder::new(crate::embedding::DEFAULT_DIM);
+            let embedder = crate::embedding::HashEmbedder::new(crate::embedding::DEFAULT_DIM);
             for r in &mut routings {
                 // Embed the task label and find nearest concept.
-                let task_emb =
-                    crate::embedding::TextEmbedder::embed(&embedder, &r.label);
+                let task_emb = crate::embedding::TextEmbedder::embed(&embedder, &r.label);
                 let nearest = concept_embeddings
                     .iter()
-                    .map(|(e, emb)| {
-                        (*e, crate::embedding::cosine_similarity(emb, &task_emb))
-                    })
-                    .max_by(|a, b| {
-                        a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal)
-                    });
+                    .map(|(e, emb)| (*e, crate::embedding::cosine_similarity(emb, &task_emb)))
+                    .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
 
                 if let Some((concept_entity, sim)) = nearest {
                     if sim > 0.1 {
-                        let obs_count =
-                            concept_cov.get(&concept_entity).copied().unwrap_or(0);
+                        let obs_count = concept_cov.get(&concept_entity).copied().unwrap_or(0);
                         let factor = concept_dampening(obs_count);
                         r.metrics.concept_dampening = factor;
                         r.impact *= factor;
@@ -1223,10 +1211,8 @@ pub fn record_hypotheses_with_type(
         // The index prevents collisions when multiple hypotheses are recorded in the same second
         // (entity_hash alone is not unique enough — EntityId debug output can share prefixes).
         let entity_hash = &format!("{:?}", routing.entity)[..8]; // first 8 chars of debug repr
-        let hypothesis_id = EntityId::from_ident(&format!(
-            ":hypothesis/r-{}-{}-{}",
-            entity_hash, now, idx
-        ));
+        let hypothesis_id =
+            EntityId::from_ident(&format!(":hypothesis/r-{}-{}-{}", entity_hash, now, idx));
 
         // :hypothesis/action — ref to the task entity
         datoms.push(Datom::new(
@@ -1623,10 +1609,7 @@ pub fn compute_action_from_routing(
     if let Some(top_bridge) = bridges.first() {
         if top_bridge.delta_fs > 0.01 {
             return crate::budget::ProjectedAction {
-                command: format!(
-                    "braid observe \"{}\" --confidence 0.6",
-                    top_bridge.question
-                ),
+                command: format!("braid observe \"{}\" --confidence 0.6", top_bridge.question),
                 rationale: format!(
                     "bridge: {} (ΔF(S)={:+.3})",
                     top_bridge.question, top_bridge.delta_fs
@@ -1873,10 +1856,7 @@ pub fn generate_bridge_hypotheses(store: &Store, max_bridges: usize) -> Vec<Brid
     }
 
     // Filter to components with at least 2 entities (singletons = schema/noise).
-    let significant: Vec<Vec<usize>> = components
-        .into_values()
-        .filter(|c| c.len() >= 2)
-        .collect();
+    let significant: Vec<Vec<usize>> = components.into_values().filter(|c| c.len() >= 2).collect();
 
     if significant.len() < 2 {
         return Vec::new(); // Everything is connected — no bridges to build.
@@ -1937,16 +1917,17 @@ pub fn generate_bridge_hypotheses(store: &Store, max_bridges: usize) -> Vec<Brid
                 delta_fs,
                 cost: base_cost,
                 alpha,
-                question: format!(
-                    "What connects {} to {}?",
-                    source_label, target_label
-                ),
+                question: format!("What connects {} to {}?", source_label, target_label),
             });
         }
     }
 
     // Step 5: Sort by alpha descending, return top max_bridges.
-    hypotheses.sort_by(|a, b| b.alpha.partial_cmp(&a.alpha).unwrap_or(std::cmp::Ordering::Equal));
+    hypotheses.sort_by(|a, b| {
+        b.alpha
+            .partial_cmp(&a.alpha)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     hypotheses.truncate(max_bridges);
     hypotheses
 }
@@ -1963,10 +1944,7 @@ fn pick_representative(store: &Store, entities: &[EntityId], component: &[usize]
             store
                 .entity_datoms(entity)
                 .iter()
-                .filter(|d| {
-                    d.op == crate::datom::Op::Assert
-                        && matches!(&d.value, Value::Ref(_))
-                })
+                .filter(|d| d.op == crate::datom::Op::Assert && matches!(&d.value, Value::Ref(_)))
                 .count()
         })
         .copied()
@@ -1981,9 +1959,10 @@ fn entity_label(store: &Store, entity: EntityId) -> String {
     let datoms = store.entity_datoms(entity);
     // Try short identifiers first
     for attr in &[":spec/id", ":task/id"] {
-        if let Some(d) = datoms.iter().find(|d| {
-            d.attribute.as_str() == *attr && d.op == crate::datom::Op::Assert
-        }) {
+        if let Some(d) = datoms
+            .iter()
+            .find(|d| d.attribute.as_str() == *attr && d.op == crate::datom::Op::Assert)
+        {
             return match &d.value {
                 Value::String(s) => s.clone(),
                 Value::Keyword(k) => k.clone(),
@@ -1993,9 +1972,10 @@ fn entity_label(store: &Store, entity: EntityId) -> String {
     }
     // Try human-readable text attributes (observation body, task title)
     for attr in &[":exploration/body", ":task/title"] {
-        if let Some(d) = datoms.iter().find(|d| {
-            d.attribute.as_str() == *attr && d.op == crate::datom::Op::Assert
-        }) {
+        if let Some(d) = datoms
+            .iter()
+            .find(|d| d.attribute.as_str() == *attr && d.op == crate::datom::Op::Assert)
+        {
             if let Value::String(s) = &d.value {
                 let words: Vec<&str> = s.split_whitespace().collect();
                 return if words.len() > 6 {
@@ -2010,9 +1990,10 @@ fn entity_label(store: &Store, entity: EntityId) -> String {
     // Checked AFTER :task/title and :exploration/body so those take priority
     // when an entity has both (e.g., a task that also has a concept name).
     for attr in &[":concept/name", ":session/name"] {
-        if let Some(d) = datoms.iter().find(|d| {
-            d.attribute.as_str() == *attr && d.op == crate::datom::Op::Assert
-        }) {
+        if let Some(d) = datoms
+            .iter()
+            .find(|d| d.attribute.as_str() == *attr && d.op == crate::datom::Op::Assert)
+        {
             return match &d.value {
                 Value::String(s) => s.clone(),
                 _ => continue,
@@ -2020,9 +2001,10 @@ fn entity_label(store: &Store, entity: EntityId) -> String {
         }
     }
     // Try :db/ident but truncate long observation slugs
-    if let Some(d) = datoms.iter().find(|d| {
-        d.attribute.as_str() == ":db/ident" && d.op == crate::datom::Op::Assert
-    }) {
+    if let Some(d) = datoms
+        .iter()
+        .find(|d| d.attribute.as_str() == ":db/ident" && d.op == crate::datom::Op::Assert)
+    {
         if let Value::Keyword(k) = &d.value {
             let stripped = k.trim_start_matches(':');
             let parts: Vec<&str> = stripped.splitn(2, '/').collect();
@@ -2084,14 +2066,8 @@ pub fn bridge_guidance_actions(store: &Store, max_bridges: usize) -> Vec<Guidanc
                     "ask: {} (ΔF(S)={:+.3}, α={:.4})",
                     b.question, b.delta_fs, b.alpha
                 ),
-                command: Some(format!(
-                    "braid observe \"{}\" --confidence 0.6",
-                    b.question
-                )),
-                relates_to: vec![
-                    "ADR-FOUNDATION-030".into(),
-                    "INV-FOUNDATION-012".into(),
-                ],
+                command: Some(format!("braid observe \"{}\" --confidence 0.6", b.question)),
+                relates_to: vec!["ADR-FOUNDATION-030".into(), "INV-FOUNDATION-012".into()],
             }
         })
         .collect()
@@ -2684,7 +2660,10 @@ mod tests {
         )]);
 
         let label = entity_label(&store, concept);
-        assert_eq!(label, "error-handling", "entity_label should return :concept/name");
+        assert_eq!(
+            label, "error-handling",
+            "entity_label should return :concept/name"
+        );
     }
 
     #[test]
@@ -2722,7 +2701,10 @@ mod tests {
         )]);
 
         let label = entity_label(&store, session);
-        assert_eq!(label, "Session 045", "entity_label should return :session/name");
+        assert_eq!(
+            label, "Session 045",
+            "entity_label should return :session/name"
+        );
     }
 
     #[test]
@@ -2762,7 +2744,8 @@ mod tests {
         // 0 observations -> 1.2 boost
         assert!(
             (concept_dampening(0) - 1.2).abs() < 0.01,
-            "0 obs should give 1.2 boost, got {}", concept_dampening(0)
+            "0 obs should give 1.2 boost, got {}",
+            concept_dampening(0)
         );
         // 3 observations -> ~0.53
         let d3 = concept_dampening(3);
@@ -2816,8 +2799,8 @@ mod tests {
 
     #[test]
     fn test_concept_observation_coverage_counts() {
-        use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, Value};
-        use crate::schema::{genesis_datoms, domain_schema_datoms, layer_3_datoms};
+        use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, Value};
+        use crate::schema::{domain_schema_datoms, genesis_datoms, layer_3_datoms};
         use std::collections::BTreeSet;
 
         let agent = AgentId::from_name("test");
@@ -2826,8 +2809,12 @@ mod tests {
         let l3_tx = crate::datom::TxId::new(2, 0, agent);
 
         let mut datoms: BTreeSet<Datom> = genesis_datoms(g_tx).into_iter().collect();
-        for d in domain_schema_datoms(d_tx) { datoms.insert(d); }
-        for d in layer_3_datoms(l3_tx) { datoms.insert(d); }
+        for d in domain_schema_datoms(d_tx) {
+            datoms.insert(d);
+        }
+        for d in layer_3_datoms(l3_tx) {
+            datoms.insert(d);
+        }
         let mut store = crate::Store::from_datoms(datoms);
 
         // Simulate a harvest boundary: tx 100 is the harvest.
@@ -2848,7 +2835,10 @@ mod tests {
         let pre_tx = crate::datom::TxId::new(50, 0, agent);
         store.apply_datoms(&[Datom::new(
             EntityId::from_content(b"obs-pre-1"),
-            concept_attr.clone(), Value::Ref(concept_a), pre_tx, Op::Assert,
+            concept_attr.clone(),
+            Value::Ref(concept_a),
+            pre_tx,
+            Op::Assert,
         )]);
 
         // Post-harvest observations.
@@ -2856,13 +2846,19 @@ mod tests {
         for i in 0..5 {
             store.apply_datoms(&[Datom::new(
                 EntityId::from_content(format!("obs-post-a-{i}").as_bytes()),
-                concept_attr.clone(), Value::Ref(concept_a), post_tx, Op::Assert,
+                concept_attr.clone(),
+                Value::Ref(concept_a),
+                post_tx,
+                Op::Assert,
             )]);
         }
         for i in 0..2 {
             store.apply_datoms(&[Datom::new(
                 EntityId::from_content(format!("obs-post-b-{i}").as_bytes()),
-                concept_attr.clone(), Value::Ref(concept_b), post_tx, Op::Assert,
+                concept_attr.clone(),
+                Value::Ref(concept_b),
+                post_tx,
+                Op::Assert,
             )]);
         }
 
@@ -2872,8 +2868,17 @@ mod tests {
         // this test — the important thing is the counting works.
         let a_count = cov.get(&concept_a).copied().unwrap_or(0);
         let b_count = cov.get(&concept_b).copied().unwrap_or(0);
-        assert!(a_count >= 5, "concept_a should have >= 5 observations, got {a_count}");
-        assert!(b_count >= 2, "concept_b should have >= 2 observations, got {b_count}");
-        assert!(a_count > b_count, "concept_a ({a_count}) should have more than concept_b ({b_count})");
+        assert!(
+            a_count >= 5,
+            "concept_a should have >= 5 observations, got {a_count}"
+        );
+        assert!(
+            b_count >= 2,
+            "concept_b should have >= 2 observations, got {b_count}"
+        );
+        assert!(
+            a_count > b_count,
+            "concept_a ({a_count}) should have more than concept_b ({b_count})"
+        );
     }
 }

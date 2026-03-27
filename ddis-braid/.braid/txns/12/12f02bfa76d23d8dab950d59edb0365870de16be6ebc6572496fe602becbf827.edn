@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774629848/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DAEMON-W1: Implement marshal_command() — map CLI Command enum to MCP tool names + JSON arguments"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :db/ident :v :task/t-9823ad2c :op :assert}
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :task/created-at :v 1774629847 :op :assert}
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :task/description :v "CONTEXT: daemon.rs:849-852 only maps status→braid_status and query→braid_query. All other commands return None (direct mode fallback). The daemon's MCP layer (mcp.rs:324-335) already dispatches 11 tools. The gap is purely this match statement. RATIONALE: The marshal function is a natural transformation from the CLI's Command enum to the daemon's JSON-RPC request format. It must be injective (no two commands map to the same tool+args) and total over the routable subset. APPROACH: Add fn marshal_command(cmd: &Command) -> Option<(String, JsonValue)> to daemon.rs. Match on each Command variant, serialize relevant fields to JSON matching the MCP inputSchema. Return None for non-routable commands (init, daemon, mcp, shell, trace, bilateral, merge). MAPPINGS: observe→braid_observe {text,confidence,category,relates_to,rationale,alternatives}. harvest→braid_harvest {task,commit}. seed→braid_seed {task,budget}. task-ready→braid_task_ready {}. go/next→braid_task_go {id}. done/task-close→braid_task_close {id,reason}. task-create→braid_task_create {title,priority,task_type}. write-assert→braid_write {entity,attribute,value,rationale}. guidance→braid_guidance {}. query→braid_query {datalog,entity,attribute}. status→braid_status {}. ACCEPTANCE: 11 unit tests, each constructing a Command variant and verifying correct (tool_name, args) output. marshal_command returns None for all 7 non-routable commands. FILES: daemon.rs (~80 LOC). RISK: Some CLI flags may not have MCP equivalents (e.g., --no-auto-crystallize, --force). For missing args, document and add MCP parameters in a follow-up task." :op :assert}
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :task/id :v "t-9823ad2c" :op :assert}
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :task/labels :v :label/daemon :op :assert}
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :task/labels :v :label/marshaling :op :assert}
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :task/labels :v :label/wave1 :op :assert}
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :task/title :v "DAEMON-W1: Implement marshal_command() — map CLI Command enum to MCP tool names + JSON arguments" :op :assert}
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :task/title-l0 :v "DAEMON-W1" :op :assert}
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :task/title-l1 :v "DAEMON-W1: Implement marshal_command() — map CLI Command enum to MCP tool n..." :op :assert}
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "72968e8d7f66604cce64fea15561142c0e401daad068aa33e28f1d87d1c13fbe" :a :task/type :v :task.type/task :op :assert}
+ ]}

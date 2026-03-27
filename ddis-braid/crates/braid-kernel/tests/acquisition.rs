@@ -355,7 +355,9 @@ fn system_precedence_beats_high_score() {
 
     let output = proj.project(100);
     let sys_pos = output.find("SYSTEM-BLOCK").expect("system should appear");
-    let meth_pos = output.find("HIGH-ALPHA-METHOD").expect("method should appear");
+    let meth_pos = output
+        .find("HIGH-ALPHA-METHOD")
+        .expect("method should appear");
     assert!(
         sys_pos < meth_pos,
         "system precedence beats high score: sys={sys_pos}, meth={meth_pos}"
@@ -415,7 +417,10 @@ fn backward_compat_from_presentation_count() {
     let score = AcquisitionScore::from_presentation_count(4, 0.1, 0.9);
     assert!(score.kind == ObservationKind::ContextBlock);
     assert!(score.novelty > 0.0, "novelty should be positive");
-    assert!(score.expected_delta_fs >= 0.0, "delta_fs should be non-negative");
+    assert!(
+        score.expected_delta_fs >= 0.0,
+        "delta_fs should be non-negative"
+    );
     // composite() falls back to expected_delta_fs when cost is zero
     assert!(
         (score.composite() - score.expected_delta_fs).abs() < f64::EPSILON,

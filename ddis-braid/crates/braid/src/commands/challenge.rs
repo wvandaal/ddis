@@ -19,9 +19,7 @@
 use std::path::Path;
 
 use braid_kernel::bilateral::{comonadic_depth, depth_weight, set_depth_datom};
-use braid_kernel::datom::{
-    AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value,
-};
+use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
@@ -213,9 +211,7 @@ pub fn run(
             }
             out.push_str("outcome: braid challenge --survive or --falsify\n");
         } else {
-            out.push_str(
-                "no falsification criteria registered — use --register first\n",
-            );
+            out.push_str("no falsification criteria registered — use --register first\n");
         }
     }
 
@@ -248,8 +244,7 @@ pub fn run(
     }
 
     // ACP-LEGACY-1: Wrap in ActionProjection for unified output pipeline.
-    let projection =
-        braid_kernel::budget::ActionProjection::from_command_output(&out, "challenge");
+    let projection = braid_kernel::budget::ActionProjection::from_command_output(&out, "challenge");
     let mut json = serde_json::json!({
         "entity": entity_id,
         "depth": new_depth,

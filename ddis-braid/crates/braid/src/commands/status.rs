@@ -278,8 +278,7 @@ pub fn run(
             let label_refs: Vec<&str> = labels.iter().map(|s| s.as_str()).collect();
             let agent = braid_kernel::datom::AgentId::from_name("braid:attention");
             let tx = crate::commands::write::next_tx_id(live.store(), agent);
-            let datoms =
-                braid_kernel::record_block_presentations(live.store(), &label_refs, tx);
+            let datoms = braid_kernel::record_block_presentations(live.store(), &label_refs, tx);
             if !datoms.is_empty() {
                 let tx_file = braid_kernel::layout::TxFile {
                     tx_id: tx,
@@ -300,8 +299,10 @@ pub fn run(
     // sections to auto-promote into default output over time.
     if verbose {
         let navigate_budget = braid_kernel::ActivationStrategy::Navigate.max_context_tokens();
-        let verbose_labels =
-            braid_kernel::context::extract_verbose_only_labels(&projection.context, navigate_budget);
+        let verbose_labels = braid_kernel::context::extract_verbose_only_labels(
+            &projection.context,
+            navigate_budget,
+        );
         if !verbose_labels.is_empty() {
             let label_refs: Vec<&str> = verbose_labels.iter().map(|s| s.as_str()).collect();
             let agent = braid_kernel::datom::AgentId::from_name("braid:attention");
@@ -329,7 +330,11 @@ pub fn run(
         let score = &snapshot.methodology_score;
         let (open, in_progress, closed) = snapshot.task_counts;
         let total_all = open + in_progress + closed;
-        let p_t = if total_all > 0 { closed as f64 / total_all as f64 } else { 0.0 };
+        let p_t = if total_all > 0 {
+            closed as f64 / total_all as f64
+        } else {
+            0.0
+        };
         let registry = braid_kernel::default_boundaries();
         let store = live.store();
         let evals = registry.evaluate_all(store);
@@ -357,9 +362,7 @@ pub fn run(
                 entry
             })
             .collect();
-        let actions = derive_actions_with_precomputed(
-            store, &routings, &snapshot.coherence, None,
-        );
+        let actions = derive_actions_with_precomputed(store, &routings, &snapshot.coherence, None);
         let actions_json: Vec<serde_json::Value> = actions
             .iter()
             .map(|a| {
@@ -763,7 +766,8 @@ pub fn build_status_projection(
             .count();
         let datom_delta = store.len().saturating_sub(start_datom_count);
         let fitness_delta = fitness.total - start_fitness;
-        let mut session_str = format!("session: +{session_tasks_closed} tasks, +{datom_delta} datoms");
+        let mut session_str =
+            format!("session: +{session_tasks_closed} tasks, +{datom_delta} datoms");
         if fitness_delta.abs() > 0.005 {
             session_str.push_str(&format!(", F(S) {:+.2}", fitness_delta));
         }
@@ -800,8 +804,10 @@ pub fn build_status_projection(
             OutputPrecedence::Methodology,
             format!(
                 "hypotheses: {}/{} completed, mean error {:.3}, trend: {}",
-                calibration.completed_hypotheses, calibration.total_hypotheses,
-                calibration.mean_error, trend_str
+                calibration.completed_hypotheses,
+                calibration.total_hypotheses,
+                calibration.mean_error,
+                trend_str
             ),
             12,
         ));
@@ -860,6 +866,23 @@ pub fn build_status_projection(
         ));
     }
 
+    // INV-DIVERGENCE-009: Show fragmentation signal from approximate spectral gap.
+    if let Some(ref frag) = snapshot.adjusted_gaps.adjusted.fragmentation {
+        let label = if frag.spectral_gap < 0.01 {
+            "disconnected"
+        } else {
+            "fragmented"
+        };
+        context.push(ContextBlock::new_scored(
+            OutputPrecedence::Methodology,
+            format!(
+                "connectivity: {} (lambda_2={:.3}, ~{:.0} sessions to converge)",
+                label, frag.spectral_gap, frag.sessions_to_convergence
+            ),
+            14,
+        ));
+    }
+
     // FEGH-1: Surface bridge hypotheses as speculative context blocks.
     // The free energy gradient suggests questions that bridge disconnected
     // knowledge communities — the highest-value observations to make next.
@@ -877,8 +900,10 @@ pub fn build_status_projection(
 
     // Add methodology M(t) context blocks (ACP-9: footer -> context)
     // PERF-2a: Reuse calibration from pre-computed routing (was redundant O(H*K) scan).
-    let methodology_blocks =
-        braid_kernel::guidance::methodology_context_blocks_with_calibration(store, Some(calibration));
+    let methodology_blocks = braid_kernel::guidance::methodology_context_blocks_with_calibration(
+        store,
+        Some(calibration),
+    );
     context.extend(methodology_blocks);
 
     // ATT-2-IMPL: Apply hebbian boost from --verbose requests to all context blocks.
@@ -903,7 +928,8 @@ pub fn build_status_projection(
             if boost > 0.0 {
                 score.impact = (score.impact + boost).min(1.0);
                 // Recompute expected_delta_fs and alpha with updated impact
-                score.expected_delta_fs = score.impact * score.relevance * score.novelty * score.confidence;
+                score.expected_delta_fs =
+                    score.impact * score.relevance * score.novelty * score.confidence;
                 score.alpha = score.expected_delta_fs / score.cost.total_cost();
             }
         }
@@ -912,9 +938,7 @@ pub fn build_status_projection(
     // Sort context blocks by precedence (highest first) so that
     // budget-constrained modes (Agent/Navigate at 100 tokens) render
     // the most important blocks first (INV-BUDGET-008: monotonic fill).
-    context.sort_by(|a, b| {
-        (b.precedence as u8).cmp(&(a.precedence as u8))
-    });
+    context.sort_by_key(|b| std::cmp::Reverse(b.precedence as u8));
 
     braid_kernel::ActionProjection {
         action,
@@ -1067,8 +1091,11 @@ fn build_terse(
         for adj in &weight_adjustments {
             out.push_str(&format!(
                 "  {} ({} samples, error {:.3}): {:.3} \u{2192} {:.3}\n",
-                adj.boundary_name, adj.sample_count, adj.mean_error,
-                adj.current_weight, adj.recommended_weight,
+                adj.boundary_name,
+                adj.sample_count,
+                adj.mean_error,
+                adj.current_weight,
+                adj.recommended_weight,
             ));
         }
     }
@@ -1159,6 +1186,12 @@ fn build_terse(
             out.push_str(&format!(
                 "  concentration: {} traces in {} \u{2014} review related tasks\n",
                 cs.trace_count, cs.neighborhood
+            ));
+        }
+        if let Some(ref frag) = ag.adjusted.fragmentation {
+            out.push_str(&format!(
+                "  fragmentation: lambda_2={:.3}, ~{:.0} sessions to converge \u{2014} {}\n",
+                frag.spectral_gap, frag.sessions_to_convergence, frag.recommendation
             ));
         }
     }
@@ -1301,6 +1334,17 @@ fn build_agent(
         }
         for cs in &ag.adjusted.concentration {
             content.push_str(&format!(" (conc:{}/{})", cs.trace_count, cs.neighborhood));
+        }
+        if let Some(ref frag) = ag.adjusted.fragmentation {
+            let label = if frag.spectral_gap < 0.01 {
+                "disconnected"
+            } else {
+                "fragmented"
+            };
+            content.push_str(&format!(
+                " (conn:{}|lambda_2={:.3})",
+                label, frag.spectral_gap
+            ));
         }
     }
 
@@ -1572,6 +1616,12 @@ fn build_verbose(
                 cs.trace_count, cs.neighborhood
             ));
         }
+        if let Some(ref frag) = ag.adjusted.fragmentation {
+            out.push_str(&format!(
+                "  fragmentation: lambda_2={:.3}, ~{:.0} sessions to converge \u{2014} {}\n",
+                frag.spectral_gap, frag.sessions_to_convergence, frag.recommendation
+            ));
+        }
     }
 
     // Frontier
@@ -1651,8 +1701,10 @@ fn run_deep(
             "state": state,
         });
         let _ = std::fs::create_dir_all(&cache_dir);
-        let _ = std::fs::write(&cache_path,
-            serde_json::to_string(&cache_val).unwrap_or_default());
+        let _ = std::fs::write(
+            &cache_path,
+            serde_json::to_string(&cache_val).unwrap_or_default(),
+        );
         state
     };
 
@@ -1860,6 +1912,13 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
                 })
             })
             .collect();
+        let fragmentation_json = ag.adjusted.fragmentation.as_ref().map(|f| {
+            serde_json::json!({
+                "spectral_gap": f.spectral_gap,
+                "sessions_to_convergence": f.sessions_to_convergence,
+                "recommendation": f.recommendation,
+            })
+        });
         result["methodology_gaps"] = serde_json::json!({
             "activity_mode": ag.mode_label(),
             "raw_gaps": {
@@ -1876,6 +1935,7 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
                 "untested": ag.adjusted.untested,
                 "stale_witnesses": ag.adjusted.stale_witnesses,
                 "concentration": concentration_json,
+                "fragmentation": fragmentation_json,
                 "total": ag.total(),
             },
         });

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774631539/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DW1-TEST: MCP schema completeness — 6 unit tests including meta-test for parameter drift"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :db/ident :v :task/t-7ede5e8d :op :assert}
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :task/created-at :v 1774631538 :op :assert}
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :task/description :v "TESTS for DW1 MCP schema extension. UNIT: (1) test_observe_tags: call_tool('braid_observe', {text:'X', tags:['a','b']}) → observation entity has :exploration/tags 'a' and 'b'. (2) test_observe_no_auto_crystallize: call_tool('braid_observe', {text:'INV-TEST-001: blah', no_auto_crystallize:true}) → no spec element auto-created. (3) test_harvest_commit: call_tool('braid_harvest', {task:'test', commit:true}) → candidates committed (session entity created). (4) test_harvest_no_reconcile: call_tool with no_reconcile:true → no auto-closed tasks. (5) test_task_create_full: call_tool('braid_task_create', {title:'X', priority:1, task_type:'bug', description:'detailed', traces_to:['INV-STORE-001'], labels:['urgent']}) → task has all attributes. (6) test_schema_completeness: For each tool in tool_definitions(), verify every parameter in the CLI --help output has a corresponding property in inputSchema. This is a META-TEST that prevents future parameter drift. FAILURE DIAGNOSTIC: On assertion failure, print tool name, expected parameter, actual schema properties." :op :assert}
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :task/id :v "t-7ede5e8d" :op :assert}
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :task/labels :v :label/daemon-write-v2 :op :assert}
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :task/labels :v :label/test :op :assert}
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :task/labels :v :label/wave1 :op :assert}
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :task/title :v "DW1-TEST: MCP schema completeness — 6 unit tests including meta-test for parameter drift" :op :assert}
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :task/title-l0 :v "DW1-TEST" :op :assert}
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :task/title-l1 :v "DW1-TEST: MCP schema completeness — 6 unit tests including meta-test for pa..." :op :assert}
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :task/traces-to :v #blake3 "be3b80d95487e5a68c00430a8ad9b6c34a10b4e706b024bdc6c9eeb587d90d60" :op :assert}
+   {:e #blake3 "23d76eba57e3c2570aa2cfed11c35816f79f4361682177b59a20644dfacb21b5" :a :task/type :v :task.type/task :op :assert}
+ ]}

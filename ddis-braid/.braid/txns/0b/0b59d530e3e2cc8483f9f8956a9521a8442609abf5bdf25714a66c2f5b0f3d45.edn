@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774635125/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DS1: WAL binary format and append writer — append-only log with CRC + BLAKE3 chain hash"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :db/ident :v :task/t-f590b219 :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/created-at :v 1774635124 :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/description :v "CONTEXT: Currently each transaction is an individual .edn file (13K+ files, 38MB). Directory listing (list_tx_hashes) is O(F) and is the bottleneck in flush guards, fingerprint computation, and store loading. The WAL replaces this with sequential I/O. RATIONALE: Append-only logs are the proven optimal structure for sequential writes (decades of database research). Braid's C1 (append-only) maps directly — the WAL IS C1 at the I/O level. The chain hash provides exact corruption boundary detection (FrankenSQLite pattern). APPROACH: New file: crates/braid-kernel/src/wal.rs (~300 LOC). Types: WalEntry { length: u32, tx_file: TxFile, crc32: u32, chain_hash: [u8; 32] }. WalWriter { file: File, chain_hash: [u8; 32], entry_count: u64, checkpoint_lsn: u64 }. Methods: WalWriter::append(tx: &TxFile) -> Result<WalLsn> — serialize entry, compute CRC + chain hash, write with O_APPEND, return LSN (byte offset). WalWriter::fsync() -> Result<()>. WalReader::entries_since(lsn: u64) -> impl Iterator<Item=Result<(WalLsn, TxFile)>> — reads entries from LSN, validates CRC + chain hash, yields valid entries, stops at first corruption. WalWriter::checkpoint_marker(lsn: u64) — records the LSN up to which .edn files have been generated. Format: [4-byte length prefix (little-endian u32)][bincode(TxFile)][4-byte CRC32 of length+content][32-byte cumulative BLAKE3]. The chain hash: entry_n.chain_hash = BLAKE3(entry_{n-1}.chain_hash || entry_n.content_hash). Entry 0: chain_hash = BLAKE3(b'braid-wal-v1'). ACCEPTANCE: (1) Append 1000 entries → read back all 1000 with matching TxFiles. (2) Truncate WAL at random byte → reader stops at exact corruption boundary. (3) proptest: any prefix of valid WAL entries is a valid WAL. (4) O_APPEND atomicity: two concurrent appenders produce interleaved but individually valid entries. FILES: crates/braid-kernel/src/wal.rs (new). RISK: Entries > 4096 bytes need flock for atomicity (O_APPEND guarantees atomicity only up to PIPE_BUF). Average entry is 388 bytes — well within limit. Large entries (harvest with many candidates) may exceed. The flock fallback handles this." :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/id :v "t-f590b219" :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/labels :v :label/WAL :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/labels :v :label/daemon-scale :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/labels :v :label/ds1 :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/title :v "DS1: WAL binary format and append writer — append-only log with CRC + BLAKE3 chain hash" :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/title-l0 :v "DS1" :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/title-l1 :v "DS1: WAL binary format and append writer — append-only log with CRC + BLAKE..." :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/traces-to :v #blake3 "192793a3a1efa8195c4a1f3cdff307e17d88478917e1e520ef6eb8651526cb67" :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/traces-to :v #blake3 "83cdbb8696d9cb2e52ea619b10a3c6d4cb2a1d10b298dcee844a5f7643831e42" :op :assert}
+   {:e #blake3 "20a83a0f77d9e24ed4905f0f84a341d2f7df4a2291f92f3a5842fff8630f5739" :a :task/type :v :task.type/task :op :assert}
+ ]}

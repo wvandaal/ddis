@@ -221,38 +221,158 @@ pub fn run(
         match lang {
             "rust" => {
                 let eid = braid_kernel::datom::EntityId::from_ident(":extractor/rust");
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/command"), braid_kernel::datom::Value::String("braid extract rust".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/produces"), braid_kernel::datom::Value::String(":component/*".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/schedule"), braid_kernel::datom::Value::Keyword(":extractor.schedule/on-init".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/status"), braid_kernel::datom::Value::Keyword(":extractor.status/recommended".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/language"), braid_kernel::datom::Value::Keyword(":lang/rust".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/command"),
+                    braid_kernel::datom::Value::String("braid extract rust".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/produces"),
+                    braid_kernel::datom::Value::String(":component/*".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/schedule"),
+                    braid_kernel::datom::Value::Keyword(":extractor.schedule/on-init".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/status"),
+                    braid_kernel::datom::Value::Keyword(":extractor.status/recommended".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/language"),
+                    braid_kernel::datom::Value::Keyword(":lang/rust".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
                 recommended.push("rust");
             }
             "go" => {
                 let eid = braid_kernel::datom::EntityId::from_ident(":extractor/go");
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/command"), braid_kernel::datom::Value::String("braid extract go".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/produces"), braid_kernel::datom::Value::String(":component/*".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/schedule"), braid_kernel::datom::Value::Keyword(":extractor.schedule/on-init".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/status"), braid_kernel::datom::Value::Keyword(":extractor.status/recommended".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/language"), braid_kernel::datom::Value::Keyword(":lang/go".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/command"),
+                    braid_kernel::datom::Value::String("braid extract go".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/produces"),
+                    braid_kernel::datom::Value::String(":component/*".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/schedule"),
+                    braid_kernel::datom::Value::Keyword(":extractor.schedule/on-init".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/status"),
+                    braid_kernel::datom::Value::Keyword(":extractor.status/recommended".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/language"),
+                    braid_kernel::datom::Value::Keyword(":lang/go".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
                 recommended.push("go");
             }
             "typescript" | "javascript" => {
                 let eid = braid_kernel::datom::EntityId::from_ident(":extractor/typescript");
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/command"), braid_kernel::datom::Value::String("braid extract typescript".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/produces"), braid_kernel::datom::Value::String(":component/*".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/schedule"), braid_kernel::datom::Value::Keyword(":extractor.schedule/on-init".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/status"), braid_kernel::datom::Value::Keyword(":extractor.status/recommended".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/language"), braid_kernel::datom::Value::Keyword(":lang/typescript".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/command"),
+                    braid_kernel::datom::Value::String("braid extract typescript".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/produces"),
+                    braid_kernel::datom::Value::String(":component/*".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/schedule"),
+                    braid_kernel::datom::Value::Keyword(":extractor.schedule/on-init".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/status"),
+                    braid_kernel::datom::Value::Keyword(":extractor.status/recommended".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/language"),
+                    braid_kernel::datom::Value::Keyword(":lang/typescript".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
                 recommended.push(lang);
             }
             "python" => {
                 let eid = braid_kernel::datom::EntityId::from_ident(":extractor/python");
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/command"), braid_kernel::datom::Value::String("braid extract python".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/produces"), braid_kernel::datom::Value::String(":component/*".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/schedule"), braid_kernel::datom::Value::Keyword(":extractor.schedule/on-init".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/status"), braid_kernel::datom::Value::Keyword(":extractor.status/recommended".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-                extractor_datoms.push(braid_kernel::datom::Datom::new(eid, braid_kernel::datom::Attribute::from_keyword(":extractor/language"), braid_kernel::datom::Value::Keyword(":lang/python".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/command"),
+                    braid_kernel::datom::Value::String("braid extract python".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/produces"),
+                    braid_kernel::datom::Value::String(":component/*".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/schedule"),
+                    braid_kernel::datom::Value::Keyword(":extractor.schedule/on-init".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/status"),
+                    braid_kernel::datom::Value::Keyword(":extractor.status/recommended".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
+                extractor_datoms.push(braid_kernel::datom::Datom::new(
+                    eid,
+                    braid_kernel::datom::Attribute::from_keyword(":extractor/language"),
+                    braid_kernel::datom::Value::Keyword(":lang/python".into()),
+                    meta_tx_id,
+                    braid_kernel::datom::Op::Assert,
+                ));
                 recommended.push("python");
             }
             _ => {}
@@ -260,10 +380,34 @@ pub fn run(
 
         // Always recommend git extractor (language-independent)
         let git_eid = braid_kernel::datom::EntityId::from_ident(":extractor/git");
-        extractor_datoms.push(braid_kernel::datom::Datom::new(git_eid, braid_kernel::datom::Attribute::from_keyword(":extractor/command"), braid_kernel::datom::Value::String("braid extract git".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-        extractor_datoms.push(braid_kernel::datom::Datom::new(git_eid, braid_kernel::datom::Attribute::from_keyword(":extractor/produces"), braid_kernel::datom::Value::String(":component/*".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-        extractor_datoms.push(braid_kernel::datom::Datom::new(git_eid, braid_kernel::datom::Attribute::from_keyword(":extractor/schedule"), braid_kernel::datom::Value::Keyword(":extractor.schedule/on-harvest".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
-        extractor_datoms.push(braid_kernel::datom::Datom::new(git_eid, braid_kernel::datom::Attribute::from_keyword(":extractor/status"), braid_kernel::datom::Value::Keyword(":extractor.status/recommended".into()), meta_tx_id, braid_kernel::datom::Op::Assert));
+        extractor_datoms.push(braid_kernel::datom::Datom::new(
+            git_eid,
+            braid_kernel::datom::Attribute::from_keyword(":extractor/command"),
+            braid_kernel::datom::Value::String("braid extract git".into()),
+            meta_tx_id,
+            braid_kernel::datom::Op::Assert,
+        ));
+        extractor_datoms.push(braid_kernel::datom::Datom::new(
+            git_eid,
+            braid_kernel::datom::Attribute::from_keyword(":extractor/produces"),
+            braid_kernel::datom::Value::String(":component/*".into()),
+            meta_tx_id,
+            braid_kernel::datom::Op::Assert,
+        ));
+        extractor_datoms.push(braid_kernel::datom::Datom::new(
+            git_eid,
+            braid_kernel::datom::Attribute::from_keyword(":extractor/schedule"),
+            braid_kernel::datom::Value::Keyword(":extractor.schedule/on-harvest".into()),
+            meta_tx_id,
+            braid_kernel::datom::Op::Assert,
+        ));
+        extractor_datoms.push(braid_kernel::datom::Datom::new(
+            git_eid,
+            braid_kernel::datom::Attribute::from_keyword(":extractor/status"),
+            braid_kernel::datom::Value::Keyword(":extractor.status/recommended".into()),
+            meta_tx_id,
+            braid_kernel::datom::Op::Assert,
+        ));
         recommended.push("git");
 
         if !extractor_datoms.is_empty() {
@@ -289,11 +433,9 @@ pub fn run(
     // config: concept.innate-concepts = "on".
     // C9: config override with fallback to constant.
     {
-        let innate_enabled = braid_kernel::config::get_config_or(
-            live.store(),
-            "concept.innate-concepts",
-            "off",
-        ) == "on";
+        let innate_enabled =
+            braid_kernel::config::get_config_or(live.store(), "concept.innate-concepts", "off")
+                == "on";
         if innate_enabled {
             let innate_agent = AgentId::from_name("braid:init");
             let innate_tx_id = super::write::next_tx_id(live.store(), innate_agent);

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774620746/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-9821a10e"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "39a7eb9ffdb376e4113ba2c743c422e5188a4a8a49672f0128a2a218c4def9be" :a :task/close-reason :v "Superseded by C9-REMEDIATION epic (t-3ba0b004). Test plan crystallized in t-4ced5ea9 (all_observations tests), t-5d03710a (compute_read_steering tests), t-7534781d (resolve_agent_identity tests), t-eefdf941 (E2E acceptance script)." :op :assert}
+   {:e #blake3 "39a7eb9ffdb376e4113ba2c743c422e5188a4a8a49672f0128a2a218c4def9be" :a :task/closed-at :v 1774620745 :op :assert}
+   {:e #blake3 "39a7eb9ffdb376e4113ba2c743c422e5188a4a8a49672f0128a2a218c4def9be" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "39a7eb9ffdb376e4113ba2c743c422e5188a4a8a49672f0128a2a218c4def9be" :a :task/status :v :task.status/closed :op :assert}
+ ]}

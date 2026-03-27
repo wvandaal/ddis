@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774619858/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C9-REM-1: Unit tests for all_observations(). CONTEXT: all_observations() at concept.rs:511 is the data source for observe list/search/recent — every query subcommand depends on it. Zero unit tests exist. APPROACH: 3 tests in concept.rs #[cfg(test)]: (1) all_observations_empty_store — genesis store returns empty vec. (2) all_observations_sorted_by_time — create 2 obs with different tx times, verify most-recent-first ordering and correct field extraction. (3) all_observations_default_confidence — obs without :exploration/confidence gets default 0.5. ACCEPTANCE: (A) 3 tests pass. (B) Tests use real Store with Transaction::begin, not mock data. (C) Tests verify ObservationRecord fields, not just vec length. DEPENDS-ON: none (kernel-only, no IO). FILE: crates/braid-kernel/src/concept.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :db/ident :v :task/t-4ced5ea9 :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/acceptance :v "(A) 3 tests pass. (B) Tests use real Store with Transaction::begin, not mock data. (C) Tests verify ObservationRecord fields, not just vec length. DEPENDS-ON: none (kernel-only, no IO)." :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/approach :v "3 tests in concept.rs #[cfg(test)]: (1) all_observations_empty_store — genesis store returns empty vec. (2) all_observations_sorted_by_time — create 2 obs with different tx times, verify most-recent-first ordering and correct field extraction. (3) all_observations_default_confidence — obs without :exploration/confidence gets default 0.5." :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/body :v "APPROACH: 3 tests in concept.rs #[cfg(test)]: (1) all_observations_empty_store — genesis store returns empty vec. (2) all_observations_sorted_by_time — create 2 obs with different tx times, verify most-recent-first ordering and correct field extraction. (3) all_observations_default_confidence — obs without :exploration/confidence gets default 0.5. ACCEPTANCE: (A) 3 tests pass. (B) Tests use real Store with Transaction::begin, not mock data. (C) Tests verify ObservationRecord fields, not just vec length. DEPENDS-ON: none (kernel-only, no IO). FILE: crates/braid-kernel/src/concept.rs" :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/created-at :v 1774619857 :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/files :v "crates/braid-kernel/src/concept.rs" :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/id :v "t-4ced5ea9" :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/labels :v :label/C9 :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/labels :v :label/remediation :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/title :v "C9-REM-1: Unit tests for all_observations(). CONTEXT: all_observations() at concept.rs:511 is the data source for observe list/search/recent — every query subcommand depends on it. Zero unit tests exist" :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/title-l0 :v "C9-REM-1" :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/title-l1 :v "C9-REM-1: Unit tests for all_observations()" :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/traces-to :v #blake3 "9b7f536149cb59d2f140fb63f130493edb4275be8b76e31cea037b89060241d8" :op :assert}
+   {:e #blake3 "44103e22b575152e47b144493481d30d690d82afa2fd989f0521f6978d85d3ed" :a :task/type :v :task.type/task :op :assert}
+ ]}
