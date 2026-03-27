@@ -428,3 +428,101 @@ DOGFOOD-5: Deploy on Go CLI project (`../ddis-cli/`).
 
 All trace to: STEERING_MANIFOLD.md, ADR-FOUNDATION-014, ADR-FOUNDATION-034.
 All falsifiable with automated tests (§8).
+
+---
+
+## 10. ENFORCEMENT (C10 — Hard Constraint)
+
+CLI coherence is not a guideline — it is a hard constraint (C10 in AGENTS.md).
+Enforcement is mechanical, not procedural. Three layers, each catching what
+the previous misses:
+
+### 10.1 Layer 1: Type System (compile-time)
+
+Violations that cannot compile:
+
+**ResourceCommand trait** (enforces INV-CLI-001):
+```rust
+/// Every CLI resource MUST implement this trait. The compiler rejects
+/// any resource that lacks list/show/search. This IS INV-CLI-001.
+pub trait ResourceCommand {
+    fn list(&self, store: &Store, flags: &CommonFlags) -> Result<ListOutput>;
+    fn show(&self, store: &Store, id: &str, flags: &CommonFlags) -> Result<DetailOutput>;
+    fn search(&self, store: &Store, query: &str, flags: &CommonFlags) -> Result<SearchOutput>;
+}
+```
+
+**SteeringError type** (enforces INV-CLI-004):
+```rust
+/// Private fields + single constructor = cannot create an error without
+/// all three steering components. This IS INV-CLI-004.
+pub struct SteeringError {
+    what_wrong: String,    // required — private, no Default
+    how_to_fix: String,    // required — private, no Default
+    reference: String,     // required — private, no Default
+}
+impl SteeringError {
+    pub fn new(what: impl Into<String>, fix: impl Into<String>, ref_: impl Into<String>) -> Self;
+    // This is the ONLY constructor. No Default, no From<String>, no bare new().
+}
+```
+
+**CreateResponse type** (enforces INV-CLI-005):
+```rust
+/// Mutation responses MUST include all three steering components.
+/// Cannot construct without them. This IS INV-CLI-005.
+pub struct CreateResponse {
+    what_happened: String,       // required
+    what_changed: StoreChange,   // required (datom count, concept membership)
+    steering: SteeringVector,    // required (concept + gap + question)
+}
+```
+
+**Result**: An agent adding a new resource that lacks list/show/search gets a
+compilation error. An agent emitting a bare error string gets a type mismatch.
+An agent returning a receipt-only response can't construct CreateResponse.
+The invariants are UNBYPASSABLE without explicitly opting out.
+
+### 10.2 Layer 2: Test Suite (test-time)
+
+Catches semantic violations the type system can't express:
+
+| Test | Invariant | What it catches |
+|---|---|---|
+| `test_grammar_completeness` | INV-CLI-001 | Resources registered in clap but missing from ResourceCommand |
+| `test_vocabulary_consistency` | INV-CLI-002 | Non-canonical terms in help/error/output strings |
+| `test_output_shapes` | INV-CLI-003 | List/show/search outputs that don't match templates |
+| `test_error_steering` | INV-CLI-004 | Error paths that bypass SteeringError (e.g., raw anyhow) |
+| `test_response_steering` | INV-CLI-005 | Mutation commands that bypass CreateResponse |
+| `test_progressive_disclosure` | INV-CLI-006 | Default output exceeding 10 lines |
+| `test_shortcut_equivalence` | ADR-CLI-001 | Shortcuts producing different output than canonical |
+
+These run on every `cargo test`. Any violation fails the build.
+
+### 10.3 Layer 3: Spec-First Gate (design-time)
+
+Any change to the CLI surface (new command, flag, output, error) MUST:
+
+1. **Update CLI_COHERENCE_SPEC.md FIRST** — add the resource/action to the grammar (§2),
+   add any new vocabulary to the lexicon (§6), define the output template (§4),
+   define error paths (§5).
+
+2. **Derive the implementation from the spec** — the types (Layer 1) and tests (Layer 2)
+   are already defined by the spec. The implementation fills them in.
+
+3. **Pass the steering review** — every new CLI surface must answer:
+   "Does this output steer the agent toward the highest-value next action?"
+   "Does this command name activate the right region of the LLM's knowledge manifold?"
+   "Would an LLM predict this command exists from the grammar pattern alone?"
+
+### 10.4 Why Three Layers
+
+| Layer | What it catches | When | Bypass cost |
+|---|---|---|---|
+| Type system | Structural violations | Compile time | Must change the types (visible, reviewable) |
+| Test suite | Semantic violations | Test time | Must delete the test (visible, reviewable) |
+| Spec-first gate | Design violations | Design time | Must update the spec (visible, reviewable) |
+
+Every bypass is visible and reviewable. No silent degradation. The grammar
+can only change through an explicit, documented spec change — never through
+an implementation that "just works" but violates the coherence invariants.
