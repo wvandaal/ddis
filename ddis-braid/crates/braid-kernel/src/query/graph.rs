@@ -1391,28 +1391,35 @@ pub fn fiedler(graph: &DiGraph) -> Option<FiedlerResult> {
         return None;
     }
 
-    let laplacian = graph_laplacian(graph);
     let nodes: Vec<String> = graph.nodes().cloned().collect();
 
-    // Compute eigenvectors via Jacobi method
-    // We need both eigenvalues AND eigenvectors
-    let (eigenvalues, eigenvectors) = symmetric_eigen_decomposition(&laplacian);
+    // INV-SPECTRAL-001: Use adaptive decomposition — Lanczos for large graphs,
+    // dense Jacobi only for small. Previously always used dense Jacobi (O(n³)),
+    // which is intractable at n=11K+ entities (44+ minutes, did not complete).
+    // Lanczos computes top-k eigenvalues in O(k·(|E| + n·k)) time.
+    let sd = spectral_decomposition_adaptive(graph)?;
 
     // eigenvalues are sorted ascending; we want the second (index 1)
-    // The eigenvector columns correspond to sorted eigenvalues
-    let lambda_2 = eigenvalues[1];
+    if sd.eigenvalues.len() < 2 {
+        return None;
+    }
+    let lambda_2 = sd.eigenvalues[1];
 
     // Extract the Fiedler vector (column 1 of eigenvectors)
-    let fiedler_vec: Vec<f64> = (0..n).map(|i| eigenvectors.get(i, 1)).collect();
+    let fiedler_vec: Vec<f64> = (0..n.min(sd.eigenvectors.rows))
+        .map(|i| sd.eigenvectors.get(i, 1))
+        .collect();
 
     // Partition by sign
     let mut positive = Vec::new();
     let mut negative = Vec::new();
     for (i, &v) in fiedler_vec.iter().enumerate() {
-        if v >= 0.0 {
-            positive.push(nodes[i].clone());
-        } else {
-            negative.push(nodes[i].clone());
+        if i < nodes.len() {
+            if v >= 0.0 {
+                positive.push(nodes[i].clone());
+            } else {
+                negative.push(nodes[i].clone());
+            }
         }
     }
 

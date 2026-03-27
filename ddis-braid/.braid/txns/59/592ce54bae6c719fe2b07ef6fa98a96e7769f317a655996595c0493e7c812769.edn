@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774572763/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L3-SPECTRAL-APPROX RESULT: Wired Lanczos adaptive decomposition into fiedler(), compute_renyi_spectrum(), and graph_entropy(). Spectral went from 44min+ (never completed) to 110s (completes!). Cached: 1.7s. Remaining bottleneck: Ricci curvature adaptive (~90s of the 110s at 11K entities). The landmark-based Ricci approximation threshold is 2000 nodes but our graph has 11K. Next step: lower Ricci threshold or switch to Forman-Ricci (O(E) combinatorial). 1646 kernel tests pass."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "034bb2782a2ed63eda7860dbe9fc6e07f8f40ad1e0d0210d4bf88596a91bc266" :a :db/doc :v "L3-SPECTRAL-APPROX RESULT: Wired Lanczos adaptive decomposition into fiedler(), compute_renyi_spectrum(), and graph_entropy(). Spectral went from 44min+ (never completed) to 110s (completes!). Cached: 1.7s. Remaining bottleneck: Ricci curvature adaptive (~90s of the 110s at 11K entities). The landmark-based Ricci approximation threshold is 2000 nodes but our graph has 11K. Next step: lower Ricci threshold or switch to Forman-Ricci (O(E) combinatorial). 1646 kernel tests pass." :op :assert}
+   {:e #blake3 "034bb2782a2ed63eda7860dbe9fc6e07f8f40ad1e0d0210d4bf88596a91bc266" :a :db/ident :v :observation/l3-spectral-approx-result-wired-lanczos-adaptive-decomposit :op :assert}
+   {:e #blake3 "034bb2782a2ed63eda7860dbe9fc6e07f8f40ad1e0d0210d4bf88596a91bc266" :a :exploration/body :v "L3-SPECTRAL-APPROX RESULT: Wired Lanczos adaptive decomposition into fiedler(), compute_renyi_spectrum(), and graph_entropy(). Spectral went from 44min+ (never completed) to 110s (completes!). Cached: 1.7s. Remaining bottleneck: Ricci curvature adaptive (~90s of the 110s at 11K entities). The landmark-based Ricci approximation threshold is 2000 nodes but our graph has 11K. Next step: lower Ricci threshold or switch to Forman-Ricci (O(E) combinatorial). 1646 kernel tests pass." :op :assert}
+   {:e #blake3 "034bb2782a2ed63eda7860dbe9fc6e07f8f40ad1e0d0210d4bf88596a91bc266" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "034bb2782a2ed63eda7860dbe9fc6e07f8f40ad1e0d0210d4bf88596a91bc266" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "034bb2782a2ed63eda7860dbe9fc6e07f8f40ad1e0d0210d4bf88596a91bc266" :a :exploration/content-hash :v #bytes "e2b9dab348705433e187ae78e5be117b1f425a8bb2111e7618653b266897b611" :op :assert}
+   {:e #blake3 "034bb2782a2ed63eda7860dbe9fc6e07f8f40ad1e0d0210d4bf88596a91bc266" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "034bb2782a2ed63eda7860dbe9fc6e07f8f40ad1e0d0210d4bf88596a91bc266" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "034bb2782a2ed63eda7860dbe9fc6e07f8f40ad1e0d0210d4bf88596a91bc266" :a :exploration/source-session :v #blake3 "4636be6196fd1db68b31312d3537f16cd679b4270f565d5d7112e43b23e4b445" :op :assert}
+ ]}

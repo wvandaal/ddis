@@ -1719,8 +1719,13 @@ fn graph_entropy(graph: &DiGraph) -> f64 {
     if n < 2 {
         return 0.0;
     }
-    let laplacian = graph_laplacian(graph);
-    let eigenvalues = laplacian.symmetric_eigenvalues();
+    // INV-SPECTRAL-001: Use adaptive decomposition for large graphs.
+    let eigenvalues = if let Some(sd) = spectral_decomposition_adaptive(graph) {
+        sd.eigenvalues
+    } else {
+        let laplacian = graph_laplacian(graph);
+        laplacian.symmetric_eigenvalues()
+    };
     entropy_from_eigenvalues(&eigenvalues)
 }
 
@@ -1759,8 +1764,14 @@ fn compute_renyi_spectrum(store: &Store) -> RenyiSpectrum {
         };
     }
 
-    let laplacian = graph_laplacian(&graph);
-    let eigenvalues = laplacian.symmetric_eigenvalues();
+    // INV-SPECTRAL-001: Use adaptive decomposition for large graphs.
+    // Previously used dense Jacobi (O(n³)) unconditionally.
+    let eigenvalues = if let Some(sd) = spectral_decomposition_adaptive(&graph) {
+        sd.eigenvalues
+    } else {
+        let laplacian = graph_laplacian(&graph);
+        laplacian.symmetric_eigenvalues()
+    };
     let trace: f64 = eigenvalues.iter().filter(|&&v| v > 1e-15).sum();
 
     if trace < 1e-15 {
