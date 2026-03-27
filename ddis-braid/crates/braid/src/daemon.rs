@@ -728,7 +728,37 @@ pub fn try_route_through_daemon(
 
     let sock_path = SocketPath::new(braid_dir);
     if !sock_path.path().exists() {
-        return None;
+        // INV-DAEMON-011: Auto-start daemon on first command.
+        // Fork a detached child process running `braid daemon start`.
+        // Poll for socket appearance (50ms intervals, 3s max).
+        // If timeout, fall back to direct mode (zero blocking).
+        if let Ok(exe) = std::env::current_exe() {
+            let child = std::process::Command::new(&exe)
+                .arg("daemon")
+                .arg("start")
+                .arg("--path")
+                .arg(braid_dir)
+                .stdin(std::process::Stdio::null())
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::piped())
+                .spawn();
+
+            if child.is_ok() {
+                // Poll for socket to appear (daemon needs time to bind)
+                for _ in 0..60 {
+                    // 60 × 50ms = 3s max
+                    std::thread::sleep(std::time::Duration::from_millis(50));
+                    if sock_path.path().exists() {
+                        break;
+                    }
+                }
+            }
+        }
+
+        // After auto-start attempt, check again
+        if !sock_path.path().exists() {
+            return None; // Daemon didn't start — fall back to direct mode
+        }
     }
 
     // Try to connect with a short timeout.
@@ -864,6 +894,17 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
 
     let start_time = Instant::now();
     let mut request_count: u64 = 0;
+    let mut last_request_time = Instant::now();
+
+    // INV-DAEMON-011: Idle timeout — daemon self-terminates after no requests.
+    // Default 300s (5 minutes). Configurable via :config/daemon-idle-timeout datom (C9).
+    let idle_timeout_secs: u64 = braid_kernel::config::get_config(
+        live.store(),
+        "daemon.idle-timeout-secs",
+    )
+    .and_then(|v| v.parse().ok())
+    .unwrap_or(300);
+    let idle_timeout = std::time::Duration::from_secs(idle_timeout_secs);
 
     // 7. Accept loop.
     loop {
@@ -882,6 +923,15 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
             }
         }
 
+        // INV-DAEMON-011: Idle timeout check.
+        if last_request_time.elapsed() > idle_timeout {
+            eprintln!(
+                "daemon: idle timeout ({}s) — shutting down",
+                idle_timeout_secs
+            );
+            break;
+        }
+
         match listener.accept() {
             Ok((stream, _addr)) => {
                 // Set read timeout for the connection (PM-3: prevent leaked connections).
@@ -889,6 +939,7 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
                 let _ = stream.set_nonblocking(false);
 
                 handle_connection(stream, &mut live, &start_time, &mut request_count);
+                last_request_time = Instant::now(); // Reset idle timer on activity
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                 // No pending connection — sleep briefly and retry.

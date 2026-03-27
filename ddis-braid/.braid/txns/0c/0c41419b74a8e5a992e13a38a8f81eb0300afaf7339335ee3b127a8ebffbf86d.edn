@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774574785/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-DAEMON-011 \"Daemon Auto-Lifecycle\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2756f8ac3f601c5d424b751dbb99fef789aca67df09d4d015d4309afecda6876" :a :db/ident :v :task/t-9bd17b36 :op :assert}
+   {:e #blake3 "2756f8ac3f601c5d424b751dbb99fef789aca67df09d4d015d4309afecda6876" :a :task/created-at :v 1774574784 :op :assert}
+   {:e #blake3 "2756f8ac3f601c5d424b751dbb99fef789aca67df09d4d015d4309afecda6876" :a :task/id :v "t-9bd17b36" :op :assert}
+   {:e #blake3 "2756f8ac3f601c5d424b751dbb99fef789aca67df09d4d015d4309afecda6876" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "2756f8ac3f601c5d424b751dbb99fef789aca67df09d4d015d4309afecda6876" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2756f8ac3f601c5d424b751dbb99fef789aca67df09d4d015d4309afecda6876" :a :task/title :v "Implement INV-DAEMON-011: Daemon Auto-Lifecycle" :op :assert}
+   {:e #blake3 "2756f8ac3f601c5d424b751dbb99fef789aca67df09d4d015d4309afecda6876" :a :task/traces-to :v #blake3 "29543116a70548d0ef1065deae4933404faf0c5826e697f50733179470e8db03" :op :assert}
+   {:e #blake3 "2756f8ac3f601c5d424b751dbb99fef789aca67df09d4d015d4309afecda6876" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "29543116a70548d0ef1065deae4933404faf0c5826e697f50733179470e8db03" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "29543116a70548d0ef1065deae4933404faf0c5826e697f50733179470e8db03" :a :comonad/falsification :v #blake3 "7731c69e3564ac9f5c3747a70f62e518d3fb02e7786374d45748ff11d42e330e" :op :assert}
+   {:e #blake3 "29543116a70548d0ef1065deae4933404faf0c5826e697f50733179470e8db03" :a :db/doc :v "Daemon Auto-Lifecycle" :op :assert}
+   {:e #blake3 "29543116a70548d0ef1065deae4933404faf0c5826e697f50733179470e8db03" :a :db/ident :v :spec/inv-daemon-011 :op :assert}
+   {:e #blake3 "29543116a70548d0ef1065deae4933404faf0c5826e697f50733179470e8db03" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "29543116a70548d0ef1065deae4933404faf0c5826e697f50733179470e8db03" :a :spec/falsification :v "A daemon process persists after idle_timeout with no pending requests, OR a stale socket/lock file prevents daemon restart after crash" :op :assert}
+   {:e #blake3 "29543116a70548d0ef1065deae4933404faf0c5826e697f50733179470e8db03" :a :spec/id :v "INV-DAEMON-011" :op :assert}
+   {:e #blake3 "29543116a70548d0ef1065deae4933404faf0c5826e697f50733179470e8db03" :a :spec/namespace :v :spec.ns/DAEMON :op :assert}
+   {:e #blake3 "29543116a70548d0ef1065deae4933404faf0c5826e697f50733179470e8db03" :a :spec/statement :v "The daemon starts automatically on first CLI command and shuts down after idle_timeout with zero leaked processes, sockets, or lock files. auto-start: try_route_through_daemon forks daemon if socket absent. idle-shutdown: daemon exits after configurable idle period (default 300s). crash-cleanup: stale lock files detected and recovered via PID probe." :op :assert}
+   {:e #blake3 "7731c69e3564ac9f5c3747a70f62e518d3fb02e7786374d45748ff11d42e330e" :a :db/doc :v "A daemon process persists after idle_timeout with no pending requests, OR a stale socket/lock file prevents daemon restart after crash" :op :assert}
+ ]}
