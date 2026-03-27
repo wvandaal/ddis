@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774571046/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "CRITICAL FINDING: spectral_certificate at 11K entities does not complete in 44 minutes. O(n3) eigendecomposition plus O(n4) Ricci curvature is intractable at this scale. Caching infrastructure works (bilateral proves it) but the first computation never finishes. Need: (1) approximate spectral via randomized SVD/Lanczos for top-k eigenvalues O(n2*k), or (2) daemon background computation, or (3) subgraph sampling. This is not a performance optimization -- it is a feasibility requirement."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "038b6a5a84a14cb7baff79add91e1ed19cdf86a19fcef5c114c42a36b2b235cd" :a :db/doc :v "CRITICAL FINDING: spectral_certificate at 11K entities does not complete in 44 minutes. O(n3) eigendecomposition plus O(n4) Ricci curvature is intractable at this scale. Caching infrastructure works (bilateral proves it) but the first computation never finishes. Need: (1) approximate spectral via randomized SVD/Lanczos for top-k eigenvalues O(n2*k), or (2) daemon background computation, or (3) subgraph sampling. This is not a performance optimization -- it is a feasibility requirement." :op :assert}
+   {:e #blake3 "038b6a5a84a14cb7baff79add91e1ed19cdf86a19fcef5c114c42a36b2b235cd" :a :db/ident :v :observation/critical-finding-spectral-certificate-at-11k-entities-does :op :assert}
+   {:e #blake3 "038b6a5a84a14cb7baff79add91e1ed19cdf86a19fcef5c114c42a36b2b235cd" :a :exploration/body :v "CRITICAL FINDING: spectral_certificate at 11K entities does not complete in 44 minutes. O(n3) eigendecomposition plus O(n4) Ricci curvature is intractable at this scale. Caching infrastructure works (bilateral proves it) but the first computation never finishes. Need: (1) approximate spectral via randomized SVD/Lanczos for top-k eigenvalues O(n2*k), or (2) daemon background computation, or (3) subgraph sampling. This is not a performance optimization -- it is a feasibility requirement." :op :assert}
+   {:e #blake3 "038b6a5a84a14cb7baff79add91e1ed19cdf86a19fcef5c114c42a36b2b235cd" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "038b6a5a84a14cb7baff79add91e1ed19cdf86a19fcef5c114c42a36b2b235cd" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "038b6a5a84a14cb7baff79add91e1ed19cdf86a19fcef5c114c42a36b2b235cd" :a :exploration/content-hash :v #bytes "08705d20121b90d620101678c4b9a7c04f794860a2f988de2a303c06cf057354" :op :assert}
+   {:e #blake3 "038b6a5a84a14cb7baff79add91e1ed19cdf86a19fcef5c114c42a36b2b235cd" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "038b6a5a84a14cb7baff79add91e1ed19cdf86a19fcef5c114c42a36b2b235cd" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "038b6a5a84a14cb7baff79add91e1ed19cdf86a19fcef5c114c42a36b2b235cd" :a :exploration/source-session :v #blake3 "4636be6196fd1db68b31312d3537f16cd679b4270f565d5d7112e43b23e4b445" :op :assert}
+ ]}

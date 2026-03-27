@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774571069/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: L3-SPECTRAL-APPROX: Replace exact eigendecomposition with approximate spectral methods. Current spectral_certificate runs 7 expensive computations including O(n3) eigendecomposition and O(n4) Ricci curvature. At 11K entities, does NOT complete in 44 minutes. PROPOSED FIX: (1) Replace symmetric_eigen_decomposition with randomized SVD (top-k eigenvalues in O(n2*k) where k=10-20). (2) Replace ricci_curvature_adaptive with Forman-Ricci curvature (combinatorial, O(E) instead of O(n2*E) for Ollivier). (3) Cache intermediate graph structure so only changed edges recompute. ACCEPTANCE: (A) spectral_certificate completes in <30s at 11K entities. (B) Top-5 eigenvalues within 5% of exact values. (C) Forman-Ricci correlation >0.9 with Ollivier-Ricci on sampled subgraphs. TRACES: INV-PERF-001, INV-CACHE-005. FILE: crates/braid-kernel/src/query/graph.rs, crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :db/ident :v :task/t-cbab3387 :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/acceptance :v "(A) spectral_certificate completes in <30s at 11K entities. (B) Top-5 eigenvalues within 5% of exact values. (C) Forman-Ricci correlation >0.9 with Ollivier-Ricci on sampled subgraphs. TRACES: INV-PERF-001, INV-CACHE-005." :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/body :v "ACCEPTANCE: (A) spectral_certificate completes in <30s at 11K entities. (B) Top-5 eigenvalues within 5% of exact values. (C) Forman-Ricci correlation >0.9 with Ollivier-Ricci on sampled subgraphs. TRACES: INV-PERF-001, INV-CACHE-005. FILE: crates/braid-kernel/src/query/graph.rs, crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/created-at :v 1774571068 :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/files :v "crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/files :v "crates/braid-kernel/src/query/graph.rs" :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/id :v "t-cbab3387" :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/title :v "L3-SPECTRAL-APPROX: Replace exact eigendecomposition with approximate spectral methods. Current spectral_certificate runs 7 expensive computations including O(n3) eigendecomposition and O(n4) Ricci curvature. At 11K entities, does NOT complete in 44 minutes. PROPOSED FIX: (1) Replace symmetric_eigen_decomposition with randomized SVD (top-k eigenvalues in O(n2*k) where k=10-20). (2) Replace ricci_curvature_adaptive with Forman-Ricci curvature (combinatorial, O(E) instead of O(n2*E) for Ollivier). (3) Cache intermediate graph structure so only changed edges recompute" :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/title-l0 :v "L3-SPECTRAL-APPROX" :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/title-l1 :v "L3-SPECTRAL-APPROX: Replace exact eigendecomposition with approximate spectra..." :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/traces-to :v #blake3 "6bd5138542e0b1e959206fcf3ab979a32dd5921ee7a4be0bd752a4b433a0cec0" :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/traces-to :v #blake3 "8c22c1af173074d4e512551c20477ff1cf37870cbaaaaab1fd52061b27cd80dc" :op :assert}
+   {:e #blake3 "0c2fe34c78b65511a9135b5e2e6a7254fab251128dcfeb8d335bc037a0b6c047" :a :task/type :v :task.type/task :op :assert}
+ ]}
