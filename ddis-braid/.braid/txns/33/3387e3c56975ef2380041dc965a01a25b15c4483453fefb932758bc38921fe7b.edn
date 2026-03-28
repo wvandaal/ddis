@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774720093/0/48e1fa02153b1e41756274e1bc4107d4"
+ :tx/agent "48e1fa02153b1e41756274e1bc4107d4"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BENCH-1: 50-agent P99 latency benchmark"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2f84498339437d28a1f488913740979a9295ba0e306aec43b60dee14efd16ef7" :a :db/ident :v :task/t-4f7556ad :op :assert}
+   {:e #blake3 "2f84498339437d28a1f488913740979a9295ba0e306aec43b60dee14efd16ef7" :a :task/created-at :v 1774720092 :op :assert}
+   {:e #blake3 "2f84498339437d28a1f488913740979a9295ba0e306aec43b60dee14efd16ef7" :a :task/description :v "50 threads x 20 writes through daemon socket. Measure P99/P95/P50 latency. Verify P99 < 50ms write, P99 < 500ms read. DEPENDS-ON: PERF-RW-1, PERF-RW-3." :op :assert}
+   {:e #blake3 "2f84498339437d28a1f488913740979a9295ba0e306aec43b60dee14efd16ef7" :a :task/id :v "t-4f7556ad" :op :assert}
+   {:e #blake3 "2f84498339437d28a1f488913740979a9295ba0e306aec43b60dee14efd16ef7" :a :task/labels :v :label/BENCH :op :assert}
+   {:e #blake3 "2f84498339437d28a1f488913740979a9295ba0e306aec43b60dee14efd16ef7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2f84498339437d28a1f488913740979a9295ba0e306aec43b60dee14efd16ef7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2f84498339437d28a1f488913740979a9295ba0e306aec43b60dee14efd16ef7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2f84498339437d28a1f488913740979a9295ba0e306aec43b60dee14efd16ef7" :a :task/title :v "BENCH-1: 50-agent P99 latency benchmark" :op :assert}
+   {:e #blake3 "2f84498339437d28a1f488913740979a9295ba0e306aec43b60dee14efd16ef7" :a :task/title-l0 :v "BENCH-1" :op :assert}
+   {:e #blake3 "2f84498339437d28a1f488913740979a9295ba0e306aec43b60dee14efd16ef7" :a :task/title-l1 :v "BENCH-1: 50-agent P99 latency benchmark" :op :assert}
+   {:e #blake3 "2f84498339437d28a1f488913740979a9295ba0e306aec43b60dee14efd16ef7" :a :task/traces-to :v #blake3 "729bb67c5068a417d0e883ea6639e85633e8ba9607ca9e032c2942608f426541" :op :assert}
+   {:e #blake3 "2f84498339437d28a1f488913740979a9295ba0e306aec43b60dee14efd16ef7" :a :task/type :v :task.type/task :op :assert}
+ ]}

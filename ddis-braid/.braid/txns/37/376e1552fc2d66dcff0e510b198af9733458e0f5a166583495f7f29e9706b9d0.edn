@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774720071/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e96ec02c59a31a597f6586f3f3d39580c344d5965f342e8a1ea0b171cc423706" :a :db/ident :v :recon/trace-80051fdfd8641d41 :op :assert}
+   {:e #blake3 "e96ec02c59a31a597f6586f3f3d39580c344d5965f342e8a1ea0b171cc423706" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "e96ec02c59a31a597f6586f3f3d39580c344d5965f342e8a1ea0b171cc423706" :a :recon/trace-neighborhood :v "DAEMON" :op :assert}
+   {:e #blake3 "e96ec02c59a31a597f6586f3f3d39580c344d5965f342e8a1ea0b171cc423706" :a :recon/trace-refs :v "INV-DAEMON-012" :op :assert}
+ ]}

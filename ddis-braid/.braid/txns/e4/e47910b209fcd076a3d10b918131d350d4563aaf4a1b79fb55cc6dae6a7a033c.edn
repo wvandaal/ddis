@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774720020/0/48e1fa02153b1e41756274e1bc4107d4"
+ :tx/agent "48e1fa02153b1e41756274e1bc4107d4"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SOUND-3: Guard NaN in budget.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "60a4883b7e9547a1a2a78b735a4d0a365f9114008662bc4637c129e3861ec331" :a :db/ident :v :task/t-77698d6c :op :assert}
+   {:e #blake3 "60a4883b7e9547a1a2a78b735a4d0a365f9114008662bc4637c129e3861ec331" :a :task/created-at :v 1774720019 :op :assert}
+   {:e #blake3 "60a4883b7e9547a1a2a78b735a4d0a365f9114008662bc4637c129e3861ec331" :a :task/description :v "Replace partial_cmp().unwrap() with unwrap_or(Ordering::Equal) at budget.rs:2274. 1-line fix." :op :assert}
+   {:e #blake3 "60a4883b7e9547a1a2a78b735a4d0a365f9114008662bc4637c129e3861ec331" :a :task/id :v "t-77698d6c" :op :assert}
+   {:e #blake3 "60a4883b7e9547a1a2a78b735a4d0a365f9114008662bc4637c129e3861ec331" :a :task/labels :v :label/SOUNDNESS :op :assert}
+   {:e #blake3 "60a4883b7e9547a1a2a78b735a4d0a365f9114008662bc4637c129e3861ec331" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "60a4883b7e9547a1a2a78b735a4d0a365f9114008662bc4637c129e3861ec331" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "60a4883b7e9547a1a2a78b735a4d0a365f9114008662bc4637c129e3861ec331" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "60a4883b7e9547a1a2a78b735a4d0a365f9114008662bc4637c129e3861ec331" :a :task/title :v "SOUND-3: Guard NaN in budget.rs" :op :assert}
+   {:e #blake3 "60a4883b7e9547a1a2a78b735a4d0a365f9114008662bc4637c129e3861ec331" :a :task/title-l0 :v "SOUND-3" :op :assert}
+   {:e #blake3 "60a4883b7e9547a1a2a78b735a4d0a365f9114008662bc4637c129e3861ec331" :a :task/title-l1 :v "SOUND-3: Guard NaN in budget.rs" :op :assert}
+   {:e #blake3 "60a4883b7e9547a1a2a78b735a4d0a365f9114008662bc4637c129e3861ec331" :a :task/traces-to :v #blake3 "ebf8bfc2f6b6642686d1a8116129a8f2d85b3d686bed62171178456ac2e95d04" :op :assert}
+   {:e #blake3 "60a4883b7e9547a1a2a78b735a4d0a365f9114008662bc4637c129e3861ec331" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774719971/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SOUND-1: Implement causally_independent()"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c0eae42af9987be95e5a26838f999dc3946faeafe6eb7ab737b9729650000835" :a :db/ident :v :task/t-1ad0e33d :op :assert}
+   {:e #blake3 "c0eae42af9987be95e5a26838f999dc3946faeafe6eb7ab737b9729650000835" :a :task/created-at :v 1774719970 :op :assert}
+   {:e #blake3 "c0eae42af9987be95e5a26838f999dc3946faeafe6eb7ab737b9729650000835" :a :task/description :v "Implement is_causal_ancestor via BFS over :tx/causal-predecessors. Wire into has_conflict as condition 6. FILE: resolution.rs. ~50 LOC. ACCEPTANCE: (A) Sequential single-agent updates NOT flagged as conflicts. (B) Truly concurrent updates ARE flagged. (C) BFS terminates." :op :assert}
+   {:e #blake3 "c0eae42af9987be95e5a26838f999dc3946faeafe6eb7ab737b9729650000835" :a :task/id :v "t-1ad0e33d" :op :assert}
+   {:e #blake3 "c0eae42af9987be95e5a26838f999dc3946faeafe6eb7ab737b9729650000835" :a :task/labels :v :label/SOUNDNESS :op :assert}
+   {:e #blake3 "c0eae42af9987be95e5a26838f999dc3946faeafe6eb7ab737b9729650000835" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "c0eae42af9987be95e5a26838f999dc3946faeafe6eb7ab737b9729650000835" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c0eae42af9987be95e5a26838f999dc3946faeafe6eb7ab737b9729650000835" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c0eae42af9987be95e5a26838f999dc3946faeafe6eb7ab737b9729650000835" :a :task/title :v "SOUND-1: Implement causally_independent()" :op :assert}
+   {:e #blake3 "c0eae42af9987be95e5a26838f999dc3946faeafe6eb7ab737b9729650000835" :a :task/title-l0 :v "SOUND-1" :op :assert}
+   {:e #blake3 "c0eae42af9987be95e5a26838f999dc3946faeafe6eb7ab737b9729650000835" :a :task/title-l1 :v "SOUND-1: Implement causally_independent()" :op :assert}
+   {:e #blake3 "c0eae42af9987be95e5a26838f999dc3946faeafe6eb7ab737b9729650000835" :a :task/traces-to :v #blake3 "43a58c02c56d8ee62b91286879953180b6729e0212702470c02580679f0c2439" :op :assert}
+   {:e #blake3 "c0eae42af9987be95e5a26838f999dc3946faeafe6eb7ab737b9729650000835" :a :task/type :v :task.type/task :op :assert}
+ ]}

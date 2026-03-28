@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774720080/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PERF-RW-1: Read/write lock split in daemon dispatch"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "75412fb05388933f404c125d35a7bbe8c39404deeb180a0c94c69864f61567cf" :a :db/ident :v :task/t-86578031 :op :assert}
+   {:e #blake3 "75412fb05388933f404c125d35a7bbe8c39404deeb180a0c94c69864f61567cf" :a :task/created-at :v 1774720079 :op :assert}
+   {:e #blake3 "75412fb05388933f404c125d35a7bbe8c39404deeb180a0c94c69864f61567cf" :a :task/description :v "Add is_read_only_tool classifier. Read tools use shared.read(). Write tools keep shared.write(). Build runtime TxFile from read context, submit to CommitHandle. DEPENDS-ON: PERF-RW-2." :op :assert}
+   {:e #blake3 "75412fb05388933f404c125d35a7bbe8c39404deeb180a0c94c69864f61567cf" :a :task/id :v "t-86578031" :op :assert}
+   {:e #blake3 "75412fb05388933f404c125d35a7bbe8c39404deeb180a0c94c69864f61567cf" :a :task/labels :v :label/DAEMON-PERF :op :assert}
+   {:e #blake3 "75412fb05388933f404c125d35a7bbe8c39404deeb180a0c94c69864f61567cf" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "75412fb05388933f404c125d35a7bbe8c39404deeb180a0c94c69864f61567cf" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "75412fb05388933f404c125d35a7bbe8c39404deeb180a0c94c69864f61567cf" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "75412fb05388933f404c125d35a7bbe8c39404deeb180a0c94c69864f61567cf" :a :task/title :v "PERF-RW-1: Read/write lock split in daemon dispatch" :op :assert}
+   {:e #blake3 "75412fb05388933f404c125d35a7bbe8c39404deeb180a0c94c69864f61567cf" :a :task/title-l0 :v "PERF-RW-1" :op :assert}
+   {:e #blake3 "75412fb05388933f404c125d35a7bbe8c39404deeb180a0c94c69864f61567cf" :a :task/title-l1 :v "PERF-RW-1: Read/write lock split in daemon dispatch" :op :assert}
+   {:e #blake3 "75412fb05388933f404c125d35a7bbe8c39404deeb180a0c94c69864f61567cf" :a :task/traces-to :v #blake3 "a791c7dcd0f32f60945a75d98a0fdde333becfc48a508787ad79ac6dcf032f2e" :op :assert}
+   {:e #blake3 "75412fb05388933f404c125d35a7bbe8c39404deeb180a0c94c69864f61567cf" :a :task/type :v :task.type/task :op :assert}
+ ]}

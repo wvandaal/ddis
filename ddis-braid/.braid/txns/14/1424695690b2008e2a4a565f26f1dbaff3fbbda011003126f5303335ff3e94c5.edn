@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774720042/0/48e1fa02153b1e41756274e1bc4107d4"
+ :tx/agent "48e1fa02153b1e41756274e1bc4107d4"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SOUND-5: Retraction existence check"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8372b2271d5f3f3042d469fe759945fca8cca4099cdadc224855a7c9d27f563e" :a :db/ident :v :task/t-320254e9 :op :assert}
+   {:e #blake3 "8372b2271d5f3f3042d469fe759945fca8cca4099cdadc224855a7c9d27f563e" :a :task/created-at :v 1774720041 :op :assert}
+   {:e #blake3 "8372b2271d5f3f3042d469fe759945fca8cca4099cdadc224855a7c9d27f563e" :a :task/description :v "Before accepting Op::Retract verify Assert exists. Log warning for ghosts. FILE: store.rs ~20 LOC." :op :assert}
+   {:e #blake3 "8372b2271d5f3f3042d469fe759945fca8cca4099cdadc224855a7c9d27f563e" :a :task/id :v "t-320254e9" :op :assert}
+   {:e #blake3 "8372b2271d5f3f3042d469fe759945fca8cca4099cdadc224855a7c9d27f563e" :a :task/labels :v :label/SOUNDNESS :op :assert}
+   {:e #blake3 "8372b2271d5f3f3042d469fe759945fca8cca4099cdadc224855a7c9d27f563e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8372b2271d5f3f3042d469fe759945fca8cca4099cdadc224855a7c9d27f563e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8372b2271d5f3f3042d469fe759945fca8cca4099cdadc224855a7c9d27f563e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8372b2271d5f3f3042d469fe759945fca8cca4099cdadc224855a7c9d27f563e" :a :task/title :v "SOUND-5: Retraction existence check" :op :assert}
+   {:e #blake3 "8372b2271d5f3f3042d469fe759945fca8cca4099cdadc224855a7c9d27f563e" :a :task/title-l0 :v "SOUND-5" :op :assert}
+   {:e #blake3 "8372b2271d5f3f3042d469fe759945fca8cca4099cdadc224855a7c9d27f563e" :a :task/title-l1 :v "SOUND-5: Retraction existence check" :op :assert}
+   {:e #blake3 "8372b2271d5f3f3042d469fe759945fca8cca4099cdadc224855a7c9d27f563e" :a :task/traces-to :v #blake3 "108635b5769d437b57b653f4b414dbe6e3f2281c0a27b13f961700a9e857a9eb" :op :assert}
+   {:e #blake3 "8372b2271d5f3f3042d469fe759945fca8cca4099cdadc224855a7c9d27f563e" :a :task/type :v :task.type/task :op :assert}
+ ]}

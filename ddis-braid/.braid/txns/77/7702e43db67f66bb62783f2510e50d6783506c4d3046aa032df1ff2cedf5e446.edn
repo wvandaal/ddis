@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774720241/0/48e1fa02153b1e41756274e1bc4107d4"
+ :tx/agent "48e1fa02153b1e41756274e1bc4107d4"
+ :tx/provenance :observed
+ :tx/rationale "MCP: claim task t-d54f0b83"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "78f1a4571ef383dd734913198746c6113598a2f8f8fc1c83cc5cfa4d1bb320e2" :a :task/status :v :task.status/in-progress :op :assert}
+ ]}

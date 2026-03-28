@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774728582/0/48e1fa02153b1e41756274e1bc4107d4"
+ :tx/agent "48e1fa02153b1e41756274e1bc4107d4"
+ :tx/provenance :observed
+ :tx/rationale "MCP: close task t-52527d7b — completed"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "40c01704fe8194fdb620825157529b809a76e8c2eb667a0fe1a40e0a321eab2e" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "40c01704fe8194fdb620825157529b809a76e8c2eb667a0fe1a40e0a321eab2e" :a :task/closed-at :v 1774728581 :op :assert}
+   {:e #blake3 "40c01704fe8194fdb620825157529b809a76e8c2eb667a0fe1a40e0a321eab2e" :a :task/status :v :task.status/closed :op :assert}
+ ]}

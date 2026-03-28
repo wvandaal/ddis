@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774720085/0/48e1fa02153b1e41756274e1bc4107d4"
+ :tx/agent "48e1fa02153b1e41756274e1bc4107d4"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PERF-RW-3: Tune group commit batch interval"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b80126648ecb0b78cead562cd5b30c7a1a9be08614d9ecf3836a31d211fd97a9" :a :db/ident :v :task/t-8b76fe74 :op :assert}
+   {:e #blake3 "b80126648ecb0b78cead562cd5b30c7a1a9be08614d9ecf3836a31d211fd97a9" :a :task/created-at :v 1774720084 :op :assert}
+   {:e #blake3 "b80126648ecb0b78cead562cd5b30c7a1a9be08614d9ecf3836a31d211fd97a9" :a :task/description :v "Reduce GROUP_COMMIT_INITIAL_INTERVAL_MS from 50ms to 25ms for P99 < 50ms target." :op :assert}
+   {:e #blake3 "b80126648ecb0b78cead562cd5b30c7a1a9be08614d9ecf3836a31d211fd97a9" :a :task/id :v "t-8b76fe74" :op :assert}
+   {:e #blake3 "b80126648ecb0b78cead562cd5b30c7a1a9be08614d9ecf3836a31d211fd97a9" :a :task/labels :v :label/DAEMON-PERF :op :assert}
+   {:e #blake3 "b80126648ecb0b78cead562cd5b30c7a1a9be08614d9ecf3836a31d211fd97a9" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b80126648ecb0b78cead562cd5b30c7a1a9be08614d9ecf3836a31d211fd97a9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b80126648ecb0b78cead562cd5b30c7a1a9be08614d9ecf3836a31d211fd97a9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b80126648ecb0b78cead562cd5b30c7a1a9be08614d9ecf3836a31d211fd97a9" :a :task/title :v "PERF-RW-3: Tune group commit batch interval" :op :assert}
+   {:e #blake3 "b80126648ecb0b78cead562cd5b30c7a1a9be08614d9ecf3836a31d211fd97a9" :a :task/title-l0 :v "PERF-RW-3" :op :assert}
+   {:e #blake3 "b80126648ecb0b78cead562cd5b30c7a1a9be08614d9ecf3836a31d211fd97a9" :a :task/title-l1 :v "PERF-RW-3: Tune group commit batch interval" :op :assert}
+   {:e #blake3 "b80126648ecb0b78cead562cd5b30c7a1a9be08614d9ecf3836a31d211fd97a9" :a :task/traces-to :v #blake3 "bfcbecadd11d99142fd00d5598225689a7ac5635438021f4336ad3b3778f3949" :op :assert}
+   {:e #blake3 "b80126648ecb0b78cead562cd5b30c7a1a9be08614d9ecf3836a31d211fd97a9" :a :task/type :v :task.type/task :op :assert}
+ ]}

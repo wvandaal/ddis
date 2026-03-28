@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774720060/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SOUND-6: Crystallization guard"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b4d16cb7a2b083e231b1fc8b865ac9ceda4bbb15be508c075c7ec0c33bd2a323" :a :db/ident :v :task/t-d5cfb74d :op :assert}
+   {:e #blake3 "b4d16cb7a2b083e231b1fc8b865ac9ceda4bbb15be508c075c7ec0c33bd2a323" :a :task/created-at :v 1774720059 :op :assert}
+   {:e #blake3 "b4d16cb7a2b083e231b1fc8b865ac9ceda4bbb15be508c075c7ec0c33bd2a323" :a :task/description :v "crystallization_guard() filters below confidence 0.3 and requires supporting observations. FILE: harvest.rs ~80 LOC." :op :assert}
+   {:e #blake3 "b4d16cb7a2b083e231b1fc8b865ac9ceda4bbb15be508c075c7ec0c33bd2a323" :a :task/id :v "t-d5cfb74d" :op :assert}
+   {:e #blake3 "b4d16cb7a2b083e231b1fc8b865ac9ceda4bbb15be508c075c7ec0c33bd2a323" :a :task/labels :v :label/SOUNDNESS :op :assert}
+   {:e #blake3 "b4d16cb7a2b083e231b1fc8b865ac9ceda4bbb15be508c075c7ec0c33bd2a323" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b4d16cb7a2b083e231b1fc8b865ac9ceda4bbb15be508c075c7ec0c33bd2a323" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b4d16cb7a2b083e231b1fc8b865ac9ceda4bbb15be508c075c7ec0c33bd2a323" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b4d16cb7a2b083e231b1fc8b865ac9ceda4bbb15be508c075c7ec0c33bd2a323" :a :task/title :v "SOUND-6: Crystallization guard" :op :assert}
+   {:e #blake3 "b4d16cb7a2b083e231b1fc8b865ac9ceda4bbb15be508c075c7ec0c33bd2a323" :a :task/title-l0 :v "SOUND-6" :op :assert}
+   {:e #blake3 "b4d16cb7a2b083e231b1fc8b865ac9ceda4bbb15be508c075c7ec0c33bd2a323" :a :task/title-l1 :v "SOUND-6: Crystallization guard" :op :assert}
+   {:e #blake3 "b4d16cb7a2b083e231b1fc8b865ac9ceda4bbb15be508c075c7ec0c33bd2a323" :a :task/traces-to :v #blake3 "f7a743e10cfa3ebbb24d9e92d2e85e5930c6542a54abc3438015c7e30dec0cca" :op :assert}
+   {:e #blake3 "b4d16cb7a2b083e231b1fc8b865ac9ceda4bbb15be508c075c7ec0c33bd2a323" :a :task/type :v :task.type/task :op :assert}
+ ]}
