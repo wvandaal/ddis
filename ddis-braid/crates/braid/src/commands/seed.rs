@@ -16,6 +16,7 @@ use crate::error::BraidError;
 use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
+#[allow(clippy::too_many_arguments)]
 pub fn run(
     path: &Path,
     task: &str,
@@ -24,8 +25,17 @@ pub fn run(
     for_human: bool,
     json: bool,
     agent_md: bool,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let agent = AgentId::from_name(agent_name);
@@ -336,8 +346,17 @@ pub fn run_inject(
     inject_path: &Path,
     task: &str,
     budget: usize,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(store_path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(store_path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     // Read the target file

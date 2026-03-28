@@ -659,8 +659,17 @@ pub fn run(
     agent_name: &str,
     commit: bool,
     incremental: bool,
+    pre_opened: Option<&mut crate::live_store::LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let mut live = crate::live_store::LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = crate::live_store::LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     // SC-3: Incremental mode — only scan files modified since last trace scan.

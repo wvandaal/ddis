@@ -37,11 +37,20 @@ pub fn run_start(
     task: Option<&str>,
     budget: usize,
     agent_name: &str,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
 
     // B4: Ensure Layer 4 schema is installed (for session/task attributes)
-    ensure_layer_4(&mut live)?;
+    ensure_layer_4(live)?;
     let store = live.store();
 
     // Resolve task: explicit > last harvest directive > fallback
@@ -135,7 +144,7 @@ pub fn run_start(
     live.write_tx(&tx)?;
 
     // Inject seed into target file (live store already has the session entity)
-    let inject_output = seed::run_inject(path, inject_path, &resolved_task, budget)?;
+    let inject_output = seed::run_inject(path, inject_path, &resolved_task, budget, None)?;
 
     // Compute session context — re-borrow after write
     let store = live.store();
@@ -210,8 +219,20 @@ pub fn run_start(
 /// the later of the last harvest wall time or (now - 1 hour). Counts
 /// tasks created, closed, in-progress, observations, and transactions
 /// since that boundary.
-pub fn run_summary(path: &Path, _agent_name: &str) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+pub fn run_summary(
+    path: &Path,
+    _agent_name: &str,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     // Compute session boundary (same as SessionWorkingSet)
@@ -369,9 +390,17 @@ pub fn run_end(
     task: Option<&str>,
     budget: usize,
     agent_name: &str,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    // Check for observations since last harvest — refuse if nothing to harvest
-    let mut live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
     let tx_since_harvest = count_txns_since_last_harvest(store);
 
@@ -409,13 +438,13 @@ pub fn run_end(
     human.push_str("Ending session...\n\n");
 
     // Step 1: Harvest with commit (Stage 0: force=true bypasses guard)
-    let harvest_output = harvest::run(path, agent_name, task, &[], true, true, false)?;
+    let harvest_output = harvest::run(path, agent_name, task, &[], true, true, false, None)?;
     human.push_str(&harvest_output.human);
 
     // Step 2: Re-inject seed for next session
     // Reload store to include the harvest commit just written
     let task_for_inject = task.unwrap_or("continue");
-    let inject_output = seed::run_inject(path, inject_path, task_for_inject, budget)?;
+    let inject_output = seed::run_inject(path, inject_path, task_for_inject, budget, None)?;
     human.push_str(&format!("\nRefreshed seed: {}", inject_output.human));
 
     // Step 3: Git guidance (advisory only — does NOT run git commands)

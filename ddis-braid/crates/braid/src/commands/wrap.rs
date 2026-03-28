@@ -172,6 +172,7 @@ pub fn run(
         rationale: None,
         alternatives: None,
         no_auto_crystallize: false,
+        pre_opened: None, // Wrap manages its own execution context
     })?;
 
     human.push_str(&format!(

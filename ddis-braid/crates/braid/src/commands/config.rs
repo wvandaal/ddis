@@ -24,12 +24,13 @@ pub fn run(
     value: Option<&str>,
     reset: bool,
     agent: &str,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
     let mut output = match (key, value, reset) {
-        (Some(k), Some(v), false) => run_set(path, k, v, agent),
-        (Some(k), None, true) => run_reset(path, k, agent),
-        (Some(k), None, false) => run_get(path, k),
-        (None, None, _) => run_list(path),
+        (Some(k), Some(v), false) => run_set(path, k, v, agent, pre_opened),
+        (Some(k), None, true) => run_reset(path, k, agent, pre_opened),
+        (Some(k), None, false) => run_get(path, k, pre_opened),
+        (None, None, _) => run_list(path, pre_opened),
         _ => Err(BraidError::Validation(
             "Usage: braid config [key] [value] | braid config --reset <key>".into(),
         )),
@@ -50,8 +51,20 @@ pub fn run(
     Ok(output)
 }
 
-fn run_get(path: &Path, key: &str) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+fn run_get(
+    path: &Path,
+    key: &str,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let (human, value_str, source) = if let Some(val) = braid_kernel::config::get_config(store, key)
@@ -95,8 +108,17 @@ fn run_set(
     key: &str,
     value: &str,
     agent_name: &str,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
 
     let agent_id = AgentId::from_name(agent_name);
     let tx_id = super::write::next_tx_id(live.store(), agent_id);
@@ -131,8 +153,21 @@ fn run_set(
     Ok(CommandOutput { json, agent, human })
 }
 
-fn run_reset(path: &Path, key: &str, agent_name: &str) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
+fn run_reset(
+    path: &Path,
+    key: &str,
+    agent_name: &str,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let key_attr = braid_kernel::Attribute::from_keyword(":config/key");
@@ -220,8 +255,16 @@ fn run_reset(path: &Path, key: &str, agent_name: &str) -> Result<CommandOutput, 
     Ok(CommandOutput { json, agent, human })
 }
 
-fn run_list(path: &Path) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+fn run_list(path: &Path, pre_opened: Option<&mut LiveStore>) -> Result<CommandOutput, BraidError> {
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let store_config = braid_kernel::config::all_config(store);

@@ -601,6 +601,7 @@ fn tool_harvest(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, Bra
         commit,
         force,
         no_reconcile,
+        None, // MCP has its own shared LiveStore
     )?;
 
     // Render agent-mode output as MCP text content
@@ -738,6 +739,7 @@ fn tool_observe(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, Bra
         rationale,
         alternatives,
         no_auto_crystallize,
+        pre_opened: None, // MCP has its own shared LiveStore
     })?;
 
     Ok(json!({
@@ -980,6 +982,7 @@ fn tool_task_create(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue,
         traces_to: &traces_to,
         labels: &labels,
         force,
+        pre_opened: None, // MCP has its own shared LiveStore
     })?;
 
     // Render agent-mode output as MCP text content

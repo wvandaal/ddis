@@ -27,6 +27,7 @@ use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 /// Run the bilateral coherence scan.
+#[allow(clippy::too_many_arguments)]
 pub fn run(
     path: &Path,
     agent_name: &str,
@@ -35,8 +36,17 @@ pub fn run(
     history: bool,
     _json: bool,
     commit: bool,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     // Load convergence trajectory from prior bilateral cycles

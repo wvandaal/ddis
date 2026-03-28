@@ -190,7 +190,7 @@ pub fn run(
     // --- Auto-trace: populate :impl/implements datoms (D1) ---
     // Only run if source files were detected (lang + LOC > 0)
     if detection.lang.is_some() && detection.total_loc > 0 {
-        match super::trace::run(path, &project_root, "braid:init", true, false) {
+        match super::trace::run(path, &project_root, "braid:init", true, false, None) {
             Ok(trace_output) => {
                 // Extract just the summary line from trace output
                 if let Some(summary) = trace_output
@@ -582,7 +582,7 @@ braid seed --inject AGENTS.md             # Refresh this section
     }
 
     if let Some(ref target) = inject_target {
-        match super::seed::run_inject(path, target, "continue", 2000) {
+        match super::seed::run_inject(path, target, "continue", 2000, None) {
             Ok(inject_msg) => {
                 out.push_str(&format!("  seed: injected into {}\n", target.display()));
                 let _ = inject_msg;

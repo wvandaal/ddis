@@ -118,6 +118,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 offset: 0,
                 count_only: false,
                 json: false,
+                pre_opened: None, // Shell manages its own store
             }) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
@@ -137,6 +138,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 offset: 0,
                 count_only: false,
                 json: false,
+                pre_opened: None, // Shell manages its own store
             }) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
@@ -158,6 +160,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 rationale: None,
                 alternatives: None,
                 no_auto_crystallize: false,
+                pre_opened: None, // Shell manages its own store lifecycle
             }) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
@@ -170,7 +173,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                     "usage: datalog [:find ?e :where [?e :db/doc ?v]]".into(),
                 );
             }
-            match super::query::run_datalog(path, args, None, false) {
+            match super::query::run_datalog(path, args, None, false, None) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
@@ -221,14 +224,14 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
             }
         }
 
-        "log" | "l" => match super::log::run(path, 10, None, false, false, false) {
+        "log" | "l" => match super::log::run(path, 10, None, false, false, false, None) {
             Ok(co) => DispatchResult::Output(co.human),
             Err(e) => DispatchResult::Error(e.to_string()),
         },
 
         "seed" | "sd" => {
             let task = if args.is_empty() { "continue" } else { args };
-            match super::seed::run(path, task, 500, "braid:shell", true, false, false) {
+            match super::seed::run(path, task, 500, "braid:shell", true, false, false, None) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
@@ -236,7 +239,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
 
         "harvest" | "hv" => {
             let task = if args.is_empty() { None } else { Some(args) };
-            match super::harvest::run(path, "braid:shell", task, &[], false, false, false) {
+            match super::harvest::run(path, "braid:shell", task, &[], false, false, false, None) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }

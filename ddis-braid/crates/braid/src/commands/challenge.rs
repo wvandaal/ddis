@@ -33,6 +33,7 @@ use crate::output::CommandOutput;
 /// - Default (no flag): Attempt a challenge (depth 1→2)
 /// - `--survive`: Record survival (depth 2→3)
 /// - `--falsify`: Record falsification (depth resets to 0, retract claim)
+#[allow(clippy::too_many_arguments)]
 pub fn run(
     path: &Path,
     entity_id: &str,
@@ -41,8 +42,17 @@ pub fn run(
     register: bool,
     criteria: &[String],
     agent_name: &str,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
     let agent = AgentId::from_name(agent_name);
 

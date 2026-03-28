@@ -2508,7 +2508,9 @@ pub fn run(
             commit,
             agent,
         } => {
-            let cmd_output = bilateral::run(&path, &agent, full, spectral, history, json, commit)?;
+            let cmd_output = bilateral::run(
+                &path, &agent, full, spectral, history, json, commit, pre_opened,
+            )?;
             return Ok(maybe_inject_footer(
                 cmd_output,
                 skip_footer,
@@ -2525,7 +2527,7 @@ pub fn run(
             incremental,
             agent,
         } => {
-            let cmd_output = trace::run(&path, &source, &agent, commit, incremental)?;
+            let cmd_output = trace::run(&path, &source, &agent, commit, incremental, pre_opened)?;
             return Ok(maybe_inject_footer(
                 cmd_output,
                 skip_footer,
@@ -2562,7 +2564,7 @@ pub fn run(
                     rationale,
                     datoms,
                 } => (
-                    write::run_assert(&path, &agent, &rationale, &datoms)?,
+                    write::run_assert(&path, &agent, &rationale, &datoms, pre_opened)?,
                     "write assert",
                 ),
                 WriteAction::Retract {
@@ -2572,7 +2574,14 @@ pub fn run(
                     attribute,
                     value,
                 } => (
-                    write::run_retract(&path, &agent, &entity, &attribute, value.as_deref())?,
+                    write::run_retract(
+                        &path,
+                        &agent,
+                        &entity,
+                        &attribute,
+                        value.as_deref(),
+                        pre_opened,
+                    )?,
                     "write retract",
                 ),
                 WriteAction::Promote {
@@ -2600,6 +2609,7 @@ pub fn run(
                         verification: verification.as_deref(),
                         problem: problem.as_deref(),
                         decision: decision.as_deref(),
+                        pre_opened,
                     })?,
                     "write promote",
                 ),
@@ -2608,7 +2618,7 @@ pub fn run(
                     output,
                     namespace,
                 } => (
-                    write::run_export(&path, &output, namespace.as_deref())?,
+                    write::run_export(&path, &output, namespace.as_deref(), pre_opened)?,
                     "write export",
                 ),
             };
@@ -2646,7 +2656,7 @@ pub fn run(
         } => {
             let dq = datalog.or(positional_datalog);
             let cmd_output = if let Some(ref dq) = dq {
-                query::run_datalog(&path, dq, frontier.as_deref(), json)?
+                query::run_datalog(&path, dq, frontier.as_deref(), json, pre_opened)?
             } else {
                 query::run(query::QueryParams {
                     path: &path,
@@ -2657,6 +2667,7 @@ pub fn run(
                     offset,
                     count_only: count,
                     json,
+                    pre_opened,
                 })?
             };
             return Ok(maybe_inject_footer(
@@ -2675,7 +2686,8 @@ pub fn run(
             json,
             diff,
         } => {
-            let cmd_output = schema::run(&path, pattern.as_deref(), verbose, json, diff)?;
+            let cmd_output =
+                schema::run(&path, pattern.as_deref(), verbose, json, diff, pre_opened)?;
             return Ok(maybe_inject_footer(
                 cmd_output,
                 skip_footer,
@@ -2706,6 +2718,7 @@ pub fn run(
                 commit,
                 effective_force,
                 no_reconcile,
+                pre_opened,
             )?;
             return Ok(maybe_inject_footer(
                 cmd_output,
@@ -2736,8 +2749,13 @@ pub fn run(
 
             // --inject mode: update file in place with seed content (SB.3.3)
             if let Some(ref inject_path) = inject {
-                let cmd_output =
-                    seed::run_inject(&path, inject_path, effective_task, effective_budget)?;
+                let cmd_output = seed::run_inject(
+                    &path,
+                    inject_path,
+                    effective_task,
+                    effective_budget,
+                    pre_opened,
+                )?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
                     skip_footer,
@@ -2756,6 +2774,7 @@ pub fn run(
                 for_human,
                 json,
                 agent_md,
+                pre_opened,
             )?;
             return Ok(maybe_inject_footer(
                 cmd_output,
@@ -2785,7 +2804,15 @@ pub fn run(
             json,
             verbose,
         } => {
-            let cmd_output = log::run(&path, limit, agent.as_deref(), datoms, json, verbose)?;
+            let cmd_output = log::run(
+                &path,
+                limit,
+                agent.as_deref(),
+                datoms,
+                json,
+                verbose,
+                pre_opened,
+            )?;
             return Ok(maybe_inject_footer(
                 cmd_output,
                 skip_footer,
@@ -2808,34 +2835,6 @@ pub fn run(
             no_auto_crystallize,
             action,
         } => {
-            // Dispatch helper for creation mode (shared by implicit and explicit create).
-            let do_create =
-                |p: &Path,
-                 t: &str,
-                 conf: f64,
-                 tags: &[String],
-                 cat: Option<&str>,
-                 ag: &str,
-                 rel: Option<&str>,
-                 rat: Option<&str>,
-                 alt: Option<&str>,
-                 no_ac: bool|
-                 -> Result<crate::output::CommandOutput, crate::error::BraidError> {
-                    let agent_r = resolve_agent_identity(ag);
-                    observe::run(observe::ObserveArgs {
-                        path: p,
-                        text: t,
-                        confidence: conf,
-                        tags,
-                        category: cat,
-                        agent: &agent_r,
-                        relates_to: rel,
-                        rationale: rat,
-                        alternatives: alt,
-                        no_auto_crystallize: no_ac,
-                    })
-                };
-
             match action {
                 // No subcommand: creation mode (backward compat: `braid observe "text"`)
                 None => {
@@ -2843,18 +2842,20 @@ pub fn run(
                         "observation text required. Usage: braid observe \"text\" or braid observe list|search|show|recent".to_string()
                     ))?;
                     let observe_text = text.clone();
-                    let cmd_output = do_create(
-                        &path,
-                        &text,
+                    let agent_r = resolve_agent_identity(&agent);
+                    let cmd_output = observe::run(observe::ObserveArgs {
+                        path: &path,
+                        text: &text,
                         confidence,
-                        &tag,
-                        category.as_deref(),
-                        &agent,
-                        relates_to.as_deref(),
-                        rationale.as_deref(),
-                        alternatives.as_deref(),
+                        tags: &tag,
+                        category: category.as_deref(),
+                        agent: &agent_r,
+                        relates_to: relates_to.as_deref(),
+                        rationale: rationale.as_deref(),
+                        alternatives: alternatives.as_deref(),
                         no_auto_crystallize,
-                    )?;
+                        pre_opened,
+                    })?;
                     return Ok(maybe_inject_footer(
                         cmd_output,
                         skip_footer,
@@ -2878,18 +2879,20 @@ pub fn run(
                     no_auto_crystallize,
                 }) => {
                     let observe_text = text.clone();
-                    let cmd_output = do_create(
-                        &path,
-                        &text,
+                    let agent_r = resolve_agent_identity(&agent);
+                    let cmd_output = observe::run(observe::ObserveArgs {
+                        path: &path,
+                        text: &text,
                         confidence,
-                        &tag,
-                        category.as_deref(),
-                        &agent,
-                        relates_to.as_deref(),
-                        rationale.as_deref(),
-                        alternatives.as_deref(),
+                        tags: &tag,
+                        category: category.as_deref(),
+                        agent: &agent_r,
+                        relates_to: relates_to.as_deref(),
+                        rationale: rationale.as_deref(),
+                        alternatives: alternatives.as_deref(),
                         no_auto_crystallize,
-                    )?;
+                        pre_opened,
+                    })?;
                     return Ok(maybe_inject_footer(
                         cmd_output,
                         skip_footer,
@@ -2902,7 +2905,7 @@ pub fn run(
                 // Query subcommands (INV-REFLEXIVE-006)
                 Some(ObserveAction::List { path, agent }) => {
                     let agent = resolve_agent_identity(&agent);
-                    let cmd_output = observe::run_list(&path, &agent)?;
+                    let cmd_output = observe::run_list(&path, &agent, pre_opened)?;
                     return Ok(maybe_inject_footer(
                         cmd_output,
                         skip_footer,
@@ -2918,7 +2921,7 @@ pub fn run(
                     agent,
                 }) => {
                     let agent = resolve_agent_identity(&agent);
-                    let cmd_output = observe::run_search(&path, &pattern, &agent)?;
+                    let cmd_output = observe::run_search(&path, &pattern, &agent, pre_opened)?;
                     return Ok(maybe_inject_footer(
                         cmd_output,
                         skip_footer,
@@ -2934,7 +2937,7 @@ pub fn run(
                     agent,
                 }) => {
                     let agent = resolve_agent_identity(&agent);
-                    let cmd_output = observe::run_show(&path, &entity, &agent)?;
+                    let cmd_output = observe::run_show(&path, &entity, &agent, pre_opened)?;
                     return Ok(maybe_inject_footer(
                         cmd_output,
                         skip_footer,
@@ -2946,7 +2949,7 @@ pub fn run(
                 }
                 Some(ObserveAction::Recent { count, path, agent }) => {
                     let agent = resolve_agent_identity(&agent);
-                    let cmd_output = observe::run_recent(&path, count, &agent)?;
+                    let cmd_output = observe::run_recent(&path, count, &agent, pre_opened)?;
                     return Ok(maybe_inject_footer(
                         cmd_output,
                         skip_footer,
@@ -2969,7 +2972,7 @@ pub fn run(
                 } => {
                     let eff =
                         seed_budget.min(budget_ctx.manager.command_budget("session") as usize);
-                    session::run_start(&path, &inject, task.as_deref(), eff, &agent)?
+                    session::run_start(&path, &inject, task.as_deref(), eff, &agent, pre_opened)?
                 }
                 SessionAction::End {
                     path,
@@ -2980,9 +2983,11 @@ pub fn run(
                 } => {
                     let eff =
                         seed_budget.min(budget_ctx.manager.command_budget("session") as usize);
-                    session::run_end(&path, &inject, task.as_deref(), eff, &agent)?
+                    session::run_end(&path, &inject, task.as_deref(), eff, &agent, pre_opened)?
                 }
-                SessionAction::Summary { path, agent } => session::run_summary(&path, &agent)?,
+                SessionAction::Summary { path, agent } => {
+                    session::run_summary(&path, &agent, pre_opened)?
+                }
             };
             return Ok(maybe_inject_footer(
                 cmd_output,
@@ -3054,6 +3059,7 @@ pub fn run(
                                 .collect::<Vec<_>>(),
                             labels: &labels,
                             force,
+                            pre_opened,
                         })?
                     } else {
                         task::create(task::CreateArgs {
@@ -3066,6 +3072,7 @@ pub fn run(
                             traces_to: &traces_to,
                             labels: &labels,
                             force,
+                            pre_opened,
                         })?
                     }
                 }
@@ -3083,22 +3090,25 @@ pub fn run(
                     prefix.as_deref(),
                     limit,
                     priority,
+                    pre_opened,
                 )?,
-                TaskAction::Search { pattern, path, all } => task::search(&path, &pattern, all)?,
-                TaskAction::Ready { path } => task::ready(&path)?,
-                TaskAction::Show { id, path } => task::show(&path, &id)?,
+                TaskAction::Search { pattern, path, all } => {
+                    task::search(&path, &pattern, all, pre_opened)?
+                }
+                TaskAction::Ready { path } => task::ready(&path, pre_opened)?,
+                TaskAction::Show { id, path } => task::show(&path, &id, pre_opened)?,
                 TaskAction::Close {
                     ids,
                     path,
                     reason,
                     agent,
-                } => task::close(&path, &ids, &reason, &agent, false, None)?,
+                } => task::close(&path, &ids, &reason, &agent, false, None, pre_opened)?,
                 TaskAction::Update {
                     id,
                     path,
                     status,
                     agent,
-                } => task::update(&path, &id, &status, &agent)?,
+                } => task::update(&path, &id, &status, &agent, pre_opened)?,
                 TaskAction::Set {
                     id,
                     attribute,
@@ -3126,7 +3136,7 @@ pub fn run(
                             "provide either --title/--priority/--status/--type flag, or positional ATTRIBUTE VALUE".into()
                         ));
                     };
-                    task::set(&path, &id, &attr, &val, &agent)?
+                    task::set(&path, &id, &attr, &val, &agent, pre_opened)?
                 }
                 TaskAction::Dep { action } => match action {
                     DepAction::Add {
@@ -3134,12 +3144,12 @@ pub fn run(
                         to,
                         path,
                         agent,
-                    } => task::dep_add(&path, &from, &to, &agent)?,
+                    } => task::dep_add(&path, &from, &to, &agent, pre_opened)?,
                 },
                 TaskAction::Import { path, beads, agent } => {
-                    task::import_beads(&path, &beads, &agent)?
+                    task::import_beads(&path, &beads, &agent, pre_opened)?
                 }
-                TaskAction::Audit { path } => task::audit(&path)?,
+                TaskAction::Audit { path } => task::audit(&path, pre_opened)?,
             };
             return Ok(maybe_inject_footer(
                 cmd_output,
@@ -3157,7 +3167,14 @@ pub fn run(
             path,
             agent,
         } => {
-            let cmd_output = config::run(&path, key.as_deref(), value.as_deref(), reset, &agent)?;
+            let cmd_output = config::run(
+                &path,
+                key.as_deref(),
+                value.as_deref(),
+                reset,
+                &agent,
+                pre_opened,
+            )?;
             return Ok(maybe_inject_footer(
                 cmd_output,
                 skip_footer,
@@ -3195,7 +3212,7 @@ pub fn run(
 
         // ── Shortcuts (WP6: delegates to existing handlers) ──────────
         Command::Next { path, skip } => {
-            let cmd_output = task::next(&path, skip.as_deref())?;
+            let cmd_output = task::next(&path, skip.as_deref(), pre_opened)?;
             return Ok(maybe_inject_footer(
                 cmd_output,
                 skip_footer,
@@ -3212,8 +3229,15 @@ pub fn run(
             force,
             attest,
         } => {
-            let cmd_output =
-                task::close(&path, &ids, "completed", &agent, force, attest.as_deref())?;
+            let cmd_output = task::close(
+                &path,
+                &ids,
+                "completed",
+                &agent,
+                force,
+                attest.as_deref(),
+                pre_opened,
+            )?;
             return Ok(maybe_inject_footer(
                 cmd_output,
                 skip_footer,
@@ -3240,6 +3264,7 @@ pub fn run(
                 rationale: None,
                 alternatives: None,
                 no_auto_crystallize: false,
+                pre_opened,
             })?;
             return Ok(maybe_inject_footer(
                 cmd_output,
@@ -3251,7 +3276,7 @@ pub fn run(
             ));
         }
         Command::Go { id, path, agent } => {
-            let cmd_output = task::update(&path, &id, "in-progress", &agent)?;
+            let cmd_output = task::update(&path, &id, "in-progress", &agent, pre_opened)?;
             return Ok(maybe_inject_footer(
                 cmd_output,
                 skip_footer,
@@ -3269,7 +3294,7 @@ pub fn run(
         } => {
             let rationale =
                 rationale.unwrap_or_else(|| "manual assertion via braid transact".to_string());
-            write::run_assert(&path, &agent, &rationale, &datoms)
+            write::run_assert(&path, &agent, &rationale, &datoms, pre_opened)
         }
         Command::Spec { action } => match action {
             SpecAction::Create {
@@ -3297,6 +3322,7 @@ pub fn run(
                     confidence,
                     agent: &agent,
                     no_auto_task,
+                    pre_opened,
                 })?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
@@ -3308,7 +3334,7 @@ pub fn run(
                 ));
             }
             SpecAction::Review { path } => {
-                let cmd_output = spec::run_review(&path)?;
+                let cmd_output = spec::run_review(&path, pre_opened)?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
                     skip_footer,
@@ -3319,7 +3345,7 @@ pub fn run(
                 ));
             }
             SpecAction::Accept { id, path, agent } => {
-                let cmd_output = spec::run_accept(&path, &id, &agent)?;
+                let cmd_output = spec::run_accept(&path, &id, &agent, pre_opened)?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
                     skip_footer,
@@ -3335,7 +3361,7 @@ pub fn run(
                 path,
                 agent,
             } => {
-                let cmd_output = spec::run_reject(&path, &id, &reason, &agent)?;
+                let cmd_output = spec::run_reject(&path, &id, &reason, &agent, pre_opened)?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
                     skip_footer,
@@ -3346,7 +3372,7 @@ pub fn run(
                 ));
             }
             SpecAction::History { path } => {
-                let cmd_output = spec::run_history(&path)?;
+                let cmd_output = spec::run_history(&path, pre_opened)?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
                     skip_footer,
@@ -3399,7 +3425,7 @@ pub fn run(
         },
         Command::Witness { action } => match action {
             WitnessAction::Status { path, json } => {
-                let cmd_output = witness::run_status(&path, json)?;
+                let cmd_output = witness::run_status(&path, json, pre_opened)?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
                     skip_footer,
@@ -3410,7 +3436,7 @@ pub fn run(
                 ));
             }
             WitnessAction::Check { path, commit, json } => {
-                let cmd_output = witness::run_check(&path, commit, json)?;
+                let cmd_output = witness::run_check(&path, commit, json, pre_opened)?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
                     skip_footer,
@@ -3421,7 +3447,7 @@ pub fn run(
                 ));
             }
             WitnessAction::Completeness { path, json } => {
-                let cmd_output = witness::run_completeness(&path, json)?;
+                let cmd_output = witness::run_completeness(&path, json, pre_opened)?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
                     skip_footer,
@@ -3432,7 +3458,7 @@ pub fn run(
                 ));
             }
             WitnessAction::Generate { path, commit } => {
-                let cmd_output = witness::run_generate(&path, commit)?;
+                let cmd_output = witness::run_generate(&path, commit, pre_opened)?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
                     skip_footer,
@@ -3453,7 +3479,7 @@ pub fn run(
             criteria,
         } => {
             let cmd_output = challenge::run(
-                &path, &entity, survive, falsify, register, &criteria, &agent,
+                &path, &entity, survive, falsify, register, &criteria, &agent, pre_opened,
             )?;
             return Ok(maybe_inject_footer(
                 cmd_output,
@@ -3499,7 +3525,7 @@ pub fn run(
             // Subprocesses inherit env, so any `braid extract` they invoke will see
             // depth >= 1 and bail out above.
             std::env::set_var("BRAID_EXTRACTOR_DEPTH", (extractor_depth + 1).to_string());
-            let cmd_output = extract::run(&path, filter.as_deref(), commit, &agent)?;
+            let cmd_output = extract::run(&path, filter.as_deref(), commit, &agent, pre_opened)?;
             // Restore previous depth after extraction completes.
             std::env::set_var("BRAID_EXTRACTOR_DEPTH", extractor_depth.to_string());
             return Ok(maybe_inject_footer(

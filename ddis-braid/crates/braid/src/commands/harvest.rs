@@ -110,6 +110,7 @@ fn infer_task(store: &braid_kernel::Store, path: &Path) -> (String, &'static str
     ("session work".to_string(), "default")
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn run(
     path: &Path,
     agent_name: &str,
@@ -118,8 +119,17 @@ pub fn run(
     commit: bool,
     force: bool,
     no_reconcile: bool,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     // Auto-detect or use explicit task

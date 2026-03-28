@@ -107,6 +107,8 @@ pub struct QueryParams<'a> {
     pub offset: usize,
     pub count_only: bool,
     pub json: bool,
+    /// WRITER-3: Pre-opened LiveStore from main.rs (zero deserialization).
+    pub pre_opened: Option<&'a mut LiveStore>,
 }
 
 pub fn run(params: QueryParams<'_>) -> Result<CommandOutput, BraidError> {
@@ -119,8 +121,17 @@ pub fn run(params: QueryParams<'_>) -> Result<CommandOutput, BraidError> {
         offset,
         count_only,
         json,
+        pre_opened,
     } = params;
-    let live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let frontier = parse_frontier(store, frontier_spec)?;
@@ -345,8 +356,17 @@ pub fn run_datalog(
     datalog_src: &str,
     frontier_spec: Option<&str>,
     json: bool,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let frontier = parse_frontier(store, frontier_spec)?;

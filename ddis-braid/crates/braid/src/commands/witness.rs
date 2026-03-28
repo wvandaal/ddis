@@ -15,8 +15,20 @@ use crate::live_store::LiveStore;
 use crate::output::{AgentOutput, CommandOutput};
 
 /// Run `braid witness status` -- show witness coverage summary.
-pub fn run_status(path: &Path, json: bool) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+pub fn run_status(
+    path: &Path,
+    json: bool,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let witnesses = witness::all_witnesses(store);
@@ -198,8 +210,21 @@ pub fn run_status(path: &Path, json: bool) -> Result<CommandOutput, BraidError> 
 }
 
 /// Run `braid witness check` -- staleness detection on all witnesses.
-pub fn run_check(path: &Path, commit: bool, json: bool) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
+pub fn run_check(
+    path: &Path,
+    commit: bool,
+    json: bool,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let witnesses = witness::all_witnesses(store);
@@ -366,8 +391,20 @@ pub fn run_check(path: &Path, commit: bool, json: bool) -> Result<CommandOutput,
 }
 
 /// Run `braid witness completeness` -- show unwitnessed invariants.
-pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+pub fn run_completeness(
+    path: &Path,
+    json: bool,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let witnesses = witness::all_witnesses(store);
@@ -525,8 +562,20 @@ pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidE
 ///
 /// Dry-run mode (default): shows how many would be created.
 /// Commit mode: transacts the witness datoms.
-pub fn run_generate(path: &Path, commit: bool) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
+pub fn run_generate(
+    path: &Path,
+    commit: bool,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let agent = braid_kernel::datom::AgentId::from_name("braid:witness-batch");

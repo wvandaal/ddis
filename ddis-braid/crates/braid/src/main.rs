@@ -131,8 +131,11 @@ fn main() {
         None
     };
 
-    // Session auto-detect (only for commands using pre_opened store).
-    let uses_pre_opened = matches!(cmd_name, "status");
+    // WRITER-4: Session auto-detect for ALL commands using pre_opened store.
+    // Previously restricted to "status" only; now all non-init/session commands
+    // receive the pre-opened LiveStore, so session detection runs for all of them.
+    let uses_pre_opened =
+        cmd_name != "init" && cmd_name != "daemon" && cmd_name != "mcp" && cmd_name != "shell";
     if cmd_name != "init" && cmd_name != "session" && uses_pre_opened {
         if let Some(ref mut live) = live {
             if braid_kernel::guidance::detect_session_start(live.store()) {

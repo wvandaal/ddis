@@ -51,6 +51,8 @@ pub struct ObserveArgs<'a> {
     pub alternatives: Option<&'a str>,
     /// Suppress auto-crystallization of spec findings (COTX-2).
     pub no_auto_crystallize: bool,
+    /// WRITER-3: Pre-opened LiveStore from main.rs (zero deserialization).
+    pub pre_opened: Option<&'a mut LiveStore>,
 }
 
 /// Generate a slug from observation text for the entity ident.
@@ -170,7 +172,15 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         )));
     }
 
-    let mut live = LiveStore::open(args.path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match args.pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(args.path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let agent = AgentId::from_name(args.agent);
@@ -1510,8 +1520,20 @@ fn find_active_session(store: &braid_kernel::Store) -> Option<EntityId> {
 // ===================================================================
 
 /// `braid observe list` — observations grouped by concept, with steering question.
-pub fn run_list(path: &Path, _agent: &str) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+pub fn run_list(
+    path: &Path,
+    _agent: &str,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let groups = braid_kernel::concept::observations_by_concept(store);
@@ -1581,8 +1603,21 @@ pub fn run_list(path: &Path, _agent: &str) -> Result<CommandOutput, BraidError> 
 }
 
 /// `braid observe search PATTERN` — ranked results with steering question.
-pub fn run_search(path: &Path, pattern: &str, _agent: &str) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+pub fn run_search(
+    path: &Path,
+    pattern: &str,
+    _agent: &str,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let all = braid_kernel::concept::all_observations(store);
@@ -1657,8 +1692,17 @@ pub fn run_show(
     path: &Path,
     entity_ident: &str,
     _agent: &str,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let entity = EntityId::from_ident(entity_ident);
@@ -1751,8 +1795,21 @@ pub fn run_show(
 }
 
 /// `braid observe recent N` — most recent observations with concept tags, with steering question.
-pub fn run_recent(path: &Path, count: usize, _agent: &str) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+pub fn run_recent(
+    path: &Path,
+    count: usize,
+    _agent: &str,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let all = braid_kernel::concept::all_observations(store);
@@ -1956,6 +2013,7 @@ mod tests {
             rationale: None,
             alternatives: None,
             no_auto_crystallize: false,
+            pre_opened: None,
         })
         .unwrap();
 
@@ -2016,6 +2074,7 @@ mod tests {
             rationale: None,
             alternatives: None,
             no_auto_crystallize: false,
+            pre_opened: None,
         });
         assert!(result.is_err());
     }
@@ -2037,6 +2096,7 @@ mod tests {
             rationale: None,
             alternatives: None,
             no_auto_crystallize: false,
+            pre_opened: None,
         });
         assert!(result.is_err());
     }
@@ -2058,6 +2118,7 @@ mod tests {
             rationale: None,
             alternatives: None,
             no_auto_crystallize: false,
+            pre_opened: None,
         })
         .unwrap();
 
@@ -2107,6 +2168,7 @@ mod tests {
             rationale: None,
             alternatives: None,
             no_auto_crystallize: false,
+            pre_opened: None,
         })
         .unwrap();
 
@@ -2225,6 +2287,7 @@ mod tests {
             rationale: None,
             alternatives: None,
             no_auto_crystallize: false,
+            pre_opened: None,
         };
 
         let result = run(args).unwrap();
@@ -2263,6 +2326,7 @@ mod tests {
             rationale: None,
             alternatives: None,
             no_auto_crystallize: false,
+            pre_opened: None,
         };
 
         let result = run(args).unwrap();
@@ -2292,6 +2356,7 @@ mod tests {
             rationale: None,
             alternatives: None,
             no_auto_crystallize: false,
+            pre_opened: None,
         };
 
         let result = run(args).unwrap();

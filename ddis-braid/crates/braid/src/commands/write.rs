@@ -73,8 +73,17 @@ pub fn run_assert(
     agent_name: &str,
     rationale: &str,
     datoms_raw: &[String],
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<String, BraidError> {
-    let mut live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
 
     let agent = AgentId::from_name(agent_name);
 
@@ -157,8 +166,17 @@ pub fn run_retract(
     entity_ident: &str,
     attribute_keyword: &str,
     value_filter: Option<&str>,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<String, BraidError> {
-    let mut live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let agent = AgentId::from_name(agent_name);
@@ -246,11 +264,21 @@ pub struct PromoteArgs<'a> {
     pub verification: Option<&'a str>,
     pub problem: Option<&'a str>,
     pub decision: Option<&'a str>,
+    /// WRITER-3: Pre-opened LiveStore from main.rs (zero deserialization).
+    pub pre_opened: Option<&'a mut LiveStore>,
 }
 
 /// Promote an exploration entity to a formal spec element.
 pub fn run_promote(args: PromoteArgs<'_>) -> Result<String, BraidError> {
-    let mut live = LiveStore::open(args.path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match args.pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(args.path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
     let datoms: BTreeSet<_> = store.datoms().cloned().collect();
 
@@ -385,8 +413,17 @@ pub fn run_export(
     path: &Path,
     output_dir: &Path,
     namespace_filter: Option<&str>,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<String, BraidError> {
-    let live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let mut elements: BTreeMap<EntityId, StoreElement> = BTreeMap::new();

@@ -46,6 +46,8 @@ pub struct CreateArgs<'a> {
     pub labels: &'a [String],
     /// CRB-PREVIEW: skip duplicate preview and create immediately.
     pub force: bool,
+    /// WRITER-2: Pre-opened LiveStore from main.rs (zero deserialization).
+    pub pre_opened: Option<&'a mut LiveStore>,
 }
 
 /// Create a new task.
@@ -60,9 +62,18 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         traces_to,
         labels,
         force,
+        pre_opened,
     } = args;
-    let mut live = LiveStore::open(path)?;
-    ensure_layer_4_public(&mut live)?;
+    // WRITER-2: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
+    ensure_layer_4_public(live)?;
     let store = live.store();
 
     // CRB-PREVIEW: Search for related tasks before creating (INV-GUIDANCE-024).
@@ -201,8 +212,12 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
 
 /// List tasks (backward-compat wrapper around list_filtered).
 #[allow(dead_code)]
-pub fn list(path: &Path, show_all: bool) -> Result<CommandOutput, BraidError> {
-    list_filtered(path, show_all, None, None, None, None)
+pub fn list(
+    path: &Path,
+    show_all: bool,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    list_filtered(path, show_all, None, None, None, None, pre_opened)
 }
 
 /// List tasks with optional filters.
@@ -221,8 +236,17 @@ pub fn list_filtered(
     prefix: Option<&str>,
     limit: Option<usize>,
     priority: Option<i64>,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+    // WRITER-2: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let tasks = task::all_tasks(store);
@@ -368,8 +392,17 @@ pub fn search(
     path: &Path,
     pattern: &str,
     include_closed: bool,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+    // WRITER-2: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let tasks = task::all_tasks(store);
@@ -450,8 +483,16 @@ pub fn search(
 }
 
 /// Show ready tasks (unblocked open tasks sorted by priority).
-pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+pub fn ready(path: &Path, pre_opened: Option<&mut LiveStore>) -> Result<CommandOutput, BraidError> {
+    // WRITER-2: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let ready_set = compute_ready_set(store);
@@ -635,8 +676,20 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
 ///
 /// For the full list, use `braid task ready`.
 /// When `skip` is provided, filters out the matching task before selecting.
-pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+pub fn next(
+    path: &Path,
+    skip: Option<&str>,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-2: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let mut ready_set = compute_ready_set(store);
@@ -802,8 +855,20 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
 }
 
 /// Show detailed info about a task.
-pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+pub fn show(
+    path: &Path,
+    task_id: &str,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-2: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let entity = find_task_by_id(store, task_id)
@@ -1047,9 +1112,18 @@ pub fn close(
     agent: &str,
     force: bool,
     attest: Option<&str>,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
-    ensure_layer_4_public(&mut live)?;
+    // WRITER-2: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
+    ensure_layer_4_public(live)?;
 
     let agent_id = AgentId::from_name(agent);
     let tx_id = super::write::next_tx_id(live.store(), agent_id);
@@ -1409,9 +1483,18 @@ pub fn update(
     task_id: &str,
     status: &str,
     agent: &str,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
-    ensure_layer_4_public(&mut live)?;
+    // WRITER-2: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
+    ensure_layer_4_public(live)?;
 
     // Phase 1: reads
     let entity;
@@ -1546,9 +1629,18 @@ pub fn set(
     attribute: &str,
     value: &str,
     agent: &str,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
-    ensure_layer_4_public(&mut live)?;
+    // WRITER-2: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
+    ensure_layer_4_public(live)?;
 
     // Phase 1: reads
     let old_display;
@@ -1625,9 +1717,18 @@ pub fn dep_add(
     from_id: &str,
     to_id: &str,
     agent: &str,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
-    ensure_layer_4_public(&mut live)?;
+    // WRITER-2: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
+    ensure_layer_4_public(live)?;
 
     // Phase 1: reads
     let tx;
@@ -1680,9 +1781,18 @@ pub fn import_beads(
     path: &Path,
     beads_path: &Path,
     agent: &str,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
-    ensure_layer_4_public(&mut live)?;
+    // WRITER-2: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
+    ensure_layer_4_public(live)?;
 
     let content = std::fs::read_to_string(beads_path)
         .map_err(|e| BraidError::Validation(format!("cannot read beads file: {e}")))?;
@@ -1900,8 +2010,16 @@ fn extract_json_number(json: &str, key: &str) -> Option<i64> {
 ///
 /// Uses the kernel's `audit_tasks_from_store` (pure, no IO) to find open tasks
 /// where spec refs have :impl/implements links at L2+.
-pub fn audit(path: &Path) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+pub fn audit(path: &Path, pre_opened: Option<&mut LiveStore>) -> Result<CommandOutput, BraidError> {
+    // WRITER-2: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let results = braid_kernel::task::audit_tasks_from_store(store);
@@ -2280,6 +2398,7 @@ mod tests {
             traces_to: &[],
             labels: &[],
             force: true, // skip CRB-PREVIEW in tests
+            pre_opened: None,
         })
         .unwrap()
     }
@@ -2296,7 +2415,7 @@ mod tests {
         let result = create_test_task(&path, "Test task", 2);
         assert!(result.human.contains("created:"));
 
-        let list_result = list(&path, false).unwrap();
+        let list_result = list(&path, false, None).unwrap();
         assert!(result.human.contains("Test task") || list_result.human.contains("Test task"));
     }
 
@@ -2315,9 +2434,9 @@ mod tests {
         let id_a = generate_task_id("Task A");
         let id_b = generate_task_id("Task B");
 
-        dep_add(&path, &id_b, &id_a, "test").unwrap();
+        dep_add(&path, &id_b, &id_a, "test", None).unwrap();
 
-        let result = ready(&path).unwrap();
+        let result = ready(&path, None).unwrap();
         assert!(result.human.contains("Task A"));
         // Task B is blocked by A, so it shouldn't appear in ready
         assert!(!result.human.contains(&format!("{}  \"Task B\"", id_b)));
@@ -2377,6 +2496,7 @@ mod tests {
             traces_to: &[],
             labels: &[],
             force: true,
+            pre_opened: None,
         })
         .unwrap();
 
@@ -2429,6 +2549,7 @@ mod tests {
             traces_to: &[],
             labels: &[],
             force: true,
+            pre_opened: None,
         })
         .unwrap();
 
@@ -2462,7 +2583,7 @@ mod tests {
         let task_id = generate_task_id("Priority diff test");
 
         // Set priority from 2 to 0 — should show "2→0"
-        let result = set(&path, &task_id, "priority", "0", "test").unwrap();
+        let result = set(&path, &task_id, "priority", "0", "test", None).unwrap();
         assert!(
             result.human.contains("2\u{2192}0"),
             "should show old→new transition: {}",
@@ -2488,7 +2609,7 @@ mod tests {
         let task_id = generate_task_id("Unchanged diff test");
 
         // Set priority to same value (2) — should show "(unchanged)"
-        let result = set(&path, &task_id, "priority", "2", "test").unwrap();
+        let result = set(&path, &task_id, "priority", "2", "test", None).unwrap();
         assert!(
             result.human.contains("(unchanged)"),
             "should show (unchanged) for same value: {}",
@@ -2508,7 +2629,7 @@ mod tests {
         let task_id = generate_task_id("Status diff test");
 
         // Set status from open to in-progress
-        let result = set(&path, &task_id, "status", "in-progress", "test").unwrap();
+        let result = set(&path, &task_id, "status", "in-progress", "test", None).unwrap();
         assert!(
             result.human.contains("open\u{2192}in-progress"),
             "should show status transition: {}",
@@ -2527,7 +2648,7 @@ mod tests {
         let path = dir.path().join(".braid");
         crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
-        let result = set(&path, "t-nonexistent", "priority", "1", "test");
+        let result = set(&path, "t-nonexistent", "priority", "1", "test", None);
         assert!(
             result.is_err(),
             "setting attribute on nonexistent task should error"
@@ -2543,7 +2664,14 @@ mod tests {
         create_test_task(&path, "Invalid attr test", 2);
         let task_id = generate_task_id("Invalid attr test");
 
-        let result = set(&path, &task_id, "nonexistent_attribute", "value", "test");
+        let result = set(
+            &path,
+            &task_id,
+            "nonexistent_attribute",
+            "value",
+            "test",
+            None,
+        );
         assert!(result.is_err(), "setting unknown attribute should error");
     }
 
@@ -2565,7 +2693,7 @@ mod tests {
         }
 
         // Close all 5 in one call
-        let result = close(&path, &ids, "test batch close", "test", false, None).unwrap();
+        let result = close(&path, &ids, "test batch close", "test", false, None, None).unwrap();
         // Verify all 5 task IDs appear in the output
         for id in &ids {
             assert!(
@@ -2599,7 +2727,7 @@ mod tests {
         let task_id = generate_task_id("Priority persist test");
 
         // Set priority to 0
-        set(&path, &task_id, "priority", "0", "test").unwrap();
+        set(&path, &task_id, "priority", "0", "test", None).unwrap();
 
         // Reload store from disk and verify
         let layout = DiskLayout::open(&path).unwrap();

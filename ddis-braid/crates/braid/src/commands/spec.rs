@@ -35,6 +35,8 @@ pub struct CreateArgs<'a> {
     pub agent: &'a str,
     /// Suppress auto-task generation (COTX-3).
     pub no_auto_task: bool,
+    /// WRITER-3: Pre-opened LiveStore from main.rs (zero deserialization).
+    pub pre_opened: Option<&'a mut LiveStore>,
 }
 
 /// Run `braid spec create`.
@@ -61,7 +63,15 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         ))
     })?;
 
-    let mut live = LiveStore::open(args.path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match args.pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(args.path)?;
+            &mut fallback
+        }
+    };
 
     let agent_id = AgentId::from_name(args.agent);
     let tx_id = super::write::next_tx_id(live.store(), agent_id);
@@ -366,8 +376,19 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
 /// Queries the store for all proposals with status `:proposal.status/proposed`
 /// and confidence below the auto-accept threshold (0.9). Sorted by confidence
 /// descending (highest first).
-pub fn run_review(path: &Path) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+pub fn run_review(
+    path: &Path,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let pending = proposal::pending_proposals(store);
@@ -513,8 +534,21 @@ pub fn run_review(path: &Path) -> Result<CommandOutput, BraidError> {
 /// Finds the proposal entity by matching `<id>` against either the entity hex
 /// prefix or the `:proposal/suggested-id`. Transitions status to accepted and
 /// generates `:spec/*` datoms via promotion.
-pub fn run_accept(path: &Path, id: &str, agent: &str) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
+pub fn run_accept(
+    path: &Path,
+    id: &str,
+    agent: &str,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let proposal_entity = resolve_proposal_entity(store, id)?;
@@ -615,8 +649,17 @@ pub fn run_reject(
     id: &str,
     reason: &str,
     agent: &str,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let proposal_entity = resolve_proposal_entity(store, id)?;
@@ -701,8 +744,19 @@ pub fn run_reject(
 ///
 /// Queries every entity with a `:proposal/status` attribute and displays its
 /// full lifecycle status. Sorted by transaction time (newest first).
-pub fn run_history(path: &Path) -> Result<CommandOutput, BraidError> {
-    let live = LiveStore::open(path)?;
+pub fn run_history(
+    path: &Path,
+    pre_opened: Option<&mut LiveStore>,
+) -> Result<CommandOutput, BraidError> {
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
     let store = live.store();
 
     let status_attr = Attribute::from_keyword(":proposal/status");

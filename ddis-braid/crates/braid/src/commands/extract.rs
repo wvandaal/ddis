@@ -38,8 +38,17 @@ pub fn run(
     filter: Option<&str>,
     commit: bool,
     agent_name: &str,
+    pre_opened: Option<&mut LiveStore>,
 ) -> Result<CommandOutput, BraidError> {
-    let mut live = LiveStore::open(path)?;
+    // WRITER-3: Use pre-opened LiveStore if available, else open fresh.
+    let mut fallback;
+    let live = match pre_opened {
+        Some(l) => l,
+        None => {
+            fallback = LiveStore::open(path)?;
+            &mut fallback
+        }
+    };
 
     // Discover extractor entities from store
     let extractors = discover_extractors(live.store());
