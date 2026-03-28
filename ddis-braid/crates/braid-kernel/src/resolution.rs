@@ -228,6 +228,11 @@ fn resolve_lww(active: &[(Value, TxId)]) -> ResolvedValue {
 /// INV-RESOLUTION-004 condition 6: conflict requires causal independence.
 /// Two transactions are causally independent iff neither is an ancestor of
 /// the other.
+///
+/// SOUND-1: Uses `Store::tx_entity_id()` for deterministic entity lookup,
+/// matching the entity IDs produced by `make_tx_metadata`. The predecessor
+/// entity IDs are compared directly against `tx_entity_id(tx1)` — no
+/// wall_time heuristic needed.
 pub fn is_causal_ancestor(store: &Store, tx1: TxId, tx2: TxId) -> bool {
     use std::collections::{HashSet, VecDeque};
 
@@ -236,57 +241,25 @@ pub fn is_causal_ancestor(store: &Store, tx1: TxId, tx2: TxId) -> bool {
     }
 
     let causal_attr = Attribute::from_keyword(":tx/causal-predecessors");
+    let target_entity = Store::tx_entity_id(tx1);
 
-    // Build a map: tx_entity -> set of predecessor TxIds
-    // We search backwards from tx2 to see if tx1 is reachable.
-    let mut queue: VecDeque<TxId> = VecDeque::new();
-    let mut visited: HashSet<TxId> = HashSet::new();
+    // BFS backwards from tx2 through causal predecessor chains.
+    let mut queue: VecDeque<EntityId> = VecDeque::new();
+    let mut visited: HashSet<EntityId> = HashSet::new();
 
-    queue.push_back(tx2);
-    visited.insert(tx2);
+    let start_entity = Store::tx_entity_id(tx2);
+    queue.push_back(start_entity);
+    visited.insert(start_entity);
 
-    while let Some(current_tx) = queue.pop_front() {
-        // Find the tx entity for current_tx, then look up its causal predecessors.
-        // Tx entities are identified by :tx/time with value Instant(wall_time).
-        // But we use the AVET index on :tx/causal-predecessors to find all
-        // predecessor links, then filter by entity.
-        //
-        // Simpler approach: scan entity_datoms for the tx entity. The tx entity
-        // is EntityId::from_content(serde_json::to_vec(&current_tx)).
-        let tx_entity =
-            EntityId::from_content(&serde_json::to_vec(&current_tx).unwrap_or_default());
-        for datom in store.entity_datoms(tx_entity) {
+    while let Some(current_entity) = queue.pop_front() {
+        for datom in store.entity_datoms(current_entity) {
             if datom.attribute == causal_attr && datom.op == Op::Assert {
                 if let Value::Ref(pred_entity) = &datom.value {
-                    // The predecessor entity is itself a tx entity. We need to find
-                    // the TxId it represents. We look for a :tx/time datom on that entity.
-                    let pred_tx_opt = store
-                        .entity_datoms(*pred_entity)
-                        .iter()
-                        .find(|d| d.attribute.as_str() == ":tx/time" && d.op == Op::Assert)
-                        .and_then(|d| match &d.value {
-                            Value::Instant(wall_time) => {
-                                // Reconstruct a TxId for comparison. We only have
-                                // wall_time; use it for the ancestor check since
-                                // wall_time uniquely identifies transactions in
-                                // practice (HLC monotonicity).
-                                if *wall_time == tx1.wall_time {
-                                    Some(tx1) // Exact match
-                                } else {
-                                    None
-                                }
-                            }
-                            _ => None,
-                        });
-                    if pred_tx_opt == Some(tx1) {
-                        return true; // tx1 is a direct predecessor of current_tx
+                    if *pred_entity == target_entity {
+                        return true; // tx1 is a causal ancestor of tx2
                     }
-                    // Continue BFS: add the predecessor's TxId (approximated by its datom's tx)
-                    for d in store.entity_datoms(*pred_entity) {
-                        if !visited.contains(&d.tx) {
-                            visited.insert(d.tx);
-                            queue.push_back(d.tx);
-                        }
+                    if visited.insert(*pred_entity) {
+                        queue.push_back(*pred_entity);
                     }
                 }
             }
@@ -1799,6 +1772,176 @@ mod tests {
         assert!(
             !is_causal_ancestor(&store, tx2, tx1),
             "unrelated txs should not be causal ancestors"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // SOUND-1: Causal independence tests
+    // -----------------------------------------------------------------------
+
+    // SOUND-1 test 1: Sequential same-agent updates with causal predecessor
+    // are NOT conflicts (causally ordered).
+    #[test]
+    fn sound1_sequential_same_agent_not_conflict() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("alice");
+        let entity = EntityId::from_ident(":test/sound1-seq");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        // tx1: alice asserts value "v1"
+        let tx1 = crate::store::Transaction::new(
+            agent,
+            crate::datom::ProvenanceType::Observed,
+            "first write",
+        )
+        .assert(entity, attr.clone(), Value::String("v1".into()))
+        .commit(&store)
+        .unwrap();
+        let receipt1 = store.transact(tx1).unwrap();
+
+        // tx2: alice asserts value "v2" with tx1 as causal predecessor
+        let tx2 = crate::store::Transaction::new(
+            agent,
+            crate::datom::ProvenanceType::Observed,
+            "second write",
+        )
+        .with_predecessor(receipt1.tx_id)
+        .assert(entity, attr.clone(), Value::String("v2".into()))
+        .commit(&store)
+        .unwrap();
+        let receipt2 = store.transact(tx2).unwrap();
+
+        // tx1 should be a causal ancestor of tx2
+        assert!(
+            is_causal_ancestor(&store, receipt1.tx_id, receipt2.tx_id),
+            "tx1 must be causal ancestor of tx2 (explicit predecessor)"
+        );
+
+        // Build conflict set from the two assertions
+        let cs = ConflictSet {
+            entity,
+            attribute: attr,
+            assertions: vec![
+                (Value::String("v1".into()), receipt1.tx_id),
+                (Value::String("v2".into()), receipt2.tx_id),
+            ],
+            retractions: vec![],
+        };
+
+        // With store: NOT a conflict (causally ordered)
+        assert!(
+            !has_conflict(&cs, &ResolutionMode::Lww, Some(&store)),
+            "causally ordered assertions should NOT be a conflict"
+        );
+    }
+
+    // SOUND-1 test 2: Concurrent different-agent updates ARE conflicts.
+    #[test]
+    fn sound1_concurrent_different_agents_is_conflict() {
+        let mut store = Store::genesis();
+        let entity = EntityId::from_ident(":test/sound1-conc");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        // tx1: alice asserts value (no causal predecessor linking to bob)
+        let agent_a = AgentId::from_name("alice");
+        let tx1 = crate::store::Transaction::new(
+            agent_a,
+            crate::datom::ProvenanceType::Observed,
+            "alice write",
+        )
+        .assert(entity, attr.clone(), Value::String("alice-val".into()))
+        .commit(&store)
+        .unwrap();
+        let receipt1 = store.transact(tx1).unwrap();
+
+        // tx2: bob asserts different value (no causal predecessor)
+        let agent_b = AgentId::from_name("bob");
+        let tx2 = crate::store::Transaction::new(
+            agent_b,
+            crate::datom::ProvenanceType::Observed,
+            "bob write",
+        )
+        .assert(entity, attr.clone(), Value::String("bob-val".into()))
+        .commit(&store)
+        .unwrap();
+        let receipt2 = store.transact(tx2).unwrap();
+
+        // Neither is a causal ancestor of the other
+        assert!(
+            !is_causal_ancestor(&store, receipt1.tx_id, receipt2.tx_id),
+            "independent txs should not be causal ancestors"
+        );
+        assert!(
+            !is_causal_ancestor(&store, receipt2.tx_id, receipt1.tx_id),
+            "independent txs should not be causal ancestors"
+        );
+
+        // Build conflict set
+        let cs = ConflictSet {
+            entity,
+            attribute: attr,
+            assertions: vec![
+                (Value::String("alice-val".into()), receipt1.tx_id),
+                (Value::String("bob-val".into()), receipt2.tx_id),
+            ],
+            retractions: vec![],
+        };
+
+        // With store: IS a conflict (causally independent)
+        assert!(
+            has_conflict(&cs, &ResolutionMode::Lww, Some(&store)),
+            "causally independent assertions should be a conflict"
+        );
+    }
+
+    // SOUND-1 test 3: Empty predecessor lists → independent.
+    #[test]
+    fn sound1_empty_predecessors_are_independent() {
+        let mut store = Store::genesis();
+        let entity = EntityId::from_ident(":test/sound1-empty");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        // Two transactions from the same agent but without causal predecessors
+        let agent = AgentId::from_name("alice");
+        let tx1 =
+            crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "first")
+                .assert(entity, attr.clone(), Value::String("a".into()))
+                .commit(&store)
+                .unwrap();
+        let receipt1 = store.transact(tx1).unwrap();
+
+        let tx2 =
+            crate::store::Transaction::new(agent, crate::datom::ProvenanceType::Observed, "second")
+                .assert(entity, attr.clone(), Value::String("b".into()))
+                .commit(&store)
+                .unwrap();
+        let receipt2 = store.transact(tx2).unwrap();
+
+        // No causal predecessors recorded → neither is ancestor of the other
+        assert!(
+            !is_causal_ancestor(&store, receipt1.tx_id, receipt2.tx_id),
+            "no predecessors → not ancestors"
+        );
+        assert!(
+            !is_causal_ancestor(&store, receipt2.tx_id, receipt1.tx_id),
+            "no predecessors → not ancestors"
+        );
+
+        // Build conflict set
+        let cs = ConflictSet {
+            entity,
+            attribute: attr,
+            assertions: vec![
+                (Value::String("a".into()), receipt1.tx_id),
+                (Value::String("b".into()), receipt2.tx_id),
+            ],
+            retractions: vec![],
+        };
+
+        // With store: IS a conflict (no causal ordering)
+        assert!(
+            has_conflict(&cs, &ResolutionMode::Lww, Some(&store)),
+            "empty predecessor lists → causally independent → conflict"
         );
     }
 }

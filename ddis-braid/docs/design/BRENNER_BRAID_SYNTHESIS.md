@@ -42,8 +42,17 @@
 4. [Asymmetric Capabilities: Braid Has, Brenner Lacks](#4-asymmetric-capabilities-braid-has-brenner-lacks)
 5. [Six Integration Proposals](#5-six-integration-proposals)
 6. [The Keystone: Autonomous Invariant Discovery](#6-the-keystone-autonomous-invariant-discovery)
+   - [6.8 Worked Example on Braid's Own Store](#68-worked-example-what-would-discover_invariants-find-on-braids-own-store)
 7. [Critical Assessment](#7-critical-assessment)
+   - [7.4 Proposal Dependency DAG](#74-proposal-dependency-dag)
+   - [7.5 Failure Modes](#75-failure-modes)
+   - [7.6 External Validation Impact Map](#76-external-validation-impact-map)
 8. [Implementation Roadmap](#8-implementation-roadmap)
+9. [Self-Falsification](#9-self-falsification)
+   - [9.1 The Third Alternative](#91-the-third-alternative)
+   - [9.2 Occam's Broom Audit](#92-occams-broom-audit)
+   - [9.3 Adversarial Critique of Brenner_Bot](#93-adversarial-critique-of-brenner_bot)
+   - [9.4 Falsification Conditions for This Document](#94-falsification-conditions-for-this-document)
 
 ---
 
@@ -1330,10 +1339,20 @@ What this gives us:
 5. **Natural gradient**: `F⁻¹ ∇F(S)` — coordinate-invariant gradient following geodesics
    on the statistical manifold
 
-**Connection to existing math**: The Bures metric on density matrices IS the Fisher
-information metric for quantum states. Von Neumann entropy IS the dual of Fisher
-information. Spectral gap IS the minimum eigenvalue of F. **All existing machinery is
-already Fisher information.** This unification reveals, not adds.
+**Structural parallel to existing math** (note: structural analogy, not formal identity):
+The Bures metric on density matrices is the Fisher information metric for *quantum* states
+where ρ arises from the Born rule. Braid's ρ_C is adjacency-normalized, not
+Born-rule-derived, so the identification is **structural** — the same functional form
+(trace of matrix logarithm, geodesics via eigendecomposition) applies, but the physical
+interpretation differs. Von Neumann entropy S(ρ) is structurally dual to Fisher information
+(both derive from eigenspectra; high S ↔ low F per component). The spectral gap is
+structurally analogous to the minimum eigenvalue of F (both measure the "hardest direction
+to learn"). The existing machinery computes the SAME FUNCTIONS as Fisher information
+analysis — eigendecomposition, trace operations, spectral gaps — even though the
+statistical interpretation requires the additional step of mapping boundary coverage to
+a parametric family. **The unification is: braid's spectral methods already compute the
+right functions; Fisher information provides the right interpretation of those functions
+for routing optimization.**
 
 **Eigendecomposition of F** reveals:
 - **Principal uncertainty directions** (small eigenvalues): where we're most ignorant
@@ -1562,6 +1581,146 @@ residual must be shorter than describing the raw data.
 (information compression × downstream impact) / (computation cost) — the same form as
 Brenner's "evidence per week."
 
+### 6.8 Worked Example: What Would `discover_invariants` Find on Braid's Own Store?
+
+Braid's store contains ~176K datoms across ~13K entities (as of Session 049). Running
+`discover_invariants(store, min_support=20)` would scan attribute co-occurrence,
+absence, ordering, cardinality, and referential patterns. Here are 10 specific invariants
+the algorithm would discover, with estimated support from actual store data:
+
+**Pattern 1: Spec Falsification Co-Occurrence** (Type 1: temporal co-occurrence)
+```
+TRIGGER: :spec/element-type = :invariant
+REQUIRED: :spec/falsification is non-empty
+SUPPORT: ~265 invariant entities, exceptions: ~30 (bootstrap-era INVs without falsification)
+CONFIDENCE: (265-30+1)/(265+2) = 0.89
+PROPOSED: "INV-AUTO-001: Every invariant-type spec element has a falsification condition"
+FALSIFICATION: "Violated if a :spec/element-type = :invariant entity lacks :spec/falsification"
+NOTE: Exceptions are known (pre-C6 invariants). Discovery would surface the 30 exceptions
+as a remediation target — exactly what the system should do.
+```
+
+**Pattern 2: Task Status Monotonicity** (Type 3: ordering invariant)
+```
+ATTR: :task/status
+REQUIRED ORDER: :task.status/open ≤ :task.status/in-progress ≤ :task.status/closed
+SUPPORT: ~375 task entities with status transitions
+CONFIDENCE: 0.99 (enforced by TaskStatus::join() in src/task.rs:28-36)
+PROPOSED: "INV-AUTO-002: Task status transitions are monotonically non-decreasing"
+FALSIFICATION: "Violated if a later transaction sets a lower status value"
+NOTE: This is already a design invariant (INV-TASK-001) — discovery would REDISCOVER
+it from data, confirming the spec matches reality. This is the gold standard: auto-
+discovery validates hand-authored spec.
+```
+
+**Pattern 3: Closed Task Close-Reason** (Type 1: temporal co-occurrence)
+```
+TRIGGER: :task/status = :task.status/closed
+REQUIRED: :task/close-reason is non-empty
+SUPPORT: ~150 closed tasks, exceptions: ~20 (batch-closed in Session 036 without reason)
+CONFIDENCE: (130+1)/(150+2) = 0.86
+PROPOSED: "INV-AUTO-003: Every closed task has a close-reason"
+FALSIFICATION: "Violated if a task with :closed status lacks :task/close-reason"
+NOTE: The 20 exceptions from Session 036 batch closure are genuine gaps — the discovery
+algorithm surfaces them as technical debt to remediate.
+```
+
+**Pattern 4: Reference Validity** (Type 5: referential invariant)
+```
+REF_ATTR: :spec/traces-to (Ref type)
+TARGET_REQUIRED: entity exists with at least one datom
+SUPPORT: ~320 trace references, exceptions: ~5 (orphaned refs from spec renaming)
+CONFIDENCE: (315+1)/(320+2) = 0.98
+PROPOSED: "INV-AUTO-004: Every :spec/traces-to Ref points to an existing entity"
+FALSIFICATION: "Violated if a Ref value has no matching entity in entity_index"
+```
+
+**Pattern 5: Schema Self-Description** (Type 4: cardinality invariant)
+```
+ATTR: :db/ident on entities that ARE attributes
+EXACT_COUNT: 1 (every attribute has exactly one ident)
+SUPPORT: 19 axiomatic attributes (genesis.edn) + ~100 runtime schema attrs
+CONFIDENCE: 0.99
+PROPOSED: "INV-AUTO-005: Every attribute entity has exactly one :db/ident"
+FALSIFICATION: "Violated if an attribute entity has 0 or 2+ :db/ident values"
+```
+
+**Pattern 6: ISP Coverage Gradient** (Type 2: absence pattern)
+```
+WHEN: entity has :impl/test-result
+FORBIDDEN: entity lacks ALL of [:spec/id, :spec/statement, :spec/element-type]
+SUPPORT: ~180 implementation entities, exceptions: ~40 (impl without spec)
+CONFIDENCE: (140+1)/(180+2) = 0.77
+PROPOSED: "NEG-AUTO-001: Implementation entities with test results have spec coverage"
+FALSIFICATION: "Violated if :impl/test-result exists without any :spec/* on same entity"
+NOTE: Low confidence (0.77) would NOT trigger proposal with strict MDL filter. But
+it surfaces the spec-impl gap that D_SP already measures — cross-validation.
+```
+
+**Pattern 7: Transaction Provenance** (Type 5: referential invariant)
+```
+REF_ATTR: :tx/agent (Ref to AgentId entity)
+TARGET_REQUIRED: :agent/program exists on referenced entity
+SUPPORT: ~50 agent entities across ~12K transactions
+CONFIDENCE: 0.94
+PROPOSED: "INV-AUTO-006: Every transaction's agent ref points to an entity with :agent/program"
+FALSIFICATION: "Violated if :tx/agent ref lacks :agent/program on target"
+```
+
+**Pattern 8: Exploration Confidence Range** (Type 3: ordering invariant)
+```
+ATTR: :exploration/confidence
+REQUIRED ORDER: 0.0 ≤ value ≤ 1.0
+SUPPORT: ~800 exploration entities
+CONFIDENCE: 0.99 (validated at assertion time in observe.rs)
+PROPOSED: "INV-AUTO-007: Confidence values are in [0.0, 1.0]"
+FALSIFICATION: "Violated if any :exploration/confidence < 0.0 or > 1.0"
+```
+
+**Pattern 9: Dependency DAG Acyclicity** (Type 5: referential, structural)
+```
+REF_ATTR: :task/depends-on
+STRUCTURAL: no cycles in the directed graph
+SUPPORT: ~25 dependency edges across task DAG
+CONFIDENCE: 0.96 (enforced at insert time in task.rs:11-13)
+PROPOSED: "INV-AUTO-008: The :task/depends-on graph is a DAG (acyclic)"
+FALSIFICATION: "Violated if topological sort on :task/depends-on returns a cycle"
+```
+
+**Pattern 10: Hypothesis Ledger Completeness** (Type 1: co-occurrence)
+```
+TRIGGER: :hypothesis/predicted exists
+REQUIRED: :hypothesis/boundary AND :hypothesis/confidence exist on same entity
+SUPPORT: ~30 hypothesis entities
+CONFIDENCE: 0.97
+PROPOSED: "INV-AUTO-009: Every hypothesis has boundary and confidence"
+FALSIFICATION: "Violated if :hypothesis/predicted exists without :hypothesis/boundary"
+```
+
+**Summary of discovery results:**
+
+| Pattern | Type | Support | Confidence | Would Propose? |
+|---|---|---|---|---|
+| Spec falsification | Co-occurrence | 265 | 0.89 | Yes (min_support=20 met) |
+| Task monotonicity | Ordering | 375 | 0.99 | Yes — **rediscovers INV-TASK-001** |
+| Closed+reason | Co-occurrence | 150 | 0.86 | Yes |
+| Reference validity | Referential | 320 | 0.98 | Yes |
+| Schema self-desc | Cardinality | 119 | 0.99 | Yes |
+| ISP coverage | Absence | 180 | 0.77 | No (below 0.80 MDL threshold) |
+| Tx provenance | Referential | 50 | 0.94 | Yes |
+| Confidence range | Ordering | 800 | 0.99 | Yes |
+| DAG acyclicity | Structural | 25 | 0.96 | Yes |
+| Hypothesis completeness | Co-occurrence | 30 | 0.97 | Yes |
+
+**8 of 10 patterns would be proposed.** Pattern 2 (task monotonicity) REDISCOVERS an
+existing hand-authored invariant — the strongest possible validation that the mechanism
+works. Patterns 1 and 3 surface real technical debt (missing falsification conditions,
+missing close-reasons) as remediation targets.
+
+**The acid test**: Run `discover_invariants` on braid's own store. If it discovers
+INV-TASK-001 from data, the mechanism is validated. If it discovers patterns the authors
+didn't know existed, it's producing genuine value.
+
 ---
 
 ## 7. Critical Assessment
@@ -1612,6 +1771,157 @@ add ~200 tests total. Manageable if phased.
 - **Profunctors**: Yes — category theory is the most domain-neutral framework that exists.
 
 All proposals pass C8.
+
+### 7.4 Proposal Dependency DAG
+
+The seven proposals have data dependencies that constrain implementation order:
+
+```
+                    ┌──────────┐
+                    │ Keystone │ (auto-invariants)
+                    └────┬─────┘
+                         │ produces invariants that...
+              ┌──────────┼──────────┐
+              ▼          ▼          ▼
+         ┌────────┐ ┌────────┐ ┌──────────┐
+         │  SAC   │ │ Type10 │ │  Fisher  │
+         │(5.3)   │ │ (5.4)  │ │  (5.5)   │
+         └───┬────┘ └────┬───┘ └────┬─────┘
+             │           │          │
+             │    ...are critiqued  │ ...are compressed
+             │    by red-team      │ into F eigenstructure
+              \          |         /
+               ▼         ▼        ▼
+            ┌────────────────────────┐
+            │    DIG (5.2)           │
+            │ uses uncertainty from  │
+            │ hypothesis ledger +    │
+            │ Fisher eigenvalues     │
+            └────────┬───────────────┘
+                     │ scores actions including
+                     │ operator recommendations
+                     ▼
+            ┌────────────────────────┐
+            │    COL (5.1)           │
+            │ operator effectiveness │
+            │ tracked via hypothesis │
+            │ ledger calibration     │
+            └────────┬───────────────┘
+                     │ informs
+                     ▼
+            ┌────────────────────────┐
+            │ Profunctors (5.6)      │
+            │ (ADR only — no code    │
+            │  dependency)           │
+            └────────────────────────┘
+```
+
+**Implementation constraints from this DAG:**
+- **Keystone** has no upstream dependencies — implement first
+- **COL** has no code dependency on Keystone but benefits from auto-invariants as
+  demonstration data — implement in parallel with Keystone
+- **DIG** needs uncertainty data from hypothesis ledger (already exists) plus optionally
+  Fisher eigenvalues (5.5) — implement after Keystone, before Fisher
+- **SAC** needs auto-invariants as critique targets — implement after Keystone
+- **Type 10** needs witnesses to exist (already do) — implement any time
+- **Fisher** benefits from auto-invariants (more data) but doesn't require them — Phase B
+- **Profunctors** is documentation only — no dependency constraints
+
+**Critical path**: Keystone → DIG → COL calibration → Fisher → Profunctor ADR
+
+### 7.5 Failure Modes
+
+Each proposal has specific failure modes, cataloged in FM-NNN format per
+`docs/design/FAILURE_MODES.md` convention:
+
+**FM-SYNTH-001: Auto-Invariant Overfitting**
+- **Proposal**: Keystone (§6)
+- **Description**: System proposes invariants from coincidental correlations in small
+  samples (e.g., "all tasks created on Tuesdays have priority P2" from N=3)
+- **Violation predicate**: Proposed invariant has support < 20 AND no structural basis
+  in schema
+- **Mitigation**: MDL filter + minimum support threshold + schema-awareness
+  (exclude patterns that are trivially enforced by schema cardinality)
+- **Detection**: Track false positive rate across sessions; if > 30% of proposals are
+  rejected as spurious, raise min_support
+
+**FM-SYNTH-002: Operator Cargo-Culting**
+- **Proposal**: COL (§5.1)
+- **Description**: Agent follows operator recommendation mechanically without
+  understanding the cognitive move, producing form-over-substance compliance
+- **Violation predicate**: Operator is "applied" but ΔF(S) is consistently ≤ 0
+- **Mitigation**: Operator calibration (Phase B item 7) downgrades ineffective
+  operators; guidance framing as suggestion not mandate
+- **Detection**: Hypothesis ledger tracks operator → ΔF(S); consistently zero = cargo cult
+
+**FM-SYNTH-003: Red-Team Echo Chamber**
+- **Proposal**: SAC (§5.3)
+- **Description**: Red-team phase flags 0% of candidates because its checks are too
+  weak, creating false assurance of quality
+- **Violation predicate**: SAC flag rate < 5% over 3+ consecutive harvest cycles
+- **Mitigation**: SAW-TOOTH invariant monitors for monotonic F(S) (echo chamber signal);
+  adaptive strengthening of red-team threshold
+- **Detection**: Track flag_rate in harvest receipts; alarm if < 5%
+
+**FM-SYNTH-004: Fisher Dimensionality Explosion**
+- **Proposal**: Fisher (§5.5)
+- **Description**: Fisher matrix computation becomes intractable (O(n²)) for large
+  stores, blocking routing decisions
+- **Violation predicate**: Fisher computation takes > 1s (daemon latency budget)
+- **Mitigation**: Lanczos approximation (already in `query/graph.rs`), random
+  projection for stores > 1000 boundaries, compute only top-k eigenvalues
+- **Detection**: Runtime observation (`:runtime/latency-us`) on Fisher computation
+
+**FM-SYNTH-005: Discriminative Starvation**
+- **Proposal**: DIG (§5.2)
+- **Description**: DIG always recommends high-discrimination observations, starving
+  routine maintenance tasks (low-discrimination but necessary)
+- **Violation predicate**: Tasks with priority P0/P1 are consistently ranked below
+  exploratory observations
+- **Mitigation**: Priority floor: P0/P1 tasks bypass DIG scoring entirely (they are
+  mandatory, not discretionary). DIG applies only to P2+ prioritization.
+- **Detection**: Track if P0/P1 completion latency increases after DIG activation
+
+**FM-SYNTH-006: Positive Control Proliferation**
+- **Proposal**: Type 10 (§5.4)
+- **Description**: Every witness requires a positive control, which requires its own
+  positive control, creating an infinite regression
+- **Violation predicate**: Positive control chain depth > 3
+- **Mitigation**: Positive controls are self-terminating: a positive control for a
+  known-true property (e.g., "1 + 1 = 2") doesn't need its own positive control.
+  Schema enforces max depth = 2.
+- **Detection**: Query `:witness/positive-control` ref chains for depth > 2
+
+**FM-SYNTH-007: Auto-Invariant Schema Circularity**
+- **Proposal**: Keystone (§6)
+- **Description**: Discovered invariant describes a pattern that is CAUSED by the
+  discovery mechanism itself (e.g., "all proposed invariants have :auto-invariant/support")
+- **Violation predicate**: Proposed invariant references `:auto-invariant/*` namespace
+- **Mitigation**: Exclude `:auto-invariant/*` namespace from discovery input; discovered
+  invariants about the discovery system are filtered as circular
+- **Detection**: Namespace check in `discover_invariants()` filter predicate
+
+### 7.6 External Validation Impact Map
+
+Session 047 external validation on rr-cli (Go project, 32K LOC) scored **6.75/10** with
+three specific failures (source: `session-047-perf-zero.md`):
+
+| Failure | Root Cause | Which Proposal Fixes It | How |
+|---|---|---|---|
+| **Concept mega-cluster** (10 obs → 1 cluster) | Hash embedder tuned to DDIS vocabulary; non-DDIS terms get similar hashes | **Keystone** (partial): Auto-invariants are vocabulary-neutral (pattern-based, not hash-based). But doesn't fix embedding. **COL**: Operator `recode` suggests "change representation" when clustering is poor. | Auto-invariant discovery bypasses the embedding layer entirely — it finds structural patterns regardless of vocabulary. For clustering itself, the fix is in OBSERVER-6 (ontology), not in these proposals. |
+| **DDIS-specific guidance** (recommends spec-lang on Go project) | Guidance templates hardcode DDIS terminology in `methodology.rs` | **COL**: Operators are substrate-neutral (`:universal` domain tag). Recommending "Apply Level-Split" works for Go as well as for DDIS. Replaces "crystallize the spec element" with a domain-neutral cognitive move. | Operator recommendations are C8-compliant by construction — the `:operator/domain` field filters domain-specific operators for non-DDIS projects. |
+| **Irrelevant seed constraints** (shows VERIFICATION-DEPTH for Go project) | Seed assembler includes constraints from DDIS policy manifest regardless of project | **None directly.** This is a policy manifest filtering bug, not a synthesis proposal concern. Fix: seed should only include constraints from the project's own policy, not from the kernel's defaults. | The proposals don't fix this, but they don't make it worse. Honest assessment: this failure requires a policy.rs fix, not a new mechanism. |
+
+**Projected impact on external validation score:**
+
+| Current Score | After Phase A | After Phase B | Rationale |
+|---|---|---|---|
+| 6.75/10 | 7.5/10 | 8.5/10 | COL fixes guidance language (+0.5), auto-invariants provide vocabulary-neutral structure (+0.25). Phase B Fisher provides better routing (+0.5), operator calibration improves guidance quality (+0.25). |
+
+**Honest limitation**: The concept mega-cluster problem (the biggest failure) is NOT
+addressed by any proposal. It requires fixing the hash embedder in OBSERVER-6 (ontology
+discovery), which is existing work outside this synthesis. We flag this explicitly per
+Brenner guardrail #8 (monitor Occam's broom carpet height).
 
 ---
 
@@ -1689,23 +1999,178 @@ All proposals pass C8.
 
 ---
 
-## Appendix A: Convergence Proof for Invariant Discovery
+## 9. Self-Falsification
 
-**Claim**: Autonomous invariant discovery is monotonically convergent — each discovered
-invariant either increases F(S) or has no effect.
+This section applies the imported methodology to this document itself. Per Brenner
+guardrail #1 ("always include third alternative"), #8 ("monitor Occam's broom carpet
+height"), and #12 ("suspect easy metaphorical analogies"), and per braid's own
+ADR-FOUNDATION-020 (falsification-first principle).
 
-**Proof sketch**:
+### 9.1 The Third Alternative
+
+The document presents two frames:
+- **Frame A**: Braid is correct; Brenner adds missing cognitive operators
+- **Frame B**: Brenner is correct; braid adds missing formal substrate
+
+The **third alternative**: **Both may be solving the wrong problem.** The fundamental
+assumption shared by both systems is that **explicit, structured knowledge management
+improves outcomes**. But:
+
+- **Counter-evidence**: The most productive AI coding sessions often happen when agents
+  operate with minimal ceremony — fast iteration, no harvest, no bilateral check, just
+  code-test-commit. Session 047 found that external validation scored 6.75/10 with 176K
+  datoms, while a fresh `braid init` on a new project with 0 datoms achieves F(S)=1.0
+  trivially. More knowledge management ≠ better outcomes.
+
+- **The "silent majority" problem**: The sessions where braid adds the most value are
+  invisible (divergence was prevented). The sessions where braid adds the least value are
+  loud (ceremony feels like overhead). Survivorship bias may inflate our estimate of
+  braid's value.
+
+- **The abstraction tax**: Every layer of formal machinery (operators, Fisher information,
+  profunctors) adds cognitive load. An agent spending tokens on "Apply Level-Split to
+  CC-2 gap" is an agent NOT spending those tokens on writing code. The acquisition function
+  optimizes within the system but doesn't account for the opportunity cost of using the
+  system at all.
+
+**Resolution**: These concerns are testable via the hypothesis ledger. Track: sessions
+WITH braid ceremony vs sessions WITHOUT. If the "without" sessions consistently produce
+higher external validation scores, the entire system is net-negative. This is the
+ultimate falsification condition for braid itself. We note it but do not believe it —
+50 sessions of improving F(S) are evidence (not proof) that the system works.
+
+### 9.2 Occam's Broom Audit
+
+What are we sweeping under the carpet in this synthesis?
+
+| Swept Item | Why It's Uncomfortable | Why We Swept It |
+|---|---|---|
+| Concept clustering failure | The biggest external validation failure (mega-cluster) is NOT addressed by any proposal | We focused on what the synthesis ADDS, not what it doesn't fix. Flagged in §7.6. |
+| Operator arbitrariness | The divergence→operator mapping in Appendix D is hand-crafted. Why HAL for epistemic divergence? Why not Invariant-Extract? | No principled basis for the initial mapping. The calibration loop (Phase B item 7) will learn the right mapping, but the bootstrap mapping is arbitrary. |
+| Profunctor computational intractability | Coend computation over non-trivial categories is NP-hard in general | We deferred to "Phase C" and "ADR only." This is an honest but incomplete resolution — Phase C may never arrive. |
+| Brenner corpus specificity | The 236 transcripts are interviews, not lab notebooks. Brenner's ACTUAL methodology may differ from his RECOUNTED methodology | We trust the corpus as given. A proper Level-Split would separate "how Brenner says he works" from "how Brenner actually works." |
+| Scale of implementation | "~400 LOC" for the keystone is an estimate, not a measurement. Real implementation may be 2-3x | LOC estimates are inherently unreliable. The phased roadmap allows scope adjustment. |
+
+### 9.3 Adversarial Critique of Brenner_Bot
+
+The document imports Brenner's methodology selectively. Here are brenner_bot's weaknesses
+that we should NOT import:
+
+**W1: LWW-by-timestamp merge is fragile.**
+Brenner_bot sorts deltas by timestamp and applies sequentially. Under concurrent writes
+from multiple agents, this produces order-dependent results. Braid's G-Set CvRDT is
+strictly superior — we should NOT regress to timestamp ordering for any merge operation.
+
+**W2: Lint system is regex-based.**
+`lintArtifact` uses string matching and structural checks — no semantic understanding.
+A delta that says "third alternative: H1 is wrong" passes the "third alternative present"
+lint but adds no genuine epistemic value. Braid's boundary checks are more rigorous
+(they compute actual coverage metrics, not pattern matches).
+
+**W3: The operator library is static.**
+Brenner's 17 operators are hand-curated from one person's methodology. They don't learn,
+don't adapt, don't evolve. This is why Proposal 5.1 includes CALIBRATION — operators
+must be learnable, not just importable. An operator that consistently produces zero ΔF(S)
+should be downranked automatically. Brenner_bot has no mechanism for this.
+
+**W4: Role-to-model mapping is unprincipled.**
+"Hypothesis Generator = GPT, Test Designer = Claude, Adversarial Critic = Gemini" —
+there is no empirical or theoretical basis for this mapping. It's arbitrary assignment
+dressed as architecture. Braid's topology pipeline uses spectral methods (Fiedler
+partition, coupling density) to assign tasks to agents — principled, not arbitrary.
+
+**W5: "No API calls" is an operational constraint, not an architectural insight.**
+Brenner_bot routes through CLI tools to avoid API costs and maintain human oversight.
+This is pragmatically sound but architecturally irrelevant — the methodology would work
+identically with direct API calls. We should not confuse operational constraints with
+design principles.
+
+**W6: Convergence criterion (kill_rate > add_rate) is heuristic.**
+"Hypotheses eliminated faster than added" sounds rigorous but has no formal convergence
+guarantee. Braid's Lyapunov function (F(S) monotonically non-decreasing) is provably
+convergent. We import Brenner's convergence INTUITION (seek falsification) but not his
+convergence CRITERION (kill rate arithmetic).
+
+### 9.4 Falsification Conditions for This Document
+
+This document is itself a set of claims. Per C6, each requires a falsification condition:
+
+| Claim | Falsification Condition |
+|---|---|
+| "Both found the same epistemology" (§2) | A third system solving the same problem arrives at fundamentally different primitives (not morphisms+reconciliation+acquisition) |
+| "Autonomous invariant discovery is the keystone" (§6) | Running `discover_invariants` on braid's 176K-datom store produces < 3 genuine invariants, or all proposals are trivially derivable from schema constraints |
+| "Operators improve agent performance" (§5.1) | After COL implementation, hypothesis ledger shows operator-recommended actions have LOWER average ΔF(S) than non-operator-recommended actions |
+| "DIG outperforms project_delta" (§5.2) | Task completion rate and F(S) trajectory are statistically indistinguishable between DIG-routed and project_delta-routed sessions |
+| "SAC improves harvest quality" (§5.3) | External validation score does not improve after SAC implementation; or SAC consistently flags genuine observations as false positives |
+| "Fisher unification adds value" (§5.5) | Natural gradient routing does not reduce calibration error vs raw gradient routing after 50+ data points |
+| "The Brenner-Braid synthesis is worth pursuing" (overall) | After implementing Phase A, external validation score on a non-DDIS project does not improve beyond 7.5/10 |
+
+---
+
+## Appendix A: Convergence Properties of Invariant Discovery
+
+Three properties must hold for the discovery mechanism to be sound:
+
+### A.1 Monotonicity of F(S) Under Invariant Addition
+
+**Claim**: Adding a discovered invariant to the store either increases F(S) or has no
+effect.
+
+**Proof**:
 1. A discovered invariant I has support N ≥ min_support and 0 exceptions.
 2. I is proposed at depth 0 (OPINION), contributing 0.0 to F(S) via depth-weighting.
-3. If endorsed → depth 1, contributing 0.15 × coverage(I) to F(S).
-4. coverage(I) ≥ 0 by construction (I was observed to hold in N cases).
+3. F(S) is a weighted sum of 7 non-negative components (§1.1.3). Adding a depth-0
+   entity changes no component's numerator or denominator except potentially Incompleteness
+   (I) and Coverage (C), which can only improve (more spec elements = more coverage
+   opportunities).
+4. If endorsed → depth 1, contributing 0.15 × coverage(I) to Validation (V).
+   coverage(I) ≥ 0 by construction (I was observed to hold in N cases).
 5. Therefore F(S) with I ≥ F(S) without I. □
 
-**Falsification of convergence claim**: If a proposed invariant is WRONG (an exception
-exists but was missed), endorsing it inflates F(S) incorrectly. This is detected by
-the challenge system (comonadic duplicate) and corrected by retracting the invariant.
-The SAW-TOOTH invariant ensures this correction produces a healthy oscillation, not a
-permanent error.
+**Falsification**: If I is WRONG (an undetected exception exists), endorsing it inflates
+F(S) incorrectly. Detection: the challenge system (comonadic duplicate) or a future
+observation violating the pattern. Correction: retract the invariant (new datom with
+`op=retract`), F(S) dips (SAW-TOOTH), then recovers as the corrected model stabilizes.
+
+### A.2 Finiteness of Discovery
+
+**Claim**: `discover_invariants` produces finitely many proposals and the set stabilizes.
+
+**Proof sketch**:
+1. The store has finitely many attributes (A) and finitely many distinct values (V).
+2. Pattern Type 1 (co-occurrence) considers pairs (A₁, A₂): at most |A|² candidates.
+3. Pattern Type 2 (absence) considers triples (A₁, V₁, A₂): at most |A|² × |V| candidates.
+4. Pattern Types 3-5 are similarly bounded by polynomial combinations of |A| and |V|.
+5. The MDL filter eliminates candidates whose description length exceeds their compression
+   gain. As more invariants are discovered, remaining patterns have less residual
+   compression value (diminishing returns).
+6. Therefore: the set of discoverable invariants is finite and eventually exhausted. □
+
+**Bound**: For a store with |A| ≈ 100 attributes and |V| ≈ 1000 distinct values, the
+candidate space is ~10⁴ for co-occurrence, ~10⁷ for absence. The MDL filter and
+min_support threshold reduce the viable set to O(10-100) proposals in practice.
+
+### A.3 Quality Improvement Over Time
+
+**Claim**: As the store grows, discovered invariants become more reliable (confidence
+increases, false positive rate decreases).
+
+**Argument** (not a proof — empirical property):
+1. Confidence uses beta distribution posterior: `(s+1)/(s+e+2)`. As support s increases
+   with 0 exceptions, confidence → 1.0 monotonically.
+2. Spurious correlations (FM-SYNTH-001) have probability ≈ p^N of surviving N
+   observations, where p < 1 is the per-observation coincidence probability. For N ≥ 20
+   (min_support), even p = 0.95 gives 0.95²⁰ ≈ 0.36 — many false patterns eliminated.
+3. For N ≥ 50, 0.95⁵⁰ ≈ 0.08 — false positive rate drops below 10%.
+4. The MDL filter strengthens with data: L(data) grows linearly with N, while L(I)
+   (invariant description) is constant, so compression gain increases.
+
+**Falsification of quality improvement**: If false positive rate does NOT decrease with
+store growth (e.g., autocorrelated observations inflate support for coincidental patterns),
+the quality improvement claim is wrong. Detection: track the fraction of proposed
+invariants that are later violated. If this fraction is stable or increasing across
+sessions, the mechanism needs a decorrelation filter (e.g., require support from
+≥3 independent sessions, not just N total observations).
 
 ## Appendix B: Connection to Prior Sessions
 
@@ -1869,3 +2334,284 @@ divergence_mapping:
   reflexive: {primary: level-split, chain: [level-split, scale-check, invariant-extract]}
   control: {primary: chastity-check, chain: [chastity-check, scale-check, hal]}
 ```
+
+## Appendix E: Mock `braid status` Output After Phase A Implementation
+
+This shows what an agent would SEE after the Keystone + COL + DIG + SAC are implemented.
+Changes from current output marked with `[NEW]`.
+
+```
+braid status
+
+  store: 178,203 datoms | 13,241 entities | 4,891 txns
+  coherence: F(S) = 0.68 ↑0.06  M(t) = 0.61  (Φ=12, β₁=0) GapsOnly
+  session: 14 txns | 3 tasks closed | +2,104 datoms
+
+  [NEW] discovered invariants: 8 proposed, 5 endorsed, 2 witnessed
+    INV-AUTO-002 (task monotonicity):  375 support, 0 exceptions — WITNESSED ✓
+    INV-AUTO-004 (ref validity):       320 support, 2 exceptions — remediation target
+    INV-AUTO-001 (spec falsification): 265 support, 28 exceptions — remediation target
+
+  boundaries: 14/18 covered (78%)
+    ▪ CC-2 gap: 12 specs lack impl traces
+    [NEW] operator: Apply Level-Split — separate the tracing concern from the
+      implementation concern. What property of INV-STORE-003 survives across
+      both store.rs and datom.rs? That shared property is your trace anchor.
+
+  tasks: 23 open | 8 ready | 3 in-progress
+  [NEW] top action (DIG score: 0.84):
+    t-d9536d87 "RDI-5: Precedent query" (impact=1.14, discrimination=0.91)
+    ΔF(S)=+0.02 | uncertainty(resolution boundary)=0.73 | V_downstream=3
+
+  [NEW] harvest quality: last red-team flagged 3/18 candidates (17%)
+    ▪ 1 duplicate (Theory-Kill: restates existing observation)
+    ▪ 2 quarantined (Exception-Quarantine: conflicts with existing boundary)
+
+  harvest urgency: 14 txns since last harvest → braid harvest --commit
+```
+
+**Key differences from current output:**
+
+1. **Discovered invariants section** — shows auto-discovered patterns with support
+   counts and exception counts. Remediation targets surface real technical debt.
+2. **Operator recommendation** — instead of bare "12 specs lack traces", the guidance
+   includes a cognitive strategy (Level-Split) with a concrete question.
+3. **DIG scoring** — top action shows both ΔF(S) AND discrimination score, plus
+   the boundary uncertainty that makes this action informationally valuable.
+4. **Red-team summary** — harvest quality shows flag rate (17%, within healthy 10-20%
+   range) and the specific Brenner operators that flagged each candidate.
+
+## Appendix F: Spec Element Dependency Order
+
+The 10 spec elements from Appendix C, ordered by dependency:
+
+```
+Layer 0 (no dependencies — crystallize first):
+  ADR-FOUNDATION-036: Autonomous Invariant Discovery
+  ADR-FOUNDATION-037: Cognitive Operator Lattice
+  INV-DIVERGENCE-010: Type 10 Control Divergence
+
+Layer 1 (depends on Layer 0):
+  INV-FOUNDATION-016: Auto-invariants have auto-generated falsification
+    depends on: ADR-FOUNDATION-036
+  INV-FOUNDATION-018: MDL filter prevents overfitting
+    depends on: ADR-FOUNDATION-036
+  NEG-FOUNDATION-006: Auto-invariants must not bypass depth hierarchy
+    depends on: ADR-FOUNDATION-036
+  INV-CALIBRATION-001: Operator effectiveness learned from outcomes
+    depends on: ADR-FOUNDATION-037
+
+Layer 2 (depends on Layer 1):
+  INV-FOUNDATION-017: Invariant discovery is monotonically convergent
+    depends on: INV-FOUNDATION-016, INV-FOUNDATION-018
+  INV-HARVEST-010: SAC red-team flags 10-20%
+    depends on: ADR-FOUNDATION-036 (uses auto-invariants as targets)
+
+Layer 3 (depends on all above):
+  ADR-FOUNDATION-035: Profunctor Calculus
+    depends on: all of the above (theoretical unification)
+```
+
+---
+
+## Appendix G: Honest Assessment — Post-Synthesis Self-Critique
+
+> **Context**: After completing the 2,413-line synthesis document, a critical review
+> was conducted applying Brenner guardrails #4 (prefer exclusion to accumulation),
+> #7 (kill theories when ugly), #8 (monitor Occam's broom), and #11 (reject elegant
+> but implausible theories) — plus braid's own anti-Goodhart architecture
+> (ADR-FOUNDATION-021) and falsification-first principle (ADR-FOUNDATION-020).
+>
+> This appendix records the unfiltered assessment. It is intentionally harsher than
+> the main document because the main document was written in discovery mode
+> (high DoF, exploratory); this appendix is written in verification mode
+> (low DoF, adversarial). Both are needed.
+
+### G.1 What Is Genuinely Good
+
+**The isomorphism is real.** Both systems formalize the hypothetico-deductive method
+independently — Brenner empirically (60 years of bench science, 236 transcripts), braid
+axiomatically (category theory, information geometry). The convergence to the same three
+primitives (morphisms, reconciliation, acquisition function) is genuine evidence that the
+epistemology is correct, not pattern-matching or false analogy. This part of the document
+withstands adversarial scrutiny.
+
+**Autonomous invariant discovery is a genuinely good idea.** The worked example (§6.8)
+is falsifiable: run `discover_invariants` on the 176K-datom store; if it rediscovers
+INV-TASK-001 from data, the mechanism is validated. The math is sound (MDL filter, beta
+posterior, finiteness bound in Appendix A). This is worth implementing.
+
+**The operator algebra has real value — as an internal reasoning framework.** The
+insight that agents need HOW-to-think guidance, not just WHAT-to-do routing, is correct
+and addresses a genuine gap. The 17 operators distill transferable cognitive strategies.
+
+### G.2 The Ceremony-to-Value Ratio Is the Elephant in the Room
+
+The plan adds 7 new mechanisms to a system where agents already spend ~30% of their
+tokens on braid commands. Every token spent on `braid observe`, `braid harvest`, operator
+recommendations, red-team results, and auto-invariant dashboards is a token NOT spent
+writing code.
+
+**The question nobody has answered: does braid actually make agents write better code?**
+Not "is F(S) higher" — does the code compile more often, do tests pass more often, do PRs
+get merged faster? Session 047 proved the Goodhart gap exists: F(S) = 0.62 internally,
+6.75/10 externally. Adding more internal machinery doesn't close that gap. It may widen it.
+
+§9.1 (third alternative) documents this concern but dismisses it with "50 sessions of
+improving F(S) are evidence." That's exactly the kind of evidence-by-internal-metric that
+Brenner would call out. F(S) improving proves the system optimizes F(S). It doesn't prove
+F(S) correlates with external utility. **That's Goodhart's Law applied to the very
+document warning about Goodhart's Law.**
+
+### G.3 Three Proposals Are Overengineered
+
+**Fisher Information Geometry (§5.5)**: The structural parallel to existing math is real.
+But the practical benefit is unmeasurable. The hypothesis ledger already does ridge
+regression on 6 routing features. Replacing raw gradient with natural gradient in routing?
+The signal-to-noise ratio of LLM behavior makes this improvement invisible. ~300 LOC for
+approximately zero measurable improvement. This is mathematical beauty mistaken for
+practical utility.
+
+**Profunctor Calculus (§5.6)**: Beautiful, correct, and completely inert. Nobody will
+compute a coend in this system. It's marked "ADR only, Phase C" which is the polite way
+of saying "never." The document is honest about this but still spends 30 lines on it,
+which is 30 lines too many for something that will inform zero implementation decisions.
+
+**DIG as formulated (§5.2)**: `D_KL(P(θ|a,S) ‖ P(θ|S)) × V_downstream / (C_token × A)`
+is intractable as written. The tractable proxy (`|project_delta| × uncertainty ×
+V_downstream / cost`) is the actual proposal. The KL framing is theoretical window
+dressing. Just call it what it is: uncertainty-weighted routing. ~100 LOC, but 80 of
+those LOC are the proxy, not the KL divergence.
+
+### G.4 The Operator Library Is Too Abstract to Steer an LLM
+
+This is the deepest design problem. The mock status output (Appendix E) says:
+
+> `operator: Apply Level-Split — separate the tracing concern from the implementation
+> concern`
+
+What does an LLM *do* with that? It doesn't know how to "level-split." It's a
+metacognitive instruction given to a system that doesn't have metacognition. The LLM
+will either ignore it (wasted tokens) or cargo-cult it (FM-SYNTH-002, which the document
+correctly identifies but doesn't solve).
+
+What would actually steer the LLM:
+
+> `The 12 untraced specs span store.rs and bilateral.rs. These are different layers.
+> Trace store-layer specs first (INV-STORE-*), then bilateral-layer (INV-BILATERAL-*).
+> Don't trace across layers in one pass.`
+
+That's a level-split. But it's expressed as a **concrete action plan**, not an abstract
+cognitive label. The operator name adds nothing. The decomposition into concrete steps
+is everything.
+
+**The fix**: Don't surface operator names. Use operators as an INTERNAL reasoning
+framework for generating concrete guidance. The agent sees "trace store-layer first,
+then bilateral" — never sees the word "Level-Split." The operator algebra informs the
+guidance generator, not the agent.
+
+### G.5 Auto-Invariants Have the Wrong UX
+
+The mock output (Appendix E) shows:
+
+> `discovered invariants: 8 proposed, 5 endorsed, 2 witnessed`
+
+This is noise. An agent writing code doesn't care about a dashboard number.
+Auto-invariants should be **invisible until relevant**:
+
+- **When the agent is about to VIOLATE one**: "Warning: this change would violate
+  INV-AUTO-002 (task status monotonicity, 375/375 support). Proceed?"
+- **When one surfaces a BUG**: "INV-AUTO-004 found 2 dangling refs in the last 5
+  transactions. Entities: e-abc123, e-def456."
+- **When one REDISCOVERS a hand-authored invariant**: "INV-AUTO-002 independently
+  confirms INV-TASK-001 from 375 observations."
+
+Dashboard-driven → interrupt-driven. Show it when it matters, not as a permanent fixture.
+
+### G.6 What's Actually Missing: Outcome Measurement
+
+The system tracks F(S) (internal coherence) but not **actual outcomes**. Did the code
+compile? Did tests pass? Did the PR merge? Did the user say "good job"? The hypothesis
+ledger tracks predicted vs actual ΔF(S), but ΔF(S) is a proxy. The system should track:
+
+```
+:outcome/compilation   — Boolean (did cargo check pass after this session?)
+:outcome/test-passage  — Float (fraction of tests passing)
+:outcome/user-approval — Boolean (did the user accept the work?)
+:outcome/session-tokens — Long (total tokens consumed)
+```
+
+Then calibrate F(S) against outcomes: `correlation(ΔF(S), Δoutcome)`. If the correlation
+is weak, F(S) is measuring the wrong thing and the whole system needs recalibration.
+This is the E-component from ADR-FOUNDATION-021 that's theorized but never implemented.
+
+### G.7 Revised Priority Order — What to Actually Build
+
+If the plan were reduced to its highest-value-per-token components:
+
+**1. Discriminative Question (~50 LOC)**
+
+One question at the end of every `braid status` and `braid observe` response, computed
+from the store's most uncertain boundary. Not a formula. Not an operator name. A single,
+specific, falsifiable question:
+
+> "Q: Does INV-STORE-003 hold when two agents merge concurrently? If yes, merge boundary
+> is solid. If no, INV-RESOLUTION-004 needs revision."
+
+`compute_read_steering()` already exists in the kernel. Make it first-class. Every
+response ends with a question. The question IS the acquisition function rendered as
+natural language. ~50 LOC. Maximum steering impact per token.
+
+**2. Autonomous Invariant Discovery (~400 LOC)**
+
+As designed in §6. But surface results as interrupts, not dashboard numbers. Wire into
+the warning system so violations trigger alerts, not status lines.
+
+**3. Outcome Tracking (~100 LOC)**
+
+Record compilation success, test results, and user approval as datoms. Compute correlation
+with F(S). If `correlation(ΔF(S), Δoutcome) < 0.3`, the system is Goodharting and needs
+fundamental recalibration.
+
+**4. Uncertainty-Weighted Routing (~80 LOC)**
+
+The tractable DIG proxy. Drop the KL divergence framing, keep the
+`|project_delta| × uncertainty × V_downstream / cost` formula. Wire into
+`compute_routing()`.
+
+**5. Operator-Informed Guidance Generation (~200 LOC)**
+
+Use the operator algebra INTERNALLY to decompose problems into concrete steps. Never
+surface operator names to the agent. The agent sees action plans, not metacognitive
+labels. The operator library (Appendix D) becomes a lookup table inside the guidance
+generator, not a user-facing vocabulary.
+
+**Defer**: Fisher information, profunctors, SAC (harvest pipeline is already complex
+enough), Type 10 (positive controls are good practice but not a priority at F(S) = 0.62).
+
+### G.8 The Bottom Line
+
+The plan is architecturally sound, mathematically rigorous, and about 40% overengineered.
+The isomorphism with Brenner is real and valuable. The keystone (auto-invariants) is
+genuinely novel. But the plan optimizes for mathematical elegance when it should optimize
+for **agent steering quality per token spent**.
+
+The most impactful addition isn't any of the 7 proposals — it's a single question at the
+end of every response, computed from the store's uncertainty structure, that costs 20
+tokens and changes how the agent thinks for the next 2,000.
+
+The system's biggest risk isn't missing features. It's that the ceremony overhead makes
+agents WORSE despite F(S) going UP. Measure outcomes. If outcomes don't improve, the
+whole edifice is a beautifully engineered echo chamber.
+
+### G.9 Falsification Condition for This Critique
+
+This critique itself could be wrong. Specifically:
+
+| Critique Claim | Falsification |
+|---|---|
+| "Ceremony overhead makes agents worse" | Controlled experiment: same task, same agent, with and without braid. If braid-assisted sessions produce higher-quality output per wall-clock hour, the ceremony pays for itself. |
+| "Operators are too abstract for LLMs" | Implement operator-name guidance AND concrete-action guidance. A/B test via hypothesis ledger. If operator-name guidance produces equal or higher ΔF(S), abstract labels work. |
+| "Fisher information adds zero practical value" | Implement natural gradient routing. Measure calibration error over 100+ data points. If error decreases ≥ 5%, the investment was justified. |
+| "Dashboard invariants are noise" | Track agent attention (UAQ-6) on invariant dashboard lines. If agents click through / act on > 20% of displayed invariants, the dashboard UX is correct. |
+| "The plan is 40% overengineered" | Implement all 7 proposals. Measure marginal ΔF(S) and Δoutcome per proposal. If all 7 produce measurable improvement, the plan was correctly scoped. |

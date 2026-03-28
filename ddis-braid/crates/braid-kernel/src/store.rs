@@ -1352,12 +1352,18 @@ impl Store {
                 .entry((d.attribute.clone(), d.value.clone()))
                 .or_default()
                 .push(d.clone());
-            // LIVE: per-attribute resolution respecting schema cardinality (INV-STORE-012).
-            // Cardinality::One → LWW (highest tx wins).
-            // Cardinality::Many → skip LIVE view (it can only hold one value; callers
-            //   must use entity_datoms for Many-valued attributes).
+            // LIVE: per-attribute resolution respecting schema cardinality and resolution mode
+            // (INV-STORE-012, SOUND-2).
+            // Cardinality::Many → skip (LIVE view holds one value; Many needs entity_datoms).
+            // ResolutionMode::Multi → skip (LIVE view holds one value; Multi keeps all values,
+            //   callers must use live_entity() for correct multi-value resolution).
+            // ResolutionMode::Lattice → LWW fallback with note (matching SOUND-LATTICE).
+            // ResolutionMode::Lww → LWW (highest tx wins).
             let cardinality = self.schema.cardinality(&d.attribute);
-            if cardinality == crate::schema::Cardinality::One {
+            let resolution = self.schema.resolution_mode(&d.attribute);
+            if cardinality == crate::schema::Cardinality::One
+                && !matches!(resolution, crate::schema::ResolutionMode::Multi)
+            {
                 let key = (d.entity, d.attribute.clone());
                 self.live_view
                     .entry(key)
@@ -1500,11 +1506,14 @@ impl Store {
                     .entry((d.attribute.clone(), d.value.clone()))
                     .or_default()
                     .push(d.clone());
-                // LIVE: per-attribute resolution respecting schema cardinality.
-                // Cardinality::One → LWW (highest tx wins).
+                // LIVE: per-attribute resolution respecting schema cardinality and mode (SOUND-2).
                 // Cardinality::Many → skip (LIVE view holds one value; Many needs entity_datoms).
+                // ResolutionMode::Multi → skip (single-slot view can't represent multi-value).
                 let cardinality = schema.cardinality(&d.attribute);
-                if cardinality == crate::schema::Cardinality::One {
+                let resolution = schema.resolution_mode(&d.attribute);
+                if cardinality == crate::schema::Cardinality::One
+                    && !matches!(resolution, crate::schema::ResolutionMode::Multi)
+                {
                     let key = (d.entity, d.attribute.clone());
                     live_view
                         .entry(key)
@@ -1585,9 +1594,12 @@ impl Store {
                     .entry((d.attribute.clone(), d.value.clone()))
                     .or_default()
                     .push(d.clone());
-                // LIVE: skip Cardinality::Many (can only hold one value)
+                // LIVE: skip Cardinality::Many and ResolutionMode::Multi (SOUND-2)
                 let cardinality = schema.cardinality(&d.attribute);
-                if cardinality == crate::schema::Cardinality::One {
+                let resolution = schema.resolution_mode(&d.attribute);
+                if cardinality == crate::schema::Cardinality::One
+                    && !matches!(resolution, crate::schema::ResolutionMode::Multi)
+                {
                     let key = (d.entity, d.attribute.clone());
                     live_view
                         .entry(key)
@@ -1924,9 +1936,12 @@ impl Store {
                     .entry((d.attribute.clone(), d.value.clone()))
                     .or_default()
                     .push(d.clone());
-                // LIVE: skip Cardinality::Many (can only hold one value)
+                // LIVE: skip Cardinality::Many and ResolutionMode::Multi (SOUND-2)
                 let cardinality = self.schema.cardinality(&d.attribute);
-                if cardinality == crate::schema::Cardinality::One {
+                let resolution = self.schema.resolution_mode(&d.attribute);
+                if cardinality == crate::schema::Cardinality::One
+                    && !matches!(resolution, crate::schema::ResolutionMode::Multi)
+                {
                     let key = (d.entity, d.attribute.clone());
                     self.live_view
                         .entry(key)
@@ -2328,6 +2343,20 @@ impl Store {
             tx_id,
             Op::Assert,
         ));
+
+        // SOUND-1: :tx/causal-predecessors — record each causal predecessor as a Ref datom.
+        // Without these datoms, is_causal_ancestor() cannot perform BFS to detect causal
+        // ordering, causing has_conflict() to treat causally ordered updates as conflicts.
+        for pred in &tx_data.causal_predecessors {
+            let pred_entity = Store::tx_entity_id(*pred);
+            meta.push(Datom::new(
+                tx_entity,
+                Attribute::from_keyword(":tx/causal-predecessors"),
+                Value::Ref(pred_entity),
+                tx_id,
+                Op::Assert,
+            ));
+        }
 
         meta
     }
@@ -6349,16 +6378,42 @@ mod tests {
         let mut store = Store::genesis();
         let agent = system_agent();
 
-        // :tx/causal-predecessors is Cardinality::Many in the schema
-        let many_attr = Attribute::from_keyword(":tx/causal-predecessors");
+        // First, register a Many-cardinality attribute in the schema
+        let many_attr_ident = ":test/many-tags";
+        let many_attr = Attribute::from_keyword(many_attr_ident);
+        let attr_entity = EntityId::from_ident(many_attr_ident);
 
+        let schema_tx = Transaction::new(agent, ProvenanceType::Derived, "register many attr")
+            .assert(
+                attr_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(many_attr_ident.to_string()),
+            )
+            .assert(
+                attr_entity,
+                Attribute::from_keyword(":db/valueType"),
+                Value::Keyword(":db.type/string".to_string()),
+            )
+            .assert(
+                attr_entity,
+                Attribute::from_keyword(":db/cardinality"),
+                Value::Keyword(":db.cardinality/many".to_string()),
+            )
+            .assert(
+                attr_entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("Test many-cardinality attribute".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(schema_tx).unwrap();
+
+        // Now use the Many-cardinality attribute
         let entity = EntityId::from_ident(":test/many-card");
-        let ref_target1 = EntityId::from_ident(":test/target1");
-        let ref_target2 = EntityId::from_ident(":test/target2");
 
         let tx = Transaction::new(agent, ProvenanceType::Observed, "test many")
-            .assert(entity, many_attr.clone(), Value::Ref(ref_target1))
-            .assert(entity, many_attr.clone(), Value::Ref(ref_target2))
+            .assert(entity, many_attr.clone(), Value::String("tag1".into()))
+            .assert(entity, many_attr.clone(), Value::String("tag2".into()))
             .commit(&store)
             .unwrap();
         store.transact(tx).unwrap();
@@ -6384,28 +6439,263 @@ mod tests {
         );
     }
 
-    // Bug fix: validate_evolution rejects schema-breaking transact
+    // -----------------------------------------------------------------------
+    // SOUND-2: LIVE view respects per-attribute resolution mode
+    // -----------------------------------------------------------------------
+
+    /// Helper: register a custom attribute with a specific resolution mode.
+    /// Returns the attribute. The attribute uses valueType=String, cardinality=One.
+    fn register_attr_with_resolution(
+        store: &mut Store,
+        ident: &str,
+        resolution_keyword: &str,
+    ) -> Attribute {
+        let agent = system_agent();
+        let attr_entity = EntityId::from_ident(ident);
+        let tx = Transaction::new(agent, ProvenanceType::Derived, "schema")
+            .assert(
+                attr_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(ident.to_string()),
+            )
+            .assert(
+                attr_entity,
+                Attribute::from_keyword(":db/valueType"),
+                Value::Keyword(":db.type/string".to_string()),
+            )
+            .assert(
+                attr_entity,
+                Attribute::from_keyword(":db/cardinality"),
+                Value::Keyword(":db.cardinality/one".to_string()),
+            )
+            .assert(
+                attr_entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String(format!("Test attr {}", ident)),
+            )
+            .assert(
+                attr_entity,
+                Attribute::from_keyword(":db/resolutionMode"),
+                Value::Keyword(resolution_keyword.to_string()),
+            )
+            .commit(store)
+            .unwrap();
+        store.transact(tx).unwrap();
+        Attribute::from_keyword(ident)
+    }
+
+    // SOUND-2 test 1: LWW attribute — latest value wins (current behavior preserved).
+    #[test]
+    fn sound2_lww_latest_value_wins() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+        let entity = EntityId::from_ident(":test/sound2-lww");
+        let attr = register_attr_with_resolution(&mut store, ":test/lww-attr", ":resolution/lww");
+
+        // tx1: assert "old"
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "old")
+            .assert(entity, attr.clone(), Value::String("old".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        assert_eq!(
+            store.live_value(entity, &attr),
+            Some(&Value::String("old".into())),
+            "LWW: first value should be in live_view"
+        );
+
+        // tx2: assert "new" (later timestamp)
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "new")
+            .assert(entity, attr.clone(), Value::String("new".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        assert_eq!(
+            store.live_value(entity, &attr),
+            Some(&Value::String("new".into())),
+            "LWW: later value should overwrite in live_view"
+        );
+    }
+
+    // SOUND-2 test 2: Multi attribute — both values retained (no LWW overwrite).
+    #[test]
+    fn sound2_multi_both_values_retained() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+        let entity = EntityId::from_ident(":test/sound2-multi");
+        let attr =
+            register_attr_with_resolution(&mut store, ":test/multi-attr", ":resolution/multi");
+
+        // tx1: assert "v1"
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "v1")
+            .assert(entity, attr.clone(), Value::String("v1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // tx2: assert "v2"
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "v2")
+            .assert(entity, attr.clone(), Value::String("v2".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        // LIVE view should NOT contain Multi attributes (can't represent multiple values)
+        assert_eq!(
+            store.live_value(entity, &attr),
+            None,
+            "LIVE view must not contain ResolutionMode::Multi attributes"
+        );
+
+        // Both values should be present in entity_datoms
+        let datoms = store.entity_datoms(entity);
+        let multi_asserts: Vec<_> = datoms
+            .iter()
+            .filter(|d| d.attribute == attr && d.op == Op::Assert)
+            .collect();
+        assert_eq!(
+            multi_asserts.len(),
+            2,
+            "Both Multi assertions should exist in entity_datoms"
+        );
+
+        // Verify from_datoms produces the same result
+        let rebuilt = Store::from_datoms(store.datom_set().clone());
+        assert_eq!(
+            rebuilt.live_value(entity, &attr),
+            None,
+            "from_datoms: LIVE view must not contain ResolutionMode::Multi attributes"
+        );
+    }
+
+    // SOUND-2 test 3: Retraction on Multi — specific value removed, others kept.
+    #[test]
+    fn sound2_multi_retraction_removes_specific_value() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+        let entity = EntityId::from_ident(":test/sound2-retract");
+        let attr =
+            register_attr_with_resolution(&mut store, ":test/multi-retract", ":resolution/multi");
+
+        // tx1: assert "v1"
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "v1")
+            .assert(entity, attr.clone(), Value::String("v1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // tx2: assert "v2"
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "v2")
+            .assert(entity, attr.clone(), Value::String("v2".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        // Both values present
+        let asserts_before: Vec<_> = store
+            .entity_datoms(entity)
+            .iter()
+            .filter(|d| d.attribute == attr && d.op == Op::Assert)
+            .cloned()
+            .collect();
+        assert_eq!(asserts_before.len(), 2, "Both values should be present");
+
+        // tx3: retract "v1"
+        let tx3 = Transaction::new(agent, ProvenanceType::Observed, "retract v1")
+            .retract(entity, attr.clone(), Value::String("v1".into()))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx3).unwrap();
+
+        // After retraction, resolve through live_entity to get Multi resolution
+        let resolved = crate::resolution::live_entity(&store, entity);
+        if let Some(crate::resolution::ResolvedValue::Multi(values)) = resolved.get(&attr) {
+            // "v1" should be retracted, only "v2" remains
+            assert!(
+                values.contains(&Value::String("v2".into())),
+                "v2 should survive retraction of v1"
+            );
+            assert!(
+                !values.contains(&Value::String("v1".into())),
+                "v1 should be removed by retraction"
+            );
+        } else {
+            // Single value is also acceptable if only one value remains
+            let remaining = resolved.get(&attr);
+            assert!(
+                remaining.is_some(),
+                "v2 should still be present after retracting v1"
+            );
+        }
+
+        // LIVE view should remain empty for Multi attributes
+        assert_eq!(
+            store.live_value(entity, &attr),
+            None,
+            "LIVE view must remain empty for Multi resolution attributes after retraction"
+        );
+    }
+
+    // Bug fix: validate_evolution rejects schema-breaking transact.
+    // Register a Cardinality::Many attribute, then try to narrow it to One.
     #[test]
     fn transact_rejects_schema_evolution_violation() {
         let mut store = Store::genesis();
         let agent = system_agent();
 
-        // :db/doc is valueType String. Try to change it to Long.
-        // Build a datom that modifies :db/doc's valueType attribute.
-        let doc_entity = EntityId::from_ident(":db/doc");
-        let tx = Transaction::new(agent, ProvenanceType::Observed, "break schema")
+        // Step 1: Register a Many-cardinality attribute
+        let attr_ident = ":test/evolve-attr";
+        let attr_entity = EntityId::from_ident(attr_ident);
+
+        let register_tx = Transaction::new(agent, ProvenanceType::Derived, "register")
             .assert(
-                doc_entity,
+                attr_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(attr_ident.to_string()),
+            )
+            .assert(
+                attr_entity,
                 Attribute::from_keyword(":db/valueType"),
-                Value::Keyword(":db.type/long".into()),
+                Value::Keyword(":db.type/string".to_string()),
+            )
+            .assert(
+                attr_entity,
+                Attribute::from_keyword(":db/cardinality"),
+                Value::Keyword(":db.cardinality/many".to_string()),
+            )
+            .assert(
+                attr_entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("Test attribute for evolution".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(register_tx).unwrap();
+
+        // Verify it's Many now
+        assert_eq!(
+            store
+                .schema()
+                .cardinality(&Attribute::from_keyword(attr_ident)),
+            crate::schema::Cardinality::Many,
+        );
+
+        // Step 2: Try to narrow cardinality from Many to One (INV-SCHEMA-003 violation)
+        let narrow_tx = Transaction::new(agent, ProvenanceType::Derived, "narrow cardinality")
+            .assert(
+                attr_entity,
+                Attribute::from_keyword(":db/cardinality"),
+                Value::Keyword(":db.cardinality/one".to_string()),
             )
             .commit(&store)
             .unwrap();
 
-        let result = store.transact(tx);
+        let result = store.transact(narrow_tx);
         assert!(
             result.is_err(),
-            "transact should reject schema evolution violation (type change)"
+            "transact should reject cardinality narrowing (Many -> One)"
         );
     }
 

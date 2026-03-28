@@ -2086,14 +2086,16 @@ impl CommitHandle {
 }
 
 /// Default batch interval — starting point before adaptive tuning.
-const GROUP_COMMIT_INITIAL_INTERVAL_MS: u64 = 50;
+/// 25ms initial wait + fsync ~20ms = ~45ms worst-case (within P99 < 50ms target).
+const GROUP_COMMIT_INITIAL_INTERVAL_MS: u64 = 25;
 
 /// Minimum batch interval under sustained load (many concurrent writers).
 const GROUP_COMMIT_MIN_INTERVAL_MS: u64 = 5;
 
 /// Number of consecutive single-item batches before increasing the interval.
-/// Prevents thrashing between fast and slow modes.
-const GROUP_COMMIT_SINGLE_BATCH_THRESHOLD: u32 = 10;
+/// Prevents thrashing between fast and slow modes. Lower threshold (5) enables
+/// faster adaptation from latency mode back to throughput mode.
+const GROUP_COMMIT_SINGLE_BATCH_THRESHOLD: u32 = 5;
 
 /// Dedicated commit thread — drains the `CommitRequest` channel and batches
 /// writes into a single WAL fsync per batch.
@@ -2113,10 +2115,10 @@ const GROUP_COMMIT_SINGLE_BATCH_THRESHOLD: u32 = 10;
 ///
 /// # Adaptive batch interval
 ///
-/// Starts at 50ms. If batch size > 1, drops to 5ms (throughput mode).
-/// If 10 consecutive batches are single-item, returns to 50ms (latency mode).
+/// Starts at 25ms. If batch size > 1, drops to 5ms (throughput mode).
+/// If 5 consecutive batches are single-item, returns to 25ms (latency mode).
 /// This balances single-agent latency (~5ms) with multi-agent throughput
-/// (amortized fsync).
+/// (amortized fsync). Worst case: 25ms + fsync ~20ms = ~45ms (P99 < 50ms).
 ///
 /// # Shutdown
 ///
