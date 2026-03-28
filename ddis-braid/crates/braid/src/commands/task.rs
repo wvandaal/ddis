@@ -140,6 +140,19 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         now: braid_kernel::now_secs(),
     });
 
+    // DUPLICATE GUARD: Reject if this entity already exists in the store.
+    // The task ID is deterministic (BLAKE3 of title), so creating the same
+    // task twice targets the same entity. Without this guard, the second
+    // creation overwrites fields via LWW, potentially corrupting the task
+    // if the caller's shell mangled the arguments.
+    let task_id = generate_task_id(title);
+    if task::find_task_by_id(store, &task_id).is_some() {
+        return Err(BraidError::Validation(format!(
+            "task already exists: {task_id} (title hash collision or duplicate create). \
+             Use `braid task show {task_id}` to view the existing task."
+        )));
+    }
+
     // Build warnings for unresolved refs
     let mut warnings = Vec::new();
     for ref_id in &unresolved_refs {
@@ -165,7 +178,7 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
     let datom_count = tx.datoms.len();
     live.write_tx(&tx)?;
 
-    let task_id = generate_task_id(title);
+    // task_id already computed above (duplicate guard)
     let type_short = task_type.strip_prefix(":task.type/").unwrap_or(task_type);
 
     // Collect all traces-to IDs for output (explicit + resolved from title)
