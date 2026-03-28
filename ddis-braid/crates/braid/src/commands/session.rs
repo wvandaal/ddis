@@ -309,7 +309,7 @@ pub fn run_summary(
     });
 
     // ZCM-3: Session summary as ACP projection
-    let action = braid_kernel::guidance::compute_action_from_store(store);
+    let action = braid_kernel::guidance::compute_action_from_store(store, braid_kernel::now_secs());
     let fitness = store.fitness();
     let tx_since_harvest = count_txns_since_last_harvest(store);
 

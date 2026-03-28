@@ -137,6 +137,7 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         tx: tx_id,
         traces_to: &trace_entities,
         labels,
+        now: braid_kernel::now_secs(),
     });
 
     // Build warnings for unresolved refs
@@ -548,7 +549,7 @@ pub fn ready(path: &Path, pre_opened: Option<&mut LiveStore>) -> Result<CommandO
         .collect();
     // ACP projection for task ready (ACP-6, INV-BUDGET-007)
     // Action = top R(t) task, Context = task list entries with title pyramid levels
-    let action = braid_kernel::guidance::compute_action_from_store(store);
+    let action = braid_kernel::guidance::compute_action_from_store(store, braid_kernel::now_secs());
 
     let mut context_blocks = Vec::new();
 
@@ -713,7 +714,7 @@ pub fn next(
     // ALL open/in-progress tasks (not just the ready_set which excludes in-progress).
     // Falls back to top of priority-sorted ready_set if routing returns nothing.
     let all_tasks = braid_kernel::task::all_tasks(store);
-    let routing = compute_routing_from_store(store);
+    let routing = compute_routing_from_store(store, braid_kernel::now_secs());
     let top = {
         // Find the first non-zero-impact routed task, matching against all open/in-progress
         let matched = routing.iter().find_map(|routed| {
@@ -1204,7 +1205,12 @@ pub fn close(
             ));
         }
 
-        all_datoms.extend(close_task_datoms(entity, reason, tx_id));
+        all_datoms.extend(close_task_datoms(
+            entity,
+            reason,
+            tx_id,
+            braid_kernel::now_secs(),
+        ));
         closed_ids.push(task_id.as_str());
     }
 
@@ -1344,7 +1350,7 @@ pub fn close(
 
     // Capture data from store before dropping the borrow
     let fitness_total = fitness.total;
-    let action = braid_kernel::guidance::compute_action_from_store(store);
+    let action = braid_kernel::guidance::compute_action_from_store(store, braid_kernel::now_secs());
     // End store borrow so we can call live.write_tx below
     let _ = store;
 
@@ -1838,6 +1844,7 @@ pub fn import_beads(
                 tx: tx_id,
                 traces_to: &[],
                 labels: &bead.labels,
+                now: braid_kernel::now_secs(),
             });
 
             // Override the auto-generated task ID with the beads ID

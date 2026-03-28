@@ -2279,6 +2279,7 @@ fn try_build_footer(
         &store,
         Some(budget_ctx.k_eff()),
         hint,
+        braid_kernel::now_secs(),
     );
 
     // PSR-2: Proactive Spec Retrieval — append related spec elements

@@ -54,17 +54,17 @@ impl GuidanceContext {
     ///
     /// `k_eff` can be supplied externally (e.g., from CLI budget tracking);
     /// defaults to 1.0 (full budget) when `None`.
-    pub fn from_store(store: &Store, k_eff: Option<f64>) -> Self {
+    pub fn from_store(store: &Store, k_eff: Option<f64>, now: u64) -> Self {
         let telemetry = telemetry_from_store(store);
         let activity = detect_activity_mode(&telemetry);
-        let velocity = tx_velocity(store);
+        let velocity = tx_velocity(store, now);
         let agents = store.frontier().len() as u32;
         let gaps = crystallization_candidates(store).len() as u32;
         // unanchored: count tasks where parse_spec_refs returns refs but none resolve.
         // Simplified: 0 placeholder until AGP-4 fills this with real resolution logic.
         // KEFF-3: Use multi-signal estimation when no explicit k_eff provided
         let estimated_k = k_eff.unwrap_or_else(|| {
-            let evidence = crate::budget::EvidenceVector::from_store(store);
+            let evidence = crate::budget::EvidenceVector::from_store(store, now);
             crate::budget::estimate_k_eff(&evidence)
         });
         GuidanceContext {
@@ -149,17 +149,13 @@ pub fn record_block_presentations(
     store: &Store,
     presented_labels: &[&str],
     tx: crate::datom::TxId,
+    now: u64,
 ) -> Vec<crate::datom::Datom> {
     use crate::datom::{Datom, EntityId};
 
     let label_attr = Attribute::from_keyword(":attention/block-label");
     let count_attr = Attribute::from_keyword(":attention/presentation-count");
     let last_attr = Attribute::from_keyword(":attention/last-presented");
-
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
 
     let mut datoms = Vec::new();
 
@@ -1063,8 +1059,8 @@ pub struct GuidanceAction {
 /// - R15: ISP specification bypasses → Fix
 /// - R16: High entropy (structural disorder) → Investigate
 /// - R17: Observation staleness > 0.8 → Investigate (ADR-HARVEST-005)
-pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
-    derive_actions_inner(store, None, None, None)
+pub fn derive_actions(store: &Store, now: u64) -> Vec<GuidanceAction> {
+    derive_actions_inner(store, None, None, None, now)
 }
 
 /// Derive concrete actions with optional Q(t) budget signal.
@@ -1072,8 +1068,12 @@ pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
 /// When `q_t` is `Some`, R12 uses Q(t)-based thresholds from the attention
 /// decay model (ADR-BUDGET-001). When `None`, falls back to the heuristic
 /// tx-count threshold (8/15 transactions).
-pub fn derive_actions_with_budget(store: &Store, q_t: Option<f64>) -> Vec<GuidanceAction> {
-    derive_actions_inner(store, q_t, None, None)
+pub fn derive_actions_with_budget(
+    store: &Store,
+    q_t: Option<f64>,
+    now: u64,
+) -> Vec<GuidanceAction> {
+    derive_actions_inner(store, q_t, None, None, now)
 }
 
 /// Derive actions with pre-computed routing and coherence results.
@@ -1084,8 +1084,9 @@ pub fn derive_actions_with_routing(
     store: &Store,
     routing: &[crate::routing::TaskRouting],
     q_t: Option<f64>,
+    now: u64,
 ) -> Vec<GuidanceAction> {
-    derive_actions_inner(store, q_t, Some(routing), None)
+    derive_actions_inner(store, q_t, Some(routing), None, now)
 }
 
 /// Derive actions with all pre-computed values (routing + coherence).
@@ -1097,8 +1098,9 @@ pub fn derive_actions_with_precomputed(
     routing: &[crate::routing::TaskRouting],
     coherence: &crate::trilateral::CoherenceReport,
     q_t: Option<f64>,
+    now: u64,
 ) -> Vec<GuidanceAction> {
-    derive_actions_inner(store, q_t, Some(routing), Some(coherence))
+    derive_actions_inner(store, q_t, Some(routing), Some(coherence), now)
 }
 
 fn derive_actions_inner(
@@ -1106,6 +1108,7 @@ fn derive_actions_inner(
     q_t: Option<f64>,
     precomputed_routing: Option<&[crate::routing::TaskRouting]>,
     precomputed_coherence: Option<&crate::trilateral::CoherenceReport>,
+    now: u64,
 ) -> Vec<GuidanceAction> {
     let mut actions = Vec::new();
     let datom_count = store.len();
@@ -1303,7 +1306,7 @@ fn derive_actions_inner(
     let routed: &[crate::routing::TaskRouting] = match precomputed_routing {
         Some(r) => r,
         None => {
-            owned_routing = compute_routing_from_store(store);
+            owned_routing = compute_routing_from_store(store, now);
             &owned_routing
         }
     };
@@ -1386,8 +1389,8 @@ pub fn modulate_actions(actions: &mut Vec<GuidanceAction>, methodology_score: f6
 /// action for the footer, and formats at the appropriate compression level.
 ///
 /// `k_eff` is the current attention budget ratio (None defaults to 1.0 = full).
-pub fn build_command_footer(store: &Store, k_eff: Option<f64>) -> String {
-    build_command_footer_with_hint(store, k_eff, None)
+pub fn build_command_footer(store: &Store, k_eff: Option<f64>, now: u64) -> String {
+    build_command_footer_with_hint(store, k_eff, None, now)
 }
 
 /// Build a guidance footer with an optional contextual observation hint (INV-GUIDANCE-014).
@@ -1401,12 +1404,13 @@ pub fn build_command_footer_with_hint(
     store: &Store,
     k_eff: Option<f64>,
     hint: Option<ContextualHint>,
+    now: u64,
 ) -> String {
     let telemetry = telemetry_from_store(store);
     let methodology = compute_methodology_score(&telemetry);
     // Pass Q(t) to derive_actions so R12 uses attention-decay thresholds
     let q_t = k_eff.map(quality_adjusted_budget);
-    let mut actions = derive_actions_with_budget(store, q_t);
+    let mut actions = derive_actions_with_budget(store, q_t, now);
     modulate_actions(&mut actions, methodology.score);
 
     // ADR-INTERFACE-010: Turn-count k* proxy at Stage 0.
@@ -2139,7 +2143,7 @@ fn truncate_hint(s: &str, max: usize) -> &str {
 /// - `k_eff`: effective context budget ratio (0.0–1.0)
 ///
 /// The output is deterministic for a given store state + k_eff.
-pub fn generate_methodology_section(store: &Store, k_eff: f64) -> String {
+pub fn generate_methodology_section(store: &Store, k_eff: f64, now: u64) -> String {
     let mut out = String::new();
 
     // 1. Methodology Gaps (INV-GUIDANCE-021)
@@ -2191,7 +2195,7 @@ pub fn generate_methodology_section(store: &Store, k_eff: f64) -> String {
     );
 
     // 3. Next Actions — R(t) pre-computed top 3
-    let routing = compute_routing_from_store(store);
+    let routing = compute_routing_from_store(store, now);
     if !routing.is_empty() {
         // Build entity → task_id lookup from all_tasks
         let task_id_map: std::collections::BTreeMap<EntityId, String> =

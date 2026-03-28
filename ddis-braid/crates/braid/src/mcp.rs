@@ -626,7 +626,7 @@ fn tool_seed(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, BraidE
 
     let store = live.store();
     let agent = AgentId::from_name("braid:mcp");
-    let seed = assemble_seed(store, task, budget, agent);
+    let seed = assemble_seed(store, task, budget, agent, braid_kernel::now_secs());
 
     let mut out = String::new();
     out.push_str(&format!("seed for: {}\n", seed.task));
@@ -764,8 +764,9 @@ fn tool_guidance(live: &mut LiveStore) -> Result<JsonValue, BraidError> {
     let store = live.store();
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
-    let (routings, _calibration) = compute_routing_with_calibration(store);
-    let actions = derive_actions_with_routing(store, &routings, None);
+    let (routings, _calibration) =
+        compute_routing_with_calibration(store, braid_kernel::now_secs());
+    let actions = derive_actions_with_routing(store, &routings, None, braid_kernel::now_secs());
     let fitness = store.fitness();
 
     let mut out = String::new();
@@ -915,7 +916,8 @@ fn tool_task_close(live: &mut LiveStore, args: &JsonValue) -> Result<JsonValue, 
         .ok_or_else(|| BraidError::Parse(format!("task not found: {id}")))?;
 
     let tx_id = crate::commands::write::next_tx_id(live.store(), agent);
-    let datoms = braid_kernel::close_task_datoms(task_entity, reason, tx_id);
+    let datoms =
+        braid_kernel::close_task_datoms(task_entity, reason, tx_id, braid_kernel::now_secs());
     let tx = TxFile {
         tx_id,
         agent,
@@ -1239,7 +1241,8 @@ pub(crate) fn append_guidance_footer(result: &mut JsonValue, live: &LiveStore) {
     let telemetry = braid_kernel::guidance::telemetry_from_store(store);
     let methodology = braid_kernel::guidance::compute_methodology_score(&telemetry);
 
-    let footer = braid_kernel::guidance::build_command_footer(store, None);
+    let footer =
+        braid_kernel::guidance::build_command_footer(store, None, braid_kernel::now_secs());
     if footer.is_empty() {
         return;
     }

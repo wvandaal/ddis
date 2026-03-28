@@ -357,6 +357,8 @@ pub struct CreateTaskParams<'a> {
     pub traces_to: &'a [EntityId],
     /// Categorical labels.
     pub labels: &'a [String],
+    /// Current wall-clock time (epoch seconds). Injected for determinism.
+    pub now: u64,
 }
 
 /// Create datoms for a new task entity.
@@ -371,15 +373,13 @@ pub fn create_task_datoms(params: CreateTaskParams<'_>) -> (EntityId, Vec<Datom>
         tx,
         traces_to,
         labels,
+        now,
     } = params;
     let task_id = generate_task_id(title);
     let ident = format!(":task/{task_id}");
     let entity = EntityId::from_ident(&ident);
 
-    let wall_time = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
+    let wall_time = now;
 
     // TAP-SPLIT: Split title at first structured marker (BACKGROUND:, APPROACH:, ACCEPTANCE:).
     // Short title goes to :task/title, body goes to :task/body.
@@ -613,11 +613,8 @@ pub fn create_task_datoms(params: CreateTaskParams<'_>) -> (EntityId, Vec<Datom>
 }
 
 /// Create datoms to close a task.
-pub fn close_task_datoms(entity: EntityId, reason: &str, tx: TxId) -> Vec<Datom> {
-    let wall_time = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
+pub fn close_task_datoms(entity: EntityId, reason: &str, tx: TxId, now: u64) -> Vec<Datom> {
+    let wall_time = now;
 
     vec![
         Datom::new(
@@ -1754,6 +1751,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &["phase-b".to_string()],
+            now: crate::now_secs(),
         });
 
         let store = store_with(&store, task_datoms);
@@ -1782,6 +1780,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = store_with(&store, datoms_a);
 
@@ -1794,6 +1793,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = store_with(&store, datoms_b);
 
@@ -1824,6 +1824,7 @@ mod tests {
                 tx,
                 traces_to: &[],
                 labels: &[],
+                now: crate::now_secs(),
             });
             store = store_with(&store, task_datoms);
         }
@@ -1859,6 +1860,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let (entity_b, datoms_b) = create_task_datoms(CreateTaskParams {
             title: "Task B",
@@ -1868,6 +1870,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = store_with(&store, datoms_a);
         let store = store_with(&store, datoms_b);
@@ -1974,13 +1977,17 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = store_with(&store, task_datoms);
 
         assert_eq!(resolve_task_status(&store, entity), Some(TaskStatus::Open));
 
         let tx2 = TxId::new(2, 0, agent);
-        let store = store_with(&store, close_task_datoms(entity, "Done", tx2));
+        let store = store_with(
+            &store,
+            close_task_datoms(entity, "Done", tx2, crate::now_secs()),
+        );
 
         // INV-TASK-001: Lattice join yields Closed
         assert_eq!(
@@ -2201,6 +2208,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = Store::from_datoms(datoms.into_iter().collect());
         // Find the actual task entity from the store
@@ -2226,6 +2234,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = Store::from_datoms(datoms.into_iter().collect());
         let tasks = all_tasks(&store);
@@ -2402,6 +2411,7 @@ mod tests {
             tx: tx1,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = store_with(&store, task_datoms);
 
@@ -2454,6 +2464,7 @@ mod tests {
             tx: tx1,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = store_with(&store, task_datoms);
 

@@ -44,12 +44,7 @@ pub struct SessionWorkingSet {
 
 impl SessionWorkingSet {
     /// Build the working set from store state. Pure function, no IO.
-    pub fn from_store(store: &Store) -> Self {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs();
-
+    pub fn from_store(store: &Store, now: u64) -> Self {
         let session_start = Self::find_session_start(store);
         let harvest_boundary = last_harvest_wall_time(store);
         let fallback = now.saturating_sub(3600);
@@ -731,8 +726,11 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
 /// Returns the routings and the `CalibrationReport` that was used to compute
 /// per-type confidence factors. Callers that also need calibration (e.g., for
 /// methodology context blocks) should use this to avoid redundant O(H*K) scans.
-pub fn compute_routing_with_calibration(store: &Store) -> (Vec<TaskRouting>, CalibrationReport) {
-    let routings = compute_routing_from_store_inner(store);
+pub fn compute_routing_with_calibration(
+    store: &Store,
+    now: u64,
+) -> (Vec<TaskRouting>, CalibrationReport) {
+    let routings = compute_routing_from_store_inner(store, now);
     // The calibration was already computed inside; recompute here for the return.
     // This is still cheaper than having BOTH routing AND context compute it.
     let calibration = compute_calibration_metrics(store);
@@ -743,8 +741,8 @@ pub fn compute_routing_with_calibration(store: &Store) -> (Vec<TaskRouting>, Cal
 ///
 /// For callers that also need calibration metrics, prefer
 /// [`compute_routing_with_calibration`] to avoid redundant hypothesis scans.
-pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
-    compute_routing_from_store_inner(store)
+pub fn compute_routing_from_store(store: &Store, now: u64) -> Vec<TaskRouting> {
+    compute_routing_from_store_inner(store, now)
 }
 
 // ---------------------------------------------------------------------------
@@ -907,7 +905,7 @@ pub fn concept_dampening(obs_count: usize) -> f64 {
     }
 }
 
-fn compute_routing_from_store_inner(store: &Store) -> Vec<TaskRouting> {
+fn compute_routing_from_store_inner(store: &Store, now: u64) -> Vec<TaskRouting> {
     let summaries = crate::task::all_tasks(store);
     if summaries.is_empty() {
         return Vec::new();
@@ -966,17 +964,11 @@ fn compute_routing_from_store_inner(store: &Store) -> Vec<TaskRouting> {
         })
         .collect();
 
-    // Use wall-clock now for staleness normalization
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
-
     // Compute base routing, then apply post-multipliers:
     // 1. spec_anchor_factor: unanchored tasks sink (0.3×)
     // 2. session_boost: active tasks dominate (additive + multiplicative hybrid)
     let mut routings = compute_routing(&nodes, now);
-    let working_set = SessionWorkingSet::from_store(store);
+    let working_set = SessionWorkingSet::from_store(store, now);
 
     for r in &mut routings {
         // Spec anchor (SFE-3.2)
@@ -1179,8 +1171,9 @@ pub fn record_hypotheses(
     routings: &[TaskRouting],
     top_n: usize,
     tx: crate::datom::TxId,
+    now: u64,
 ) -> Vec<crate::datom::Datom> {
-    record_hypotheses_with_type(routings, top_n, tx, "task")
+    record_hypotheses_with_type(routings, top_n, tx, "task", now)
 }
 
 /// Generate hypothesis datoms with explicit item type (UAQ-4).
@@ -1191,13 +1184,9 @@ pub fn record_hypotheses_with_type(
     top_n: usize,
     tx: crate::datom::TxId,
     item_type: &str,
+    now: u64,
 ) -> Vec<crate::datom::Datom> {
     use crate::datom::{Attribute, Datom, Value};
-
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
 
     let mut datoms = Vec::new();
 
@@ -1519,8 +1508,8 @@ pub fn compute_calibration_metrics(store: &Store) -> CalibrationReport {
 /// 2. R(t) has tasks → top-impact task → "braid go <id>"
 /// 3. No tasks but observations exist → "braid observe" or "braid spec create"
 /// 4. Empty store → "braid observe" (seed the knowledge graph)
-pub fn compute_action_from_store(store: &Store) -> crate::budget::ProjectedAction {
-    let routings = compute_routing_from_store(store);
+pub fn compute_action_from_store(store: &Store, now: u64) -> crate::budget::ProjectedAction {
+    let routings = compute_routing_from_store(store, now);
     compute_action_from_routing(store, &routings)
 }
 

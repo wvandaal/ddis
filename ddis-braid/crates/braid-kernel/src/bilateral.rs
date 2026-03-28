@@ -58,7 +58,12 @@
 //!
 //! # Negative Cases
 //!
-//! - NEG-BILATERAL-001: No fitness regression (F(S) monotonic non-decreasing).
+//! - NEG-BILATERAL-001: No fitness regression within bilateral operations.
+//!   AUDIT-W0-004: F(S) monotonicity holds ONLY within bilateral operations
+//!   (where linked entities are added). Arbitrary datom additions (e.g., unlinked
+//!   entities) can dilute coverage/validation ratios and DECREASE F(S). The
+//!   invariant scope is: for any bilateral operation B on store S,
+//!   F(B(S)) >= F(S). This does NOT extend to arbitrary transact().
 //! - NEG-BILATERAL-002: No unchecked coherence dimension.
 
 use std::collections::{BTreeMap, HashMap, HashSet};
@@ -289,7 +294,13 @@ pub struct SpectralCertificate {
 pub struct ConvergenceAnalysis {
     /// F(S) trajectory over time.
     pub trajectory: Vec<f64>,
-    /// Whether F(S) is monotonically non-decreasing (Law L1).
+    /// Whether the F(S) trajectory is monotonically non-decreasing.
+    ///
+    /// AUDIT-W0-004: This measures observed trajectory behavior, not a global
+    /// invariant. F(S) monotonicity holds within bilateral operations (linked
+    /// entity additions) but NOT for arbitrary datom additions — unlinked
+    /// entities can dilute coverage/validation ratios. A non-monotonic trajectory
+    /// signals unlinked additions or regressions, not necessarily a bug.
     pub is_monotonic: bool,
     /// Lyapunov exponent: λ = (1/n) Σ ln(F(t+1)/F(t)).
     /// Positive = improving. Negative = degrading. Zero = stable.
@@ -520,7 +531,7 @@ impl BoundaryRegistry {
     /// fresh entities count more than hypothesized, unwitnessed, stale ones.
     ///
     /// Falls back to `total_coverage` when no boundaries produce entity sets.
-    pub fn total_evidence_weighted_coverage(&self, store: &Store) -> f64 {
+    pub fn total_evidence_weighted_coverage(&self, store: &Store, now: u64) -> f64 {
         if self.boundaries.is_empty() {
             return 1.0;
         }
@@ -542,7 +553,7 @@ impl BoundaryRegistry {
                     let entity_weights: Vec<f64> = e
                         .divergences
                         .iter()
-                        .map(|div| composite_evidence_weight(store, div.entity))
+                        .map(|div| composite_evidence_weight(store, div.entity, now))
                         .collect();
                     let sum: f64 = entity_weights.iter().sum();
                     if entity_weights.is_empty() {
@@ -652,7 +663,7 @@ pub fn set_depth_datom(
 /// - freshness: exponential decay per namespace (ADR-HARVEST-005)
 ///
 /// Returns [0.0, 1.0]. No new schema — reads existing attributes.
-pub fn composite_evidence_weight(store: &Store, entity: EntityId) -> f64 {
+pub fn composite_evidence_weight(store: &Store, entity: EntityId, now: u64) -> f64 {
     let datoms = store.entity_datoms(entity);
 
     // 1. Provenance weight — from the highest-authority transaction touching this entity
@@ -703,10 +714,6 @@ pub fn composite_evidence_weight(store: &Store, entity: EntityId) -> f64 {
         .unwrap_or(0.1); // No witness = 0.1
 
     // 3. Freshness — exponential decay based on max tx wall time
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
     let max_wall = datoms
         .iter()
         .filter(|d| d.op == Op::Assert)
@@ -1888,9 +1895,18 @@ fn compute_entropy_decomposition(store: &Store) -> EntropyDecomposition {
 /// Analyze convergence from an F(S) trajectory.
 ///
 /// Uses Lyapunov exponent theory to determine:
-/// - Whether the trajectory is monotonically non-decreasing (Law L1)
+/// - Whether the observed trajectory is monotonically non-decreasing
 /// - The exponential convergence rate
 /// - Estimated steps to reach F(S) ≥ 0.95
+///
+/// ## AUDIT-W0-004: Monotonicity scope (INV-BILATERAL-001)
+///
+/// F(S) monotonicity is NOT a global invariant. It holds within bilateral
+/// operations (which add linked spec+impl entities), but arbitrary datom
+/// additions can decrease F(S) by diluting coverage/validation ratios with
+/// unlinked entities. The `is_monotonic` field reports observed trajectory
+/// behavior for diagnostic purposes — a `false` value signals unlinked
+/// additions or regressions, not necessarily a correctness bug.
 pub fn analyze_convergence(trajectory: &[f64]) -> ConvergenceAnalysis {
     let is_monotonic = trajectory.windows(2).all(|w| w[1] >= w[0] - 1e-10); // Tolerance for floating-point
 
@@ -3104,10 +3120,11 @@ mod tests {
         use proptest::prelude::*;
 
         proptest! {
-            /// INV-BILATERAL-001: F(S) monotonically non-decreasing for well-formed transitions.
+            /// INV-BILATERAL-001: analyze_convergence correctly identifies monotone trajectories.
             ///
-            /// If F(S) was computed correctly, adding spec+impl datoms should not decrease it.
-            /// We test that analyze_convergence correctly identifies monotone trajectories.
+            /// AUDIT-W0-004: F(S) monotonicity holds within bilateral operations (linked
+            /// spec+impl additions), not for arbitrary datom additions. This test verifies
+            /// that the detection logic is correct, not that all trajectories are monotone.
             #[test]
             fn inv_bilateral_001_monotone_trajectory_detection(
                 trajectory in arb_monotone_trajectory(10),
@@ -3849,7 +3866,9 @@ mod tests {
         );
     }
 
-    // Verifies: INV-BILATERAL-001 — F(S) monotonically non-decreasing under task completion
+    // Verifies: INV-BILATERAL-001 — F(S) non-decreasing under linked bilateral operations
+    // AUDIT-W0-004: This test uses linked task+spec entities (bilateral operation),
+    // where monotonicity holds. Unlinked entity additions may decrease F(S).
     #[test]
     fn fitness_non_decreasing_under_task_close() {
         use crate::datom::AgentId;
@@ -3947,7 +3966,7 @@ mod tests {
         ));
 
         let store = Store::from_datoms(datoms);
-        let weight = composite_evidence_weight(&store, entity);
+        let weight = composite_evidence_weight(&store, entity, crate::now_secs());
 
         // With depth=4 (factor 1.0), fresh tx, and default provenance
         // Weight should be in the high range
@@ -3975,7 +3994,7 @@ mod tests {
         ));
 
         let store = Store::from_datoms(datoms);
-        let weight = composite_evidence_weight(&store, entity);
+        let weight = composite_evidence_weight(&store, entity, crate::now_secs());
 
         // No witness → depth_factor = 0.1, so weight should be relatively low
         assert!(
@@ -3990,7 +4009,7 @@ mod tests {
         // Store without any evidence-related datoms → weight defaults to reasonable value
         let store = Store::genesis();
         let entity = EntityId::from_ident(":test/nonexistent");
-        let weight = composite_evidence_weight(&store, entity);
+        let weight = composite_evidence_weight(&store, entity, crate::now_secs());
 
         // Entity doesn't exist → no datoms → default/floor values
         assert!(
@@ -4025,7 +4044,7 @@ mod tests {
                 Op::Assert,
             ));
             let store = Store::from_datoms(datoms);
-            let weight = composite_evidence_weight(&store, entity);
+            let weight = composite_evidence_weight(&store, entity, crate::now_secs());
             assert!(
                 weight >= prev_weight - 0.001,
                 "Depth {} weight {:.4} < previous depth weight {:.4}",
@@ -4066,7 +4085,7 @@ mod tests {
             ));
 
             let store = Store::from_datoms(datoms);
-            let weight = composite_evidence_weight(&store, entity);
+            let weight = composite_evidence_weight(&store, entity, crate::now_secs());
             prop_assert!((0.0..=1.0).contains(&weight),
                 "Evidence weight out of bounds: {:.6}", weight);
         }

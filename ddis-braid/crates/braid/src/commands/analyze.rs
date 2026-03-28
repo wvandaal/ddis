@@ -695,7 +695,7 @@ pub fn run_budget(path: &Path, budget: usize, force: bool) -> Result<String, Bra
     }
 
     // Section 3: Guidance actions
-    let actions = braid_kernel::guidance::derive_actions(store);
+    let actions = braid_kernel::guidance::derive_actions(store, braid_kernel::now_secs());
     let s3 = braid_kernel::guidance::format_actions(&actions);
     if !emit!(s3) {
         return Ok(out);

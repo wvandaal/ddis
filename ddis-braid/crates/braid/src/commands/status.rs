@@ -256,7 +256,8 @@ pub fn run(
     // Previously called 2-5x (compute_action_from_store, derive_actions R18, build_verbose,
     // build_json), each O(tasks × datoms) ≈ 10s on a 70K datom / 256 task store.
     // Phase 1: Compute all read-only values from live.store() (immutable borrow).
-    let (routings, calibration) = compute_routing_with_calibration(live.store());
+    let (routings, calibration) =
+        compute_routing_with_calibration(live.store(), braid_kernel::now_secs());
     let snapshot = StatusSnapshot::compute_with_layout(live.store(), path, None);
     let projection = build_status_projection(
         path,
@@ -278,7 +279,12 @@ pub fn run(
             let label_refs: Vec<&str> = labels.iter().map(|s| s.as_str()).collect();
             let agent = braid_kernel::datom::AgentId::from_name("braid:attention");
             let tx = crate::commands::write::next_tx_id(live.store(), agent);
-            let datoms = braid_kernel::record_block_presentations(live.store(), &label_refs, tx);
+            let datoms = braid_kernel::record_block_presentations(
+                live.store(),
+                &label_refs,
+                tx,
+                braid_kernel::now_secs(),
+            );
             if !datoms.is_empty() {
                 let tx_file = braid_kernel::layout::TxFile {
                     tx_id: tx,
@@ -362,7 +368,13 @@ pub fn run(
                 entry
             })
             .collect();
-        let actions = derive_actions_with_precomputed(store, &routings, &snapshot.coherence, None);
+        let actions = derive_actions_with_precomputed(
+            store,
+            &routings,
+            &snapshot.coherence,
+            None,
+            braid_kernel::now_secs(),
+        );
         let actions_json: Vec<serde_json::Value> = actions
             .iter()
             .map(|a| {
@@ -955,11 +967,18 @@ fn build_terse(
     hashes: &[String],
     tx_since_harvest: usize,
 ) -> String {
-    let (routings, _) = braid_kernel::guidance::compute_routing_with_calibration(store);
+    let (routings, _) =
+        braid_kernel::guidance::compute_routing_with_calibration(store, braid_kernel::now_secs());
     let coherence = check_coherence_fast(store);
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
-    let actions = derive_actions_with_precomputed(store, &routings, &coherence, None);
+    let actions = derive_actions_with_precomputed(
+        store,
+        &routings,
+        &coherence,
+        None,
+        braid_kernel::now_secs(),
+    );
     // CE-4: O(1) fitness via materialized views
     let fitness = store.fitness();
 
@@ -1223,11 +1242,18 @@ fn build_agent(
     hashes: &[String],
     tx_since_harvest: usize,
 ) -> AgentOutput {
-    let (routings, _) = braid_kernel::guidance::compute_routing_with_calibration(store);
+    let (routings, _) =
+        braid_kernel::guidance::compute_routing_with_calibration(store, braid_kernel::now_secs());
     let coherence = check_coherence_fast(store);
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
-    let actions = derive_actions_with_precomputed(store, &routings, &coherence, None);
+    let actions = derive_actions_with_precomputed(
+        store,
+        &routings,
+        &coherence,
+        None,
+        braid_kernel::now_secs(),
+    );
     // CE-4: O(1) fitness via materialized views
     let fitness = store.fitness();
 
@@ -1380,7 +1406,8 @@ fn build_verbose(
 
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
-    let actions = derive_actions_with_precomputed(store, routings, coherence, None);
+    let actions =
+        derive_actions_with_precomputed(store, routings, coherence, None, braid_kernel::now_secs());
     let fitness = store.fitness();
 
     // SD-1: F(S) session delta for verbose
@@ -1785,7 +1812,8 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
     let coherence = &snapshot.coherence;
     let _telemetry = &snapshot.telemetry;
     let score = &snapshot.methodology_score;
-    let actions = derive_actions_with_precomputed(store, routings, coherence, None);
+    let actions =
+        derive_actions_with_precomputed(store, routings, coherence, None, braid_kernel::now_secs());
 
     let frontier: Vec<serde_json::Value> = store
         .frontier()

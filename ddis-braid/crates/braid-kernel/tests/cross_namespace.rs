@@ -385,7 +385,13 @@ fn store_harvest_seed_lifecycle() {
     assert!(store.len() >= pre_harvest_count, "Store must not shrink");
 
     // Phase 3: Seed — start fresh session
-    let seed = assemble_seed(&store, "Continue work product task", 2000, a);
+    let seed = assemble_seed(
+        &store,
+        "Continue work product task",
+        2000,
+        a,
+        braid_kernel::now_secs(),
+    );
 
     assert!(
         seed.entities_discovered > 0,
@@ -650,7 +656,13 @@ fn guidance_harvest_seed() {
     assert!(harvest_result.drift_score >= 0.0);
 
     // Seed: fresh session should carry warnings section
-    let seed = assemble_seed(&store, "Continue with guidance", 2000, a);
+    let seed = assemble_seed(
+        &store,
+        "Continue with guidance",
+        2000,
+        a,
+        braid_kernel::now_secs(),
+    );
     let has_warnings = seed
         .context
         .sections
@@ -1038,7 +1050,13 @@ fn store_seed_agent_md_generation() {
     }
 
     // Seed — task keywords must match entity content for ASSOCIATE to discover them
-    let seed = assemble_seed(&store, "Project item description", 2000, a);
+    let seed = assemble_seed(
+        &store,
+        "Project item description",
+        2000,
+        a,
+        braid_kernel::now_secs(),
+    );
     assert!(seed.entities_discovered > 0);
 
     // Generate agent instructions
@@ -1048,7 +1066,7 @@ fn store_seed_agent_md_generation() {
         budget: 4000,
         ..Default::default()
     };
-    let generated = generate_agent_md(&store, &config);
+    let generated = generate_agent_md(&store, &config, braid_kernel::now_secs());
 
     assert!(
         !generated.sections.is_empty(),
@@ -1181,7 +1199,7 @@ fn full_end_to_end_pipeline() {
     assert!(harvest.drift_score >= 0.0);
 
     // --- Phase 7: Seed ---
-    let seed = assemble_seed(&store, "E2E seed", 2000, a);
+    let seed = assemble_seed(&store, "E2E seed", 2000, a, braid_kernel::now_secs());
     assert!(seed.entities_discovered > 0);
 
     // --- Phase 8: Merge with peer ---

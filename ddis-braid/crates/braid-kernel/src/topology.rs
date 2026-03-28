@@ -532,7 +532,11 @@ impl TopologyPlan {
 /// Returns `TopologyError` if:
 /// - Fewer than 2 ready tasks (`InsufficientTasks`)
 /// - Zero agents requested (`AgentCountZero`)
-pub fn quick_plan(store: &Store, agent_count: usize) -> Result<TopologyPlan, TopologyError> {
+pub fn quick_plan(
+    store: &Store,
+    agent_count: usize,
+    now: u64,
+) -> Result<TopologyPlan, TopologyError> {
     if agent_count == 0 {
         return Err(TopologyError::AgentCountZero);
     }
@@ -547,7 +551,7 @@ pub fn quick_plan(store: &Store, agent_count: usize) -> Result<TopologyPlan, Top
     }
 
     // Step 2: Compute R(t) impact scores for balancing
-    let routing = crate::guidance::compute_routing_from_store(store);
+    let routing = crate::guidance::compute_routing_from_store(store, now);
     let impact_scores: BTreeMap<EntityId, f64> =
         routing.iter().map(|r| (r.entity, r.impact)).collect();
 

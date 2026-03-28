@@ -645,20 +645,33 @@ impl MaterializedViews {
     ///
     /// Called once per datom during both `from_datoms` (batch) and `apply_tx` (incremental).
     /// O(1) per datom — no store-wide scans.
+    ///
+    /// ## AUDIT-W0-005: Retraction handling (C1, INV-STORE-017)
+    ///
+    /// Retractions (op=Retract) decrement the relevant counters but never delete
+    /// data from the view (C1: append-only — retractions are new datoms). For
+    /// HashSet-based accumulators (coverage_impl_targets, has_falsification, etc.),
+    /// we do NOT remove entries on retract because another Assert for the same
+    /// entity may still exist and we lack full store context here. This is
+    /// conservative: may over-count slightly but will never under-count.
+    /// Counter-based accumulators use saturating_sub to prevent underflow.
     pub fn observe_datom(&mut self, d: &Datom) {
-        if d.op != Op::Assert {
-            return; // Retractions don't contribute to most accumulators
-        }
-
+        let is_assert = d.op == Op::Assert;
         let attr = d.attribute.as_str();
 
         // Spec element detection
         if attr == ":spec/element-type" {
-            self.spec_count += 1;
+            if is_assert {
+                self.spec_count += 1;
+            } else {
+                self.spec_count = self.spec_count.saturating_sub(1);
+            }
         }
 
         // V+C: impl/implements → coverage + validation depth tracking
-        if attr == ":impl/implements" {
+        // V+C: Retract note: do NOT remove from coverage_impl_targets — another Assert
+        // for this spec entity may still exist. Conservative over-count (C1).
+        if attr == ":impl/implements" && is_assert {
             if let Value::Ref(spec_entity) = &d.value {
                 self.coverage_impl_targets.insert(*spec_entity);
                 // Initialize depth to 1 (syntactic baseline) if not already tracked
@@ -668,16 +681,17 @@ impl MaterializedViews {
         }
 
         // V+C: impl/verification-depth → depth-weighted coverage + validation
-        if attr == ":impl/verification-depth" {
+        if attr == ":impl/verification-depth" && is_assert {
             if let Value::Long(_depth) = &d.value {
-                self.has_any_depth = true;
-                // Find which spec entity this impl links to
-                // We need the impl entity's :impl/implements target.
-                // Since we don't have the full store here, we track by impl entity
-                // and resolve during fitness(). For now, we accumulate the depth
-                // per impl entity, and coverage_depth tracks per spec entity.
-                // The from_datoms/apply_tx caller should handle the cross-reference.
+                    self.has_any_depth = true;
+                    // Find which spec entity this impl links to
+                    // We need the impl entity's :impl/implements target.
+                    // Since we don't have the full store here, we track by impl entity
+                    // and resolve during fitness(). For now, we accumulate the depth
+                    // per impl entity, and coverage_depth tracks per spec entity.
+                    // The from_datoms/apply_tx caller should handle the cross-reference.
             }
+            // Retract: has_any_depth stays true (conservative — flag is monotonic).
         }
 
         // D: Namespace classification for drift/Phi (broad prefix-based)
@@ -686,37 +700,63 @@ impl MaterializedViews {
             || attr.starts_with(":harvest/")
             || attr.starts_with(":action/")
         {
-            self.intent_datom_count += 1;
+            if is_assert {
+                self.intent_datom_count += 1;
+            } else {
+                self.intent_datom_count = self.intent_datom_count.saturating_sub(1);
+            }
         } else if attr.starts_with(":spec/") || attr.starts_with(":element/") {
-            self.spec_datom_count += 1;
+            if is_assert {
+                self.spec_datom_count += 1;
+            } else {
+                self.spec_datom_count = self.spec_datom_count.saturating_sub(1);
+            }
         } else if attr.starts_with(":impl/") || attr.starts_with(":task/") {
-            self.impl_datom_count += 1;
+            if is_assert {
+                self.impl_datom_count += 1;
+            } else {
+                self.impl_datom_count = self.impl_datom_count.saturating_sub(1);
+            }
         }
         // UA-1(A): ISP entity sets + datom counts using trilateral::classify_attribute.
         // Must match live_projections exactly (INV-TRILATERAL-001).
+        // Entity sets: only add on Assert (conservative — no removal on Retract, C1).
+        // Datom counts: increment/decrement symmetrically.
         match crate::trilateral::classify_attribute(&d.attribute) {
             crate::trilateral::AttrNamespace::Intent => {
-                self.isp_intent_entities.insert(d.entity);
-                self.isp_intent_datom_count += 1;
+                if is_assert {
+                    self.isp_intent_entities.insert(d.entity);
+                    self.isp_intent_datom_count += 1;
+                } else {
+                    self.isp_intent_datom_count = self.isp_intent_datom_count.saturating_sub(1);
+                }
             }
             crate::trilateral::AttrNamespace::Spec => {
-                self.isp_spec_entities.insert(d.entity);
-                self.isp_spec_datom_count += 1;
+                if is_assert {
+                    self.isp_spec_entities.insert(d.entity);
+                    self.isp_spec_datom_count += 1;
+                } else {
+                    self.isp_spec_datom_count = self.isp_spec_datom_count.saturating_sub(1);
+                }
             }
             crate::trilateral::AttrNamespace::Impl => {
-                self.isp_impl_entities.insert(d.entity);
-                self.isp_impl_datom_count += 1;
+                if is_assert {
+                    self.isp_impl_entities.insert(d.entity);
+                    self.isp_impl_datom_count += 1;
+                } else {
+                    self.isp_impl_datom_count = self.isp_impl_datom_count.saturating_sub(1);
+                }
             }
             crate::trilateral::AttrNamespace::Meta => {}
         }
 
-        // I: Falsification tracking
-        if attr == ":spec/falsification" {
+        // I: Falsification tracking (set-based — Assert-only, C1 conservative)
+        if attr == ":spec/falsification" && is_assert {
             self.has_falsification.insert(d.entity);
         }
 
-        // I: Task coverage
-        if attr == ":task/traces-to" {
+        // I: Task coverage (set-based — Assert-only, C1 conservative)
+        if attr == ":task/traces-to" && is_assert {
             if let Value::Ref(spec_entity) = &d.value {
                 self.task_covered.insert(*spec_entity);
             }
@@ -725,59 +765,98 @@ impl MaterializedViews {
         // U: Uncertainty / confidence tracking
         if attr == ":exploration/confidence" {
             if let Value::Double(f) = &d.value {
-                self.confidence_sum += f.into_inner();
-                self.confidence_count += 1;
+                if is_assert {
+                    self.confidence_sum += f.into_inner();
+                    self.confidence_count += 1;
+                } else {
+                    self.confidence_sum -= f.into_inner();
+                    self.confidence_count = self.confidence_count.saturating_sub(1);
+                }
             }
         }
 
         // H: Harvest quality tracking
         // Harvest entities use :harvest/ or :h/ prefix
         if attr.starts_with(":harvest/") || attr.starts_with(":h/") {
-            self.harvest_count += 1;
+            if is_assert {
+                self.harvest_count += 1;
+            } else {
+                self.harvest_count = self.harvest_count.saturating_sub(1);
+            }
         }
         if attr == ":exploration/body" {
-            self.observation_count += 1;
+            if is_assert {
+                self.observation_count += 1;
+            } else {
+                self.observation_count = self.observation_count.saturating_sub(1);
+            }
         }
 
         // Task counts (historical — approximate, kept for backward compat)
         if attr == ":task/status" {
             if let Value::Keyword(kw) = &d.value {
-                if kw.contains("open") {
-                    self.task_open += 1;
-                } else if kw.contains("in-progress") {
-                    self.task_in_progress += 1;
-                } else if kw.contains("closed") {
-                    self.task_closed += 1;
+                if is_assert {
+                    if kw.contains("open") {
+                        self.task_open += 1;
+                    } else if kw.contains("in-progress") {
+                        self.task_in_progress += 1;
+                    } else if kw.contains("closed") {
+                        self.task_closed += 1;
+                    }
+                    // UA-1(B): Task index — live status tracking.
+                    // Insert/update the live status for this task entity.
+                    // In a single-pass from_datoms build, the last Assert for each
+                    // (entity, :task/status) wins (EAVT ordering ensures later txns
+                    // overwrite earlier ones in BTreeMap::insert).
+                    self.task_status_live.insert(d.entity, kw.clone());
+                } else {
+                    // Retract: decrement the matching counter, remove live status
+                    if kw.contains("open") {
+                        self.task_open = self.task_open.saturating_sub(1);
+                    } else if kw.contains("in-progress") {
+                        self.task_in_progress = self.task_in_progress.saturating_sub(1);
+                    } else if kw.contains("closed") {
+                        self.task_closed = self.task_closed.saturating_sub(1);
+                    }
+                    self.task_status_live.remove(&d.entity);
                 }
-                // UA-1(B): Task index — live status tracking.
-                // Insert/update the live status for this task entity.
-                // In a single-pass from_datoms build, the last Assert for each
-                // (entity, :task/status) wins (EAVT ordering ensures later txns
-                // overwrite earlier ones in BTreeMap::insert).
-                self.task_status_live.insert(d.entity, kw.clone());
             }
         }
 
         // UA-1(C): Telemetry counters
         if attr == ":session/status" {
-            self.session_count += 1;
+            if is_assert {
+                self.session_count += 1;
+            } else {
+                self.session_count = self.session_count.saturating_sub(1);
+            }
         }
-        if attr.starts_with(":harvest/") || attr.starts_with(":h/") {
-            // Track latest harvest wall time for count_txns_since_last_harvest
+        // Retract: do NOT decrease last_harvest_wall — it's a high-water mark.
+        if (attr.starts_with(":harvest/") || attr.starts_with(":h/")) && is_assert {
             let wall = d.tx.wall_time();
             if wall > self.last_harvest_wall {
                 self.last_harvest_wall = wall;
             }
         }
         if attr == ":task/traces-to" {
-            self.task_with_spec_ref_count += 1;
+            if is_assert {
+                self.task_with_spec_ref_count += 1;
+            } else {
+                self.task_with_spec_ref_count = self.task_with_spec_ref_count.saturating_sub(1);
+            }
         }
 
         // UA-1(D): Ref edge tracking for incremental beta_1
         if let Value::Ref(target) = &d.value {
-            self.ref_edge_count += 1;
-            self.ref_vertex_set.insert(d.entity);
-            self.ref_vertex_set.insert(*target);
+            if is_assert {
+                self.ref_edge_count += 1;
+                self.ref_vertex_set.insert(d.entity);
+                self.ref_vertex_set.insert(*target);
+            } else {
+                self.ref_edge_count = self.ref_edge_count.saturating_sub(1);
+                // Do NOT remove from ref_vertex_set — other edges may still reference
+                // these vertices. Conservative over-count (C1).
+            }
         }
     }
 

@@ -172,6 +172,7 @@ fn harvest_seed_25_turn_cycle() {
         "Continue validation work from previous session",
         2000, // token budget
         agent,
+        braid_kernel::now_secs(),
     );
 
     // Verify seed contains relevant context
@@ -272,7 +273,8 @@ fn harvest_seed_25_turn_cycle() {
         budget: 4000,
         ..Default::default()
     };
-    let generated = braid_kernel::agent_md::generate_agent_md(&store, &config);
+    let generated =
+        braid_kernel::agent_md::generate_agent_md(&store, &config, braid_kernel::now_secs());
 
     assert!(
         !generated.sections.is_empty(),
@@ -375,7 +377,13 @@ fn multi_session_continuity() {
         .collect();
 
     // Session 2: seed and continue
-    let seed = assemble_seed(&store, "Continue session 1 work", 2000, agent_2);
+    let seed = assemble_seed(
+        &store,
+        "Continue session 1 work",
+        2000,
+        agent_2,
+        braid_kernel::now_secs(),
+    );
     assert!(
         seed.entities_discovered > 0,
         "Session 2 seed should discover entities"

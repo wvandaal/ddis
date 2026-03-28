@@ -1386,6 +1386,7 @@ pub fn synthesize_narrative(
     store: &Store,
     candidates: &[HarvestCandidate],
     task: &str,
+    now: u64,
 ) -> NarrativeSummary {
     // 1. Group candidates by category.
     let mut observations: Vec<&HarvestCandidate> = Vec::new();
@@ -1572,7 +1573,7 @@ pub fn synthesize_narrative(
     focus_areas.truncate(5);
 
     // 6. Derive next action from guidance.
-    let actions = crate::guidance::derive_actions(store);
+    let actions = crate::guidance::derive_actions(store, now);
     let next = actions.first().and_then(|a| {
         a.command
             .as_ref()
@@ -2776,7 +2777,7 @@ mod tests {
     #[test]
     fn test_synthesize_empty_candidates() {
         let store = Store::genesis();
-        let summary = synthesize_narrative(&store, &[], "test task");
+        let summary = synthesize_narrative(&store, &[], "test task", crate::now_secs());
 
         assert_eq!(summary.goal, "test task");
         assert!(summary.accomplished.is_empty());
@@ -2822,7 +2823,7 @@ mod tests {
             },
         ];
 
-        let summary = synthesize_narrative(&store, &candidates, "grouping test");
+        let summary = synthesize_narrative(&store, &candidates, "grouping test", crate::now_secs());
 
         // Observations end up in accomplished
         assert_eq!(summary.accomplished.len(), 1);
@@ -2900,7 +2901,7 @@ mod tests {
             rationale: "Chose approach X".into(),
         }];
 
-        let summary = synthesize_narrative(&store, &candidates, "decision test");
+        let summary = synthesize_narrative(&store, &candidates, "decision test", crate::now_secs());
 
         assert_eq!(summary.decisions.len(), 1);
         let dec = &summary.decisions[0];
@@ -2982,7 +2983,7 @@ mod tests {
             },
         ];
 
-        let summary = synthesize_narrative(&store, &candidates, "focus test");
+        let summary = synthesize_narrative(&store, &candidates, "focus test", crate::now_secs());
 
         assert!(
             !summary.focus_areas.is_empty(),
@@ -3009,7 +3010,8 @@ mod tests {
             rationale: "test".into(),
         }];
 
-        let summary = synthesize_narrative(&store, &candidates, "next action test");
+        let summary =
+            synthesize_narrative(&store, &candidates, "next action test", crate::now_secs());
 
         // Empty store triggers R11 bootstrap → "braid init && braid bootstrap"
         assert!(
@@ -3084,7 +3086,12 @@ mod tests {
             rationale: "Chose EAV model".into(),
         }];
 
-        let summary = synthesize_narrative(&store, &candidates, "decision synthesis test");
+        let summary = synthesize_narrative(
+            &store,
+            &candidates,
+            "decision synthesis test",
+            crate::now_secs(),
+        );
 
         // Decisions should be non-empty
         assert!(
@@ -3224,7 +3231,8 @@ mod tests {
             },
         ];
 
-        let summary = synthesize_narrative(&store, &candidates, "focus areas test");
+        let summary =
+            synthesize_narrative(&store, &candidates, "focus areas test", crate::now_secs());
 
         // Focus areas should be non-empty
         assert!(
@@ -3260,7 +3268,7 @@ mod tests {
         let store = Store::genesis();
 
         // Call with empty task string and no candidates
-        let summary = synthesize_narrative(&store, &[], "");
+        let summary = synthesize_narrative(&store, &[], "", crate::now_secs());
 
         // Goal should match the (empty) task
         assert_eq!(summary.goal, "");
@@ -3311,7 +3319,12 @@ mod tests {
             rationale: "CRDT vs OT merge strategy undecided".into(),
         }];
 
-        let summary = synthesize_narrative(&store, &candidates, "open questions test");
+        let summary = synthesize_narrative(
+            &store,
+            &candidates,
+            "open questions test",
+            crate::now_secs(),
+        );
 
         // Open questions should be populated from Uncertainty candidates
         assert!(
@@ -3360,7 +3373,8 @@ mod tests {
             rationale: "test observation".into(),
         }];
 
-        let summary = synthesize_narrative(&store, &candidates, "git summary test");
+        let summary =
+            synthesize_narrative(&store, &candidates, "git summary test", crate::now_secs());
 
         // git_summary should be None — it's populated by the CLI layer, not the kernel
         assert!(
@@ -3386,7 +3400,8 @@ mod tests {
             status: CandidateStatus::Proposed,
             rationale: "chose hash-join".into(),
         }];
-        let summary = synthesize_narrative(&store, &candidates, "implement joins");
+        let summary =
+            synthesize_narrative(&store, &candidates, "implement joins", crate::now_secs());
         assert!(
             summary.synthesis_directive.is_some(),
             "Should generate directive when decisions exist"
@@ -3409,7 +3424,7 @@ mod tests {
     #[test]
     fn test_synthesis_directive_none_when_empty() {
         let store = Store::genesis();
-        let summary = synthesize_narrative(&store, &[], "empty session");
+        let summary = synthesize_narrative(&store, &[], "empty session", crate::now_secs());
         assert!(
             summary.synthesis_directive.is_none(),
             "Should not generate directive when no accomplishments or questions"
@@ -3429,7 +3444,8 @@ mod tests {
             status: CandidateStatus::Proposed,
             rationale: "CRDT vs OT merge undecided".into(),
         }];
-        let summary = synthesize_narrative(&store, &candidates, "merge strategy");
+        let summary =
+            synthesize_narrative(&store, &candidates, "merge strategy", crate::now_secs());
         assert!(
             summary.synthesis_directive.is_some(),
             "Should generate directive when open questions exist"

@@ -257,7 +257,7 @@ fn record_block_presentations_retraction() {
     // Call record_block_presentations 3 times for the same label, transacting each batch
     for i in 0..3 {
         let tx_id = braid_kernel::datom::TxId::new(1000 + i, 0, agent);
-        let datoms = record_block_presentations(&store, &[label], tx_id);
+        let datoms = record_block_presentations(&store, &[label], tx_id, braid_kernel::now_secs());
 
         // Build and transact via Transaction (schema-validated path)
         let mut tx = braid_kernel::store::Transaction::new(
@@ -342,7 +342,7 @@ fn calibration_cache_equivalence() {
     let store = Store::genesis();
 
     let direct = compute_calibration_metrics(&store);
-    let (_, via_routing) = compute_routing_with_calibration(&store);
+    let (_, via_routing) = compute_routing_with_calibration(&store, braid_kernel::now_secs());
 
     assert_eq!(
         direct.total_hypotheses, via_routing.total_hypotheses,

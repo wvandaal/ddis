@@ -1187,13 +1187,8 @@ pub struct EvidenceVector {
 
 impl EvidenceVector {
     /// Build evidence from store state.
-    pub fn from_store(store: &crate::store::Store) -> Self {
+    pub fn from_store(store: &crate::store::Store, now: u64) -> Self {
         use crate::datom::Op;
-
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs();
 
         // Find session boundary (same logic as SessionWorkingSet)
         let harvest_boundary = crate::guidance::last_harvest_wall_time(store);
@@ -1212,7 +1207,7 @@ impl EvidenceVector {
         let wall_elapsed = now.saturating_sub(session_boundary);
 
         // velocity: use existing tx_velocity function
-        let velocity = crate::guidance::tx_velocity(store);
+        let velocity = crate::guidance::tx_velocity(store, now);
 
         // output estimate: rough token count from datom string lengths since boundary
         let output_est: u32 = store

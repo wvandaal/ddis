@@ -2408,6 +2408,7 @@ pub fn assemble(
     neighborhood: &SchemaNeighborhood,
     task: &str,
     budget: usize,
+    now: u64,
 ) -> AssembledContext {
     let task_kw = extract_task_keywords(store, task);
     let task_keywords: Vec<&str> = task_kw.iter().map(|s| s.as_str()).collect();
@@ -2500,7 +2501,7 @@ pub fn assemble(
 
     // Directive: task + action injection (SB.2.1) + intention anchoring
     // CTP-4: Include acceptance criteria checklist from compile_directives
-    let actions = crate::guidance::derive_actions(store);
+    let actions = crate::guidance::derive_actions(store, now);
     let compiled_directive = compile_directives(task);
     let base_directive_from_store = build_directive(task, &actions, budget, last_session);
     let base_directive_text = format!("{}\n{}", compiled_directive, base_directive_from_store);
@@ -3255,7 +3256,13 @@ pub fn assemble(
 /// Top-level seed assembly: ASSOCIATE → ASSEMBLE in one call.
 ///
 /// This is the primary entry point for start-of-session context loading.
-pub fn assemble_seed(store: &Store, task: &str, budget: usize, agent: AgentId) -> SeedOutput {
+pub fn assemble_seed(
+    store: &Store,
+    task: &str,
+    budget: usize,
+    agent: AgentId,
+    now: u64,
+) -> SeedOutput {
     let cue = AssociateCue::Semantic {
         text: task.to_string(),
         depth: 3,
@@ -3264,7 +3271,7 @@ pub fn assemble_seed(store: &Store, task: &str, budget: usize, agent: AgentId) -
 
     let neighborhood = associate(store, &cue);
     let entities_discovered = neighborhood.entities.len();
-    let context = assemble(store, &neighborhood, task, budget);
+    let context = assemble(store, &neighborhood, task, budget, now);
 
     SeedOutput {
         context,
@@ -3542,7 +3549,13 @@ mod tests {
             attributes: vec![],
             entity_types: vec![],
         };
-        let ctx = assemble(&store, &neighborhood, "test task", budget);
+        let ctx = assemble(
+            &store,
+            &neighborhood,
+            "test task",
+            budget,
+            crate::now_secs(),
+        );
         assert!(
             ctx.total_tokens <= budget,
             "INV-SEED-002: total_tokens ({}) <= budget ({})",
@@ -3558,16 +3571,16 @@ mod tests {
         let store = Store::genesis();
         let neighborhood = SchemaNeighborhood::default();
 
-        let high = assemble(&store, &neighborhood, "task", 3000);
+        let high = assemble(&store, &neighborhood, "task", 3000, crate::now_secs());
         assert_eq!(high.projection_pattern, ProjectionLevel::Full);
 
-        let mid = assemble(&store, &neighborhood, "task", 1000);
+        let mid = assemble(&store, &neighborhood, "task", 1000, crate::now_secs());
         assert_eq!(mid.projection_pattern, ProjectionLevel::Summary);
 
-        let low = assemble(&store, &neighborhood, "task", 300);
+        let low = assemble(&store, &neighborhood, "task", 300, crate::now_secs());
         assert_eq!(low.projection_pattern, ProjectionLevel::TypeLevel);
 
-        let tiny = assemble(&store, &neighborhood, "task", 100);
+        let tiny = assemble(&store, &neighborhood, "task", 100, crate::now_secs());
         assert_eq!(tiny.projection_pattern, ProjectionLevel::Pointer);
     }
 
@@ -3577,7 +3590,7 @@ mod tests {
     fn assemble_seed_end_to_end() {
         let store = Store::genesis();
         let agent = AgentId::from_name("test-agent");
-        let seed = assemble_seed(&store, "datom store schema", 2000, agent);
+        let seed = assemble_seed(&store, "datom store schema", 2000, agent, crate::now_secs());
         assert_eq!(seed.task, "datom store schema");
         assert!(seed.context.total_tokens <= 2000);
         assert_eq!(seed.context.sections.len(), 5);
@@ -3862,7 +3875,13 @@ mod tests {
         let store = Store::genesis();
         let agent = AgentId::from_name("test-verify");
         let budget = 2000;
-        let seed = assemble_seed(&store, "test verification", budget, agent);
+        let seed = assemble_seed(
+            &store,
+            "test verification",
+            budget,
+            agent,
+            crate::now_secs(),
+        );
         let verification = verify_seed(&seed, &store, budget);
 
         assert!(
@@ -3956,7 +3975,13 @@ mod tests {
         };
 
         // Large budget — adaptive projection should assign different levels
-        let ctx = assemble(&store, &neighborhood, "adaptive projection test", 5000);
+        let ctx = assemble(
+            &store,
+            &neighborhood,
+            "adaptive projection test",
+            5000,
+            crate::now_secs(),
+        );
         assert!(ctx.total_tokens <= 5000, "budget respected");
 
         // Extract state entries and check for mixed projections
@@ -3999,8 +4024,8 @@ mod tests {
             ) {
                 let agent = AgentId::from_name("det-test");
                 let task = "determinism check";
-                let seed_a = assemble_seed(&store, task, budget, agent);
-                let seed_b = assemble_seed(&store, task, budget, agent);
+                let seed_a = assemble_seed(&store, task, budget, agent, crate::now_secs());
+                let seed_b = assemble_seed(&store, task, budget, agent, crate::now_secs());
 
                 prop_assert_eq!(
                     seed_a.context.sections.len(),
@@ -4035,7 +4060,7 @@ mod tests {
                 budget in 50usize..5000,
             ) {
                 let agent = AgentId::from_name("sections-test");
-                let seed = assemble_seed(&store, "any task", budget, agent);
+                let seed = assemble_seed(&store, "any task", budget, agent, crate::now_secs());
 
                 prop_assert_eq!(
                     seed.context.sections.len(),
@@ -4052,7 +4077,7 @@ mod tests {
                 budget in 50usize..5000,
             ) {
                 let agent = AgentId::from_name("budget-test");
-                let seed = assemble_seed(&store, "budget test", budget, agent);
+                let seed = assemble_seed(&store, "budget test", budget, agent, crate::now_secs());
 
                 prop_assert!(
                     seed.context.total_tokens <= budget,
@@ -4102,7 +4127,7 @@ mod tests {
                 budget in 50usize..5000,
             ) {
                 let agent = AgentId::from_name("rd-test");
-                let seed = assemble_seed(&store, "test task", budget, agent);
+                let seed = assemble_seed(&store, "test task", budget, agent, crate::now_secs());
 
                 prop_assert!(
                     seed.context.total_tokens <= budget,
@@ -4128,8 +4153,8 @@ mod tests {
                     entity_types: vec![],
                 };
 
-                let small_ctx = assemble(&store, &neighborhood, "test task", budget_small);
-                let large_ctx = assemble(&store, &neighborhood, "test task", budget_large);
+                let small_ctx = assemble(&store, &neighborhood, "test task", budget_small, crate::now_secs());
+                let large_ctx = assemble(&store, &neighborhood, "test task", budget_large, crate::now_secs());
 
                 let small_entries = count_state_entries(&small_ctx);
                 let large_entries = count_state_entries(&large_ctx);
@@ -4152,8 +4177,8 @@ mod tests {
                 let budget_large = budget_small + 2000;
                 let neighborhood = SchemaNeighborhood::default();
 
-                let small_ctx = assemble(&store, &neighborhood, "task", budget_small);
-                let large_ctx = assemble(&store, &neighborhood, "task", budget_large);
+                let small_ctx = assemble(&store, &neighborhood, "task", budget_small, crate::now_secs());
+                let large_ctx = assemble(&store, &neighborhood, "task", budget_large, crate::now_secs());
 
                 prop_assert!(
                     large_ctx.projection_pattern >= small_ctx.projection_pattern,
@@ -4180,8 +4205,8 @@ mod tests {
                     entity_types: vec![],
                 };
 
-                let small_ctx = assemble(&store, &neighborhood, "test", budget_small);
-                let large_ctx = assemble(&store, &neighborhood, "test", budget_large);
+                let small_ctx = assemble(&store, &neighborhood, "test", budget_small, crate::now_secs());
+                let large_ctx = assemble(&store, &neighborhood, "test", budget_large, crate::now_secs());
 
                 let small_tokens = state_token_sum(&small_ctx);
                 let large_tokens = state_token_sum(&large_ctx);
@@ -4207,7 +4232,7 @@ mod tests {
                     entity_types: vec![],
                 };
 
-                let ctx = assemble(&store, &neighborhood, "test", budget);
+                let ctx = assemble(&store, &neighborhood, "test", budget, crate::now_secs());
 
                 prop_assert!(
                     ctx.total_tokens + ctx.budget_remaining <= budget,
@@ -4229,7 +4254,7 @@ mod tests {
                 let task = "documentation";
                 let budget = 3000;
 
-                let seed_before = assemble_seed(&store, task, budget, agent);
+                let seed_before = assemble_seed(&store, task, budget, agent, crate::now_secs());
                 let discovered_before = seed_before.entities_discovered;
 
                 // Add a datom that matches the task keyword "documentation"
@@ -4250,7 +4275,7 @@ mod tests {
                 .unwrap();
                 enriched.transact(tx).unwrap();
 
-                let seed_after = assemble_seed(&enriched, task, budget, agent);
+                let seed_after = assemble_seed(&enriched, task, budget, agent, crate::now_secs());
                 let discovered_after = seed_after.entities_discovered;
 
                 prop_assert!(
@@ -4270,7 +4295,7 @@ mod tests {
             ) {
                 let store = Store::genesis();
                 let agent = AgentId::from_name("rd-test");
-                let seed = assemble_seed(&store, "anything", budget, agent);
+                let seed = assemble_seed(&store, "anything", budget, agent, crate::now_secs());
 
                 prop_assert_eq!(
                     seed.context.sections.len(),
@@ -4635,7 +4660,7 @@ mod tests {
     fn test_phantom_commands_replaced() {
         use crate::guidance::derive_actions;
         let store = Store::genesis();
-        let actions = derive_actions(&store);
+        let actions = derive_actions(&store, crate::now_secs());
         let all_commands: String = actions
             .iter()
             .filter_map(|a| a.command.as_ref())
@@ -4655,7 +4680,7 @@ mod tests {
         // Seed output should not contain raw hex entity hashes
         let store = Store::genesis();
         let agent = AgentId::from_name("test");
-        let seed = assemble_seed(&store, "test task", 3000, agent);
+        let seed = assemble_seed(&store, "test task", 3000, agent, crate::now_secs());
 
         for section in &seed.context.sections {
             if let ContextSection::State(entries) = section {
@@ -4784,8 +4809,8 @@ mod tests {
                 let task = "compression priority check";
                 let generous_budget = tight_budget + 3000;
 
-                let tight_seed = assemble_seed(&store, task, tight_budget, agent);
-                let generous_seed = assemble_seed(&store, task, generous_budget, agent);
+                let tight_seed = assemble_seed(&store, task, tight_budget, agent, crate::now_secs());
+                let generous_seed = assemble_seed(&store, task, generous_budget, agent, crate::now_secs());
 
                 // Both seeds must have exactly 5 sections (Orientation, Constraints,
                 // State, Warnings, Directive) — structural invariant.
@@ -4879,7 +4904,7 @@ mod tests {
                 }
                 store.merge(&Store::from_datoms(raw));
 
-                let seed = assemble_seed(&store, "store immutability", budget, agent);
+                let seed = assemble_seed(&store, "store immutability", budget, agent, crate::now_secs());
 
                 // With budget > 1000 and 3 related constraints in the STORE
                 // namespace, the seed should include at least one spec entity
@@ -4938,7 +4963,7 @@ mod tests {
                 let agent = AgentId::from_name("inv006-test");
                 let task = format!("implement {}", task_suffix.trim());
 
-                let seed = assemble_seed(&store, &task, budget, agent);
+                let seed = assemble_seed(&store, &task, budget, agent, crate::now_secs());
 
                 // INV-SEED-006: The task appears in the Directive section
                 // at full fidelity (pi_0), regardless of budget pressure.
@@ -4990,6 +5015,7 @@ mod tests {
                         tx,
                         traces_to: &[],
                         labels: &["seed".to_string()],
+                        now: crate::now_secs(),
                     },
                 );
                 let overlay = Store::from_datoms(task_datoms.into_iter().collect());
@@ -5009,6 +5035,7 @@ mod tests {
                     "implement intention anchoring",
                     budget,
                     agent,
+                    crate::now_secs(),
                 );
 
                 // The directive must contain the task title and ID
@@ -5066,6 +5093,7 @@ mod tests {
                 tx,
                 traces_to: &[],
                 labels: &["kernel".to_string()],
+                now: crate::now_secs(),
             });
         let overlay = Store::from_datoms(task_datoms.into_iter().collect());
         store.merge(&overlay);
@@ -5147,6 +5175,7 @@ mod tests {
                 tx,
                 traces_to: &[],
                 labels: &[],
+                now: crate::now_secs(),
             });
         let overlay = Store::from_datoms(task_datoms.into_iter().collect());
         store.merge(&overlay);
@@ -5178,6 +5207,7 @@ mod tests {
                 tx,
                 traces_to: &[],
                 labels: &["urgent".to_string()],
+                now: crate::now_secs(),
             });
         let overlay = Store::from_datoms(task_datoms.into_iter().collect());
         store.merge(&overlay);
@@ -5188,7 +5218,7 @@ mod tests {
         store.merge(&overlay2);
 
         // Assemble with a very small budget (50 tokens)
-        let seed = assemble_seed(&store, "fix production", 50, agent);
+        let seed = assemble_seed(&store, "fix production", 50, agent, crate::now_secs());
 
         // The directive MUST still contain the intention context
         let directive_text = seed.context.sections.iter().find_map(|s| {
@@ -5235,6 +5265,7 @@ mod tests {
                 tx,
                 traces_to: &[],
                 labels: &[],
+                now: crate::now_secs(),
             });
         let overlay = Store::from_datoms(task_datoms.into_iter().collect());
         store.merge(&overlay);
@@ -5245,7 +5276,7 @@ mod tests {
         store.merge(&overlay2);
 
         // Assemble normally — should pass verification
-        let seed = assemble_seed(&store, "anchored task", 3000, agent);
+        let seed = assemble_seed(&store, "anchored task", 3000, agent, crate::now_secs());
         let verification = verify_seed(&seed, &store, 3000);
 
         assert!(
@@ -5294,12 +5325,14 @@ mod tests {
                 tx,
                 traces_to: &[],
                 labels: &[],
+                now: crate::now_secs(),
             });
         let overlay = Store::from_datoms(dep_datoms.into_iter().collect());
         store.merge(&overlay);
         // Close the dep
         let tx_close = TxId::new(1001, 0, agent);
-        let close_datoms = crate::task::close_task_datoms(dep_entity, "done", tx_close);
+        let close_datoms =
+            crate::task::close_task_datoms(dep_entity, "done", tx_close, crate::now_secs());
         let overlay_close = Store::from_datoms(close_datoms.into_iter().collect());
         store.merge(&overlay_close);
 
@@ -5314,6 +5347,7 @@ mod tests {
                 tx: tx2,
                 traces_to: &[spec_entity],
                 labels: &[],
+                now: crate::now_secs(),
             });
         let overlay_main = Store::from_datoms(main_datoms.into_iter().collect());
         store.merge(&overlay_main);

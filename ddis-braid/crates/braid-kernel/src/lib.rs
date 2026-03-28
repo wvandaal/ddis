@@ -26,7 +26,6 @@
 pub mod agent_md;
 pub mod agent_store;
 pub mod bilateral;
-pub mod bootstrap_hypotheses;
 pub mod branch;
 pub mod budget;
 pub mod census;
@@ -66,6 +65,18 @@ pub mod topology;
 pub mod trace;
 pub mod trilateral;
 pub mod witness;
+
+/// Return the current wall-clock time as epoch seconds.
+///
+/// This is the ONLY place in the kernel that calls `SystemTime::now()`.
+/// Production callers should call this once at the CLI boundary and pass
+/// the result down. Test code may call it as a convenience.
+pub fn now_secs() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
+}
 
 // Re-export core types at crate root for ergonomic access.
 pub use agent_md::{generate_agent_md, AgentMdConfig, AgentMdSection, GeneratedAgentMd};

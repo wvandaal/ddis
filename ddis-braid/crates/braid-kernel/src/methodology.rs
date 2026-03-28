@@ -555,11 +555,7 @@ pub fn last_harvest_wall_time(store: &Store) -> u64 {
 ///
 /// Note: wall_time values in the store use seconds since the Unix epoch
 /// (consistent with existing `telemetry_from_store` and `contextual_observation_hint`).
-pub fn tx_velocity(store: &Store) -> f64 {
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
+pub fn tx_velocity(store: &Store, now: u64) -> f64 {
     tx_velocity_at(store, now)
 }
 
@@ -612,13 +608,13 @@ pub fn dynamic_threshold(velocity: f64) -> u32 {
 /// This eliminates alert fatigue during batch task operations.
 ///
 /// Returns urgency in [0, 1+]. Values > 1.0 mean OVERDUE.
-pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
+pub fn harvest_urgency_multi(store: &Store, k_eff: f64, now: u64) -> f64 {
     // FIX-NAG: Fresh stores (<10 txns) have nothing worth harvesting yet.
     // Genesis + init detection + session auto-start generate ~5-8 system txns.
     // But always honor the k_eff emergency signal (signal_4).
     let is_fresh = count_txns_since_last_harvest(store) < 10 && last_harvest_wall_time(store) == 0;
 
-    let velocity = tx_velocity(store);
+    let velocity = tx_velocity(store, now);
     let threshold = dynamic_threshold(velocity);
     let last_harvest_wall = last_harvest_wall_time(store);
 
@@ -665,11 +661,7 @@ pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
     };
 
     // Signal 2: time since harvest / 30 minutes (unchanged — hard backstop)
-    let now_wall = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
-    let minutes_since = (now_wall.saturating_sub(last_harvest_wall)) as f64 / 60.0;
+    let minutes_since = (now.saturating_sub(last_harvest_wall)) as f64 / 60.0;
     let signal_2 = minutes_since / 30.0;
 
     // Signal 3: cumulative coherence movement / 3.0 (metabolic — replaces raw exploration count)
@@ -703,17 +695,17 @@ pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
 /// from store evidence via `budget::estimate_k_eff`.
 ///
 /// Returns `Some(warning_message)` if a warning should be shown, `None` otherwise.
-pub fn should_warn_on_exit(store: &Store, k_eff: Option<f64>) -> Option<String> {
+pub fn should_warn_on_exit(store: &Store, k_eff: Option<f64>, now: u64) -> Option<String> {
     let tx_since = count_txns_since_last_harvest(store);
     // No transactions since last harvest means nothing to harvest -- skip.
     if tx_since == 0 {
         return None;
     }
     let effective_k = k_eff.unwrap_or_else(|| {
-        let evidence = crate::budget::EvidenceVector::from_store(store);
+        let evidence = crate::budget::EvidenceVector::from_store(store, now);
         crate::budget::estimate_k_eff(&evidence)
     });
-    let urgency = harvest_urgency_multi(store, effective_k);
+    let urgency = harvest_urgency_multi(store, effective_k, now);
     if urgency >= 0.7 {
         // Clamp urgency display to [0, 10] for human readability.
         // Raw urgency can exceed 10 for very stale sessions; showing huge

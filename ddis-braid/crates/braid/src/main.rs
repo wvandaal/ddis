@@ -1,6 +1,7 @@
 use clap::Parser;
 
 pub mod bootstrap;
+pub mod bootstrap_hypotheses;
 mod commands;
 pub mod daemon;
 mod error;
@@ -138,12 +139,17 @@ fn main() {
         cmd_name != "init" && cmd_name != "daemon" && cmd_name != "mcp" && cmd_name != "shell";
     if cmd_name != "init" && cmd_name != "session" && uses_pre_opened {
         if let Some(ref mut live) = live {
-            if braid_kernel::guidance::detect_session_start(live.store()) {
+            if braid_kernel::guidance::detect_session_start(live.store(), braid_kernel::now_secs())
+            {
                 let resolved = commands::resolve_agent_identity("braid:user");
                 let agent = braid_kernel::datom::AgentId::from_name(&resolved);
                 let tx_id = commands::write::next_tx_id(live.store(), agent);
-                let datoms =
-                    braid_kernel::guidance::create_session_start_datoms(live.store(), agent, tx_id);
+                let datoms = braid_kernel::guidance::create_session_start_datoms(
+                    live.store(),
+                    agent,
+                    tx_id,
+                    braid_kernel::now_secs(),
+                );
                 let tx_file = braid_kernel::layout::TxFile {
                     tx_id,
                     agent,
@@ -362,9 +368,11 @@ fn main() {
             // NEG-HARVEST-001: warn on exit if unharvested work is at risk.
             if needs_exit_warning {
                 if let Some(ref live) = live {
-                    if let Some(warning) =
-                        braid_kernel::guidance::should_warn_on_exit(live.store(), None)
-                    {
+                    if let Some(warning) = braid_kernel::guidance::should_warn_on_exit(
+                        live.store(),
+                        None,
+                        braid_kernel::now_secs(),
+                    ) {
                         eprintln!("{warning}");
                     }
 

@@ -770,6 +770,21 @@ impl DiskLayout {
     /// INV-HASH-LIST-001: list_tx_hashes is called exactly ONCE here.
     /// The hash list and fingerprint are returned so LiveStore::open() can
     /// reuse them without re-listing the 12K+ file txns/ directory.
+    ///
+    /// ## AUDIT-W0-003: Cache pipeline correctness (INV-STORE-020)
+    ///
+    /// The cache pipeline uses a three-tier strategy:
+    /// 1. **Exact hit**: `read_slim_cache(fingerprint)` — fingerprint matches, load directly.
+    /// 2. **Incremental delta**: `read_slim_cache_with_hashes()` — cached hashes are a
+    ///    subset of current hashes, apply only the delta transactions.
+    /// 3. **Full rebuild**: Parse all EDN files, build from scratch.
+    ///
+    /// The DW0 (DAEMON-WRITE) fix resolved the original hash mismatch bug:
+    /// `write_slim_cache()` now uses the caller's `known_hashes` (the hashes
+    /// actually loaded) rather than re-listing via `list_tx_hashes()`, which
+    /// could include files written by concurrent processes between load and
+    /// cache-write. This ensures the fingerprint stored in meta.json always
+    /// matches the store contents in store.bin.
     pub fn load_store_with_hashes(&self) -> Result<(Store, Vec<String>, String), BraidError> {
         // C1 ENFORCEMENT: No dedicated seal scan here — it was O(F) on every
         // command invocation (4s regression at 12K files). Instead:

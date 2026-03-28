@@ -254,7 +254,8 @@ pub fn run(
     }
 
     // Pipe-back-to-harness: synthesis directive for the running agent (S0.2a.2)
-    let narrative = synthesize_narrative(store, &result.candidates, &task);
+    let narrative =
+        synthesize_narrative(store, &result.candidates, &task, braid_kernel::now_secs());
     if let Some(ref directive) = narrative.synthesis_directive {
         out.push('\n');
         out.push_str(directive);
@@ -305,8 +306,12 @@ pub fn run(
                         evidence.spec_total,
                         evidence.criteria_confidence.unwrap_or(0.0) * 100.0,
                     );
-                    let close =
-                        braid_kernel::task::close_task_datoms(task.entity, &attest, recon_tx);
+                    let close = braid_kernel::task::close_task_datoms(
+                        task.entity,
+                        &attest,
+                        recon_tx,
+                        braid_kernel::now_secs(),
+                    );
                     reconcile_datoms.extend(close);
 
                     // Record completion method
@@ -586,7 +591,8 @@ pub fn run(
 
         // CONTEXT-TELEMETRY: Record session metrics for cross-session analysis
         {
-            let evidence = braid_kernel::budget::EvidenceVector::from_store(store);
+            let evidence =
+                braid_kernel::budget::EvidenceVector::from_store(store, braid_kernel::now_secs());
             let k_est = braid_kernel::budget::estimate_k_eff(&evidence);
             let tasks_closed_this_session = store
                 .datoms()
@@ -706,11 +712,15 @@ pub fn run(
         // HL-2: Also record hypothesis datoms for top-3 recommendations.
         // Every R(t) recommendation is a testable prediction (ADR-FOUNDATION-018).
         {
-            let routing = compute_routing_from_store(store);
+            let routing = compute_routing_from_store(store, braid_kernel::now_secs());
 
             // HL-2: Record hypotheses for the top-3 recommendations
-            let hypothesis_datoms =
-                braid_kernel::guidance::record_hypotheses(&routing, 3, harvest_tx_id);
+            let hypothesis_datoms = braid_kernel::guidance::record_hypotheses(
+                &routing,
+                3,
+                harvest_tx_id,
+                braid_kernel::now_secs(),
+            );
             all_datoms.extend(hypothesis_datoms);
 
             let top_ids: Vec<String> = routing
@@ -745,7 +755,9 @@ pub fn run(
         // when event A implies event B, they share a transaction).
         //
         // Step 1: Close active session if present
-        if let Some(active_entity) = braid_kernel::guidance::find_active_session(store) {
+        if let Some(active_entity) =
+            braid_kernel::guidance::find_active_session(store, braid_kernel::now_secs())
+        {
             all_datoms.push(Datom::new(
                 active_entity,
                 Attribute::from_keyword(":session/status"),

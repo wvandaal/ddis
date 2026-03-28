@@ -25,7 +25,7 @@ pub fn run_plan(
     let store = layout.load_store()?;
 
     // Compute the plan
-    let plan = topology::quick_plan(&store, agents)
+    let plan = topology::quick_plan(&store, agents, braid_kernel::now_secs())
         .map_err(|e| BraidError::Kernel(braid_kernel::KernelError::Topology(e)))?;
 
     // Build task title lookup for display

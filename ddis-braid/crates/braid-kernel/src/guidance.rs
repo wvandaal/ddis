@@ -58,13 +58,9 @@ use crate::store::Store;
 /// Scans `:session/status` for `:session.status/active` and checks that no later
 /// `closed` assertion exists. Returns `None` if no active session or if the only
 /// active session is stale (>2 hours old).
-pub fn find_active_session(store: &Store) -> Option<EntityId> {
+pub fn find_active_session(store: &Store, now: u64) -> Option<EntityId> {
     let status_attr = Attribute::from_keyword(":session/status");
     let started_attr = Attribute::from_keyword(":session/started-at");
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
     let staleness_threshold = 2 * 3600; // 2 hours
 
     for datom in store.attribute_datoms(&status_attr) {
@@ -108,13 +104,9 @@ pub fn find_active_session(store: &Store) -> Option<EntityId> {
 /// The staleness check prevents a single unclosed session from blocking
 /// all future session auto-detection indefinitely (discovered in Session 031:
 /// a session from Session 021 was still "active" 10 sessions later).
-pub fn detect_session_start(store: &Store) -> bool {
+pub fn detect_session_start(store: &Store, now: u64) -> bool {
     let status_attr = Attribute::from_keyword(":session/status");
     let started_attr = Attribute::from_keyword(":session/started-at");
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
     // 2 hours = stale session threshold
     let staleness_threshold = 2 * 3600;
 
@@ -170,8 +162,13 @@ pub fn detect_session_start(store: &Store) -> bool {
 /// - `:session/current` — self-referential Ref marking this as the active session
 ///
 /// The caller is responsible for wrapping these in a `TxFile` and writing them.
-pub fn create_session_start_datoms(store: &Store, agent: AgentId, tx: TxId) -> Vec<Datom> {
-    create_session_start_datoms_with_name(store, agent, tx, "braid:session")
+pub fn create_session_start_datoms(
+    store: &Store,
+    agent: AgentId,
+    tx: TxId,
+    now: u64,
+) -> Vec<Datom> {
+    create_session_start_datoms_with_name(store, agent, tx, "braid:session", now)
 }
 
 /// Create session-start datoms with an explicit agent name string (ST-1).
@@ -183,11 +180,9 @@ pub fn create_session_start_datoms_with_name(
     _agent: AgentId,
     tx: TxId,
     agent_name: &str,
+    now: u64,
 ) -> Vec<Datom> {
-    let wall_secs = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
+    let wall_secs = now;
 
     // ISO 8601 timestamp (UTC)
     let iso_time = {
@@ -1109,7 +1104,7 @@ mod tests {
     #[test]
     fn actions_on_empty_store_returns_bootstrap() {
         let store = Store::from_datoms(std::collections::BTreeSet::new());
-        let actions = derive_actions(&store);
+        let actions = derive_actions(&store, crate::now_secs());
         assert_eq!(
             actions.len(),
             1,
@@ -1123,7 +1118,7 @@ mod tests {
     #[test]
     fn actions_on_genesis_store_sorted_by_priority() {
         let store = Store::genesis();
-        let actions = derive_actions(&store);
+        let actions = derive_actions(&store, crate::now_secs());
         // Genesis store with only schema may or may not produce actions
         // (depends on coherence state) — but if it does, they must be sorted
         for window in actions.windows(2) {
@@ -1211,7 +1206,7 @@ mod tests {
     fn should_warn_on_exit_empty_store_no_warning() {
         let store = Store::from_datoms(std::collections::BTreeSet::new());
         assert!(
-            should_warn_on_exit(&store, Some(1.0)).is_none(),
+            should_warn_on_exit(&store, Some(1.0), crate::now_secs()).is_none(),
             "empty store should not trigger exit warning"
         );
     }
@@ -1262,7 +1257,7 @@ mod tests {
         let store = Store::from_datoms(datoms);
         // k_eff = 1.0 means signal_4 = 0; all other signals well below 0.7
         assert!(
-            should_warn_on_exit(&store, Some(1.0)).is_none(),
+            should_warn_on_exit(&store, Some(1.0), crate::now_secs()).is_none(),
             "3 txns since recent harvest with healthy k_eff should not warn"
         );
     }
@@ -1311,7 +1306,7 @@ mod tests {
 
         let store = Store::from_datoms(datoms);
         // k_eff = 1.0: signal_4 off, but signal_1 = 8/8 = 1.0 triggers
-        let warning = should_warn_on_exit(&store, Some(1.0));
+        let warning = should_warn_on_exit(&store, Some(1.0), crate::now_secs());
         assert!(
             warning.is_some(),
             "8 txns since harvest should trigger warning"
@@ -1356,7 +1351,7 @@ mod tests {
         }
 
         let store = Store::from_datoms(datoms);
-        let warning = should_warn_on_exit(&store, Some(1.0));
+        let warning = should_warn_on_exit(&store, Some(1.0), crate::now_secs());
         assert!(
             warning.is_some(),
             "15 txns with no harvest ever should trigger warning"
@@ -1375,7 +1370,7 @@ mod tests {
     #[test]
     fn tx_velocity_empty_store_returns_zero() {
         let store = Store::from_datoms(std::collections::BTreeSet::new());
-        let v = tx_velocity(&store);
+        let v = tx_velocity(&store, crate::now_secs());
         assert!(
             (v - 0.0).abs() < f64::EPSILON,
             "empty store should have zero velocity, got {v}"
@@ -1407,7 +1402,7 @@ mod tests {
         }
 
         let store = Store::from_datoms(datoms);
-        let v = tx_velocity(&store);
+        let v = tx_velocity(&store, crate::now_secs());
         assert!(
             (v - 2.0).abs() < f64::EPSILON,
             "10 txns in 5-min window should give velocity=2.0, got {v}"
@@ -1433,7 +1428,7 @@ mod tests {
         }
 
         let store = Store::from_datoms(datoms);
-        let v = tx_velocity(&store);
+        let v = tx_velocity(&store, crate::now_secs());
         assert!(
             (v - 0.0).abs() < f64::EPSILON,
             "ancient txns should give velocity=0.0, got {v}"
@@ -1536,7 +1531,7 @@ mod tests {
 
         // The txn count since harvest should be moderate (well under 30).
         // k_eff = 1.0 means signal_4 = 0, so max urgency is signal_1 ≈ 0.17.
-        let warning = should_warn_on_exit(&store, Some(1.0));
+        let warning = should_warn_on_exit(&store, Some(1.0), crate::now_secs());
         assert!(
             warning.is_none(),
             "few txns since harvest with high velocity (threshold=30) should NOT warn, \
@@ -1587,7 +1582,7 @@ mod tests {
 
         let store = Store::from_datoms(datoms);
         // k_eff = 0.1 (critically low) → signal_4 = 1.5 → urgency >= 0.7
-        let warning = should_warn_on_exit(&store, Some(0.1));
+        let warning = should_warn_on_exit(&store, Some(0.1), crate::now_secs());
         assert!(
             warning.is_some(),
             "critical k_eff should trigger harvest warning even with few txns"
@@ -1605,7 +1600,7 @@ mod tests {
         // An empty store has 0 txns since harvest → short-circuits to None.
         let store = Store::from_datoms(std::collections::BTreeSet::new());
         assert!(
-            should_warn_on_exit(&store, None).is_none(),
+            should_warn_on_exit(&store, None, crate::now_secs()).is_none(),
             "empty store with auto-estimated k_eff should not warn"
         );
     }
@@ -1640,7 +1635,7 @@ mod tests {
         }
 
         let store = Store::from_datoms(datoms);
-        let warning = should_warn_on_exit(&store, Some(1.0));
+        let warning = should_warn_on_exit(&store, Some(1.0), crate::now_secs());
         assert!(warning.is_some(), "100 txns with no harvest should warn");
         let msg = warning.unwrap();
         assert!(
@@ -1695,7 +1690,7 @@ mod tests {
         }
 
         let store = Store::from_datoms(datoms);
-        let warning = should_warn_on_exit(&store, Some(1.0));
+        let warning = should_warn_on_exit(&store, Some(1.0), crate::now_secs());
         assert!(warning.is_some(), "7 txns since recent harvest should warn");
         let msg = warning.unwrap();
         // Must contain "urgency X.XX" with a numeric value, not "10.0+"
@@ -1767,7 +1762,7 @@ mod tests {
         }
 
         let store = Store::from_datoms(datoms);
-        let urgency = harvest_urgency_multi(&store, 1.0);
+        let urgency = harvest_urgency_multi(&store, 1.0, crate::now_secs());
         assert!(
             urgency >= 1.0,
             "time urgency (40 min) should exceed 1.0 despite few tx, got {urgency}"
@@ -1783,7 +1778,7 @@ mod tests {
         // Fresh genesis store with no harvests should have low urgency
         // (only time signal contributes if very recent)
         let store = Store::genesis();
-        let urgency = harvest_urgency_multi(&store, 1.0);
+        let urgency = harvest_urgency_multi(&store, 1.0, crate::now_secs());
         // On a fresh genesis store, there's no harvest boundary, so
         // last_harvest_wall_time returns 0. This means ALL time since epoch
         // counts, giving extremely high time urgency. That's expected behavior —
@@ -1825,7 +1820,7 @@ mod tests {
 
         // Store with 0 novel transactions
         let store_0 = Store::from_datoms(datoms.clone());
-        let urgency_0 = harvest_urgency_multi(&store_0, 1.0);
+        let urgency_0 = harvest_urgency_multi(&store_0, 1.0, crate::now_secs());
 
         // Add 5 transactions with non-zero delta-crystallization
         for i in 1..=5 {
@@ -1840,7 +1835,7 @@ mod tests {
             ));
         }
         let store_5 = Store::from_datoms(datoms);
-        let urgency_5 = harvest_urgency_multi(&store_5, 1.0);
+        let urgency_5 = harvest_urgency_multi(&store_5, 1.0, crate::now_secs());
 
         assert!(
             urgency_5 > urgency_0,
@@ -1902,7 +1897,7 @@ mod tests {
         }
 
         let store = Store::from_datoms(datoms);
-        let urgency = harvest_urgency_multi(&store, 1.0);
+        let urgency = harvest_urgency_multi(&store, 1.0, crate::now_secs());
 
         // Signal 1 (novel tx) should be 0 — no non-zero deltas
         // Signal 2 (time) = 5min/30min = 0.17
@@ -1918,7 +1913,7 @@ mod tests {
     fn urgency_k_eff_critical_overrides() {
         // When k_eff < 0.15 (context nearly exhausted), urgency should be >= 1.5
         let store = Store::genesis();
-        let urgency = harvest_urgency_multi(&store, 0.10); // critically low k_eff
+        let urgency = harvest_urgency_multi(&store, 0.10, crate::now_secs()); // critically low k_eff
         assert!(
             urgency >= 1.5,
             "k_eff=0.10 should trigger emergency urgency >= 1.5, got {urgency}"
@@ -1982,7 +1977,7 @@ mod tests {
     #[test]
     fn guidance_context_from_empty_store() {
         let store = Store::from_datoms(std::collections::BTreeSet::new());
-        let ctx = GuidanceContext::from_store(&store, None);
+        let ctx = GuidanceContext::from_store(&store, None, crate::now_secs());
         // KEFF-3: When no explicit k_eff provided, estimate_k_eff uses sigmoid
         // fusion. For zero evidence, all signals are below threshold, so
         // sigmoid outputs ~0.26 total decay → k_eff ≈ 0.74. Not exactly 1.0.
@@ -2001,7 +1996,7 @@ mod tests {
     #[test]
     fn guidance_context_from_store_with_k_eff() {
         let store = Store::from_datoms(std::collections::BTreeSet::new());
-        let ctx = GuidanceContext::from_store(&store, Some(0.42));
+        let ctx = GuidanceContext::from_store(&store, Some(0.42), crate::now_secs());
         assert!(
             (ctx.k_eff - 0.42).abs() < f64::EPSILON,
             "k_eff should be the supplied value 0.42, got {}",
@@ -2012,7 +2007,7 @@ mod tests {
     #[test]
     fn guidance_context_from_genesis_store() {
         let store = Store::genesis();
-        let ctx = GuidanceContext::from_store(&store, Some(0.8));
+        let ctx = GuidanceContext::from_store(&store, Some(0.8), crate::now_secs());
         // Genesis store has at least one agent (system)
         assert!(
             ctx.agent_count >= 1,
@@ -2238,7 +2233,7 @@ mod tests {
         );
 
         // Verify R17 fires
-        let actions = derive_actions(&store);
+        let actions = derive_actions(&store, crate::now_secs());
         let r17 = actions
             .iter()
             .find(|a| a.relates_to.contains(&"ADR-HARVEST-005".to_string()));
@@ -2806,7 +2801,7 @@ mod tests {
     #[test]
     fn build_command_footer_on_genesis() {
         let store = Store::genesis();
-        let footer = build_command_footer(&store, None);
+        let footer = build_command_footer(&store, None, crate::now_secs());
         assert!(!footer.is_empty(), "footer must not be empty");
         assert!(
             footer.contains('↳') || footer.contains('⚠'),
@@ -2819,13 +2814,13 @@ mod tests {
         let store = Store::genesis();
 
         // Full budget → Full level footer (longest)
-        let full = build_command_footer(&store, Some(1.0));
+        let full = build_command_footer(&store, Some(1.0), crate::now_secs());
         // Low budget → more compressed
-        let compressed = build_command_footer(&store, Some(0.5));
+        let compressed = build_command_footer(&store, Some(0.5), crate::now_secs());
         // Very low → minimal
-        let minimal = build_command_footer(&store, Some(0.3));
+        let minimal = build_command_footer(&store, Some(0.3), crate::now_secs());
         // Exhausted → harvest only
-        let harvest = build_command_footer(&store, Some(0.1));
+        let harvest = build_command_footer(&store, Some(0.1), crate::now_secs());
 
         // Compression should generally reduce length
         assert!(
@@ -2842,7 +2837,7 @@ mod tests {
     #[test]
     fn build_command_footer_on_empty_store() {
         let store = Store::from_datoms(std::collections::BTreeSet::new());
-        let footer = build_command_footer(&store, None);
+        let footer = build_command_footer(&store, None, crate::now_secs());
         assert!(
             !footer.is_empty(),
             "footer on empty store must not be empty"
@@ -3003,21 +2998,21 @@ mod tests {
             #[test]
             fn footer_always_present(store in arb_store(5)) {
                 // Full budget (k_eff = 1.0)
-                let footer_full = build_command_footer(&store, Some(1.0));
+                let footer_full = build_command_footer(&store, Some(1.0), crate::now_secs());
                 prop_assert!(
                     !footer_full.is_empty(),
                     "INV-GUIDANCE-001: footer must never be empty at k_eff=1.0"
                 );
 
                 // Default budget (None → 1.0)
-                let footer_default = build_command_footer(&store, None);
+                let footer_default = build_command_footer(&store, None, crate::now_secs());
                 prop_assert!(
                     !footer_default.is_empty(),
                     "INV-GUIDANCE-001: footer must never be empty at default k_eff"
                 );
 
                 // Exhausted budget (k_eff → 0)
-                let footer_exhausted = build_command_footer(&store, Some(0.05));
+                let footer_exhausted = build_command_footer(&store, Some(0.05), crate::now_secs());
                 prop_assert!(
                     !footer_exhausted.is_empty(),
                     "INV-GUIDANCE-001: footer must never be empty even at near-zero k_eff"
@@ -3166,7 +3161,7 @@ mod tests {
                 );
 
                 // Verify derive_actions produces an Investigate action for stale obs
-                let actions = derive_actions(&store);
+                let actions = derive_actions(&store, crate::now_secs());
                 let has_staleness_action = actions.iter().any(|a| {
                     a.category == ActionCategory::Investigate
                         && a.relates_to.contains(&"ADR-HARVEST-005".to_string())
@@ -3364,7 +3359,7 @@ mod tests {
     fn derive_actions_with_budget_uses_qt_thresholds() {
         let store = Store::genesis();
         // Q(t)=0.03 → Critical → should produce Harvest action at priority 1
-        let actions = derive_actions_with_budget(&store, Some(0.03));
+        let actions = derive_actions_with_budget(&store, Some(0.03), crate::now_secs());
         let harvest_actions: Vec<_> = actions
             .iter()
             .filter(|a| a.category == ActionCategory::Harvest)
@@ -3388,7 +3383,7 @@ mod tests {
     fn derive_actions_with_budget_no_harvest_at_high_qt() {
         let store = Store::genesis();
         // Q(t)=0.8 → None → no harvest action
-        let actions = derive_actions_with_budget(&store, Some(0.8));
+        let actions = derive_actions_with_budget(&store, Some(0.8), crate::now_secs());
         let harvest_actions: Vec<_> = actions
             .iter()
             .filter(|a| a.category == ActionCategory::Harvest)
@@ -3403,7 +3398,7 @@ mod tests {
     fn derive_actions_without_budget_uses_tx_fallback() {
         let store = Store::genesis();
         // Without Q(t), R12 uses tx-count heuristic
-        let actions = derive_actions_with_budget(&store, None);
+        let actions = derive_actions_with_budget(&store, None, crate::now_secs());
         // Verify no action references Q(t) — should be tx-count based if any
         for action in &actions {
             if action.category == ActionCategory::Harvest {
@@ -3420,7 +3415,7 @@ mod tests {
         let store = Store::genesis();
         // k_eff=0.1 → Q(t)=0.00556 → Critical → HarvestOnly level
         // At HarvestOnly level, footer should mention harvest
-        let footer = build_command_footer(&store, Some(0.1));
+        let footer = build_command_footer(&store, Some(0.1), crate::now_secs());
         assert!(
             footer.contains("HARVEST") || footer.contains("harvest"),
             "footer at k_eff=0.1 should mention harvest, got: {footer}"
@@ -3677,7 +3672,7 @@ mod tests {
             },
         ];
 
-        let datoms = record_hypotheses(&routings, 3, tx);
+        let datoms = record_hypotheses(&routings, 3, tx, crate::now_secs());
         // 2 recommendations x 6 datoms each = 12 (UAQ-4: +item-type)
         assert_eq!(
             datoms.len(),
@@ -3737,7 +3732,7 @@ mod tests {
             ),
         }];
 
-        let datoms = record_hypotheses(&routings, 3, tx);
+        let datoms = record_hypotheses(&routings, 3, tx, crate::now_secs());
         assert!(
             datoms.is_empty(),
             "zero-impact should produce no hypotheses"
@@ -3760,7 +3755,7 @@ mod tests {
     #[test]
     fn routing_from_store_empty_returns_empty() {
         let store = Store::genesis();
-        let routed = compute_routing_from_store(&store);
+        let routed = compute_routing_from_store(&store, crate::now_secs());
         assert!(
             routed.is_empty(),
             "genesis store with no tasks should produce empty routing"
@@ -3786,6 +3781,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = routing_store_with(&store, datoms_a);
 
@@ -3797,6 +3793,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = routing_store_with(&store, datoms_b);
 
@@ -3808,10 +3805,11 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = routing_store_with(&store, datoms_c);
 
-        let routed = compute_routing_from_store(&store);
+        let routed = compute_routing_from_store(&store, crate::now_secs());
         assert_eq!(routed.len(), 3, "all three tasks should be ready (no deps)");
 
         // All should have positive impact scores
@@ -3860,6 +3858,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = routing_store_with(&store, datoms_island);
         let island_entity = find_task_by_id(&store, &generate_task_id("Island P1 task")).unwrap();
@@ -3873,6 +3872,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = routing_store_with(&store, datoms_hub);
         let hub_entity = find_task_by_id(&store, &generate_task_id("Hub P2 task")).unwrap();
@@ -3888,6 +3888,7 @@ mod tests {
                 tx,
                 traces_to: &[],
                 labels: &[],
+                now: crate::now_secs(),
             });
             let store_tmp = routing_store_with(&store, datoms_down);
             let down_entity = find_task_by_id(&store_tmp, &generate_task_id(&title)).unwrap();
@@ -3916,6 +3917,7 @@ mod tests {
                 tx,
                 traces_to: &[],
                 labels: &[],
+                now: crate::now_secs(),
             });
             for d in datoms_down {
                 accumulated.insert(d);
@@ -3925,7 +3927,7 @@ mod tests {
         }
         let store = Store::from_datoms(accumulated);
 
-        let routed = compute_routing_from_store(&store);
+        let routed = compute_routing_from_store(&store, crate::now_secs());
 
         // The hub task and the island task should both be in the ready set
         // (hub has no deps, island has no deps; downstream tasks are blocked)
@@ -4187,6 +4189,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = routing_store_with(&store, task_datoms);
 
@@ -4216,6 +4219,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = routing_store_with(&store, task_datoms);
 
@@ -4245,6 +4249,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = routing_store_with(&store, task_datoms);
 
@@ -4294,6 +4299,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = routing_store_with(&store, task_datoms);
 
@@ -4410,6 +4416,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = routing_store_with(&store, anchored_datoms);
 
@@ -4422,10 +4429,11 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = routing_store_with(&store, unanchored_datoms);
 
-        let routed = compute_routing_from_store(&store);
+        let routed = compute_routing_from_store(&store, crate::now_secs());
 
         let anchored = routed
             .iter()
@@ -4680,7 +4688,8 @@ mod tests {
             text: "Bilateral: F(S)=0.88".to_string(),
             confidence: 0.8,
         };
-        let footer = build_command_footer_with_hint(&store, Some(1.0), Some(hint));
+        let footer =
+            build_command_footer_with_hint(&store, Some(1.0), Some(hint), crate::now_secs());
         // The hint should appear somewhere in the footer if tx metric is low
         assert!(!footer.is_empty(), "footer must not be empty");
     }
@@ -4688,8 +4697,8 @@ mod tests {
     #[test]
     fn build_command_footer_without_hint_matches_original() {
         let store = Store::genesis();
-        let original = build_command_footer(&store, Some(1.0));
-        let with_none = build_command_footer_with_hint(&store, Some(1.0), None);
+        let original = build_command_footer(&store, Some(1.0), crate::now_secs());
+        let with_none = build_command_footer_with_hint(&store, Some(1.0), None, crate::now_secs());
         assert_eq!(
             original, with_none,
             "build_command_footer and build_command_footer_with_hint(None) must be identical"
@@ -4791,6 +4800,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = routing_store_with(&store, task_datoms);
 
@@ -4850,6 +4860,7 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = routing_store_with(&store, task_datoms);
 
@@ -4998,7 +5009,7 @@ mod tests {
     #[test]
     fn generate_methodology_section_empty_store() {
         let store = Store::from_datoms(std::collections::BTreeSet::new());
-        let section = generate_methodology_section(&store, 0.8);
+        let section = generate_methodology_section(&store, 0.8, crate::now_secs());
         // Should always contain ceremony protocol
         assert!(
             section.contains("Ceremony Protocol"),
@@ -5013,11 +5024,11 @@ mod tests {
         let store = Store::from_datoms(std::collections::BTreeSet::new());
 
         // High k* → should mention Full or Standard
-        let section_high = generate_methodology_section(&store, 0.8);
+        let section_high = generate_methodology_section(&store, 0.8, crate::now_secs());
         assert!(section_high.contains("k*=0.8"));
 
         // Low k* → should mention Minimal
-        let section_low = generate_methodology_section(&store, 0.1);
+        let section_low = generate_methodology_section(&store, 0.1, crate::now_secs());
         assert!(section_low.contains("k*=0.1"));
         assert!(section_low.contains("Minimal"));
     }
@@ -5038,9 +5049,10 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
         let store = Store::from_datoms(task_datoms.into_iter().collect());
-        let section = generate_methodology_section(&store, 0.5);
+        let section = generate_methodology_section(&store, 0.5, crate::now_secs());
         // Should mention R(t) actions since there's a task
         assert!(
             section.contains("Next Actions") || section.contains("Ceremony"),
@@ -5052,7 +5064,7 @@ mod tests {
     fn generate_methodology_section_token_budget() {
         // INV-GUIDANCE-022: output ≤ 200 tokens
         let store = Store::from_datoms(std::collections::BTreeSet::new());
-        let section = generate_methodology_section(&store, 0.5);
+        let section = generate_methodology_section(&store, 0.5, crate::now_secs());
         let word_count = section.split_whitespace().count();
         let approx_tokens = word_count * 4 / 3;
         assert!(
@@ -5071,7 +5083,7 @@ mod tests {
     #[test]
     fn session_working_set_empty_store() {
         let store = Store::from_datoms(std::collections::BTreeSet::new());
-        let sws = SessionWorkingSet::from_store(&store);
+        let sws = SessionWorkingSet::from_store(&store, crate::now_secs());
         assert!(sws.active_tasks.is_empty());
         assert!(sws.session_created_tasks.is_empty());
         assert!(sws.epic_siblings.is_empty());
@@ -5099,6 +5111,7 @@ mod tests {
             tx: tx1,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
 
         // Add in-progress status with RECENT wall_time
@@ -5112,7 +5125,7 @@ mod tests {
         ));
 
         let store = Store::from_datoms(task_datoms.into_iter().collect());
-        let sws = SessionWorkingSet::from_store(&store);
+        let sws = SessionWorkingSet::from_store(&store, crate::now_secs());
 
         assert!(
             !sws.active_tasks.is_empty(),
@@ -5143,6 +5156,7 @@ mod tests {
             tx: tx_old,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
 
         task_datoms.push(Datom::new(
@@ -5154,7 +5168,7 @@ mod tests {
         ));
 
         let store = Store::from_datoms(task_datoms.into_iter().collect());
-        let sws = SessionWorkingSet::from_store(&store);
+        let sws = SessionWorkingSet::from_store(&store, crate::now_secs());
 
         assert_eq!(
             sws.active_tasks.len(),
@@ -5184,10 +5198,11 @@ mod tests {
             tx,
             traces_to: &[],
             labels: &[],
+            now: crate::now_secs(),
         });
 
         let store = Store::from_datoms(task_datoms.into_iter().collect());
-        let sws = SessionWorkingSet::from_store(&store);
+        let sws = SessionWorkingSet::from_store(&store, crate::now_secs());
 
         assert!(
             !sws.session_created_tasks.is_empty(),
@@ -6252,7 +6267,7 @@ mod tests {
     fn detect_session_start_returns_true_on_empty_store() {
         let store = Store::from_datoms(std::collections::BTreeSet::new());
         assert!(
-            detect_session_start(&store),
+            detect_session_start(&store, crate::now_secs()),
             "empty store should detect session start (no active session)"
         );
     }
@@ -6261,7 +6276,7 @@ mod tests {
     fn detect_session_start_returns_true_on_full_schema_no_session() {
         let store = st1_full_schema_store();
         assert!(
-            detect_session_start(&store),
+            detect_session_start(&store, crate::now_secs()),
             "store with only schema datoms should detect session start"
         );
     }
@@ -6273,7 +6288,7 @@ mod tests {
         let tx = TxId::new(100, 0, agent);
 
         // Write session-start datoms
-        let datoms = create_session_start_datoms(&store, agent, tx);
+        let datoms = create_session_start_datoms(&store, agent, tx, crate::now_secs());
         let mut datom_set = store.datom_set().clone();
         for d in datoms {
             datom_set.insert(d);
@@ -6281,7 +6296,7 @@ mod tests {
         store = Store::from_datoms(datom_set);
 
         assert!(
-            !detect_session_start(&store),
+            !detect_session_start(&store, crate::now_secs()),
             "store with active session should NOT detect session start"
         );
     }
@@ -6293,7 +6308,7 @@ mod tests {
         let tx = TxId::new(100, 0, agent);
 
         // Write session-start datoms
-        let datoms = create_session_start_datoms(&store, agent, tx);
+        let datoms = create_session_start_datoms(&store, agent, tx, crate::now_secs());
         let mut datom_set = store.datom_set().clone();
         for d in &datoms {
             datom_set.insert(d.clone());
@@ -6318,7 +6333,7 @@ mod tests {
 
         store = Store::from_datoms(datom_set);
         assert!(
-            detect_session_start(&store),
+            detect_session_start(&store, crate::now_secs()),
             "store with closed session should detect session start (no active session)"
         );
     }
@@ -6329,7 +6344,7 @@ mod tests {
         let agent = AgentId::from_name("test:st1-attrs");
         let tx = TxId::new(42, 0, agent);
 
-        let datoms = create_session_start_datoms(&store, agent, tx);
+        let datoms = create_session_start_datoms(&store, agent, tx, crate::now_secs());
 
         // Should produce exactly 8 datoms
         assert_eq!(
@@ -6460,7 +6475,7 @@ mod tests {
     fn find_active_session_returns_none_on_empty_store() {
         let store = st1_full_schema_store();
         assert!(
-            find_active_session(&store).is_none(),
+            find_active_session(&store, crate::now_secs()).is_none(),
             "empty store should have no active session"
         );
     }
@@ -6478,7 +6493,7 @@ mod tests {
             agent,
         );
 
-        let datoms = create_session_start_datoms(&store, agent, tx);
+        let datoms = create_session_start_datoms(&store, agent, tx, crate::now_secs());
         let session_entity = datoms[0].entity;
         let mut datom_set = store.datom_set().clone();
         for d in datoms {
@@ -6486,7 +6501,7 @@ mod tests {
         }
         store = Store::from_datoms(datom_set);
 
-        let found = find_active_session(&store);
+        let found = find_active_session(&store, crate::now_secs());
         assert_eq!(
             found,
             Some(session_entity),
@@ -6504,7 +6519,7 @@ mod tests {
             .as_secs();
         let tx = TxId::new(wall, 0, agent);
 
-        let datoms = create_session_start_datoms(&store, agent, tx);
+        let datoms = create_session_start_datoms(&store, agent, tx, crate::now_secs());
         let session_entity = datoms[0].entity;
         let mut datom_set = store.datom_set().clone();
         for d in datoms {
@@ -6523,7 +6538,7 @@ mod tests {
 
         store = Store::from_datoms(datom_set);
         assert!(
-            find_active_session(&store).is_none(),
+            find_active_session(&store, crate::now_secs()).is_none(),
             "closed session should not be found as active"
         );
     }
@@ -6572,7 +6587,7 @@ mod tests {
         store = Store::from_datoms(datom_set);
 
         assert!(
-            find_active_session(&store).is_none(),
+            find_active_session(&store, crate::now_secs()).is_none(),
             "stale session (>2h) should not be found as active"
         );
     }
@@ -6642,6 +6657,7 @@ mod tests {
                 tx,
                 traces_to: &[spec_entity],
                 labels: &[],
+                now: crate::now_secs(),
             });
         let store = graph_store_with(&store, datoms_a);
 
@@ -6655,6 +6671,7 @@ mod tests {
                 tx,
                 traces_to: &[spec_entity],
                 labels: &[],
+                now: crate::now_secs(),
             });
         let store = graph_store_with(&store, datoms_b);
 
@@ -6727,6 +6744,7 @@ mod tests {
                 tx,
                 traces_to: &[rare_spec],
                 labels: &[],
+                now: crate::now_secs(),
             });
         extra_datoms.extend(rare_datoms);
 
@@ -6742,6 +6760,7 @@ mod tests {
                     tx,
                     traces_to: &[popular_spec],
                     labels: &[],
+                    now: crate::now_secs(),
                 });
             extra_datoms.extend(popular_datoms);
         }
@@ -6831,6 +6850,7 @@ mod tests {
                 tx,
                 traces_to: &[spec_a],
                 labels: &[],
+                now: crate::now_secs(),
             });
         extra_datoms.extend(task_1_datoms);
 
@@ -6844,6 +6864,7 @@ mod tests {
                 tx,
                 traces_to: &[spec_b],
                 labels: &[],
+                now: crate::now_secs(),
             });
         extra_datoms.extend(task_2_datoms);
 
@@ -6944,6 +6965,7 @@ mod tests {
                 tx,
                 traces_to: &[spec_entity],
                 labels: &[],
+                now: crate::now_secs(),
             });
         extra_datoms.extend(task_datoms);
 

@@ -132,7 +132,7 @@ impl GeneratedAgentMd {
 /// # Determinism (INV-SEED-007)
 ///
 /// Same store state + same config = same output. No randomness, no system clock.
-pub fn generate_agent_md(store: &Store, config: &AgentMdConfig) -> GeneratedAgentMd {
+pub fn generate_agent_md(store: &Store, config: &AgentMdConfig, now: u64) -> GeneratedAgentMd {
     let mut sections = Vec::new();
     let mut total_tokens = 0;
 
@@ -170,7 +170,7 @@ pub fn generate_agent_md(store: &Store, config: &AgentMdConfig) -> GeneratedAgen
     // Step 7: Seed context (budget-aware assembly)
     let remaining_budget = config.budget.saturating_sub(total_tokens);
     if remaining_budget > 50 {
-        let seed_section = build_seed_section(store, config, remaining_budget);
+        let seed_section = build_seed_section(store, config, remaining_budget, now);
         total_tokens += seed_section.tokens;
         sections.push(seed_section);
     }
@@ -351,10 +351,15 @@ fn build_guidance_section(methodology_score: f64) -> AgentMdSection {
     }
 }
 
-fn build_seed_section(store: &Store, config: &AgentMdConfig, budget: usize) -> AgentMdSection {
+fn build_seed_section(
+    store: &Store,
+    config: &AgentMdConfig,
+    budget: usize,
+    now: u64,
+) -> AgentMdSection {
     use crate::seed::ContextSection as CS;
 
-    let seed = assemble_seed(store, &config.task, budget, config.agent);
+    let seed = assemble_seed(store, &config.task, budget, config.agent, now);
 
     let mut body = String::new();
     for section in &seed.context.sections {
@@ -588,8 +593,8 @@ mod tests {
             ..Default::default()
         };
 
-        let doc1 = generate_agent_md(&store, &config);
-        let doc2 = generate_agent_md(&store, &config);
+        let doc1 = generate_agent_md(&store, &config, crate::now_secs());
+        let doc2 = generate_agent_md(&store, &config, crate::now_secs());
 
         assert_eq!(
             doc1.render(),
@@ -606,7 +611,7 @@ mod tests {
             ..Default::default()
         };
 
-        let doc = generate_agent_md(&store, &config);
+        let doc = generate_agent_md(&store, &config, crate::now_secs());
 
         // Should have at least 6 sections: task, invariants, ADRs, risks, drift, methodology
         assert!(
@@ -632,7 +637,7 @@ mod tests {
             ..Default::default()
         };
 
-        let doc = generate_agent_md(&store, &config);
+        let doc = generate_agent_md(&store, &config, crate::now_secs());
         let rendered = doc.render();
 
         assert!(
@@ -658,7 +663,7 @@ mod tests {
             ..Default::default()
         };
 
-        let doc = generate_agent_md(&store, &config);
+        let doc = generate_agent_md(&store, &config, crate::now_secs());
         // Total tokens should be reasonable (budget is soft limit)
         assert!(
             doc.total_tokens < 2000,
@@ -675,7 +680,7 @@ mod tests {
             ..Default::default()
         };
 
-        let doc = generate_agent_md(&store, &config);
+        let doc = generate_agent_md(&store, &config, crate::now_secs());
         let rendered = doc.render();
 
         assert!(rendered.contains("No invariants in store"));

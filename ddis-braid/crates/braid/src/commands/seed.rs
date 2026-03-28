@@ -39,7 +39,7 @@ pub fn run(
     let store = live.store();
 
     let agent = AgentId::from_name(agent_name);
-    let seed = assemble_seed(store, task, budget, agent);
+    let seed = assemble_seed(store, task, budget, agent, braid_kernel::now_secs());
 
     if json {
         let human = format_json(&seed, budget)?;
@@ -189,7 +189,7 @@ pub fn run(
             budget,
             ..AgentMdConfig::default()
         };
-        let generated = generate_agent_md(store, &config);
+        let generated = generate_agent_md(store, &config, braid_kernel::now_secs());
         let rendered = generated.render();
         let output_path = path.join(&config.output_filename);
         std::fs::write(&output_path, &rendered)?;
@@ -219,7 +219,7 @@ pub fn run(
 
     // --- ACP: Build ActionProjection (INV-BUDGET-007) ---
     // Derive the first next-action from guidance
-    let actions = derive_actions(store);
+    let actions = derive_actions(store, braid_kernel::now_secs());
     let (action_cmd, action_rationale, action_impact) = if let Some(a) = actions.first() {
         (
             a.command
@@ -375,7 +375,8 @@ pub fn run_inject(
 
     // Inject methodology section (DMP: INV-GUIDANCE-022)
     // k_eff estimated from session telemetry (turn count since last harvest)
-    let ctx = braid_kernel::guidance::GuidanceContext::from_store(store, None);
+    let ctx =
+        braid_kernel::guidance::GuidanceContext::from_store(store, None, braid_kernel::now_secs());
     let k_eff = ctx.k_eff;
     let result = crate::inject::inject_methodology(&result, store, k_eff);
 
@@ -429,7 +430,7 @@ fn format_human_briefing(
     _layout: &crate::layout::DiskLayout,
 ) -> Result<String, BraidError> {
     let coherence = braid_kernel::trilateral::check_coherence_fast(store);
-    let actions = derive_actions(store);
+    let actions = derive_actions(store, braid_kernel::now_secs());
 
     let mut out = String::new();
     out.push_str("## Session Briefing\n\n");

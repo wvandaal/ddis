@@ -252,7 +252,7 @@ fn record_hypotheses_creates_datoms() {
     ];
 
     let tx_id = TxId::new(200, 0, agent);
-    let datoms = record_hypotheses(&routings, 3, tx_id);
+    let datoms = record_hypotheses(&routings, 3, tx_id, braid_kernel::now_secs());
 
     // Each hypothesis gets 6 datoms: action, predicted, boundary, confidence,
     // timestamp, item-type. Content-addressed EntityIds may collide when
@@ -486,7 +486,8 @@ fn record_hypotheses_with_type_uses_item_type() {
     let routings = vec![make_routing(":task/typed", 0.6, 0.0)];
     let tx_id = TxId::new(300, 0, agent);
 
-    let datoms = record_hypotheses_with_type(&routings, 1, tx_id, "exploration");
+    let datoms =
+        record_hypotheses_with_type(&routings, 1, tx_id, "exploration", braid_kernel::now_secs());
 
     // Find the :hypothesis/item-type datom
     let item_type_attr = Attribute::from_keyword(":hypothesis/item-type");
@@ -505,7 +506,7 @@ fn record_hypotheses_with_type_uses_item_type() {
     }
 
     // Also verify the default path: record_hypotheses uses "task"
-    let default_datoms = record_hypotheses(&routings, 1, tx_id);
+    let default_datoms = record_hypotheses(&routings, 1, tx_id, braid_kernel::now_secs());
     let default_type = default_datoms
         .iter()
         .find(|d| d.attribute == item_type_attr)
@@ -532,7 +533,7 @@ fn record_hypotheses_skips_zero_impact() {
         make_routing(":task/tiny", 1e-20, 0.0), // should be skipped (below EPSILON)
     ];
     let tx_id = TxId::new(400, 0, agent);
-    let datoms = record_hypotheses(&routings, 3, tx_id);
+    let datoms = record_hypotheses(&routings, 3, tx_id, braid_kernel::now_secs());
 
     // Only 1 hypothesis should be recorded (the 0.5 impact one)
     let action_attr = Attribute::from_keyword(":hypothesis/action");
@@ -558,7 +559,7 @@ fn record_hypotheses_respects_top_n() {
         make_routing(":task/d", 0.3, 0.0),
     ];
     let tx_id = TxId::new(500, 0, agent);
-    let datoms = record_hypotheses(&routings, 2, tx_id);
+    let datoms = record_hypotheses(&routings, 2, tx_id, braid_kernel::now_secs());
 
     let action_attr = Attribute::from_keyword(":hypothesis/action");
     let action_count = datoms.iter().filter(|d| d.attribute == action_attr).count();
@@ -581,7 +582,7 @@ fn record_hypotheses_boundary_inference() {
         make_routing(":task/general", 0.5, 0.0),  // gradient_delta == 0 -> general
     ];
     let tx_id = TxId::new(600, 0, agent);
-    let datoms = record_hypotheses(&routings, 2, tx_id);
+    let datoms = record_hypotheses(&routings, 2, tx_id, braid_kernel::now_secs());
 
     let boundary_attr = Attribute::from_keyword(":hypothesis/boundary");
     let boundaries: Vec<String> = datoms

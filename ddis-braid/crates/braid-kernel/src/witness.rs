@@ -600,6 +600,7 @@ pub fn auto_task_on_refutation(
     inv_id: &str,
     inv_title: &str,
     tx: TxId,
+    now: u64,
 ) -> Vec<Datom> {
     let task_title = format!("BUG: Witness refuted for {inv_id}. {inv_title}");
 
@@ -611,6 +612,7 @@ pub fn auto_task_on_refutation(
         tx,
         traces_to: &[inv_entity],
         labels: &[],
+        now,
     };
 
     let (_entity, datoms) = crate::task::create_task_datoms(params);
@@ -1669,6 +1671,7 @@ mod tests {
             "INV-STORE-001",
             "Append-Only Immutability",
             test_tx(),
+            crate::now_secs(),
         );
         // Should create task datoms
         assert!(!datoms.is_empty());
