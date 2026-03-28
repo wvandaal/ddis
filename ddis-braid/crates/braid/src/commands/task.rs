@@ -1292,8 +1292,9 @@ pub fn close(
                     })
                     .collect();
 
-                let projected_delta = store.views().project_delta(&hypothetical);
-                let projected = projected_delta.weighted_magnitude();
+                let fw = braid_kernel::bilateral::FitnessWeights::from_store(store);
+                let projected_delta = store.views().project_delta(&hypothetical, &fw);
+                let projected = projected_delta.weighted_magnitude(&fw);
                 let cal_error = (projected - actual_delta).abs();
 
                 // Collect calibration data for deferred write (avoids borrow conflict)

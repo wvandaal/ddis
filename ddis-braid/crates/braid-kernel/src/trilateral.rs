@@ -43,7 +43,7 @@ use crate::store::Store;
 // Attribute Namespace Partition (INV-TRILATERAL-005)
 // ---------------------------------------------------------------------------
 
-/// Intent-layer attributes.
+/// Intent-layer attributes (bootstrap defaults — C9 fallback).
 pub const INTENT_ATTRS: &[&str] = &[
     ":intent/decision",
     ":intent/rationale",
@@ -54,7 +54,7 @@ pub const INTENT_ATTRS: &[&str] = &[
     ":intent/noted",
 ];
 
-/// Specification-layer attributes.
+/// Specification-layer attributes (bootstrap defaults — C9 fallback).
 pub const SPEC_ATTRS: &[&str] = &[
     ":spec/id",
     ":spec/element-type",
@@ -69,7 +69,7 @@ pub const SPEC_ATTRS: &[&str] = &[
     ":spec/challenged",
 ];
 
-/// Implementation-layer attributes.
+/// Implementation-layer attributes (bootstrap defaults — C9 fallback).
 pub const IMPL_ATTRS: &[&str] = &[
     ":impl/signature",
     ":impl/implements",
@@ -78,6 +78,30 @@ pub const IMPL_ATTRS: &[&str] = &[
     ":impl/test-result",
     ":impl/coverage",
 ];
+
+/// Configurable namespace partition — loaded from policy datoms (C9: INV-FOUNDATION-015).
+///
+/// When present, overrides the hardcoded `INTENT_ATTRS` / `SPEC_ATTRS` / `IMPL_ATTRS`
+/// constants. When empty (no `:policy/namespace-*` datoms), falls back to the constants.
+///
+/// Loaded by `PolicyConfig::from_store()` from `:policy/namespace-intent`,
+/// `:policy/namespace-spec`, and `:policy/namespace-impl` datoms.
+#[derive(Clone, Debug, Default)]
+pub struct NamespaceConfig {
+    /// Intent-layer attributes. Empty = use `INTENT_ATTRS`.
+    pub intent: Vec<String>,
+    /// Spec-layer attributes. Empty = use `SPEC_ATTRS`.
+    pub spec: Vec<String>,
+    /// Impl-layer attributes. Empty = use `IMPL_ATTRS`.
+    pub r#impl: Vec<String>,
+}
+
+impl NamespaceConfig {
+    /// Whether this config has any policy-loaded overrides.
+    pub fn has_overrides(&self) -> bool {
+        !self.intent.is_empty() || !self.spec.is_empty() || !self.r#impl.is_empty()
+    }
+}
 
 /// Attribute namespace classification.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -92,7 +116,45 @@ pub enum AttrNamespace {
     Meta,
 }
 
+/// Classify an attribute using policy-loaded namespace config (C9: INV-FOUNDATION-015).
+///
+/// If `config` has overrides for a given namespace, those are used; otherwise
+/// falls back to the hardcoded constants.
+pub fn classify_attribute_with_config(attr: &Attribute, config: &NamespaceConfig) -> AttrNamespace {
+    let s = attr.as_str();
+
+    // Policy overrides take precedence when present
+    if !config.intent.is_empty() {
+        if config.intent.iter().any(|a| a == s) {
+            return AttrNamespace::Intent;
+        }
+    } else if INTENT_ATTRS.contains(&s) {
+        return AttrNamespace::Intent;
+    }
+
+    if !config.spec.is_empty() {
+        if config.spec.iter().any(|a| a == s) {
+            return AttrNamespace::Spec;
+        }
+    } else if SPEC_ATTRS.contains(&s) {
+        return AttrNamespace::Spec;
+    }
+
+    if !config.r#impl.is_empty() {
+        if config.r#impl.iter().any(|a| a == s) {
+            return AttrNamespace::Impl;
+        }
+    } else if IMPL_ATTRS.contains(&s) {
+        return AttrNamespace::Impl;
+    }
+
+    AttrNamespace::Meta
+}
+
 /// Classify an attribute into its namespace partition (INV-TRILATERAL-005).
+///
+/// Uses hardcoded bootstrap defaults. For policy-configurable classification,
+/// use [`classify_attribute_with_config`].
 pub fn classify_attribute(attr: &Attribute) -> AttrNamespace {
     let s = attr.as_str();
     if INTENT_ATTRS.contains(&s) {
@@ -872,6 +934,114 @@ mod tests {
         assert_eq!(
             classify_attribute(&Attribute::from_keyword(":db/ident")),
             AttrNamespace::Meta
+        );
+    }
+
+    // ── AUDIT-W1-002: Configurable namespace partitions ──
+
+    #[test]
+    fn namespace_config_default_has_no_overrides() {
+        let config = NamespaceConfig::default();
+        assert!(!config.has_overrides());
+    }
+
+    #[test]
+    fn namespace_config_with_overrides_detected() {
+        let config = NamespaceConfig {
+            intent: vec![":goal/target".to_string()],
+            ..Default::default()
+        };
+        assert!(config.has_overrides());
+    }
+
+    #[test]
+    fn classify_with_empty_config_matches_default() {
+        // Empty NamespaceConfig falls back to hardcoded constants
+        let config = NamespaceConfig::default();
+        for attr_str in INTENT_ATTRS {
+            let attr = Attribute::from_keyword(attr_str);
+            assert_eq!(
+                classify_attribute_with_config(&attr, &config),
+                AttrNamespace::Intent,
+                "empty config should fall back to INTENT_ATTRS for {attr_str}"
+            );
+        }
+        for attr_str in SPEC_ATTRS {
+            let attr = Attribute::from_keyword(attr_str);
+            assert_eq!(
+                classify_attribute_with_config(&attr, &config),
+                AttrNamespace::Spec,
+                "empty config should fall back to SPEC_ATTRS for {attr_str}"
+            );
+        }
+        for attr_str in IMPL_ATTRS {
+            let attr = Attribute::from_keyword(attr_str);
+            assert_eq!(
+                classify_attribute_with_config(&attr, &config),
+                AttrNamespace::Impl,
+                "empty config should fall back to IMPL_ATTRS for {attr_str}"
+            );
+        }
+    }
+
+    #[test]
+    fn classify_with_custom_config_uses_overrides() {
+        // Custom config with non-DDIS attributes
+        let config = NamespaceConfig {
+            intent: vec![":goal/target".to_string(), ":goal/priority".to_string()],
+            spec: vec![":requirement/statement".to_string()],
+            r#impl: vec![":code/file".to_string()],
+        };
+
+        assert_eq!(
+            classify_attribute_with_config(&Attribute::from_keyword(":goal/target"), &config),
+            AttrNamespace::Intent
+        );
+        assert_eq!(
+            classify_attribute_with_config(
+                &Attribute::from_keyword(":requirement/statement"),
+                &config
+            ),
+            AttrNamespace::Spec
+        );
+        assert_eq!(
+            classify_attribute_with_config(&Attribute::from_keyword(":code/file"), &config),
+            AttrNamespace::Impl
+        );
+        // Unknown attribute still Meta
+        assert_eq!(
+            classify_attribute_with_config(&Attribute::from_keyword(":db/ident"), &config),
+            AttrNamespace::Meta
+        );
+    }
+
+    #[test]
+    fn classify_with_partial_overrides() {
+        // Only override intent; spec and impl fall back to defaults
+        let config = NamespaceConfig {
+            intent: vec![":goal/target".to_string()],
+            spec: vec![],   // falls back to SPEC_ATTRS
+            r#impl: vec![], // falls back to IMPL_ATTRS
+        };
+
+        assert_eq!(
+            classify_attribute_with_config(&Attribute::from_keyword(":goal/target"), &config),
+            AttrNamespace::Intent
+        );
+        // Default intent attrs NOT recognized when intent is overridden
+        assert_eq!(
+            classify_attribute_with_config(&Attribute::from_keyword(":intent/goal"), &config),
+            AttrNamespace::Meta,
+            "overridden intent should not include default INTENT_ATTRS"
+        );
+        // But spec/impl defaults still work
+        assert_eq!(
+            classify_attribute_with_config(&Attribute::from_keyword(":spec/id"), &config),
+            AttrNamespace::Spec
+        );
+        assert_eq!(
+            classify_attribute_with_config(&Attribute::from_keyword(":impl/file"), &config),
+            AttrNamespace::Impl
         );
     }
 

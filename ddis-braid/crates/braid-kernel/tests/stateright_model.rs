@@ -847,7 +847,7 @@ fn resolution_model_commutativity_and_preservation() {
 // State space: 3 specs × 2 operation types × all interleavings = small
 // enough for exhaustive BFS.
 
-use braid_kernel::bilateral::compute_fitness;
+use braid_kernel::bilateral::{compute_fitness, FitnessWeights};
 use braid_kernel::datom::Op;
 use braid_kernel::schema::{full_schema_datoms, genesis_datoms};
 use ordered_float::OrderedFloat;
@@ -1002,7 +1002,8 @@ impl Model for BilateralConvergenceModel {
     fn init_states(&self) -> Vec<Self::State> {
         // Compute initial F(S) for the store with all gaps open.
         let store = Store::from_datoms(self.init_datoms.clone());
-        let f0 = compute_fitness(&store);
+        let fw = FitnessWeights::default();
+        let f0 = compute_fitness(&store, &fw);
         vec![BilateralConvergenceState {
             datoms: self.init_datoms.clone(),
             gaps_closed: BTreeSet::new(),
@@ -1042,7 +1043,8 @@ impl Model for BilateralConvergenceModel {
 
         // Compute F(S) after the operation.
         let store = Store::from_datoms(state.datoms.clone());
-        let fitness = compute_fitness(&store);
+        let fw = FitnessWeights::default();
+        let fitness = compute_fitness(&store, &fw);
         state.fitness_trajectory.push(OrderedFloat(fitness.total));
 
         Some(state)

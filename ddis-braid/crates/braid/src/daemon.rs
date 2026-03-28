@@ -14,14 +14,17 @@
 //! - **DS6**: Integration wiring — `CommitHandle` and `CheckpointSignal` plumbed
 //!   to connection threads; `harvest --commit` triggers full WAL checkpoint
 //!
-//! ## Concurrency Model (DS4 — Wave A)
+//! ## Concurrency Model (DS2/DS4)
 //!
 //! The accept loop spawns one thread per incoming connection. The shared
-//! `LiveStore` is wrapped in `Arc<RwLock<LiveStore>>`. Every dispatch
-//! acquires a **write lock** because `handle_with_observation` writes
-//! runtime datoms after every request (including reads). Read/write lock
-//! splitting is Wave B work that requires refactoring the observation
-//! emission path.
+//! `LiveStore` is wrapped in `Arc<RwLock<LiveStore>>`. For `tools/call`
+//! requests, the dispatch thread acquires a write lock to run the tool
+//! handler and build the runtime observation `TxFile`, then **releases
+//! the lock** before submitting the `TxFile` to the group commit thread
+//! via [`CommitHandle`]. The commit thread WAL-fsyncs the batch, then
+//! acquires its own write lock to apply datoms in-memory. This eliminates
+//! per-write EDN file creation and fsync — the checkpoint thread handles
+//! EDN conversion in the background.
 //!
 //! # Invariants
 //!
@@ -1168,9 +1171,9 @@ pub fn try_route_through_daemon(
 /// bind socket → signal handlers → accept loop (multi-threaded) → shutdown.
 ///
 /// **DS4**: Each incoming connection is dispatched on a dedicated thread.
-/// The `LiveStore` is shared via `Arc<RwLock<LiveStore>>`. All dispatches
-/// acquire a write lock (Wave A — `handle_with_observation` writes after
-/// every request, so read/write splitting requires Wave B refactoring).
+/// The `LiveStore` is shared via `Arc<RwLock<LiveStore>>`. Tool dispatches
+/// acquire a write lock for the handler, release it, then commit the
+/// runtime observation `TxFile` via [`CommitHandle`] (DS2 group commit).
 ///
 /// **INV-DAEMON-001**: Single daemon enforced via lock file.
 /// **INV-DAEMON-002**: `refresh_if_needed()` before every dispatch.
@@ -1240,9 +1243,9 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
             commit_thread(wal, commit_rx, shared_for_commit);
         }) {
             eprintln!("daemon: failed to spawn group commit thread: {e}");
-            // Non-fatal: the daemon can still operate via the direct write
-            // path (existing handle_with_observation). The CommitHandle will
-            // fail on first use since the receiver is never consumed.
+            // Non-fatal but degraded: runtime observation datoms will fail to
+            // commit (CommitHandle.commit() returns Err). The tool response
+            // itself is still returned — only the runtime datom is lost.
         }
     }
 
@@ -1439,14 +1442,20 @@ fn epoch_ms_now() -> u64 {
 /// is held only for the duration of a single request, allowing other connection
 /// threads to interleave between requests.
 ///
+/// **DS2**: Runtime observation datoms are committed via [`CommitHandle`]
+/// OUTSIDE the write lock. The dispatch acquires the write lock, calls
+/// [`build_observation_tx`] which returns `(response, TxFile)`, then releases
+/// the lock. The `TxFile` is then submitted to `commit_handle.commit()`,
+/// which blocks until the commit thread WAL-fsyncs and applies datoms to
+/// the in-memory store under its own write lock acquisition.
+///
 /// **DS6**: After a `braid_harvest` with `commit=true`, sends
 /// [`CheckpointSignal::Full`] to the checkpoint thread and waits for
 /// completion. This ensures all WAL entries are converted to `.edn` files
-/// before the git commit runs. The `commit_handle` is available for future
-/// Wave E read/write lock splitting but is not used in the current dispatch path.
+/// before the git commit runs.
 ///
 /// **INV-DAEMON-002**: `refresh_if_needed()` inside every locked dispatch.
-/// **INV-DAEMON-003**: Runtime datoms emitted via `handle_with_observation`.
+/// **INV-DAEMON-003**: Runtime datoms emitted via [`build_observation_tx`] + [`CommitHandle`].
 /// **INV-DAEMON-012**: Lock scope is per-request, not per-connection.
 fn handle_connection_shared(
     stream: std::os::unix::net::UnixStream,
@@ -1457,9 +1466,8 @@ fn handle_connection_shared(
     commit_handle: CommitHandle,
     checkpoint_sender: Option<mpsc::Sender<CheckpointSignal>>,
 ) {
-    // DS6: commit_handle is available for future Wave E read/write lock splitting.
-    // For now, the direct write path (handle_with_observation) remains primary.
-    let _ = &commit_handle;
+    // DS2: commit_handle carries runtime observation TxFiles to the group
+    // commit thread. See the tools/call dispatch below for the commit path.
     let reader = std::io::BufReader::new(&stream);
     let mut writer = std::io::BufWriter::new(&stream);
 
@@ -1517,10 +1525,14 @@ fn handle_connection_shared(
             tool_name
         };
 
-        // DS4: Acquire write lock per-request. All methods need write access
-        // in Wave A because handle_with_observation writes runtime datoms.
-        // Lock acquisition failure (poisoned) is a protocol error, not a panic.
-        let response = match shared.write() {
+        // DS2/DS4: Dispatch under write lock, then commit runtime datom via
+        // CommitHandle OUTSIDE the lock. This prevents deadlock: the commit
+        // thread also needs shared.write() to apply datoms in-memory.
+        //
+        // For tools/call: build_observation_tx returns (response, TxFile).
+        // The TxFile escapes the lock scope and is committed below.
+        // For all other methods: no runtime TxFile is produced.
+        let (response, runtime_tx) = match shared.write() {
             Ok(mut live) => {
                 // INV-DAEMON-002: refresh before every dispatch.
                 let _ = live.refresh_if_needed();
@@ -1534,43 +1546,55 @@ fn handle_connection_shared(
                                 flag.store(true, Ordering::Relaxed);
                             }
                         }
-                        crate::mcp::jsonrpc_ok(&id, json!({"status": "stopping"}))
+                        (
+                            crate::mcp::jsonrpc_ok(&id, json!({"status": "stopping"})),
+                            None,
+                        )
                     }
                     "daemon/status" => {
                         let uptime_secs = start_time.elapsed().as_secs();
                         let datom_count = live.store().len();
                         let entity_count = live.store().entity_count();
                         let reqs = request_count.load(Ordering::Relaxed);
-                        crate::mcp::jsonrpc_ok(
-                            &id,
-                            json!({
-                                "pid": std::process::id(),
-                                "uptime_secs": uptime_secs,
-                                "request_count": reqs,
-                                "datom_count": datom_count,
-                                "entity_count": entity_count,
-                            }),
+                        (
+                            crate::mcp::jsonrpc_ok(
+                                &id,
+                                json!({
+                                    "pid": std::process::id(),
+                                    "uptime_secs": uptime_secs,
+                                    "request_count": reqs,
+                                    "datom_count": datom_count,
+                                    "entity_count": entity_count,
+                                }),
+                            ),
+                            None,
                         )
                     }
                     // Standard MCP methods — delegate to shared handlers.
-                    "initialize" => crate::mcp::handle_initialize(&id, &params, &mut live),
+                    "initialize" => (crate::mcp::handle_initialize(&id, &params, &mut live), None),
                     "initialized" => {
                         if is_notification {
                             continue;
                         }
-                        crate::mcp::jsonrpc_ok(&id, json!({}))
+                        (crate::mcp::jsonrpc_ok(&id, json!({})), None)
                     }
-                    "tools/list" => crate::mcp::handle_tools_list(&id),
+                    "tools/list" => (crate::mcp::handle_tools_list(&id), None),
                     "tools/call" => {
-                        // D4-6: Wrap with runtime datom emission (INV-DAEMON-003).
-                        handle_with_observation(&id, &params, &mut live)
+                        // DS2: Dispatch + build runtime TxFile under write lock,
+                        // but do NOT write it here. The TxFile escapes the lock
+                        // scope and is submitted to CommitHandle below.
+                        let (resp, tx) = build_observation_tx(&id, &params, &mut live);
+                        (resp, Some(tx))
                     }
-                    "ping" => crate::mcp::jsonrpc_ok(&id, json!({})),
+                    "ping" => (crate::mcp::jsonrpc_ok(&id, json!({})), None),
                     "notifications/cancelled" | "notifications/progress" => continue,
-                    _ => crate::mcp::jsonrpc_error(
-                        &id,
-                        crate::mcp::METHOD_NOT_FOUND,
-                        &format!("unknown method: {method}"),
+                    _ => (
+                        crate::mcp::jsonrpc_error(
+                            &id,
+                            crate::mcp::METHOD_NOT_FOUND,
+                            &format!("unknown method: {method}"),
+                        ),
+                        None,
                     ),
                 }
                 // Write lock is dropped here at end of match arm scope.
@@ -1590,17 +1614,39 @@ fn handle_connection_shared(
                                 flag.store(true, Ordering::Relaxed);
                             }
                         }
-                        crate::mcp::jsonrpc_ok(&id, json!({"status": "stopping"}))
+                        (
+                            crate::mcp::jsonrpc_ok(&id, json!({"status": "stopping"})),
+                            None,
+                        )
                     }
-                    "tools/call" => handle_with_observation(&id, &params, &mut live),
-                    _ => crate::mcp::jsonrpc_error(
-                        &id,
-                        crate::mcp::METHOD_NOT_FOUND,
-                        "RwLock poisoned — limited dispatch available",
+                    "tools/call" => {
+                        let (resp, tx) = build_observation_tx(&id, &params, &mut live);
+                        (resp, Some(tx))
+                    }
+                    _ => (
+                        crate::mcp::jsonrpc_error(
+                            &id,
+                            crate::mcp::METHOD_NOT_FOUND,
+                            "RwLock poisoned — limited dispatch available",
+                        ),
+                        None,
                     ),
                 }
             }
         };
+
+        // DS2: Submit runtime observation TxFile to group commit OUTSIDE
+        // the write lock. The commit thread acquires its own write lock to
+        // apply datoms in-memory after WAL fsync.
+        //
+        // INV-DAEMON-003: runtime datom durability via WAL (not EDN file).
+        // INV-DS2-001: durable before commit() returns.
+        // INV-DS2-003: linearizable — response reflects committed state.
+        if let Some(tx) = runtime_tx {
+            if let Err(e) = commit_handle.commit(tx) {
+                eprintln!("daemon: DS2 commit failed for runtime datom: {e}");
+            }
+        }
 
         // DS6: After harvest --commit, trigger a full checkpoint so all WAL
         // entries are converted to .edn files before the git commit runs.
@@ -1641,15 +1687,22 @@ fn write_json_line(writer: &mut impl Write, value: &JsonValue) -> std::io::Resul
     writer.flush()
 }
 
-/// Handle a tools/call request with runtime datom emission.
+/// Handle a tools/call request, returning the JSON-RPC response and a runtime
+/// observation `TxFile` ready for group commit.
+///
+/// The caller is responsible for committing the `TxFile` — either through the
+/// [`CommitHandle`] (DS2 group commit path) or via [`LiveStore::write_tx`]
+/// (fallback). This separation allows the write lock to be released before
+/// submitting to the commit channel, preventing deadlock between the dispatch
+/// thread and the commit thread (both need `shared.write()`).
 ///
 /// **INV-DAEMON-003**: Every command emits `:runtime/*` datoms.
 /// **INV-DAEMON-008**: Emits datoms even on error paths.
-fn handle_with_observation(
+fn build_observation_tx(
     id: &JsonValue,
     params: &JsonValue,
     live: &mut crate::live_store::LiveStore,
-) -> JsonValue {
+) -> (JsonValue, braid_kernel::layout::TxFile) {
     use braid_kernel::datom::*;
     use braid_kernel::layout::TxFile;
 
@@ -1660,7 +1713,7 @@ fn handle_with_observation(
     // Dispatch to shared MCP handler.
     let result = crate::mcp::handle_tools_call(id, params, live);
 
-    // Emit runtime datoms (best-effort — never fail the original request).
+    // Build runtime datoms (never fail the original request).
     let elapsed_us = start.elapsed().as_micros() as i64;
     let is_error = result
         .get("result")
@@ -1751,11 +1804,25 @@ fn handle_with_observation(
         datoms,
     };
 
-    // Best-effort: do not fail the original request on observation failure.
+    (result, tx_file)
+}
+
+/// Convenience wrapper: dispatch + write runtime datom via direct `write_tx`.
+///
+/// Used by unit tests that operate on a single `LiveStore` without the
+/// daemon's group commit infrastructure. Production code in
+/// `handle_connection_shared` uses [`build_observation_tx`] + [`CommitHandle`]
+/// instead.
+#[cfg(test)]
+fn handle_with_observation(
+    id: &JsonValue,
+    params: &JsonValue,
+    live: &mut crate::live_store::LiveStore,
+) -> JsonValue {
+    let (result, tx_file) = build_observation_tx(id, params, live);
     if let Err(e) = live.write_tx(&tx_file) {
         eprintln!("daemon: failed to write runtime datom: {e}");
     }
-
     result
 }
 

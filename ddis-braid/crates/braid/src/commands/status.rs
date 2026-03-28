@@ -16,7 +16,7 @@ use std::path::Path;
 use braid_kernel::bilateral::{
     cycle_to_datoms, format_terse as bilateral_format_terse,
     format_verbose as bilateral_format_verbose, load_trajectory, observation_boundary, run_cycle,
-    BilateralState,
+    BilateralState, FitnessWeights,
 };
 use braid_kernel::datom::{AgentId, Attribute, Op, ProvenanceType, Value};
 use braid_kernel::guidance::{
@@ -1735,8 +1735,11 @@ fn run_deep(
         state
     };
 
+    // Resolve F(S) weights from policy (AUDIT-W1-001)
+    let weights = FitnessWeights::from_store(store);
+
     let mut out = if full {
-        bilateral_format_verbose(&state)
+        bilateral_format_verbose(&state, &weights)
     } else {
         bilateral_format_terse(&state)
     };

@@ -261,10 +261,10 @@ pub use trace::{
     links_to_datoms, scan_source, summarize, TraceLink, TraceSummary, VerificationDepth,
 };
 pub use trilateral::{
-    check_coherence, check_coherence_fast, classify_attribute, compute_phi, compute_phi_default,
-    formality_level, isp_check, live_projections, von_neumann_entropy, AttrNamespace,
-    CoherenceEntropy, CoherenceQuadrant, CoherenceReport, DivergenceComponents, IspResult,
-    LiveView,
+    check_coherence, check_coherence_fast, classify_attribute, classify_attribute_with_config,
+    compute_phi, compute_phi_default, formality_level, isp_check, live_projections,
+    von_neumann_entropy, AttrNamespace, CoherenceEntropy, CoherenceQuadrant, CoherenceReport,
+    DivergenceComponents, IspResult, LiveView, NamespaceConfig,
 };
 pub use witness::{
     alignment_threshold, all_witnesses, auto_task_on_refutation, batch_generate_l1_witnesses,

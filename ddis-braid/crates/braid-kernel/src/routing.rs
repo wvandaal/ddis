@@ -996,7 +996,9 @@ fn compute_routing_from_store_inner(store: &Store, now: u64) -> Vec<TaskRouting>
     // CE-6: Gradient-based routing — project fitness delta for each ready task.
     // For each task with traces-to spec refs, simulate "what if completed" by
     // generating hypothetical :impl/implements datoms, then project the F(S) delta.
+    // AUDIT-W1-001: Resolve weights from policy for gradient computation.
     let views = store.views();
+    let fw = crate::bilateral::FitnessWeights::from_store(store);
     for r in &mut routings {
         // Find the task's traces-to spec refs
         let task_datoms = store.entity_datoms(r.entity);
@@ -1033,8 +1035,8 @@ fn compute_routing_from_store_inner(store: &Store, now: u64) -> Vec<TaskRouting>
                 })
                 .collect();
 
-            let delta = views.project_delta(&hypothetical);
-            let mag = delta.weighted_magnitude();
+            let delta = views.project_delta(&hypothetical, &fw);
+            let mag = delta.weighted_magnitude(&fw);
             r.metrics.gradient_delta = mag;
 
             // Blend gradient with existing impact: additive boost scaled by 2.0
@@ -1853,7 +1855,9 @@ pub fn generate_bridge_hypotheses(store: &Store, max_bridges: usize) -> Vec<Brid
 
     // Step 3: For each pair of significant components, pick representatives
     // and generate hypothetical bridge datoms.
+    // AUDIT-W1-001: Resolve weights from policy for gradient computation.
     let views = store.views();
+    let fw = crate::bilateral::FitnessWeights::from_store(store);
     let mut hypotheses = Vec::new();
     let base_cost = 50.0; // Estimated tokens for an observation
     let total = n as f64;
@@ -1886,8 +1890,8 @@ pub fn generate_bridge_hypotheses(store: &Store, max_bridges: usize) -> Vec<Brid
                 tx: hyp_tx,
                 op: crate::datom::Op::Assert,
             }];
-            let delta = views.project_delta(&hypothetical);
-            let gradient_score = delta.weighted_magnitude().max(0.0);
+            let delta = views.project_delta(&hypothetical, &fw);
+            let gradient_score = delta.weighted_magnitude(&fw).max(0.0);
 
             // Combined score: structural connectivity + fitness gradient.
             // Structural dominates for disconnected communities; gradient adds

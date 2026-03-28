@@ -81,6 +81,11 @@ pub struct HarvestCandidate {
 }
 
 /// Categories of harvested knowledge.
+///
+/// C8: These four categories are domain-neutral (observation/decision/dependency/
+/// uncertainty apply to any epistemological domain). The category *weights* and
+/// *expected attributes* are DDIS-specific defaults, overridable via PolicyConfig
+/// (AUDIT-W1-006).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 pub enum HarvestCategory {
     /// Factual observation from the session.
@@ -180,7 +185,10 @@ struct EntityProfile {
 }
 
 /// Expected attributes for completeness checking per category.
+/// C8: DDIS default -- override via PolicyConfig `:policy/harvest-expected-type` datoms
+/// with `:policy/harvest-expected-attr` values (AUDIT-W1-006).
 const SPEC_EXPECTED: &[&str] = &[":spec/id", ":spec/element-type", ":db/doc"];
+/// C8: DDIS default -- override via PolicyConfig (AUDIT-W1-006).
 const DECISION_EXPECTED: &[&str] = &[":intent/decision", ":intent/rationale"];
 
 // ---------------------------------------------------------------------------
@@ -455,6 +463,11 @@ fn build_profile(entity: EntityId, datoms: &[&Datom]) -> EntityProfile {
 
 /// Classify an entity profile by its dominant attribute namespace.
 ///
+/// C8: Classification logic is structural (namespace-based), not DDIS-specific.
+/// The HarvestCategory enum itself is domain-neutral. Attribute markers like
+/// `:intent/decision` are checked but work for any project using the ISP ontology.
+/// Non-ISP projects would need a custom classifier (AUDIT-W1-006).
+///
 /// INV-HARVEST-011: Uses structural namespace analysis, not keyword matching.
 fn classify_profile(profile: &EntityProfile) -> HarvestCategory {
     // Find dominant namespace
@@ -522,6 +535,8 @@ fn classify_profile(profile: &EntityProfile) -> HarvestCategory {
 }
 
 /// Classify a value into a harvest category (v1 compat).
+/// C8: DDIS default keyword heuristics -- "adr" is DDIS-specific, but the
+/// broader categories (decision, dependency, uncertainty) are universal (AUDIT-W1-006).
 fn classify_value(value: &Value) -> HarvestCategory {
     match value {
         Value::Keyword(kw) if kw.contains("decision") || kw.contains("adr") => {
@@ -539,6 +554,10 @@ fn classify_value(value: &Value) -> HarvestCategory {
 
 /// Derive reconciliation type from harvest category per the reconciliation
 /// taxonomy (CLAUDE.md / spec §15).
+///
+/// C8: DDIS default mapping -- the reconciliation taxonomy itself is substrate-
+/// independent (epistemic/logical/structural/consequential are universal), but
+/// the mapping from category to type could differ for other domains (AUDIT-W1-006).
 ///
 /// Mapping:
 /// - Observation  → "epistemic"      (store vs. agent knowledge gap)
@@ -637,11 +656,12 @@ pub fn surprisal_score(
 /// Derive commitment weight from confidence, category, and surprisal (D3.2).
 ///
 /// Weight formula: `confidence * category_multiplier * surprisal`.
-/// Category multipliers reflect relative importance for prioritization:
-/// - Decision:    1.0 (highest — architectural choices are load-bearing)
-/// - Dependency:  0.8 (high — missing links cause coherence failures)
-/// - Uncertainty: 0.7 (medium — unresolved questions need attention)
-/// - Observation: 0.5 (baseline — factual observations are low-commitment)
+/// C8: DDIS default category multipliers -- override via PolicyConfig
+/// `:policy/harvest-category-weight` datoms (AUDIT-W1-006).
+/// - Decision:    1.0 (highest -- architectural choices are load-bearing)
+/// - Dependency:  0.8 (high -- missing links cause coherence failures)
+/// - Uncertainty: 0.7 (medium -- unresolved questions need attention)
+/// - Observation: 0.5 (baseline -- factual observations are low-commitment)
 ///
 /// Surprisal defaults to 1.0 when not provided (backward-compatible).
 #[cfg(test)]
@@ -650,14 +670,51 @@ fn weight_for(confidence: f64, category: HarvestCategory) -> f64 {
 }
 
 /// Weight with explicit surprisal factor (D3.2, ADR-HARVEST-005).
+/// C8: DDIS default multipliers -- override via `weight_for_with_policy()` (AUDIT-W1-006).
 fn weight_for_with_surprisal(confidence: f64, category: HarvestCategory, surprisal: f64) -> f64 {
-    let multiplier = match category {
+    let multiplier = default_category_multiplier(category);
+    confidence * multiplier * surprisal
+}
+
+/// Weight with explicit surprisal factor and optional PolicyConfig override (AUDIT-W1-006, C8).
+///
+/// When `policy` is `Some` and contains a weight override for the given category,
+/// uses the policy-configured multiplier. Otherwise falls back to DDIS defaults.
+///
+/// Not yet wired into harvest_pipeline (wiring is a follow-up task).
+#[allow(dead_code)]
+pub(crate) fn weight_for_with_policy(
+    confidence: f64,
+    category: HarvestCategory,
+    surprisal: f64,
+    policy: Option<&crate::policy::PolicyConfig>,
+) -> f64 {
+    let multiplier = policy
+        .and_then(|p| p.harvest_weight_for(category_name(category)))
+        .unwrap_or_else(|| default_category_multiplier(category));
+    confidence * multiplier * surprisal
+}
+
+/// DDIS default category multiplier (AUDIT-W1-006, C8).
+/// C8: DDIS default -- override via PolicyConfig.
+fn default_category_multiplier(category: HarvestCategory) -> f64 {
+    match category {
         HarvestCategory::Decision => 1.0,
         HarvestCategory::Dependency => 0.8,
         HarvestCategory::Uncertainty => 0.7,
         HarvestCategory::Observation => 0.5,
-    };
-    confidence * multiplier * surprisal
+    }
+}
+
+/// Map HarvestCategory to its policy name string (AUDIT-W1-006).
+#[allow(dead_code)]
+fn category_name(category: HarvestCategory) -> &'static str {
+    match category {
+        HarvestCategory::Decision => "decision",
+        HarvestCategory::Dependency => "dependency",
+        HarvestCategory::Uncertainty => "uncertainty",
+        HarvestCategory::Observation => "observation",
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -665,6 +722,9 @@ fn weight_for_with_surprisal(confidence: f64, category: HarvestCategory, surpris
 // ---------------------------------------------------------------------------
 
 /// Ideal namespace distributions for each harvest category.
+///
+/// C8: DDIS default distributions -- a non-DDIS project would have different
+/// ideal distributions reflecting its own namespace structure (AUDIT-W1-006).
 ///
 /// These define the expected namespace distribution on the probability
 /// simplex Δ³ for each category. The Fisher-Rao distance from an entity's
@@ -773,7 +833,23 @@ fn score_profile(profile: &EntityProfile, category: HarvestCategory) -> f64 {
 // ---------------------------------------------------------------------------
 
 /// Detect missing expected attributes for an entity's category.
+/// C8: DDIS default expected attributes -- override via PolicyConfig
+/// `:policy/harvest-expected-type` + `:policy/harvest-expected-attr` datoms (AUDIT-W1-006).
 fn detect_gaps(profile: &EntityProfile, category: HarvestCategory) -> Vec<String> {
+    // Delegate to policy-aware version with no policy (uses DDIS defaults).
+    detect_gaps_with_policy(profile, category, None)
+}
+
+/// Policy-aware gap detection (AUDIT-W1-006, C8).
+///
+/// When `policy` is `Some` and contains expected-attribute overrides for the
+/// entity type, uses those. Otherwise falls back to DDIS defaults (`SPEC_EXPECTED`,
+/// `DECISION_EXPECTED`).
+fn detect_gaps_with_policy(
+    profile: &EntityProfile,
+    category: HarvestCategory,
+    policy: Option<&crate::policy::PolicyConfig>,
+) -> Vec<String> {
     let mut gaps = Vec::new();
 
     // Check spec completeness
@@ -784,7 +860,14 @@ fn detect_gaps(profile: &EntityProfile, category: HarvestCategory) -> Vec<String
         .unwrap_or(0)
         > 0
     {
-        for expected in SPEC_EXPECTED {
+        let spec_expected = policy
+            .and_then(|p| p.harvest_expected_for("spec"))
+            .map(|v| v.iter().map(|s| s.as_str()).collect::<Vec<_>>());
+        let expected_list: &[&str] = match &spec_expected {
+            Some(v) => v,
+            None => SPEC_EXPECTED,
+        };
+        for expected in expected_list {
             if !profile.attributes.contains(*expected) {
                 gaps.push(expected.to_string());
             }
@@ -793,7 +876,14 @@ fn detect_gaps(profile: &EntityProfile, category: HarvestCategory) -> Vec<String
 
     // Check decision completeness
     if category == HarvestCategory::Decision {
-        for expected in DECISION_EXPECTED {
+        let decision_expected = policy
+            .and_then(|p| p.harvest_expected_for("decision"))
+            .map(|v| v.iter().map(|s| s.as_str()).collect::<Vec<_>>());
+        let expected_list: &[&str] = match &decision_expected {
+            Some(v) => v,
+            None => DECISION_EXPECTED,
+        };
+        for expected in expected_list {
             if !profile.attributes.contains(*expected) {
                 gaps.push(expected.to_string());
             }

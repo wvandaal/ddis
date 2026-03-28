@@ -96,6 +96,104 @@ pub const W_INCOMPLETENESS: f64 = 0.08;
 /// Uncertainty weight (1 - mean uncertainty).
 pub const W_UNCERTAINTY: f64 = 0.12;
 
+/// Resolved F(S) component weights (AUDIT-W1-001, C9).
+///
+/// When a `PolicyConfig` defines boundaries named "validation", "coverage", etc.,
+/// their `:policy/boundary-weight` datoms override the compiled constants.
+/// When no policy exists or a boundary is absent, the `W_*` constants above
+/// are used as fallback defaults.
+///
+/// This struct is the single source of truth for weight values at runtime.
+/// Both `compute_fitness`, `MaterializedViews::fitness`, and
+/// `FitnessDelta::weighted_magnitude` consume it.
+#[derive(Clone, Debug)]
+pub struct FitnessWeights {
+    /// Weight for the validation (V) component.
+    pub validation: f64,
+    /// Weight for the coverage (C) component.
+    pub coverage: f64,
+    /// Weight for the drift (D) component.
+    pub drift: f64,
+    /// Weight for the harvest quality (H) component.
+    pub harvest: f64,
+    /// Weight for the contradiction (K) component.
+    pub contradiction: f64,
+    /// Weight for the incompleteness (I) component.
+    pub incompleteness: f64,
+    /// Weight for the uncertainty (U) component.
+    pub uncertainty: f64,
+}
+
+impl Default for FitnessWeights {
+    /// Fallback weights — the compiled constants from spec/10-bilateral.md §10.1.
+    fn default() -> Self {
+        Self {
+            validation: W_VALIDATION,
+            coverage: W_COVERAGE,
+            drift: W_DRIFT,
+            harvest: W_HARVEST,
+            contradiction: W_CONTRADICTION,
+            incompleteness: W_INCOMPLETENESS,
+            uncertainty: W_UNCERTAINTY,
+        }
+    }
+}
+
+impl FitnessWeights {
+    /// Resolve weights from a `PolicyConfig`, falling back to compiled constants
+    /// for any boundary not defined in the policy.
+    ///
+    /// Boundary name mapping:
+    /// - "validation" -> W_VALIDATION
+    /// - "coverage"   -> W_COVERAGE
+    /// - "drift"      -> W_DRIFT
+    /// - "harvest"    -> W_HARVEST
+    /// - "contradiction" -> W_CONTRADICTION
+    /// - "incompleteness" -> W_INCOMPLETENESS
+    /// - "uncertainty" -> W_UNCERTAINTY
+    pub fn from_policy(policy: &crate::policy::PolicyConfig) -> Self {
+        let find_weight = |name: &str, fallback: f64| -> f64 {
+            policy
+                .boundaries
+                .iter()
+                .find(|b| b.name == name)
+                .map(|b| b.weight)
+                .unwrap_or(fallback)
+        };
+
+        Self {
+            validation: find_weight("validation", W_VALIDATION),
+            coverage: find_weight("coverage", W_COVERAGE),
+            drift: find_weight("drift", W_DRIFT),
+            harvest: find_weight("harvest", W_HARVEST),
+            contradiction: find_weight("contradiction", W_CONTRADICTION),
+            incompleteness: find_weight("incompleteness", W_INCOMPLETENESS),
+            uncertainty: find_weight("uncertainty", W_UNCERTAINTY),
+        }
+    }
+
+    /// Resolve weights from a store: load `PolicyConfig`, extract weights,
+    /// fall back to compiled constants when no policy exists.
+    pub fn from_store(store: &Store) -> Self {
+        match crate::policy::PolicyConfig::from_store(store) {
+            Some(config) => Self::from_policy(&config),
+            None => Self::default(),
+        }
+    }
+
+    /// Compute the weighted total from 7 component scores.
+    pub fn weighted_total(&self, components: &FitnessComponents) -> f64 {
+        (self.validation * components.validation
+            + self.coverage * components.coverage
+            + self.drift * components.drift
+            + self.harvest * components.harvest_quality
+            + self.contradiction * components.contradiction
+            + self.incompleteness * components.incompleteness
+            + self.uncertainty * components.uncertainty)
+            .clamp(0.0, 1.0)
+    }
+}
+
 /// CC-5 threshold: methodology adherence must exceed this for CC-5 to pass.
 const CC5_METHODOLOGY_THRESHOLD: f64 = 0.5;
 
@@ -883,7 +981,10 @@ fn covered_entity_set(
 /// V and C use depth-weighted metrics when `:impl/verification-depth` and
 /// `:spec/verification-depth` datoms are present (WP9). When no depth datoms
 /// exist, falls back to legacy binary counting for backwards compatibility.
-pub fn compute_fitness(store: &Store) -> FitnessScore {
+///
+/// AUDIT-W1-001: Weights are resolved from `PolicyConfig` when available,
+/// falling back to the compiled `W_*` constants when no policy exists.
+pub fn compute_fitness(store: &Store, weights: &FitnessWeights) -> FitnessScore {
     let mut unmeasured = Vec::new();
 
     // V: Validation score — depth-weighted witness verification
@@ -922,16 +1023,7 @@ pub fn compute_fitness(store: &Store) -> FitnessScore {
         uncertainty,
     };
 
-    let total = W_VALIDATION * validation
-        + W_COVERAGE * coverage
-        + W_DRIFT * drift
-        + W_HARVEST * harvest_quality
-        + W_CONTRADICTION * contradiction
-        + W_INCOMPLETENESS * incompleteness
-        + W_UNCERTAINTY * uncertainty;
-
-    // Clamp to [0, 1] for safety (shouldn't be needed if components are correct)
-    let total = total.clamp(0.0, 1.0);
+    let total = weights.weighted_total(&components);
 
     FitnessScore {
         total,
@@ -951,7 +1043,11 @@ pub fn compute_fitness(store: &Store) -> FitnessScore {
 ///
 /// When the registry is empty, falls back to legacy coverage computation
 /// for backward compatibility.
-pub fn compute_fitness_with_registry(store: &Store, registry: &BoundaryRegistry) -> FitnessScore {
+pub fn compute_fitness_with_registry(
+    store: &Store,
+    registry: &BoundaryRegistry,
+    weights: &FitnessWeights,
+) -> FitnessScore {
     let mut unmeasured = Vec::new();
 
     // V: Validation score — same as legacy
@@ -994,15 +1090,7 @@ pub fn compute_fitness_with_registry(store: &Store, registry: &BoundaryRegistry)
         uncertainty,
     };
 
-    let total = W_VALIDATION * validation
-        + W_COVERAGE * coverage
-        + W_DRIFT * drift
-        + W_HARVEST * harvest_quality
-        + W_CONTRADICTION * contradiction
-        + W_INCOMPLETENESS * incompleteness
-        + W_UNCERTAINTY * uncertainty;
-
-    let total = total.clamp(0.0, 1.0);
+    let total = weights.weighted_total(&components);
 
     FitnessScore {
         total,
@@ -1986,8 +2074,9 @@ pub fn analyze_convergence(trajectory: &[f64]) -> ConvergenceAnalysis {
 /// ADR-SIGNAL-003: Subscription debounce over immediate fire.
 /// ADR-SIGNAL-005: Four recognized taxonomy gaps.
 pub fn run_cycle(store: &Store, history: &[f64], with_spectral: bool) -> BilateralState {
-    // F(S) fitness
-    let fitness = compute_fitness(store);
+    // F(S) fitness — resolve weights from policy datoms (AUDIT-W1-001)
+    let weights = FitnessWeights::from_store(store);
+    let fitness = compute_fitness(store, &weights);
 
     // Bilateral scans
     let forward = forward_scan(store);
@@ -2299,7 +2388,11 @@ pub fn format_terse(state: &BilateralState) -> String {
 }
 
 /// Format the bilateral state as verbose output (full metrics).
-pub fn format_verbose(state: &BilateralState) -> String {
+///
+/// AUDIT-W1-001: Displays the resolved weights from `FitnessWeights`
+/// rather than the compiled constants, so the display reflects the actual
+/// weights used in the F(S) computation.
+pub fn format_verbose(state: &BilateralState, weights: &FitnessWeights) -> String {
     let mut out = String::new();
 
     // Header
@@ -2312,32 +2405,32 @@ pub fn format_verbose(state: &BilateralState) -> String {
     let c = &state.fitness.components;
     out.push_str("  fitness components:\n");
     out.push_str(&format!(
-        "    V (validation):    {:.4} (×{W_VALIDATION})\n",
-        c.validation
+        "    V (validation):    {:.4} (×{})\n",
+        c.validation, weights.validation
     ));
     out.push_str(&format!(
-        "    C (coverage):      {:.4} (×{W_COVERAGE})\n",
-        c.coverage
+        "    C (coverage):      {:.4} (×{})\n",
+        c.coverage, weights.coverage
     ));
     out.push_str(&format!(
-        "    D (drift):         {:.4} (×{W_DRIFT})\n",
-        c.drift
+        "    D (drift):         {:.4} (×{})\n",
+        c.drift, weights.drift
     ));
     out.push_str(&format!(
-        "    H (harvest):       {:.4} (×{W_HARVEST})\n",
-        c.harvest_quality
+        "    H (harvest):       {:.4} (×{})\n",
+        c.harvest_quality, weights.harvest
     ));
     out.push_str(&format!(
-        "    K (contradiction): {:.4} (×{W_CONTRADICTION})\n",
-        c.contradiction
+        "    K (contradiction): {:.4} (×{})\n",
+        c.contradiction, weights.contradiction
     ));
     out.push_str(&format!(
-        "    I (incompleteness):{:.4} (×{W_INCOMPLETENESS})\n",
-        c.incompleteness
+        "    I (incompleteness):{:.4} (×{})\n",
+        c.incompleteness, weights.incompleteness
     ));
     out.push_str(&format!(
-        "    U (uncertainty):   {:.4} (×{W_UNCERTAINTY})\n",
-        c.uncertainty
+        "    U (uncertainty):   {:.4} (×{})\n",
+        c.uncertainty, weights.uncertainty
     ));
     if !state.fitness.unmeasured.is_empty() {
         out.push_str(&format!(
@@ -2815,7 +2908,8 @@ mod tests {
     #[test]
     fn fitness_on_empty_store() {
         let store = test_store();
-        let f = compute_fitness(&store);
+        let fw = FitnessWeights::default();
+        let f = compute_fitness(&store, &fw);
         // Empty store: all vacuously 1.0 except harvest quality (0.0)
         assert!(
             f.total >= 0.0 && f.total <= 1.0,
@@ -2829,7 +2923,8 @@ mod tests {
     #[test]
     fn fitness_in_unit_interval() {
         let store = populated_store();
-        let f = compute_fitness(&store);
+        let fw = FitnessWeights::default();
+        let f = compute_fitness(&store, &fw);
         assert!(
             f.total >= 0.0 && f.total <= 1.0,
             "F(S)={} not in [0,1]",
@@ -2930,7 +3025,8 @@ mod tests {
     #[test]
     fn coherence_conditions_evaluate() {
         let store = populated_store();
-        let fitness = compute_fitness(&store);
+        let fw = FitnessWeights::default();
+        let fitness = compute_fitness(&store, &fw);
         let scan = BilateralScan {
             forward: forward_scan(&store),
             backward: backward_scan(&store),
@@ -3047,7 +3143,8 @@ mod tests {
     fn verbose_format_includes_all_sections() {
         let store = populated_store();
         let state = run_cycle(&store, &[], true);
-        let output = format_verbose(&state);
+        let fw = FitnessWeights::default();
+        let output = format_verbose(&state, &fw);
         assert!(output.contains("fitness components:"));
         assert!(output.contains("coherence:"));
         assert!(output.contains("forward scan:"));
@@ -3218,7 +3315,8 @@ mod tests {
             /// and produce a well-defined FitnessScore (total function).
             #[test]
             fn inv_bilateral_004_compute_fitness_total(store in arb_store(3)) {
-                let fs = compute_fitness(&store);
+                let fw = FitnessWeights::default();
+                let fs = compute_fitness(&store, &fw);
                 prop_assert!(
                     fs.total >= -1e-10 && fs.total <= 1.0 + 1e-10,
                     "INV-BILATERAL-004: F(S) = {} for arbitrary store",
@@ -3624,9 +3722,10 @@ mod tests {
     #[test]
     fn boundary_compat_coverage_consistency() {
         let store = test_store();
+        let fw = FitnessWeights::default();
 
         // Old path: compute_fitness
-        let fitness = compute_fitness(&store);
+        let fitness = compute_fitness(&store, &fw);
 
         // New path: default_boundaries().evaluate_all()
         let registry = default_boundaries();
@@ -3727,7 +3826,8 @@ mod tests {
         let mut store = store_with(extra);
 
         // --- (a) V > 0 with valid witnesses ---
-        let f1 = compute_fitness(&store);
+        let fw = FitnessWeights::default();
+        let f1 = compute_fitness(&store, &fw);
         assert!(
             f1.components.validation > 0.0,
             "V should be > 0 with 2 valid witnesses, got {}",
@@ -3757,7 +3857,7 @@ mod tests {
             .transact(committed)
             .expect("stale transact should succeed");
 
-        let f2 = compute_fitness(&store);
+        let f2 = compute_fitness(&store, &fw);
         assert!(
             f2.components.validation < v_before,
             "V should decrease after marking witness stale: before={v_before}, after={}",
@@ -3853,7 +3953,8 @@ mod tests {
         );
 
         // Full F(S) should still work
-        let f = compute_fitness(&store);
+        let fw = FitnessWeights::default();
+        let f = compute_fitness(&store, &fw);
         assert!(
             f.total >= 0.0 && f.total <= 1.0,
             "F(S)={} not in [0,1]",
@@ -3885,8 +3986,9 @@ mod tests {
             datoms.insert(d);
         }
 
+        let fw = FitnessWeights::default();
         let store = Store::from_datoms(datoms);
-        let f_initial = compute_fitness(&store);
+        let f_initial = compute_fitness(&store, &fw);
         assert!(
             f_initial.total >= 0.0 && f_initial.total <= 1.0,
             "initial F(S)={} not in [0,1]",
@@ -3913,7 +4015,7 @@ mod tests {
             .unwrap();
         store2.transact(tx1).unwrap();
 
-        let f_with_task = compute_fitness(&store2);
+        let f_with_task = compute_fitness(&store2, &fw);
 
         // Close the task via Transaction API
         let tx2 = Transaction::new(agent, ProvenanceType::Observed, "close task")
@@ -3926,7 +4028,7 @@ mod tests {
             .unwrap();
         store2.transact(tx2).unwrap();
 
-        let f_after_close = compute_fitness(&store2);
+        let f_after_close = compute_fitness(&store2, &fw);
         assert!(
             f_after_close.total >= f_with_task.total - 0.01,
             "INV-BILATERAL-001: F(S) should not decrease after task close: \

@@ -74,11 +74,37 @@ impl Default for CalibrationConfig {
     }
 }
 
+/// A harvest category weight override from the policy manifest (AUDIT-W1-006, C8).
+///
+/// Maps a category name to a weight multiplier for `weight_for_with_surprisal()`.
+/// DDIS defaults: Decision=1.0, Dependency=0.8, Uncertainty=0.7, Observation=0.5.
+#[derive(Clone, Debug)]
+pub struct HarvestCategoryWeight {
+    /// Category name (e.g., "decision", "dependency", "uncertainty", "observation").
+    pub category: String,
+    /// Weight multiplier for this category.
+    pub weight: f64,
+}
+
+/// Expected attributes for a harvest entity type (AUDIT-W1-006, C8).
+///
+/// Used by `detect_gaps()` to identify completeness gaps. When provided via
+/// PolicyConfig, overrides the hardcoded `SPEC_EXPECTED` and `DECISION_EXPECTED`
+/// constants. DDIS defaults: spec requires `[":spec/id", ":spec/element-type", ":db/doc"]`,
+/// decision requires `[":intent/decision", ":intent/rationale"]`.
+#[derive(Clone, Debug)]
+pub struct HarvestExpectedAttrs {
+    /// Entity type identifier (e.g., "spec", "decision").
+    pub entity_type: String,
+    /// Attribute names expected for completeness.
+    pub expected: Vec<String>,
+}
+
 /// The parsed policy manifest — single source of truth for policy interpretation.
 ///
 /// Both MaterializedViews and BoundaryRegistry consume this struct.
 /// Isomorphism invariant: Views.fitness(config) == BoundaryRegistry.coverage(config, store).
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct PolicyConfig {
     /// Boundary definitions with weights.
     pub boundaries: Vec<BoundaryDef>,
@@ -90,6 +116,43 @@ pub struct PolicyConfig {
     pub anomaly_detectors: Vec<AnomalyDef>,
     /// Calibration parameters.
     pub calibration: CalibrationConfig,
+    /// Namespace attribute partition overrides (C9: AUDIT-W1-002, INV-FOUNDATION-015).
+    ///
+    /// When loaded from `:policy/namespace-intent`, `:policy/namespace-spec`,
+    /// `:policy/namespace-impl` datoms, overrides the hardcoded `INTENT_ATTRS` /
+    /// `SPEC_ATTRS` / `IMPL_ATTRS` constants in `trilateral.rs`.
+    pub namespace_config: crate::trilateral::NamespaceConfig,
+    /// Allowed spec element types (C9: AUDIT-W1-005, INV-FOUNDATION-015).
+    ///
+    /// When loaded from `:policy/element-type` datoms, overrides the hardcoded
+    /// `["INV", "ADR", "NEG"]` default in `spec_id.rs`. Empty = use defaults.
+    pub element_types: Vec<String>,
+
+    // -- AUDIT-W1-004: ISP datom counter prefix overrides (C8) --
+    /// Intent namespace attribute prefixes for MaterializedViews datom counting.
+    /// When loaded from `:policy/isp-intent-prefix` datoms, overrides the hardcoded
+    /// `[":exploration/", ":session/", ":harvest/", ":action/"]` defaults.
+    /// Empty = use defaults.
+    pub isp_intent_prefixes: Vec<String>,
+    /// Spec namespace attribute prefixes for MaterializedViews datom counting.
+    /// When loaded from `:policy/isp-spec-prefix` datoms, overrides the hardcoded
+    /// `[":spec/", ":element/"]` defaults. Empty = use defaults.
+    pub isp_spec_prefixes: Vec<String>,
+    /// Impl namespace attribute prefixes for MaterializedViews datom counting.
+    /// When loaded from `:policy/isp-impl-prefix` datoms, overrides the hardcoded
+    /// `[":impl/", ":task/"]` defaults. Empty = use defaults.
+    pub isp_impl_prefixes: Vec<String>,
+
+    // -- AUDIT-W1-006: Harvest category config overrides (C8) --
+    /// Harvest category weight overrides for `weight_for_with_surprisal()`.
+    /// Maps category name → multiplier. When empty, uses DDIS defaults:
+    /// Decision=1.0, Dependency=0.8, Uncertainty=0.7, Observation=0.5.
+    pub harvest_category_weights: Vec<HarvestCategoryWeight>,
+    /// Harvest completeness gap expectations per entity type.
+    /// When loaded from `:policy/harvest-expected-attrs` datoms, overrides the
+    /// hardcoded `SPEC_EXPECTED` and `DECISION_EXPECTED` constants.
+    /// Empty = use defaults.
+    pub harvest_expected_attrs: Vec<HarvestExpectedAttrs>,
 }
 
 impl PolicyConfig {
@@ -203,12 +266,117 @@ impl PolicyConfig {
             }
         }
 
+        // Namespace partition overrides (AUDIT-W1-002, C9: INV-FOUNDATION-015)
+        let mut namespace_config = crate::trilateral::NamespaceConfig::default();
+        let collect_strings = |store: &Store, keyword: &str| -> Vec<String> {
+            let attr = Attribute::from_keyword(keyword);
+            store
+                .attribute_datoms(&attr)
+                .iter()
+                .filter(|d| d.op == Op::Assert)
+                .filter_map(|d| match &d.value {
+                    Value::String(s) => Some(s.clone()),
+                    _ => None,
+                })
+                .collect()
+        };
+        namespace_config.intent = collect_strings(store, ":policy/namespace-intent");
+        namespace_config.spec = collect_strings(store, ":policy/namespace-spec");
+        namespace_config.r#impl = collect_strings(store, ":policy/namespace-impl");
+
+        // Element type overrides (AUDIT-W1-005, C9: INV-FOUNDATION-015)
+        let mut element_types = Vec::new();
+        let element_type_attr = Attribute::from_keyword(":policy/element-type");
+        for d in store.attribute_datoms(&element_type_attr) {
+            if d.op == Op::Assert {
+                if let Value::String(s) = &d.value {
+                    element_types.push(s.clone());
+                }
+            }
+        }
+
+        // ISP datom counter prefix overrides (AUDIT-W1-004, C8)
+        let mut isp_intent_prefixes = Vec::new();
+        let mut isp_spec_prefixes = Vec::new();
+        let mut isp_impl_prefixes = Vec::new();
+        for (policy_attr, target) in &mut [
+            (":policy/isp-intent-prefix", &mut isp_intent_prefixes),
+            (":policy/isp-spec-prefix", &mut isp_spec_prefixes),
+            (":policy/isp-impl-prefix", &mut isp_impl_prefixes),
+        ] {
+            let attr = Attribute::from_keyword(policy_attr);
+            for d in store.attribute_datoms(&attr) {
+                if d.op == Op::Assert {
+                    if let Value::String(s) = &d.value {
+                        target.push(s.clone());
+                    }
+                }
+            }
+        }
+
+        // Harvest category weight overrides (AUDIT-W1-006, C8)
+        let mut harvest_category_weights = Vec::new();
+        let hcw_attr = Attribute::from_keyword(":policy/harvest-category-weight");
+        for d in store.attribute_datoms(&hcw_attr) {
+            if d.op != Op::Assert {
+                continue;
+            }
+            let entity = d.entity;
+            let entity_datoms = store.entity_datoms(entity);
+            let cat = extract_string(&entity_datoms, ":policy/harvest-category-name");
+            let weight = extract_double(&entity_datoms, ":policy/harvest-category-weight");
+            if let (Some(category), Some(w)) = (cat, weight) {
+                harvest_category_weights.push(HarvestCategoryWeight {
+                    category,
+                    weight: w,
+                });
+            }
+        }
+
+        // Harvest expected attributes overrides (AUDIT-W1-006, C8)
+        let mut harvest_expected_attrs = Vec::new();
+        let hea_attr = Attribute::from_keyword(":policy/harvest-expected-type");
+        for d in store.attribute_datoms(&hea_attr) {
+            if d.op != Op::Assert {
+                continue;
+            }
+            let entity_type = match &d.value {
+                Value::String(s) => s.clone(),
+                _ => continue,
+            };
+            let entity = d.entity;
+            let entity_datoms = store.entity_datoms(entity);
+            let expected: Vec<String> = entity_datoms
+                .iter()
+                .filter(|ed| {
+                    ed.attribute.as_str() == ":policy/harvest-expected-attr" && ed.op == Op::Assert
+                })
+                .filter_map(|ed| match &ed.value {
+                    Value::String(s) => Some(s.clone()),
+                    _ => None,
+                })
+                .collect();
+            if !expected.is_empty() {
+                harvest_expected_attrs.push(HarvestExpectedAttrs {
+                    entity_type,
+                    expected,
+                });
+            }
+        }
+
         Some(PolicyConfig {
             boundaries,
             claim_patterns,
             evidence_patterns,
             anomaly_detectors,
             calibration,
+            namespace_config,
+            element_types,
+            isp_intent_prefixes,
+            isp_spec_prefixes,
+            isp_impl_prefixes,
+            harvest_category_weights,
+            harvest_expected_attrs,
         })
     }
 
@@ -244,6 +412,59 @@ impl PolicyConfig {
     pub fn boundary_coverage(&self, _boundary: &BoundaryDef, _store: &Store) -> f64 {
         // Placeholder — POLICY-3 implements the full evaluation
         0.0
+    }
+
+    /// Build a MaterializedViews with ISP prefixes from this policy (AUDIT-W1-004, C8).
+    ///
+    /// If the policy has ISP prefix overrides, uses them. Otherwise returns
+    /// a default MaterializedViews (which uses DDIS-standard prefixes).
+    pub fn materialized_views(&self) -> crate::store::MaterializedViews {
+        if self.isp_intent_prefixes.is_empty()
+            && self.isp_spec_prefixes.is_empty()
+            && self.isp_impl_prefixes.is_empty()
+        {
+            crate::store::MaterializedViews::default()
+        } else {
+            crate::store::MaterializedViews::with_isp_prefixes(
+                if self.isp_intent_prefixes.is_empty() {
+                    crate::store::default_intent_prefixes()
+                } else {
+                    self.isp_intent_prefixes.clone()
+                },
+                if self.isp_spec_prefixes.is_empty() {
+                    crate::store::default_spec_prefixes()
+                } else {
+                    self.isp_spec_prefixes.clone()
+                },
+                if self.isp_impl_prefixes.is_empty() {
+                    crate::store::default_impl_prefixes()
+                } else {
+                    self.isp_impl_prefixes.clone()
+                },
+            )
+        }
+    }
+
+    /// Look up harvest category weight by name (AUDIT-W1-006, C8).
+    ///
+    /// Returns the policy-configured weight for the named category, or `None`
+    /// if no override exists (caller should fall back to DDIS default).
+    pub fn harvest_weight_for(&self, category_name: &str) -> Option<f64> {
+        self.harvest_category_weights
+            .iter()
+            .find(|hw| hw.category == category_name)
+            .map(|hw| hw.weight)
+    }
+
+    /// Look up expected attributes for a harvest entity type (AUDIT-W1-006, C8).
+    ///
+    /// Returns the policy-configured expected attributes, or `None` if no
+    /// override exists (caller should fall back to DDIS defaults).
+    pub fn harvest_expected_for(&self, entity_type: &str) -> Option<&[String]> {
+        self.harvest_expected_attrs
+            .iter()
+            .find(|he| he.entity_type == entity_type)
+            .map(|he| he.expected.as_slice())
     }
 }
 
@@ -652,6 +873,7 @@ mod tests {
             evidence_patterns: vec![],
             anomaly_detectors: vec![],
             calibration: CalibrationConfig::default(),
+            ..Default::default()
         };
         let errors = validate_policy(&config);
         assert!(errors.is_empty(), "empty policy is vacuously valid");
@@ -672,6 +894,7 @@ mod tests {
             evidence_patterns: vec![],
             anomaly_detectors: vec![],
             calibration: CalibrationConfig::default(),
+            ..Default::default()
         };
         let errors = validate_policy(&config);
         assert!(!errors.is_empty(), "negative weight should produce error");
@@ -706,6 +929,7 @@ mod tests {
             evidence_patterns: vec![],
             anomaly_detectors: vec![],
             calibration: CalibrationConfig::default(),
+            ..Default::default()
         };
         let errors = validate_policy(&config);
         assert!(
@@ -729,6 +953,7 @@ mod tests {
             evidence_patterns: vec![],
             anomaly_detectors: vec![],
             calibration: CalibrationConfig::default(),
+            ..Default::default()
         };
         let errors = validate_policy(&config);
         assert!(
@@ -745,6 +970,7 @@ mod tests {
             evidence_patterns: vec![":witness/*".to_string()],
             anomaly_detectors: vec![],
             calibration: CalibrationConfig::default(),
+            ..Default::default()
         };
         assert!(config.is_claim_attribute(":spec/element-type"));
         assert!(config.is_claim_attribute(":requirement/title"));
@@ -909,6 +1135,7 @@ mod tests {
                 message: "test".to_string(),
             }],
             calibration: CalibrationConfig::default(),
+            ..Default::default()
         };
         let errors = validate_policy(&config);
         assert!(
@@ -932,6 +1159,7 @@ mod tests {
             evidence_patterns: vec![],
             anomaly_detectors: vec![],
             calibration: CalibrationConfig::default(),
+            ..Default::default()
         };
         let errors = validate_policy(&config);
         assert!(
@@ -1484,6 +1712,7 @@ mod tests {
             evidence_patterns: vec![],
             anomaly_detectors: vec![],
             calibration: CalibrationConfig::default(),
+            ..Default::default()
         };
         let errors = validate_policy(&config);
         assert!(
@@ -1509,6 +1738,7 @@ mod tests {
             evidence_patterns: vec![],
             anomaly_detectors: vec![],
             calibration: CalibrationConfig::default(),
+            ..Default::default()
         };
         let errors = validate_policy(&config);
         assert!(
@@ -1563,6 +1793,13 @@ mod tests {
                 evidence_patterns: vec![":impl/*".to_string()],
                 anomaly_detectors: vec![],
                 calibration: CalibrationConfig::default(),
+                namespace_config: crate::trilateral::NamespaceConfig::default(),
+                element_types: vec![],
+                isp_intent_prefixes: vec![],
+                isp_spec_prefixes: vec![],
+                isp_impl_prefixes: vec![],
+                harvest_category_weights: vec![],
+                harvest_expected_attrs: vec![],
             }
         })
     }
@@ -1914,5 +2151,109 @@ mod tests {
             adjustments.is_empty(),
             "within-threshold error should not produce adjustment"
         );
+    }
+
+    // ── AUDIT-W1-002 / W1-005: Namespace + element type loading from policy datoms ──
+
+    #[test]
+    fn policy_loads_namespace_overrides() {
+        let agent = AgentId::from_name("test:policy");
+        let tx = TxId::new(100, 0, agent);
+        let mut datoms = make_policy_store().datom_set().clone();
+
+        // Add namespace override datoms
+        let ns_entity = EntityId::from_ident(":policy/ns-config");
+        datoms.insert(Datom::new(
+            ns_entity,
+            Attribute::from_keyword(":policy/namespace-intent"),
+            Value::String(":goal/target".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            ns_entity,
+            Attribute::from_keyword(":policy/namespace-intent"),
+            Value::String(":goal/priority".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            ns_entity,
+            Attribute::from_keyword(":policy/namespace-spec"),
+            Value::String(":requirement/statement".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let config = PolicyConfig::from_store(&store).unwrap();
+
+        assert_eq!(config.namespace_config.intent.len(), 2);
+        assert!(config
+            .namespace_config
+            .intent
+            .contains(&":goal/target".to_string()));
+        assert!(config
+            .namespace_config
+            .intent
+            .contains(&":goal/priority".to_string()));
+        assert_eq!(config.namespace_config.spec.len(), 1);
+        assert!(config
+            .namespace_config
+            .spec
+            .contains(&":requirement/statement".to_string()));
+        assert!(
+            config.namespace_config.r#impl.is_empty(),
+            "no impl overrides set"
+        );
+        assert!(config.namespace_config.has_overrides());
+    }
+
+    #[test]
+    fn policy_loads_element_type_overrides() {
+        let agent = AgentId::from_name("test:policy");
+        let tx = TxId::new(100, 0, agent);
+        let mut datoms = make_policy_store().datom_set().clone();
+
+        // Add element type override datoms
+        let et_entity = EntityId::from_ident(":policy/element-types");
+        datoms.insert(Datom::new(
+            et_entity,
+            Attribute::from_keyword(":policy/element-type"),
+            Value::String("REQ".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            et_entity,
+            Attribute::from_keyword(":policy/element-type"),
+            Value::String("CTRL".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let config = PolicyConfig::from_store(&store).unwrap();
+
+        assert_eq!(config.element_types.len(), 2);
+        assert!(config.element_types.contains(&"REQ".to_string()));
+        assert!(config.element_types.contains(&"CTRL".to_string()));
+    }
+
+    #[test]
+    fn policy_no_overrides_when_no_datoms() {
+        let store = make_policy_store();
+        let config = PolicyConfig::from_store(&store).unwrap();
+
+        assert!(!config.namespace_config.has_overrides());
+        assert!(config.element_types.is_empty());
+    }
+
+    #[test]
+    fn policy_default_has_no_overrides() {
+        let config = PolicyConfig::default();
+        assert!(!config.namespace_config.has_overrides());
+        assert!(config.element_types.is_empty());
+        assert!(config.boundaries.is_empty());
     }
 }

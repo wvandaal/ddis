@@ -536,8 +536,29 @@ pub struct Store {
 ///
 /// Isomorphism invariant: for any store S,
 ///   `MaterializedViews::from_store(S).fitness() == compute_fitness(S)`
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MaterializedViews {
+    // -- Configurable ISP namespace prefixes (AUDIT-W1-004, C8) --
+    // These control which attribute prefixes map to intent/spec/impl datom counters.
+    // Default values are the DDIS-standard prefixes. Override via
+    // `MaterializedViews::with_isp_prefixes()` or PolicyConfig for non-DDIS projects.
+    //
+    // Performance: stored as Vec<String> at construction time, iterated via
+    // starts_with() in observe_datom(). Same O(k) per-prefix pattern as before
+    // where k = number of prefixes (typically 2-4), negligible vs HashMap lookup.
+    /// Attribute prefixes that map to intent datom counter.
+    /// C8: DDIS default — override via PolicyConfig.
+    #[serde(default = "default_intent_prefixes")]
+    pub intent_prefixes: Vec<String>,
+    /// Attribute prefixes that map to spec datom counter.
+    /// C8: DDIS default — override via PolicyConfig.
+    #[serde(default = "default_spec_prefixes")]
+    pub spec_prefixes: Vec<String>,
+    /// Attribute prefixes that map to impl datom counter.
+    /// C8: DDIS default — override via PolicyConfig.
+    #[serde(default = "default_impl_prefixes")]
+    pub impl_prefixes: Vec<String>,
+
     // -- Shared state --
     /// Count of spec elements (entities with :spec/element-type).
     pub spec_count: u64,
@@ -640,7 +661,91 @@ pub struct MaterializedViews {
     pub ref_vertex_set: HashSet<EntityId>,
 }
 
+// -- AUDIT-W1-004: Serde default functions for ISP namespace prefixes (C8) --
+
+/// Default intent namespace prefixes for ISP datom counting (AUDIT-W1-004, C8).
+/// C8: DDIS default -- override via PolicyConfig `:policy/isp-intent-prefix` datoms.
+pub fn default_intent_prefixes() -> Vec<String> {
+    vec![
+        ":exploration/".to_string(),
+        ":session/".to_string(),
+        ":harvest/".to_string(),
+        ":action/".to_string(),
+    ]
+}
+
+/// Default spec namespace prefixes for ISP datom counting (AUDIT-W1-004, C8).
+/// C8: DDIS default -- override via PolicyConfig `:policy/isp-spec-prefix` datoms.
+pub fn default_spec_prefixes() -> Vec<String> {
+    vec![":spec/".to_string(), ":element/".to_string()]
+}
+
+/// Default impl namespace prefixes for ISP datom counting (AUDIT-W1-004, C8).
+/// C8: DDIS default -- override via PolicyConfig `:policy/isp-impl-prefix` datoms.
+pub fn default_impl_prefixes() -> Vec<String> {
+    vec![":impl/".to_string(), ":task/".to_string()]
+}
+
+impl Default for MaterializedViews {
+    fn default() -> Self {
+        Self {
+            intent_prefixes: default_intent_prefixes(),
+            spec_prefixes: default_spec_prefixes(),
+            impl_prefixes: default_impl_prefixes(),
+            spec_count: 0,
+            validation_depth: HashMap::new(),
+            has_any_depth: false,
+            coverage_impl_targets: HashSet::new(),
+            coverage_depth: HashMap::new(),
+            intent_datom_count: 0,
+            spec_datom_count: 0,
+            impl_datom_count: 0,
+            intra_tx_conflicts: 0,
+            total_ea_pairs: 0,
+            has_falsification: HashSet::new(),
+            task_covered: HashSet::new(),
+            confidence_sum: 0.0,
+            confidence_count: 0,
+            task_open: 0,
+            task_in_progress: 0,
+            task_closed: 0,
+            harvest_count: 0,
+            observation_count: 0,
+            distinct_tx_count: 0,
+            entity_count_for_phi: 0,
+            isp_intent_entities: HashSet::new(),
+            isp_spec_entities: HashSet::new(),
+            isp_impl_entities: HashSet::new(),
+            isp_intent_datom_count: 0,
+            isp_spec_datom_count: 0,
+            isp_impl_datom_count: 0,
+            task_status_live: BTreeMap::new(),
+            session_count: 0,
+            last_harvest_wall: 0,
+            task_with_spec_ref_count: 0,
+            ref_edge_count: 0,
+            ref_vertex_set: HashSet::new(),
+        }
+    }
+}
+
 impl MaterializedViews {
+    /// Construct with custom ISP namespace prefixes (AUDIT-W1-004, C8).
+    ///
+    /// Non-DDIS projects can provide their own attribute prefix→counter mappings.
+    /// For example, a React project might use:
+    /// - intent: `[":requirement/", ":story/"]`
+    /// - spec: `[":design/", ":component/"]`
+    /// - impl: `[":code/", ":test/"]`
+    pub fn with_isp_prefixes(intent: Vec<String>, spec: Vec<String>, r#impl: Vec<String>) -> Self {
+        Self {
+            intent_prefixes: intent,
+            spec_prefixes: spec,
+            impl_prefixes: r#impl,
+            ..Default::default()
+        }
+    }
+
     /// Observe a single datom and update relevant accumulators.
     ///
     /// Called once per datom during both `from_datoms` (batch) and `apply_tx` (incremental).
@@ -683,35 +788,46 @@ impl MaterializedViews {
         // V+C: impl/verification-depth → depth-weighted coverage + validation
         if attr == ":impl/verification-depth" && is_assert {
             if let Value::Long(_depth) = &d.value {
-                    self.has_any_depth = true;
-                    // Find which spec entity this impl links to
-                    // We need the impl entity's :impl/implements target.
-                    // Since we don't have the full store here, we track by impl entity
-                    // and resolve during fitness(). For now, we accumulate the depth
-                    // per impl entity, and coverage_depth tracks per spec entity.
-                    // The from_datoms/apply_tx caller should handle the cross-reference.
+                self.has_any_depth = true;
+                // Find which spec entity this impl links to
+                // We need the impl entity's :impl/implements target.
+                // Since we don't have the full store here, we track by impl entity
+                // and resolve during fitness(). For now, we accumulate the depth
+                // per impl entity, and coverage_depth tracks per spec entity.
+                // The from_datoms/apply_tx caller should handle the cross-reference.
             }
             // Retract: has_any_depth stays true (conservative — flag is monotonic).
         }
 
-        // D: Namespace classification for drift/Phi (broad prefix-based)
-        if attr.starts_with(":exploration/")
-            || attr.starts_with(":session/")
-            || attr.starts_with(":harvest/")
-            || attr.starts_with(":action/")
+        // D: Namespace classification for drift/Phi (broad prefix-based).
+        // AUDIT-W1-004 (C8): Prefixes are configurable via intent_prefixes/spec_prefixes/
+        // impl_prefixes fields. Default values are DDIS-standard. Non-DDIS projects
+        // override via with_isp_prefixes() or PolicyConfig at store load time.
+        if self
+            .intent_prefixes
+            .iter()
+            .any(|p| attr.starts_with(p.as_str()))
         {
             if is_assert {
                 self.intent_datom_count += 1;
             } else {
                 self.intent_datom_count = self.intent_datom_count.saturating_sub(1);
             }
-        } else if attr.starts_with(":spec/") || attr.starts_with(":element/") {
+        } else if self
+            .spec_prefixes
+            .iter()
+            .any(|p| attr.starts_with(p.as_str()))
+        {
             if is_assert {
                 self.spec_datom_count += 1;
             } else {
                 self.spec_datom_count = self.spec_datom_count.saturating_sub(1);
             }
-        } else if attr.starts_with(":impl/") || attr.starts_with(":task/") {
+        } else if self
+            .impl_prefixes
+            .iter()
+            .any(|p| attr.starts_with(p.as_str()))
+        {
             if is_assert {
                 self.impl_datom_count += 1;
             } else {
@@ -864,7 +980,12 @@ impl MaterializedViews {
     ///
     /// Uses the same weights as `compute_fitness()` in bilateral.rs.
     /// Isomorphism invariant: this must match `compute_fitness()` for the same store state.
-    pub fn fitness(&self) -> crate::bilateral::FitnessScore {
+    ///
+    /// AUDIT-W1-001: Accepts `FitnessWeights` to use policy-resolved weights.
+    pub fn fitness(
+        &self,
+        weights: &crate::bilateral::FitnessWeights,
+    ) -> crate::bilateral::FitnessScore {
         let spec_count = self.spec_count.max(1) as f64;
 
         // V: Validation — depth-weighted witness score
@@ -999,16 +1120,10 @@ impl MaterializedViews {
             uncertainty,
         };
 
-        let total = crate::bilateral::W_VALIDATION * validation
-            + crate::bilateral::W_COVERAGE * coverage
-            + crate::bilateral::W_DRIFT * drift
-            + crate::bilateral::W_HARVEST * harvest_quality
-            + crate::bilateral::W_CONTRADICTION * contradiction
-            + crate::bilateral::W_INCOMPLETENESS * incompleteness
-            + crate::bilateral::W_UNCERTAINTY * uncertainty;
+        let total = weights.weighted_total(&components);
 
         crate::bilateral::FitnessScore {
-            total: total.clamp(0.0, 1.0),
+            total,
             components,
             unmeasured: Vec::new(),
         }
@@ -1020,7 +1135,11 @@ impl MaterializedViews {
     /// For each hypothetical datom, classifies which accumulator it would affect
     /// and computes the resulting F(S) change. This is gradient computation on
     /// the coherence manifold — the exact 7-dimensional ΔF(S) vector.
-    pub fn project_delta(&self, hypothetical: &[Datom]) -> FitnessDelta {
+    pub fn project_delta(
+        &self,
+        hypothetical: &[Datom],
+        weights: &crate::bilateral::FitnessWeights,
+    ) -> FitnessDelta {
         // Clone accumulators to a shadow copy — project without mutation
         let mut shadow = self.clone();
         for d in hypothetical {
@@ -1030,8 +1149,8 @@ impl MaterializedViews {
         let new_entities: HashSet<EntityId> = hypothetical.iter().map(|d| d.entity).collect();
         shadow.entity_count_for_phi = self.entity_count_for_phi + new_entities.len() as u64;
 
-        let before = self.fitness();
-        let after = shadow.fitness();
+        let before = self.fitness(weights);
+        let after = shadow.fitness(weights);
 
         FitnessDelta {
             validation: after.components.validation - before.components.validation,
@@ -1174,19 +1293,21 @@ impl FitnessDelta {
     /// Weighted magnitude of the delta using F(S) component weights.
     /// This is the projected total F(S) change — the gradient's L1 norm
     /// in the F(S) weight space.
-    pub fn weighted_magnitude(&self) -> f64 {
-        crate::bilateral::W_VALIDATION * self.validation
-            + crate::bilateral::W_COVERAGE * self.coverage
-            + crate::bilateral::W_DRIFT * self.drift
-            + crate::bilateral::W_HARVEST * self.harvest_quality
-            + crate::bilateral::W_CONTRADICTION * self.contradiction
-            + crate::bilateral::W_INCOMPLETENESS * self.incompleteness
-            + crate::bilateral::W_UNCERTAINTY * self.uncertainty
+    ///
+    /// AUDIT-W1-001: Accepts `FitnessWeights` for policy-resolved weights.
+    pub fn weighted_magnitude(&self, weights: &crate::bilateral::FitnessWeights) -> f64 {
+        weights.validation * self.validation
+            + weights.coverage * self.coverage
+            + weights.drift * self.drift
+            + weights.harvest * self.harvest_quality
+            + weights.contradiction * self.contradiction
+            + weights.incompleteness * self.incompleteness
+            + weights.uncertainty * self.uncertainty
     }
 
     /// Whether the delta is effectively zero (no projected F(S) change).
-    pub fn is_zero(&self) -> bool {
-        self.weighted_magnitude().abs() < f64::EPSILON
+    pub fn is_zero(&self, weights: &crate::bilateral::FitnessWeights) -> bool {
+        self.weighted_magnitude(weights).abs() < f64::EPSILON
     }
 }
 
@@ -1886,13 +2007,16 @@ impl Store {
     /// `store.views().fitness()` or `compute_fitness(store)`.
     ///
     /// Priority: policy-driven (from boundary datoms) > views (hardcoded accumulators) > 1.0.
+    ///
+    /// AUDIT-W1-001: Resolves weights from `PolicyConfig` when available.
     pub fn fitness(&self) -> crate::bilateral::FitnessScore {
         // Try policy-driven fitness first (C8: substrate reads policy datoms)
         if let Some(fs) = crate::bilateral::compute_fitness_from_policy(self) {
             return fs;
         }
-        // Fall back to materialized views (hardcoded DDIS accumulators)
-        self.views.fitness()
+        // Fall back to materialized views with resolved weights
+        let weights = crate::bilateral::FitnessWeights::from_store(self);
+        self.views.fitness(&weights)
     }
 
     /// Get all datoms for a specific entity. O(1) via entity index.
@@ -4525,8 +4649,9 @@ mod tests {
 
         let store = Store::from_datoms(datoms);
 
-        let views_fitness = store.views().fitness();
-        let batch_fitness = compute_fitness(&store);
+        let fw = crate::bilateral::FitnessWeights::default();
+        let views_fitness = store.views().fitness(&fw);
+        let batch_fitness = compute_fitness(&store, &fw);
 
         let vc = views_fitness.components;
         let bc = batch_fitness.components;
@@ -4679,7 +4804,8 @@ mod tests {
             Op::Assert,
         )];
 
-        let delta = store.views().project_delta(&hypothetical);
+        let fw = crate::bilateral::FitnessWeights::default();
+        let delta = store.views().project_delta(&hypothetical, &fw);
         // Coverage should increase (we're adding impl coverage for a spec)
         assert!(
             delta.coverage >= 0.0,
@@ -4687,7 +4813,7 @@ mod tests {
             delta.coverage
         );
         assert!(
-            !delta.is_zero(),
+            !delta.is_zero(&fw),
             "adding impl to uncovered spec should produce nonzero delta"
         );
     }
@@ -4706,7 +4832,8 @@ mod tests {
             Op::Assert,
         )];
 
-        let _delta = store.views().project_delta(&hypothetical);
+        let fw = crate::bilateral::FitnessWeights::default();
+        let _delta = store.views().project_delta(&hypothetical, &fw);
 
         // Store views must NOT be mutated
         assert_eq!(
@@ -4720,9 +4847,10 @@ mod tests {
     #[test]
     fn ce5_project_delta_empty_is_zero() {
         let store = Store::genesis();
-        let delta = store.views().project_delta(&[]);
+        let fw = crate::bilateral::FitnessWeights::default();
+        let delta = store.views().project_delta(&[], &fw);
         assert!(
-            delta.is_zero(),
+            delta.is_zero(&fw),
             "empty hypothetical should produce zero delta"
         );
     }
@@ -4743,10 +4871,11 @@ mod tests {
             Op::Assert,
         )];
 
-        let delta = store.views().project_delta(&hypothetical);
+        let fw = crate::bilateral::FitnessWeights::default();
+        let delta = store.views().project_delta(&hypothetical, &fw);
         // U component should change (adding a confidence observation)
         assert!(
-            delta.uncertainty.abs() > f64::EPSILON || !delta.is_zero(),
+            delta.uncertainty.abs() > f64::EPSILON || !delta.is_zero(&fw),
             "observation should produce nonzero delta"
         );
     }
@@ -4780,7 +4909,8 @@ mod tests {
             Op::Assert,
         )];
 
-        let _delta = store.views().project_delta(&hypothetical);
+        let fw = crate::bilateral::FitnessWeights::default();
+        let _delta = store.views().project_delta(&hypothetical, &fw);
         // project_delta must not mutate original views
         assert!(
             store.views().task_open == open_before,
@@ -4847,8 +4977,9 @@ mod tests {
             Op::Assert,
         )];
 
-        let delta_a = store.views().project_delta(&hypo_a);
-        let delta_b = store.views().project_delta(&hypo_b);
+        let fw = crate::bilateral::FitnessWeights::default();
+        let delta_a = store.views().project_delta(&hypo_a, &fw);
+        let delta_b = store.views().project_delta(&hypo_b, &fw);
 
         // Task B (covering uncovered spec) should have larger coverage delta
         assert!(
@@ -4872,7 +5003,8 @@ mod tests {
             uncertainty: 1.0,
         };
         // Sum of all weights should equal 1.0
-        let mag = delta.weighted_magnitude();
+        let fw = crate::bilateral::FitnessWeights::default();
+        let mag = delta.weighted_magnitude(&fw);
         assert!(
             (mag - 1.0).abs() < 0.01,
             "all-ones delta should have magnitude ~1.0: {:.4}",
@@ -5801,8 +5933,9 @@ mod tests {
         );
 
         // --- Check 5: MaterializedViews fitness isomorphism ---
-        let inc_fitness = store.views().fitness();
-        let batch_fitness = rebuilt.views().fitness();
+        let fw = crate::bilateral::FitnessWeights::default();
+        let inc_fitness = store.views().fitness(&fw);
+        let batch_fitness = rebuilt.views().fitness(&fw);
         assert!(
             (inc_fitness.total - batch_fitness.total).abs() < 1e-10,
             "INV-STORE-IDX-005: views().fitness().total mismatch: \
@@ -5812,8 +5945,8 @@ mod tests {
         );
 
         // Also verify against the full batch compute_fitness
-        let full_batch = compute_fitness(&store);
-        let full_batch_rebuilt = compute_fitness(&rebuilt);
+        let full_batch = compute_fitness(&store, &fw);
+        let full_batch_rebuilt = compute_fitness(&rebuilt, &fw);
         assert!(
             (full_batch.total - full_batch_rebuilt.total).abs() < 1e-10,
             "INV-STORE-IDX-005: compute_fitness() must agree for same datom set: \

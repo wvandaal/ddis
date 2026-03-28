@@ -1270,9 +1270,7 @@ fn full_checkpoint_truncates_wal() {
     // Allow a brief moment for the commit thread to process.
     std::thread::sleep(Duration::from_millis(500));
     if wal_path.exists() {
-        let wal_size_before = std::fs::metadata(&wal_path)
-            .map(|m| m.len())
-            .unwrap_or(0);
+        let wal_size_before = std::fs::metadata(&wal_path).map(|m| m.len()).unwrap_or(0);
         // WAL may or may not have entries depending on timing, but after
         // harvest --commit it must be truncated.
         let _ = wal_size_before; // acknowledge
@@ -1297,9 +1295,7 @@ fn full_checkpoint_truncates_wal() {
 
     // After full checkpoint, WAL should be truncated (0 bytes).
     if wal_path.exists() {
-        let wal_size_after = std::fs::metadata(&wal_path)
-            .map(|m| m.len())
-            .unwrap_or(0);
+        let wal_size_after = std::fs::metadata(&wal_path).map(|m| m.len()).unwrap_or(0);
         assert_eq!(
             wal_size_after, 0,
             "WAL must be truncated to 0 bytes after full checkpoint, got {wal_size_after}"
@@ -1467,7 +1463,10 @@ fn daemon_start_installs_runtime_schema() {
         "braid_query",
         json!({ "attribute": ":runtime/command" }),
     );
-    assert!(!is_error(&resp2), "query after tool call must succeed: {resp2}");
+    assert!(
+        !is_error(&resp2),
+        "query after tool call must succeed: {resp2}"
+    );
     let text = extract_text(&resp2).unwrap_or_default();
     assert!(
         text.contains("braid_status") || text.contains("runtime"),
@@ -1701,9 +1700,7 @@ fn daemon_open_with_wal_on_restart() {
     );
     // If WAL was written, observations should be recovered.
     // We log the count for diagnostic purposes.
-    eprintln!(
-        "WAL recovery: {recovered_count}/3 observations recovered after SIGKILL"
-    );
+    eprintln!("WAL recovery: {recovered_count}/3 observations recovered after SIGKILL");
 
     drop(guard2);
 }
@@ -1755,10 +1752,7 @@ fn socket_daemon_shutdown_stops_daemon() {
     std::thread::sleep(Duration::from_millis(200));
 
     // Verify socket file is removed.
-    assert!(
-        !sp.exists(),
-        "daemon.sock must be removed after shutdown"
-    );
+    assert!(!sp.exists(), "daemon.sock must be removed after shutdown");
 }
 
 /// JSON-RPC notification (no "id" field) should not produce a response.
@@ -1795,12 +1789,11 @@ fn socket_notification_no_response() {
         Some(Ok(l)) => {
             // If we got a response, it might be acceptable for some notification
             // methods. The key point is the daemon doesn't crash.
-            eprintln!(
-                "NOTE: got response for notification (may be implementation-specific): {l}"
-            );
+            eprintln!("NOTE: got response for notification (may be implementation-specific): {l}");
         }
-        Some(Err(e)) if e.kind() == std::io::ErrorKind::WouldBlock
-            || e.kind() == std::io::ErrorKind::TimedOut =>
+        Some(Err(e))
+            if e.kind() == std::io::ErrorKind::WouldBlock
+                || e.kind() == std::io::ErrorKind::TimedOut =>
         {
             // Expected: timeout means no response sent for notification.
         }
@@ -1859,10 +1852,7 @@ fn socket_harvest_returns_candidates() {
     );
     let text = extract_text(&harvest_resp).unwrap_or_default();
     // Harvest response should mention candidates or knowledge or session info.
-    assert!(
-        !text.is_empty(),
-        "harvest must return non-empty response"
-    );
+    assert!(!text.is_empty(), "harvest must return non-empty response");
 }
 
 /// braid_seed returns context sections.
@@ -1874,24 +1864,21 @@ fn socket_seed_returns_context() {
     let _guard = start_daemon(&braid_dir);
     let sp = sock(&braid_dir);
 
-    let resp = call_tool(
-        &sp,
-        "braid_seed",
-        json!({ "task": "test task" }),
-    );
+    let resp = call_tool(&sp, "braid_seed", json!({ "task": "test task" }));
     assert!(!is_error(&resp), "seed must succeed: {resp}");
     let text = extract_text(&resp).unwrap_or_default();
     // Seed response should contain context sections.
-    assert!(
-        !text.is_empty(),
-        "seed must return non-empty context"
-    );
+    assert!(!text.is_empty(), "seed must return non-empty context");
     // Typically includes protocol, orientation, or session info.
     assert!(
-        text.contains("Protocol") || text.contains("protocol")
-            || text.contains("Session") || text.contains("session")
-            || text.contains("Context") || text.contains("context")
-            || text.contains("Quick Reference") || text.contains("braid"),
+        text.contains("Protocol")
+            || text.contains("protocol")
+            || text.contains("Session")
+            || text.contains("session")
+            || text.contains("Context")
+            || text.contains("context")
+            || text.contains("Quick Reference")
+            || text.contains("braid"),
         "seed must contain recognizable context sections. text (first 200): {}",
         &text[..text.len().min(200)]
     );
@@ -1939,15 +1926,15 @@ fn socket_guidance_returns_methodology() {
     let resp = call_tool(&sp, "braid_guidance", json!({}));
     assert!(!is_error(&resp), "guidance must succeed: {resp}");
     let text = extract_text(&resp).unwrap_or_default();
-    assert!(
-        !text.is_empty(),
-        "guidance must return non-empty response"
-    );
+    assert!(!text.is_empty(), "guidance must return non-empty response");
     // Guidance typically includes M(t), methodology, or scoring info.
     assert!(
-        text.contains("M(t)") || text.contains("methodology")
-            || text.contains("Methodology") || text.contains("gap")
-            || text.contains("guidance") || text.contains("Guidance")
+        text.contains("M(t)")
+            || text.contains("methodology")
+            || text.contains("Methodology")
+            || text.contains("gap")
+            || text.contains("guidance")
+            || text.contains("Guidance")
             || text.len() > 10,
         "guidance must contain methodology info. text (first 200): {}",
         &text[..text.len().min(200)]
@@ -2067,10 +2054,7 @@ fn runtime_request_id_matches() {
         let resp: JsonValue = serde_json::from_str(&l).unwrap_or(json!({}));
         // Response id should match request id.
         let resp_id = resp.get("id").and_then(|v| v.as_str()).unwrap_or("");
-        assert_eq!(
-            resp_id, "test-req-42",
-            "response id must match request id"
-        );
+        assert_eq!(resp_id, "test-req-42", "response id must match request id");
     }
 
     // Shutdown and check if request-id was recorded in runtime datoms.
@@ -2240,7 +2224,7 @@ fn concurrent_write_read_visibility() {
     let barrier_read = barrier.clone();
     let reader = std::thread::spawn(move || {
         barrier_read.wait(); // Wait for write to complete.
-        // Small delay to ensure daemon has processed the write.
+                             // Small delay to ensure daemon has processed the write.
         std::thread::sleep(Duration::from_millis(200));
         let resp = call_tool(
             &sp_read,
@@ -2401,9 +2385,7 @@ fn passive_checkpoint_does_not_truncate_wal() {
     // However, the implementation may vary — if the daemon's final flush
     // includes a full checkpoint, the WAL could be cleared. We verify
     // the behavior rather than asserting a specific outcome.
-    eprintln!(
-        "WAL size: before_stop={wal_size_before}, after_stop={wal_size_after}"
-    );
+    eprintln!("WAL size: before_stop={wal_size_before}, after_stop={wal_size_after}");
     // Primary invariant: data was persisted (checked by other tests).
     // This test just documents the WAL truncation behavior.
 }
@@ -2622,18 +2604,13 @@ fn wal_survives_daemon_crash() {
 
     // WAL file should still exist after crash (not deleted by SIGKILL).
     if wal_path.exists() {
-        let wal_size = std::fs::metadata(&wal_path)
-            .map(|m| m.len())
-            .unwrap_or(0);
+        let wal_size = std::fs::metadata(&wal_path).map(|m| m.len()).unwrap_or(0);
         eprintln!("WAL size after crash: {wal_size} bytes");
     }
 
     // Verify .edn files survived the crash.
     let edn_after_crash = count_edn_files(&braid_dir);
-    assert!(
-        edn_after_crash > 0,
-        ".edn files must survive SIGKILL"
-    );
+    assert!(edn_after_crash > 0, ".edn files must survive SIGKILL");
 }
 
 /// Daemon restart after crash recovers all data from .edn files.
@@ -2883,7 +2860,10 @@ fn rapid_connect_disconnect_no_leak() {
         .get("result")
         .and_then(|r| r.get("pid"))
         .and_then(|p| p.as_u64());
-    assert!(pid.is_some(), "daemon must still be alive after 50 connect/disconnect cycles");
+    assert!(
+        pid.is_some(),
+        "daemon must still be alive after 50 connect/disconnect cycles"
+    );
 
     drop(guard);
 }
@@ -2901,9 +2881,8 @@ fn long_running_request_doesnt_block_accept() {
 
     // Thread 1: send a harvest request (relatively slow).
     let sp1 = sp.clone();
-    let t1 = std::thread::spawn(move || {
-        call_tool(&sp1, "braid_harvest", json!({"task": "slow test"}))
-    });
+    let t1 =
+        std::thread::spawn(move || call_tool(&sp1, "braid_harvest", json!({"task": "slow test"})));
 
     // Small delay to ensure thread 1's request is in flight.
     std::thread::sleep(Duration::from_millis(50));
@@ -2913,7 +2892,10 @@ fn long_running_request_doesnt_block_accept() {
     let resp = send_jsonrpc(&sp, "ping", json!({}));
     let ping_elapsed = start.elapsed();
 
-    assert!(!is_error(&resp), "ping must succeed while harvest in flight");
+    assert!(
+        !is_error(&resp),
+        "ping must succeed while harvest in flight"
+    );
     // Ping should complete quickly (< 2s) even if harvest is slow.
     assert!(
         ping_elapsed < Duration::from_secs(2),
@@ -3154,7 +3136,6 @@ fn wal_and_edn_consistent_after_checkpoint() {
 /// 9.6: Two processes flushing simultaneously — store.bin remains valid.
 #[test]
 fn concurrent_flush_no_corruption() {
-
     let tmp = tempfile::tempdir().unwrap();
     let braid_dir = tmp.path().join(".braid");
     init_store(&braid_dir);
@@ -3163,9 +3144,13 @@ fn concurrent_flush_no_corruption() {
     for i in 0..5 {
         braid_cmd()
             .args([
-                "observe", "--path",
+                "observe",
+                "--path",
                 &braid_dir.to_string_lossy(),
-                "-q", "--no-auto-crystallize", "-c", "0.7",
+                "-q",
+                "--no-auto-crystallize",
+                "-c",
+                "0.7",
                 &format!("concurrent-flush-{i}"),
             ])
             .assert()
@@ -3174,16 +3159,28 @@ fn concurrent_flush_no_corruption() {
 
     // Verify store.bin is readable by running status.
     let output = braid_cmd()
-        .args(["status", "--path", &braid_dir.to_string_lossy(), "-q", "--format", "json"])
+        .args([
+            "status",
+            "--path",
+            &braid_dir.to_string_lossy(),
+            "-q",
+            "--format",
+            "json",
+        ])
         .output()
         .unwrap();
-    assert!(output.status.success(), "status must succeed after concurrent writes");
+    assert!(
+        output.status.success(),
+        "status must succeed after concurrent writes"
+    );
 }
 
 /// 9.7: External write causes fingerprint mismatch → CLI detects → full rebuild.
 #[test]
 fn cache_fingerprint_mismatch_triggers_rebuild() {
-    use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
+    use braid_kernel::datom::{
+        AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value,
+    };
     use braid_kernel::layout::{serialize_tx, ContentHash, TxFile, TxFilePath};
 
     let tmp = tempfile::tempdir().unwrap();
@@ -3229,8 +3226,12 @@ fn cache_fingerprint_mismatch_triggers_rebuild() {
     // CLI should detect fingerprint mismatch and rebuild, seeing the new datom.
     let output = braid_cmd()
         .args([
-            "query", "--path", &braid_dir.to_string_lossy(),
-            "-q", "--attribute", ":db/doc",
+            "query",
+            "--path",
+            &braid_dir.to_string_lossy(),
+            "-q",
+            "--attribute",
+            ":db/doc",
         ])
         .output()
         .unwrap();
@@ -3373,9 +3374,13 @@ fn store_bin_corrupt_fallback_to_rebuild() {
     // Write an observation to have some data.
     braid_cmd()
         .args([
-            "observe", "--path",
+            "observe",
+            "--path",
             &braid_dir.to_string_lossy(),
-            "-q", "--no-auto-crystallize", "-c", "0.7",
+            "-q",
+            "--no-auto-crystallize",
+            "-c",
+            "0.7",
             "corrupt-cache-test",
         ])
         .assert()
@@ -3462,10 +3467,7 @@ fn daemon_handles_rapid_start_stop() {
 
         // Verify daemon is operational.
         let resp = call_tool(&sp, "braid_status", json!({}));
-        assert!(
-            !is_error(&resp),
-            "cycle {cycle}: status must succeed"
-        );
+        assert!(!is_error(&resp), "cycle {cycle}: status must succeed");
 
         // Write something unique per cycle.
         call_tool(
@@ -3492,8 +3494,12 @@ fn daemon_handles_rapid_start_stop() {
     // Verify all 3 cycles' data persisted.
     let output = braid_cmd()
         .args([
-            "query", "--path", &braid_dir.to_string_lossy(),
-            "-q", "--attribute", ":exploration/body",
+            "query",
+            "--path",
+            &braid_dir.to_string_lossy(),
+            "-q",
+            "--attribute",
+            ":exploration/body",
         ])
         .output()
         .unwrap();
@@ -3683,8 +3689,7 @@ fn daemon_memory_stable_after_100_requests() {
     let sp = sock(&braid_dir);
 
     // Read daemon PID from lock file.
-    let lock_content =
-        std::fs::read_to_string(braid_dir.join("daemon.lock")).unwrap_or_default();
+    let lock_content = std::fs::read_to_string(braid_dir.join("daemon.lock")).unwrap_or_default();
     let pid: u32 = match lock_content.trim().parse() {
         Ok(p) => p,
         Err(_) => {

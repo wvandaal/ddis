@@ -16,7 +16,7 @@
 
 use std::collections::BTreeSet;
 
-use braid_kernel::bilateral::compute_fitness;
+use braid_kernel::bilateral::{compute_fitness, FitnessWeights};
 use braid_kernel::compiler::{detect_patterns, detect_patterns_for_text};
 use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 use braid_kernel::harvest::{
@@ -357,7 +357,8 @@ fn e2e_distillation_closed_loop() {
     eprintln!("[Step 6] Accepting proposal with coherence check...");
 
     // Capture F(S) BEFORE acceptance for comparison in Step 9
-    let fitness_before = compute_fitness(&store);
+    let fw = FitnessWeights::default();
+    let fitness_before = compute_fitness(&store, &fw);
     eprintln!(
         "  F(S) before acceptance: {:.4} (V={:.3}, C={:.3}, D={:.3}, H={:.3}, K={:.3}, I={:.3}, U={:.3})",
         fitness_before.total,
@@ -603,7 +604,7 @@ fn e2e_distillation_closed_loop() {
     // ===================================================================
     eprintln!("[Step 9] Computing F(S) after full pipeline...");
 
-    let fitness_after = compute_fitness(&store);
+    let fitness_after = compute_fitness(&store, &fw);
     eprintln!(
         "  F(S) after pipeline: {:.4} (V={:.3}, C={:.3}, D={:.3}, H={:.3}, K={:.3}, I={:.3}, U={:.3})",
         fitness_after.total,

@@ -16,8 +16,8 @@ use std::path::Path;
 
 use braid_kernel::bilateral::{
     cycle_to_datoms, format_terse as bilateral_format_terse,
-    format_verbose as bilateral_format_verbose, load_trajectory, run_cycle, W_CONTRADICTION,
-    W_COVERAGE, W_DRIFT, W_HARVEST, W_INCOMPLETENESS, W_UNCERTAINTY, W_VALIDATION,
+    format_verbose as bilateral_format_verbose, load_trajectory, run_cycle, FitnessWeights,
+    W_CONTRADICTION, W_COVERAGE, W_DRIFT, W_HARVEST, W_INCOMPLETENESS, W_UNCERTAINTY, W_VALIDATION,
 };
 use braid_kernel::datom::{AgentId, ProvenanceType};
 use braid_kernel::layout::TxFile;
@@ -55,12 +55,15 @@ pub fn run(
     // Run the bilateral cycle
     let state = run_cycle(store, &trajectory, spectral || full);
 
+    // Resolve F(S) weights from policy (AUDIT-W1-001)
+    let weights = FitnessWeights::from_store(store);
+
     // ── Human output (unchanged from prior behavior) ─────────────────
 
     let mut human = if history {
         format_history_text(&state, &trajectory)?
     } else if full {
-        bilateral_format_verbose(&state)
+        bilateral_format_verbose(&state, &weights)
     } else {
         bilateral_format_terse(&state)
     };
