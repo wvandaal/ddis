@@ -112,8 +112,8 @@ pub use concept::{
     split_concept, surprise_weight, update_centroid, update_centroid_weighted,
     AgentObservationGroup, AgreementCluster, ConceptAssignment, ConceptCoOccurrence,
     ConceptSummary, EntityMatch, ExtractedLink, FrontierKind, FrontierRec, LinkRelation,
-    NewConcept, ObservationRecord, ObserveSteering, DEFAULT_ALPHA, INNATE_CONCEPTS,
-    JOIN_THRESHOLD, MERGE_THRESHOLD, MIN_CLUSTER_SIZE, SPLIT_THRESHOLD,
+    NewConcept, ObservationRecord, ObserveSteering, DEFAULT_ALPHA, INNATE_CONCEPTS, JOIN_THRESHOLD,
+    MERGE_THRESHOLD, MIN_CLUSTER_SIZE, SPLIT_THRESHOLD,
 };
 pub use config::{
     all_config, defaults as config_defaults, get_config, get_config_or, set_config_datoms,
@@ -240,9 +240,9 @@ pub use task::{
 pub use topology::{
     agent_name_from_files, balance_assign, classify_task_phase, composite_coupling,
     compute_file_coupling, compute_invariant_coupling, coupling_density_matrix,
-    emit_seed_for_agent, extract_task_files, fiedler_bisect, format_plan_agent,
-    format_plan_human, partition_by_file_coupling, partition_quality, phase_plan, quick_plan,
-    ready_task_files, select_topology, spec_dependency_datoms, spectral_partition,
+    emit_seed_for_agent, extract_task_files, fiedler_bisect, format_plan_agent, format_plan_human,
+    partition_by_file_coupling, partition_quality, phase_plan, quick_plan, ready_task_files,
+    select_topology, spec_dependency_datoms, spectral_partition,
     von_neumann_entropy_from_eigenvalues, AgentAssignment, CalmTier, CouplingAnalysis, Phase,
     PlanMethod, TopologyPattern, TopologyPlan,
 };

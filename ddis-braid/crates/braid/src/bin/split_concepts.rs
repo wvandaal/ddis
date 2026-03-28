@@ -35,10 +35,7 @@ fn main() {
         .unwrap_or_else(|| PathBuf::from(".braid"));
 
     if !braid_path.join("txns").is_dir() {
-        eprintln!(
-            "error: no braid store found at {}",
-            braid_path.display()
-        );
+        eprintln!("error: no braid store found at {}", braid_path.display());
         std::process::exit(1);
     }
 
@@ -53,14 +50,11 @@ fn main() {
         .and_then(|v| v.parse().ok())
         .unwrap_or(SPLIT_THRESHOLD);
 
-    let min_split_size: usize =
-        braid_kernel::config::get_config(&store, "concept.min-split-size")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(3);
+    let min_split_size: usize = braid_kernel::config::get_config(&store, "concept.min-split-size")
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(3);
 
-    eprintln!(
-        "parameters: split_threshold={split_threshold:.3}, min_split_size={min_split_size}"
-    );
+    eprintln!("parameters: split_threshold={split_threshold:.3}, min_split_size={min_split_size}");
 
     // 3. Collect concept inventory and identify split candidates.
     let concepts = concept_inventory(&store);
@@ -76,10 +70,7 @@ fn main() {
         return;
     }
 
-    eprintln!(
-        "\nsplit candidates ({}):",
-        candidates.len()
-    );
+    eprintln!("\nsplit candidates ({}):", candidates.len());
     for c in &candidates {
         eprintln!(
             "  {} (members={}, variance={:.4})",
@@ -132,10 +123,7 @@ fn main() {
     for (entity, refs) in &entity_concept_refs {
         // Take the latest concept ref by tx time.
         if let Some((concept_e, _)) = refs.iter().max_by_key(|(_, tx)| tx.wall_time()) {
-            concept_members
-                .entry(*concept_e)
-                .or_default()
-                .push(*entity);
+            concept_members.entry(*concept_e).or_default().push(*entity);
         }
     }
 
@@ -160,10 +148,7 @@ fn main() {
         let members = match concept_members.get(&candidate.entity) {
             Some(m) => m,
             None => {
-                eprintln!(
-                    "  skipping {} -- no members found in store",
-                    candidate.name
-                );
+                eprintln!("  skipping {} -- no members found in store", candidate.name);
                 continue;
             }
         };
@@ -193,9 +178,11 @@ fn main() {
         }
 
         // Recompute variance from actual embeddings for diagnostic.
-        let diag_embeddings: Vec<&[f32]> = member_data.iter().map(|(_, e, _)| e.as_slice()).collect();
+        let diag_embeddings: Vec<&[f32]> =
+            member_data.iter().map(|(_, e, _)| e.as_slice()).collect();
         let diag_centroid = braid_kernel::embedding::centroid(&diag_embeddings);
-        let recomputed_var = braid_kernel::embedding::variance(&diag_embeddings, &diag_centroid) as f64;
+        let recomputed_var =
+            braid_kernel::embedding::variance(&diag_embeddings, &diag_centroid) as f64;
 
         eprintln!(
             "\nsplitting '{}' ({} members with embeddings, stored_variance={:.4}, recomputed_variance={:.4})...",
@@ -205,7 +192,8 @@ fn main() {
             recomputed_var,
         );
 
-        let sub_concepts = split_concept(&member_data, &corpus_texts, split_threshold, min_split_size);
+        let sub_concepts =
+            split_concept(&member_data, &corpus_texts, split_threshold, min_split_size);
 
         if sub_concepts.is_empty() {
             eprintln!("  no split produced (recomputed variance {:.4} <= threshold {:.3}, or bisection yielded single group)",

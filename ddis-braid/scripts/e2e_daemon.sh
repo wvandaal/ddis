@@ -138,7 +138,7 @@ echo ""
 echo "--- Test 5: runtime datoms (INV-DAEMON-003) ---"
 # Query runtime datoms via a separate socket call.
 if command -v socat &>/dev/null; then
-    RUNTIME_RESP=$(echo '{"jsonrpc":"2.0","id":99,"method":"tools/call","params":{"name":"braid_query","arguments":{"datalog":"[:find ?cmd ?lat :where [?e :runtime/command ?cmd] [?e :runtime/latency-ms ?lat]]"}}}' | socat - UNIX-CONNECT:.braid/daemon.sock 2>/dev/null || echo "")
+    RUNTIME_RESP=$(echo '{"jsonrpc":"2.0","id":99,"method":"tools/call","params":{"name":"braid_query","arguments":{"datalog":"[:find ?cmd ?lat :where [?e :runtime/command ?cmd] [?e :runtime/latency-us ?lat]]"}}}' | socat - UNIX-CONNECT:.braid/daemon.sock 2>/dev/null || echo "")
     echo "$RUNTIME_RESP" | grep -q "runtime"
     # The response should contain runtime command names.
     if echo "$RUNTIME_RESP" | grep -q "braid_status"; then

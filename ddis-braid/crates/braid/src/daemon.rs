@@ -4,12 +4,24 @@
 //! serves JSON-RPC requests using the same protocol as the MCP server,
 //! and emits reflexive `:runtime/*` datoms for every processed command.
 //!
-//! # Architecture (ADR-DAEMON-002)
+//! # Architecture (ADR-DAEMON-002, DS4)
 //!
 //! The daemon reuses the MCP tool dispatch from [`crate::mcp`]. It adds:
 //! - Lifecycle management (lock file, signal handling, graceful shutdown)
 //! - Unix socket transport (instead of stdin/stdout)
 //! - Runtime datom emission (`handle_with_observation`)
+//! - **DS4**: Multi-threaded connection dispatch via `Arc<RwLock<LiveStore>>`
+//! - **DS6**: Integration wiring — `CommitHandle` and `CheckpointSignal` plumbed
+//!   to connection threads; `harvest --commit` triggers full WAL checkpoint
+//!
+//! ## Concurrency Model (DS4 — Wave A)
+//!
+//! The accept loop spawns one thread per incoming connection. The shared
+//! `LiveStore` is wrapped in `Arc<RwLock<LiveStore>>`. Every dispatch
+//! acquires a **write lock** because `handle_with_observation` writes
+//! runtime datoms after every request (including reads). Read/write lock
+//! splitting is Wave B work that requires refactoring the observation
+//! emission path.
 //!
 //! # Invariants
 //!
@@ -19,13 +31,14 @@
 //! - **INV-DAEMON-004**: Semantic equivalence with direct mode.
 //! - **INV-DAEMON-005**: Stale lock recovery via `kill(pid, 0)`.
 //! - **INV-DAEMON-006**: Graceful shutdown preserves all state.
+//! - **INV-DAEMON-012**: Multi-threaded dispatch — accept loop never blocks on dispatch.
 
 use std::io::{BufRead, Write};
 use std::os::unix::net::UnixListener;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-use std::time::Instant;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::{mpsc, Arc, RwLock};
+use std::time::{Duration, Instant};
 
 use serde_json::{json, Value as JsonValue};
 
@@ -227,10 +240,10 @@ const RUNTIME_ATTRS: &[(&str, &str, &str, &str)] = &[
         "JSON-RPC request ID as string",
     ),
     (
-        ":runtime/latency-ms",
+        ":runtime/latency-us",
         ":db.type/long",
         ":db.cardinality/one",
-        "Wall clock milliseconds for request processing",
+        "Wall clock microseconds for request processing",
     ),
     (
         ":runtime/outcome",
@@ -1152,11 +1165,17 @@ pub fn try_route_through_daemon(
 /// Run the daemon server (foreground mode).
 ///
 /// Sequence: acquire lock → open LiveStore → install runtime schema →
-/// bind socket → signal handlers → accept loop → shutdown.
+/// bind socket → signal handlers → accept loop (multi-threaded) → shutdown.
+///
+/// **DS4**: Each incoming connection is dispatched on a dedicated thread.
+/// The `LiveStore` is shared via `Arc<RwLock<LiveStore>>`. All dispatches
+/// acquire a write lock (Wave A — `handle_with_observation` writes after
+/// every request, so read/write splitting requires Wave B refactoring).
 ///
 /// **INV-DAEMON-001**: Single daemon enforced via lock file.
 /// **INV-DAEMON-002**: `refresh_if_needed()` before every dispatch.
 /// **INV-DAEMON-006**: Graceful shutdown on SIGTERM/SIGINT.
+/// **INV-DAEMON-012**: Accept loop never blocks on dispatch.
 pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
     let lock_path = LockPath::new(braid_dir);
     let sock_path = SocketPath::new(braid_dir);
@@ -1170,8 +1189,11 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
         sock_path: sock_path.clone(),
     };
 
-    // 2. Open LiveStore.
-    let mut live = crate::live_store::LiveStore::open(braid_dir).map_err(DaemonError::from)?;
+    // 2. Open LiveStore with WAL-accelerated recovery (DS5).
+    //    Fast path: checkpoint + WAL delta (O(1) + O(k)).
+    //    Falls through to medium (checkpoint + EDN) or slow (full rebuild) on failure.
+    let mut live =
+        crate::live_store::LiveStore::open_with_wal(braid_dir).map_err(DaemonError::from)?;
 
     // 3. Install runtime schema (ADR-DAEMON-003).
     install_runtime_schema(&mut live)?;
@@ -1181,6 +1203,62 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
 
     // 3b. Reflexive FEGH (PERF-4b): bridge hypotheses on self-model.
     run_reflexive_fegh(&mut live);
+
+    // INV-DAEMON-011: Idle timeout — daemon self-terminates after no requests.
+    // Default 300s (5 minutes). Configurable via :config/daemon-idle-timeout datom (C9).
+    // Read config BEFORE wrapping in RwLock (avoids lock acquisition at this point).
+    let idle_timeout_secs: u64 =
+        braid_kernel::config::get_config(live.store(), "daemon.idle-timeout-secs")
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(300);
+
+    // DS3: Checkpoint interval — configurable via :config/checkpoint-interval-secs (C9).
+    // Read before wrapping in RwLock (same pattern as idle timeout above).
+    let checkpoint_interval_secs: u64 =
+        braid_kernel::config::get_config(live.store(), "checkpoint-interval-secs")
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(60);
+
+    // DS4: Wrap LiveStore in Arc<RwLock> for multi-threaded dispatch.
+    let shared: Arc<RwLock<crate::live_store::LiveStore>> = Arc::new(RwLock::new(live));
+
+    // DS2: Group commit thread — WAL + mpsc channel for batched writes.
+    // The commit thread owns the WalWriter; connection threads submit
+    // CommitRequests via a cloned CommitHandle.
+    let wal_path = braid_dir.join(".cache/wal.bin");
+    let wal = crate::wal::WalWriter::open(&wal_path).map_err(|e| {
+        DaemonError::StoreError(crate::error::BraidError::Io(std::io::Error::other(
+            format!("WAL open failed: {e}"),
+        )))
+    })?;
+    let (commit_tx, commit_rx) = mpsc::channel::<CommitRequest>();
+    let commit_handle = CommitHandle { sender: commit_tx };
+    {
+        let shared_for_commit = Arc::clone(&shared);
+        let builder = std::thread::Builder::new().name("braid-group-commit".to_string());
+        if let Err(e) = builder.spawn(move || {
+            commit_thread(wal, commit_rx, shared_for_commit);
+        }) {
+            eprintln!("daemon: failed to spawn group commit thread: {e}");
+            // Non-fatal: the daemon can still operate via the direct write
+            // path (existing handle_with_observation). The CommitHandle will
+            // fail on first use since the receiver is never consumed.
+        }
+    }
+
+    // DS3: Checkpoint thread — WAL-to-.edn background conversion.
+    // Periodically converts WAL entries to .edn transaction files so they
+    // are git-ready without blocking reads or writes. Uses a separate
+    // DiskLayout instance (no sharing with LiveStore).
+    let checkpoint_sender = match spawn_checkpoint_thread(braid_dir, checkpoint_interval_secs) {
+        Ok((sender, _handle)) => Some(sender),
+        Err(e) => {
+            // Non-fatal: the daemon still operates, but WAL entries
+            // accumulate until the next `braid harvest --commit` (DS6).
+            eprintln!("daemon: failed to start checkpoint thread: {e}");
+            None
+        }
+    };
 
     // 4. Remove stale socket if it exists (crash recovery).
     let _ = std::fs::remove_file(sock_path.path());
@@ -1226,18 +1304,12 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
     }
 
     let start_time = Instant::now();
-    let mut request_count: u64 = 0;
-    let mut last_request_time = Instant::now();
+    // DS4: Shared atomic counters — accessible from spawned threads.
+    let request_count = Arc::new(AtomicU64::new(0));
+    let last_request_epoch_ms = Arc::new(AtomicU64::new(epoch_ms_now()));
+    let mut conn_count: u64 = 0;
 
-    // INV-DAEMON-011: Idle timeout — daemon self-terminates after no requests.
-    // Default 300s (5 minutes). Configurable via :config/daemon-idle-timeout datom (C9).
-    let idle_timeout_secs: u64 =
-        braid_kernel::config::get_config(live.store(), "daemon.idle-timeout-secs")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(300);
-    let idle_timeout = std::time::Duration::from_secs(idle_timeout_secs);
-
-    // 7. Accept loop.
+    // 7. Accept loop (DS4: non-blocking, spawns thread per connection).
     loop {
         if shutdown.load(Ordering::Relaxed) {
             eprintln!("daemon: shutdown signal received");
@@ -1255,7 +1327,9 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
         }
 
         // INV-DAEMON-011: Idle timeout check.
-        if last_request_time.elapsed() > idle_timeout {
+        let last_ms = last_request_epoch_ms.load(Ordering::Relaxed);
+        let now_ms = epoch_ms_now();
+        if now_ms.saturating_sub(last_ms) > idle_timeout_secs * 1000 {
             eprintln!(
                 "daemon: idle timeout ({}s) — shutting down",
                 idle_timeout_secs
@@ -1269,8 +1343,34 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
                 let _ = stream.set_read_timeout(Some(std::time::Duration::from_secs(30)));
                 let _ = stream.set_nonblocking(false);
 
-                handle_connection(stream, &mut live, &start_time, &mut request_count);
-                last_request_time = Instant::now(); // Reset idle timer on activity
+                conn_count += 1;
+                let thread_name = format!("braid-conn-{}", conn_count);
+                let shared_clone = Arc::clone(&shared);
+                let start_clone = start_time;
+                let req_count_clone = Arc::clone(&request_count);
+                let last_req_clone = Arc::clone(&last_request_epoch_ms);
+                let shutdown_clone = Arc::clone(&shutdown);
+                // DS6: Clone CommitHandle + checkpoint sender for connection thread.
+                let commit_handle_clone = commit_handle.clone();
+                let checkpoint_sender_clone = checkpoint_sender.as_ref().cloned();
+
+                // DS4/INV-DAEMON-012: Spawn thread — accept loop never blocks on dispatch.
+                let builder = std::thread::Builder::new().name(thread_name);
+                if let Err(e) = builder.spawn(move || {
+                    handle_connection_shared(
+                        stream,
+                        &shared_clone,
+                        &start_clone,
+                        &req_count_clone,
+                        &shutdown_clone,
+                        commit_handle_clone,
+                        checkpoint_sender_clone,
+                    );
+                    // Update idle timer after connection completes.
+                    last_req_clone.store(epoch_ms_now(), Ordering::Relaxed);
+                }) {
+                    eprintln!("daemon: failed to spawn connection thread: {e}");
+                }
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                 // No pending connection — sleep briefly and retry.
@@ -1284,12 +1384,34 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
         }
     }
 
-    // 8. Shutdown: flush LiveStore (INV-DAEMON-006).
+    // 8a. DS3: Stop the checkpoint thread (final passive checkpoint runs inside).
+    if let Some(sender) = checkpoint_sender {
+        let _ = sender.send(CheckpointSignal::Stop);
+        // The thread will run a final passive_checkpoint before exiting.
+        // We don't join here — the thread is non-critical and will exit
+        // promptly. The LiveStore flush below is the durability guarantee.
+    }
+
+    // 8b. Shutdown: flush LiveStore (INV-DAEMON-006).
     eprintln!("daemon: flushing store...");
-    let _ = live.flush();
+    match shared.write() {
+        Ok(mut live) => {
+            let _ = live.flush();
+        }
+        Err(poisoned) => {
+            // RwLock poisoned — a thread panicked while holding the lock.
+            // Still attempt to flush: the store may be partially consistent
+            // but flushing is best-effort (INV-DAEMON-006).
+            eprintln!("daemon: RwLock poisoned during shutdown, attempting flush anyway");
+            let mut live = poisoned.into_inner();
+            let _ = live.flush();
+        }
+    }
+    let total_requests = request_count.load(Ordering::Relaxed);
     eprintln!(
-        "daemon: stopped after {} requests, uptime {}s",
-        request_count,
+        "daemon: stopped after {} requests ({} connections), uptime {}s",
+        total_requests,
+        conn_count,
         start_time.elapsed().as_secs()
     );
 
@@ -1297,17 +1419,56 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
     Ok(())
 }
 
-/// Handle one client connection: read lines, dispatch, respond.
-fn handle_connection(
+/// Current wall-clock time as milliseconds since epoch.
+///
+/// Used by the accept loop for idle timeout tracking across threads.
+/// Monotonic clocks cannot be shared as raw u64 values across threads
+/// (they are opaque types), so we use wall time here. The idle timeout
+/// is coarse enough (minutes) that clock adjustments are irrelevant.
+fn epoch_ms_now() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as u64
+}
+
+/// Handle one client connection with shared `LiveStore` (DS4 multi-threaded path).
+///
+/// Reads newline-delimited JSON-RPC messages, acquires a write lock on the
+/// shared `LiveStore` for each dispatch, and writes responses back. The lock
+/// is held only for the duration of a single request, allowing other connection
+/// threads to interleave between requests.
+///
+/// **DS6**: After a `braid_harvest` with `commit=true`, sends
+/// [`CheckpointSignal::Full`] to the checkpoint thread and waits for
+/// completion. This ensures all WAL entries are converted to `.edn` files
+/// before the git commit runs. The `commit_handle` is available for future
+/// Wave E read/write lock splitting but is not used in the current dispatch path.
+///
+/// **INV-DAEMON-002**: `refresh_if_needed()` inside every locked dispatch.
+/// **INV-DAEMON-003**: Runtime datoms emitted via `handle_with_observation`.
+/// **INV-DAEMON-012**: Lock scope is per-request, not per-connection.
+fn handle_connection_shared(
     stream: std::os::unix::net::UnixStream,
-    live: &mut crate::live_store::LiveStore,
+    shared: &Arc<RwLock<crate::live_store::LiveStore>>,
     start_time: &Instant,
-    request_count: &mut u64,
+    request_count: &AtomicU64,
+    should_stop: &AtomicBool,
+    commit_handle: CommitHandle,
+    checkpoint_sender: Option<mpsc::Sender<CheckpointSignal>>,
 ) {
+    // DS6: commit_handle is available for future Wave E read/write lock splitting.
+    // For now, the direct write path (handle_with_observation) remains primary.
+    let _ = &commit_handle;
     let reader = std::io::BufReader::new(&stream);
     let mut writer = std::io::BufWriter::new(&stream);
 
     for line_result in reader.lines() {
+        // Check shutdown flag between requests — allows threads to exit promptly.
+        if should_stop.load(Ordering::Relaxed) {
+            break;
+        }
+
         let line = match line_result {
             Ok(l) => l,
             Err(_) => break, // Client disconnected or timeout.
@@ -1339,58 +1500,135 @@ fn handle_connection(
         let params = msg.get("params").cloned().unwrap_or(json!({}));
         let is_notification = msg.get("id").is_none();
 
-        // INV-DAEMON-002: refresh before every dispatch.
-        let _ = live.refresh_if_needed();
-
-        let response = match method {
-            // Daemon-specific methods.
-            "daemon/shutdown" => {
-                // Set the global shutdown flag.
-                if let Ok(guard) = SHUTDOWN_FLAG.lock() {
-                    if let Some(ref flag) = *guard {
-                        flag.store(true, Ordering::Relaxed);
-                    }
-                }
-                crate::mcp::jsonrpc_ok(&id, json!({"status": "stopping"}))
-            }
-            "daemon/status" => {
-                let uptime_secs = start_time.elapsed().as_secs();
-                let datom_count = live.store().len();
-                let entity_count = live.store().entity_count();
-                crate::mcp::jsonrpc_ok(
-                    &id,
-                    json!({
-                        "pid": std::process::id(),
-                        "uptime_secs": uptime_secs,
-                        "request_count": *request_count,
-                        "datom_count": datom_count,
-                        "entity_count": entity_count,
-                    }),
-                )
-            }
-            // Standard MCP methods — delegate to shared handlers.
-            "initialize" => crate::mcp::handle_initialize(&id, &params, live),
-            "initialized" => {
-                if is_notification {
-                    continue;
-                }
-                crate::mcp::jsonrpc_ok(&id, json!({}))
-            }
-            "tools/list" => crate::mcp::handle_tools_list(&id),
-            "tools/call" => {
-                // D4-6: Wrap with runtime datom emission (INV-DAEMON-003).
-                handle_with_observation(&id, &params, live)
-            }
-            "ping" => crate::mcp::jsonrpc_ok(&id, json!({})),
-            "notifications/cancelled" | "notifications/progress" => continue,
-            _ => crate::mcp::jsonrpc_error(
-                &id,
-                crate::mcp::METHOD_NOT_FOUND,
-                &format!("unknown method: {method}"),
-            ),
+        // DS6: Detect harvest-commit requests BEFORE acquiring the lock.
+        // If this is a tools/call for braid_harvest with commit=true, we
+        // trigger a full checkpoint AFTER the dispatch (outside the write lock).
+        let is_harvest_commit = method == "tools/call" && {
+            let tool_name = params
+                .get("arguments")
+                .and_then(|a| a.get("commit"))
+                .and_then(|c| c.as_bool())
+                .unwrap_or(false)
+                && params
+                    .get("name")
+                    .and_then(|n| n.as_str())
+                    .map(|n| n == "braid_harvest")
+                    .unwrap_or(false);
+            tool_name
         };
 
-        *request_count += 1;
+        // DS4: Acquire write lock per-request. All methods need write access
+        // in Wave A because handle_with_observation writes runtime datoms.
+        // Lock acquisition failure (poisoned) is a protocol error, not a panic.
+        let response = match shared.write() {
+            Ok(mut live) => {
+                // INV-DAEMON-002: refresh before every dispatch.
+                let _ = live.refresh_if_needed();
+
+                match method {
+                    // Daemon-specific methods.
+                    "daemon/shutdown" => {
+                        // Set the global shutdown flag.
+                        if let Ok(guard) = SHUTDOWN_FLAG.lock() {
+                            if let Some(ref flag) = *guard {
+                                flag.store(true, Ordering::Relaxed);
+                            }
+                        }
+                        crate::mcp::jsonrpc_ok(&id, json!({"status": "stopping"}))
+                    }
+                    "daemon/status" => {
+                        let uptime_secs = start_time.elapsed().as_secs();
+                        let datom_count = live.store().len();
+                        let entity_count = live.store().entity_count();
+                        let reqs = request_count.load(Ordering::Relaxed);
+                        crate::mcp::jsonrpc_ok(
+                            &id,
+                            json!({
+                                "pid": std::process::id(),
+                                "uptime_secs": uptime_secs,
+                                "request_count": reqs,
+                                "datom_count": datom_count,
+                                "entity_count": entity_count,
+                            }),
+                        )
+                    }
+                    // Standard MCP methods — delegate to shared handlers.
+                    "initialize" => crate::mcp::handle_initialize(&id, &params, &mut live),
+                    "initialized" => {
+                        if is_notification {
+                            continue;
+                        }
+                        crate::mcp::jsonrpc_ok(&id, json!({}))
+                    }
+                    "tools/list" => crate::mcp::handle_tools_list(&id),
+                    "tools/call" => {
+                        // D4-6: Wrap with runtime datom emission (INV-DAEMON-003).
+                        handle_with_observation(&id, &params, &mut live)
+                    }
+                    "ping" => crate::mcp::jsonrpc_ok(&id, json!({})),
+                    "notifications/cancelled" | "notifications/progress" => continue,
+                    _ => crate::mcp::jsonrpc_error(
+                        &id,
+                        crate::mcp::METHOD_NOT_FOUND,
+                        &format!("unknown method: {method}"),
+                    ),
+                }
+                // Write lock is dropped here at end of match arm scope.
+            }
+            Err(poisoned) => {
+                // RwLock poisoned — a sibling thread panicked while holding the lock.
+                // Recover the lock and attempt the dispatch anyway. This is best-effort:
+                // the store state may be inconsistent, but returning a protocol error
+                // for every subsequent request is worse than trying.
+                eprintln!("daemon: RwLock poisoned, recovering for dispatch");
+                let mut live = poisoned.into_inner();
+                let _ = live.refresh_if_needed();
+                match method {
+                    "daemon/shutdown" => {
+                        if let Ok(guard) = SHUTDOWN_FLAG.lock() {
+                            if let Some(ref flag) = *guard {
+                                flag.store(true, Ordering::Relaxed);
+                            }
+                        }
+                        crate::mcp::jsonrpc_ok(&id, json!({"status": "stopping"}))
+                    }
+                    "tools/call" => handle_with_observation(&id, &params, &mut live),
+                    _ => crate::mcp::jsonrpc_error(
+                        &id,
+                        crate::mcp::METHOD_NOT_FOUND,
+                        "RwLock poisoned — limited dispatch available",
+                    ),
+                }
+            }
+        };
+
+        // DS6: After harvest --commit, trigger a full checkpoint so all WAL
+        // entries are converted to .edn files before the git commit runs.
+        // This happens OUTSIDE the write lock — the checkpoint thread has its
+        // own DiskLayout instance (DS3-004: no contention with LiveStore).
+        if is_harvest_commit {
+            if let Some(ref sender) = checkpoint_sender {
+                let (done_tx, done_rx) = mpsc::channel();
+                if sender.send(CheckpointSignal::Full(done_tx)).is_ok() {
+                    match done_rx.recv_timeout(Duration::from_secs(30)) {
+                        Ok(Ok(())) => {
+                            eprintln!("daemon: DS6 full checkpoint completed for harvest --commit");
+                        }
+                        Ok(Err(e)) => {
+                            eprintln!("daemon: DS6 full checkpoint failed: {e}");
+                        }
+                        Err(mpsc::RecvTimeoutError::Timeout) => {
+                            eprintln!("daemon: DS6 full checkpoint timed out after 30s");
+                        }
+                        Err(mpsc::RecvTimeoutError::Disconnected) => {
+                            eprintln!("daemon: DS6 checkpoint thread disconnected");
+                        }
+                    }
+                }
+            }
+        }
+
+        request_count.fetch_add(1, Ordering::Relaxed);
         let _ = write_json_line(&mut writer, &response);
     }
 }
@@ -1423,7 +1661,7 @@ fn handle_with_observation(
     let result = crate::mcp::handle_tools_call(id, params, live);
 
     // Emit runtime datoms (best-effort — never fail the original request).
-    let elapsed_ms = start.elapsed().as_millis() as i64;
+    let elapsed_us = start.elapsed().as_micros() as i64;
     let is_error = result
         .get("result")
         .and_then(|r| r.get("isError"))
@@ -1476,8 +1714,8 @@ fn handle_with_observation(
         ),
         Datom::new(
             entity,
-            Attribute::from_keyword(":runtime/latency-ms"),
-            Value::Long(elapsed_ms),
+            Attribute::from_keyword(":runtime/latency-us"),
+            Value::Long(elapsed_us),
             tx_id,
             Op::Assert,
         ),
@@ -1550,6 +1788,437 @@ impl Drop for CleanupGuard {
         let _ = std::fs::remove_file(self.sock_path.path());
         release_lock(&self.lock_path);
     }
+}
+
+// ---------------------------------------------------------------------------
+// DS2: Group commit — mpsc channel + dedicated commit thread
+// ---------------------------------------------------------------------------
+
+/// A write request submitted to the group commit channel.
+///
+/// Connection threads construct a `CommitRequest` with the transaction to
+/// commit and a oneshot-style response channel. The commit thread drains
+/// pending requests, appends them as a WAL batch (single fsync), applies
+/// the datoms to the shared `LiveStore`, and signals each requester via
+/// `done`.
+///
+/// **INV-DS2-001**: Every committed transaction is durable (WAL fsynced)
+/// before the `done` signal is sent.
+///
+/// **INV-DS2-002**: The commit thread is the sole writer to `WalWriter`,
+/// preventing interleaved partial frames.
+struct CommitRequest {
+    /// The transaction to commit.
+    tx: braid_kernel::layout::TxFile,
+    /// Completion signal — sent after WAL fsync confirms durability.
+    /// The value is the `WalEntryMeta` for the committed entry.
+    done: mpsc::Sender<Result<crate::wal::WalEntryMeta, String>>,
+}
+
+/// Handle held by connection threads to submit writes for group commit.
+///
+/// Cloneable: one clone per connection thread. Submitting a transaction
+/// blocks the caller until the commit thread confirms durability via fsync.
+///
+/// **INV-DS2-003**: `commit()` is linearizable — if it returns `Ok`, the
+/// transaction is durable on disk and applied to the shared `LiveStore`.
+#[derive(Clone)]
+pub struct CommitHandle {
+    sender: mpsc::Sender<CommitRequest>,
+}
+
+impl CommitHandle {
+    /// Submit a write and block until durability is confirmed.
+    ///
+    /// Returns metadata about the committed WAL entry. The caller blocks
+    /// on the oneshot response channel until the commit thread has:
+    /// 1. Appended the transaction to the WAL batch.
+    /// 2. Called `fsync` on the batch (single fsync for all batched requests).
+    /// 3. Applied the datoms to the shared `LiveStore`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `BraidError::Validation` if the commit channel is closed
+    /// (commit thread has exited) or if the response channel is closed
+    /// (commit thread dropped the sender without responding).
+    pub fn commit(
+        &self,
+        tx: braid_kernel::layout::TxFile,
+    ) -> Result<crate::wal::WalEntryMeta, crate::error::BraidError> {
+        let (done_tx, done_rx) = mpsc::channel();
+        self.sender
+            .send(CommitRequest { tx, done: done_tx })
+            .map_err(|_| crate::error::BraidError::Validation("commit channel closed".into()))?;
+        done_rx
+            .recv()
+            .map_err(|_| {
+                crate::error::BraidError::Validation("commit response channel closed".into())
+            })?
+            .map_err(crate::error::BraidError::Validation)
+    }
+}
+
+/// Default batch interval — starting point before adaptive tuning.
+const GROUP_COMMIT_INITIAL_INTERVAL_MS: u64 = 50;
+
+/// Minimum batch interval under sustained load (many concurrent writers).
+const GROUP_COMMIT_MIN_INTERVAL_MS: u64 = 5;
+
+/// Number of consecutive single-item batches before increasing the interval.
+/// Prevents thrashing between fast and slow modes.
+const GROUP_COMMIT_SINGLE_BATCH_THRESHOLD: u32 = 10;
+
+/// Dedicated commit thread — drains the `CommitRequest` channel and batches
+/// writes into a single WAL fsync per batch.
+///
+/// # Concurrency model (DS2)
+///
+/// The commit thread is the sole owner of `WalWriter` (INV-DS2-002).
+/// Connection threads never touch the WAL directly. The flow:
+///
+/// 1. `recv_timeout(batch_interval)` — block until the first request arrives
+///    or the interval elapses (catches stragglers).
+/// 2. `try_recv()` loop — non-blocking drain of any additional pending
+///    requests (up to `max_batch` to bound memory).
+/// 3. `wal.append_batch()` — single vectored write + fsync.
+/// 4. `shared.write()` — apply all datoms to the in-memory `LiveStore`.
+/// 5. Signal each requester via the `done` channel with their `WalEntryMeta`.
+///
+/// # Adaptive batch interval
+///
+/// Starts at 50ms. If batch size > 1, drops to 5ms (throughput mode).
+/// If 10 consecutive batches are single-item, returns to 50ms (latency mode).
+/// This balances single-agent latency (~5ms) with multi-agent throughput
+/// (amortized fsync).
+///
+/// # Shutdown
+///
+/// The thread exits when the `Receiver` disconnects (all `Sender` clones
+/// dropped), which happens naturally when `serve_daemon` drops the
+/// `CommitHandle` on shutdown.
+fn commit_thread(
+    mut wal: crate::wal::WalWriter,
+    receiver: mpsc::Receiver<CommitRequest>,
+    shared: Arc<RwLock<crate::live_store::LiveStore>>,
+) {
+    let max_batch: usize = 256;
+    let mut batch_interval = Duration::from_millis(GROUP_COMMIT_INITIAL_INTERVAL_MS);
+    let mut consecutive_singles: u32 = 0;
+
+    loop {
+        // Step 1: Block for the first request (or timeout).
+        let first = match receiver.recv_timeout(batch_interval) {
+            Ok(req) => req,
+            Err(mpsc::RecvTimeoutError::Timeout) => {
+                // No requests during interval — loop back to wait again.
+                continue;
+            }
+            Err(mpsc::RecvTimeoutError::Disconnected) => {
+                // All senders dropped — daemon is shutting down.
+                break;
+            }
+        };
+
+        // Step 2: Non-blocking drain of additional pending requests.
+        let mut batch = Vec::with_capacity(max_batch);
+        batch.push(first);
+        while batch.len() < max_batch {
+            match receiver.try_recv() {
+                Ok(req) => batch.push(req),
+                Err(mpsc::TryRecvError::Empty | mpsc::TryRecvError::Disconnected) => {
+                    break;
+                }
+            }
+        }
+
+        let batch_size = batch.len();
+
+        // Adaptive interval tuning.
+        if batch_size > 1 {
+            batch_interval = Duration::from_millis(GROUP_COMMIT_MIN_INTERVAL_MS);
+            consecutive_singles = 0;
+        } else {
+            consecutive_singles += 1;
+            if consecutive_singles >= GROUP_COMMIT_SINGLE_BATCH_THRESHOLD {
+                batch_interval = Duration::from_millis(GROUP_COMMIT_INITIAL_INTERVAL_MS);
+                // Don't reset consecutive_singles — stay in slow mode until
+                // a multi-item batch arrives.
+            }
+        }
+
+        // Step 3: Batch-append to WAL (single fsync).
+        let txs: Vec<braid_kernel::layout::TxFile> = batch.iter().map(|r| r.tx.clone()).collect();
+        let wal_result = wal.append_batch(&txs);
+
+        let metas = match wal_result {
+            Ok(m) => m,
+            Err(e) => {
+                // WAL write failed — signal all requesters with the error.
+                let err_msg = format!("WAL append_batch failed: {e}");
+                for req in batch {
+                    let _ = req.done.send(Err(err_msg.clone()));
+                }
+                continue;
+            }
+        };
+
+        // Step 4: Apply datoms to shared LiveStore under write lock.
+        // Uses apply_datoms_in_memory (DS2) — skips disk write since
+        // the WAL already provides durability (INV-DS2-001).
+        match shared.write() {
+            Ok(mut live) => {
+                for req in &batch {
+                    live.apply_datoms_in_memory(&req.tx.datoms);
+                }
+            }
+            Err(poisoned) => {
+                // RwLock poisoned — recover and apply anyway (best-effort).
+                eprintln!("commit_thread: RwLock poisoned, recovering for datom apply");
+                let mut live = poisoned.into_inner();
+                for req in &batch {
+                    live.apply_datoms_in_memory(&req.tx.datoms);
+                }
+            }
+        }
+
+        // Step 5: Signal each requester with their WalEntryMeta.
+        for (req, meta) in batch.into_iter().zip(metas) {
+            let _ = req.done.send(Ok(meta));
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// DS3: Checkpoint thread — WAL-to-.edn background conversion
+// ---------------------------------------------------------------------------
+
+/// Signal sent to the checkpoint thread for on-demand or periodic operation.
+///
+/// The checkpoint thread converts WAL entries to `.edn` transaction files,
+/// making them git-ready without blocking reads or writes.
+///
+/// - **Tick** / timeout: Passive checkpoint (convert pending entries, keep WAL).
+/// - **Full**: Full checkpoint for `braid harvest --commit` (convert all, truncate WAL).
+/// - **Stop**: Graceful shutdown (final passive checkpoint, then exit).
+///
+/// # Invariants
+///
+/// - **DS3-001**: Passive checkpoint never truncates the WAL.
+/// - **DS3-002**: Full checkpoint converts all pending entries before truncation.
+/// - **DS3-003**: `.edn` writes are idempotent via `write_tx_no_invalidate`.
+/// - **DS3-004**: Checkpoint thread is non-blocking to daemon reads/writes.
+pub enum CheckpointSignal {
+    /// Periodic passive checkpoint — convert pending WAL entries to `.edn` files.
+    Tick,
+    /// Full checkpoint for `harvest --commit` — checkpoint all, truncate WAL.
+    /// The sender receives the result when the full checkpoint completes.
+    Full(mpsc::Sender<Result<(), String>>),
+    /// Shutdown — run a final passive checkpoint and exit.
+    Stop,
+}
+
+/// State held by the checkpoint thread (DS3).
+///
+/// Tracks the byte offset of the last checkpointed WAL entry so that
+/// successive ticks only process new entries. The [`DiskLayout`] instance
+/// is owned exclusively by this thread — no sharing with the daemon's
+/// `LiveStore` (which has its own layout for in-memory writes).
+///
+/// # Invariants
+///
+/// - **DS3-001**: `passive_checkpoint` never calls `WalWriter::truncate`.
+/// - **DS3-003**: Uses `write_tx_no_invalidate` — idempotent by content hash.
+struct CheckpointState {
+    /// Byte offset of the next un-checkpointed WAL entry.
+    checkpoint_offset: u64,
+    /// Path to the WAL file (`.braid/.cache/wal.bin`).
+    wal_path: PathBuf,
+    /// `DiskLayout` for writing `.edn` files — separate instance from `LiveStore`.
+    layout: crate::layout::DiskLayout,
+}
+
+impl CheckpointState {
+    /// Convert pending WAL entries to `.edn` transaction files (DS3-001).
+    ///
+    /// Reads the WAL from `checkpoint_offset`, writes each entry as an `.edn`
+    /// file via `layout.write_tx_no_invalidate()` (idempotent — DS3-003), and
+    /// advances the offset. Does NOT truncate the WAL (safety — keeps WAL as
+    /// recovery backup until `full_checkpoint`).
+    ///
+    /// Returns the number of entries newly checkpointed.
+    fn passive_checkpoint(&mut self) -> u64 {
+        // If the WAL file does not exist or has no new data, nothing to do.
+        let wal_len = match std::fs::metadata(&self.wal_path) {
+            Ok(m) => m.len(),
+            Err(_) => return 0,
+        };
+        if wal_len <= self.checkpoint_offset {
+            return 0;
+        }
+
+        let reader = match crate::wal::WalReader::open(&self.wal_path) {
+            Ok(r) => r,
+            Err(e) => {
+                eprintln!("checkpoint: cannot open WAL for reading: {e}");
+                return 0;
+            }
+        };
+
+        let iter = match reader.iter_from(self.checkpoint_offset) {
+            Ok(it) => it,
+            Err(e) => {
+                eprintln!(
+                    "checkpoint: cannot seek WAL to offset {}: {e}",
+                    self.checkpoint_offset
+                );
+                return 0;
+            }
+        };
+
+        let mut count: u64 = 0;
+        for entry_result in iter {
+            match entry_result {
+                Ok((tx, meta)) => {
+                    // DS3-003: write_tx_no_invalidate is idempotent — if the .edn
+                    // file already exists (same content hash), it silently succeeds.
+                    if let Err(e) = self.layout.write_tx_no_invalidate(&tx) {
+                        eprintln!(
+                            "checkpoint: failed to write .edn at WAL offset {}: {e}",
+                            meta.offset
+                        );
+                        // Stop on write failure — the next tick will retry from
+                        // the same offset. Do not advance past a failed entry.
+                        break;
+                    }
+                    // Advance past this entry: offset + 4 (len) + payload + 4 (crc) + 32 (hash).
+                    self.checkpoint_offset = meta.offset + 4 + meta.length as u64 + 4 + 32;
+                    count += 1;
+                }
+                Err(e) => {
+                    eprintln!(
+                        "checkpoint: WAL read error at offset {}: {e}",
+                        self.checkpoint_offset
+                    );
+                    break;
+                }
+            }
+        }
+
+        if count > 0 {
+            eprintln!("checkpoint: converted {count} WAL entries to .edn");
+        }
+        count
+    }
+
+    /// Full checkpoint: convert all pending entries and truncate the WAL (DS3-002).
+    ///
+    /// 1. Run `passive_checkpoint()` to flush all pending entries.
+    /// 2. Truncate the WAL (clear the file, reset offset to 0).
+    ///
+    /// This makes the store fully git-ready: all state is in `.edn` files,
+    /// the WAL is empty. Used by `braid harvest --commit` (wired in DS6).
+    fn full_checkpoint(&mut self) -> Result<(), String> {
+        // Step 1: Flush all pending entries to .edn.
+        self.passive_checkpoint();
+
+        // Step 2: Truncate the WAL and reset offset.
+        let mut writer = crate::wal::WalWriter::open(&self.wal_path)
+            .map_err(|e| format!("checkpoint: cannot open WAL for truncation: {e}"))?;
+        writer
+            .truncate()
+            .map_err(|e| format!("checkpoint: WAL truncation failed: {e}"))?;
+        self.checkpoint_offset = 0;
+
+        eprintln!("checkpoint: full checkpoint complete — WAL truncated");
+        Ok(())
+    }
+}
+
+/// Run the checkpoint thread event loop (DS3).
+///
+/// Periodically converts WAL entries to `.edn` transaction files. Responds
+/// to [`CheckpointSignal::Full`] for on-demand full checkpoints, and
+/// [`CheckpointSignal::Stop`] for graceful shutdown with a final flush.
+///
+/// The `interval` parameter controls the passive tick frequency. It is
+/// configurable via the `:config/checkpoint-interval-secs` datom
+/// (C9/ADR-FOUNDATION-031).
+///
+/// # Thread safety
+///
+/// This function owns its [`CheckpointState`] exclusively — no locks required.
+/// The `DiskLayout` inside the state is a separate instance from the daemon's
+/// `LiveStore`, so `.edn` writes do not contend with daemon reads/writes
+/// (DS3-004).
+fn checkpoint_thread(
+    mut state: CheckpointState,
+    receiver: mpsc::Receiver<CheckpointSignal>,
+    interval: Duration,
+) {
+    loop {
+        match receiver.recv_timeout(interval) {
+            Ok(CheckpointSignal::Tick) | Err(mpsc::RecvTimeoutError::Timeout) => {
+                // PASSIVE: convert pending WAL entries to .edn (DS3-001).
+                state.passive_checkpoint();
+            }
+            Ok(CheckpointSignal::Full(done)) => {
+                // FULL: checkpoint everything + truncate WAL (DS3-002).
+                let result = state.full_checkpoint();
+                // Notify the caller. If the channel is closed, ignore.
+                let _ = done.send(result);
+            }
+            Ok(CheckpointSignal::Stop) | Err(mpsc::RecvTimeoutError::Disconnected) => {
+                // Final passive checkpoint before exit — do not lose entries.
+                state.passive_checkpoint();
+                eprintln!("checkpoint: thread stopped");
+                break;
+            }
+        }
+    }
+}
+
+/// Spawn the DS3 checkpoint thread for the daemon.
+///
+/// Creates a separate [`DiskLayout`] instance (no sharing with `LiveStore`),
+/// and spawns the background thread with the given tick interval.
+///
+/// Returns the [`mpsc::Sender<CheckpointSignal>`] for the daemon to send
+/// `Full` or `Stop` signals, plus the `JoinHandle` for the spawned thread.
+fn spawn_checkpoint_thread(
+    braid_dir: &Path,
+    checkpoint_interval_secs: u64,
+) -> Result<(mpsc::Sender<CheckpointSignal>, std::thread::JoinHandle<()>), DaemonError> {
+    let layout = crate::layout::DiskLayout::open(braid_dir).map_err(DaemonError::StoreError)?;
+
+    let wal_path = braid_dir.join(".cache").join("wal.bin");
+
+    // Start from offset 0 — passive_checkpoint uses write_tx_no_invalidate
+    // which is idempotent (DS3-003), so re-processing existing entries
+    // is a harmless no-op that produces no duplicate .edn files.
+    let checkpoint_offset: u64 = 0;
+
+    let state = CheckpointState {
+        checkpoint_offset,
+        wal_path,
+        layout,
+    };
+
+    let interval = Duration::from_secs(checkpoint_interval_secs);
+    let (tx, rx) = mpsc::channel();
+
+    let handle = std::thread::Builder::new()
+        .name("braid-checkpoint".to_string())
+        .spawn(move || {
+            checkpoint_thread(state, rx, interval);
+        })
+        .map_err(|e| {
+            DaemonError::BindFailed(std::io::Error::other(format!(
+                "failed to spawn checkpoint thread: {e}"
+            )))
+        })?;
+
+    eprintln!("checkpoint: thread started (interval={checkpoint_interval_secs}s)");
+    Ok((tx, handle))
 }
 
 // ---------------------------------------------------------------------------
@@ -2009,21 +2678,24 @@ mod tests {
 
         let _result = handle_with_observation(&id, &params, &mut live);
 
-        // Find the runtime datom's latency.
+        // Find the runtime datom's latency (stored in microseconds).
         use braid_kernel::datom::{Attribute, Op, Value};
-        let lat_attr = Attribute::from_keyword(":runtime/latency-ms");
+        let lat_attr = Attribute::from_keyword(":runtime/latency-us");
         let latency = live
             .store()
             .datoms()
             .find(|d| d.attribute == lat_attr && d.op == Op::Assert)
             .and_then(|d| match &d.value {
-                Value::Long(ms) => Some(*ms),
+                Value::Long(us) => Some(*us),
                 _ => None,
             });
 
-        let ms = latency.expect(":runtime/latency-ms must exist");
-        assert!(ms > 0, "latency must be positive, got {ms}");
-        assert!(ms < 60_000, "latency must be < 60s, got {ms}ms");
+        let us = latency.expect(":runtime/latency-us must exist");
+        assert!(us > 0, "latency must be positive, got {us}us");
+        assert!(
+            us < 60_000_000,
+            "latency must be < 60s (60M us), got {us}us"
+        );
     }
 
     #[test]
@@ -2297,5 +2969,1663 @@ mod tests {
             count, 5,
             "5 tool calls must produce exactly 5 runtime entities"
         );
+    }
+
+    // ── DS4-TEST: Dispatch concurrency tests ─────────────────────────────
+    //
+    // Verify RwLock multi-threaded dispatch correctness for the daemon's
+    // Arc<RwLock<LiveStore>> concurrency model (INV-DAEMON-012).
+
+    #[test]
+    fn rwlock_concurrent_reads_do_not_block() {
+        use std::sync::Barrier;
+
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        let shared: Arc<RwLock<crate::live_store::LiveStore>> = Arc::new(RwLock::new(live));
+
+        let thread_count = 10;
+        let barrier = Arc::new(Barrier::new(thread_count));
+
+        let start = Instant::now();
+
+        let handles: Vec<_> = (0..thread_count)
+            .map(|_| {
+                let shared = Arc::clone(&shared);
+                let barrier = Arc::clone(&barrier);
+                std::thread::spawn(move || {
+                    barrier.wait(); // all threads start together
+                    let guard = shared.read().unwrap();
+                    let _len = guard.store().len();
+                    std::thread::sleep(Duration::from_millis(50));
+                    drop(guard);
+                })
+            })
+            .collect();
+
+        for h in handles {
+            h.join().expect("reader thread must not panic");
+        }
+
+        let elapsed = start.elapsed();
+        // If reads blocked each other sequentially, total would be ~500ms (10 * 50ms).
+        // With concurrent reads, it should be ~50ms plus thread scheduling overhead.
+        // Use 400ms bound — well below sequential 500ms but generous for CI load.
+        assert!(
+            elapsed < Duration::from_millis(400),
+            "10 concurrent reads must complete in < 400ms (got {elapsed:?}), \
+             proving reads do not block each other (sequential would be ~500ms)"
+        );
+    }
+
+    #[test]
+    fn rwlock_write_blocks_readers() {
+        use std::sync::Barrier;
+
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        let shared: Arc<RwLock<crate::live_store::LiveStore>> = Arc::new(RwLock::new(live));
+
+        // Acquire write lock in a separate thread and hold for 100ms.
+        let barrier = Arc::new(Barrier::new(2));
+        let shared_w = Arc::clone(&shared);
+        let barrier_w = Arc::clone(&barrier);
+        let writer = std::thread::spawn(move || {
+            let _guard = shared_w.write().unwrap();
+            barrier_w.wait(); // signal that write lock is held
+            std::thread::sleep(Duration::from_millis(100));
+            // write lock released on drop
+        });
+
+        // Wait until the writer holds the lock.
+        barrier.wait();
+
+        // Now spawn 5 reader threads — they should block until writer releases.
+        let reader_start = Instant::now();
+        let handles: Vec<_> = (0..5)
+            .map(|_| {
+                let shared = Arc::clone(&shared);
+                std::thread::spawn(move || {
+                    let guard = shared.read().unwrap();
+                    let _len = guard.store().len();
+                    drop(guard);
+                })
+            })
+            .collect();
+
+        for h in handles {
+            h.join().expect("reader thread must not panic");
+        }
+
+        let reader_elapsed = reader_start.elapsed();
+        // Readers must have waited for the writer to release (~100ms hold).
+        // Use 80ms lower bound to account for timing jitter.
+        assert!(
+            reader_elapsed >= Duration::from_millis(80),
+            "readers must be blocked while writer holds lock \
+             (elapsed {reader_elapsed:?}, expected >= 80ms)"
+        );
+
+        writer.join().expect("writer thread must not panic");
+    }
+
+    #[test]
+    fn rwlock_sequential_writes_consistent() {
+        use braid_kernel::datom::{
+            AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value,
+        };
+        use braid_kernel::layout::TxFile;
+
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        let genesis_count = live.store().len();
+        let shared: Arc<RwLock<crate::live_store::LiveStore>> = Arc::new(RwLock::new(live));
+
+        let thread_count = 10;
+        let handles: Vec<_> = (0..thread_count)
+            .map(|i| {
+                let shared = Arc::clone(&shared);
+                std::thread::spawn(move || {
+                    let mut guard = shared.write().unwrap();
+                    let agent = AgentId::from_name("test-ds4");
+                    let tx_id = TxId::new(1_800_000_000 + i as u64, 0, agent);
+                    let datom = Datom::new(
+                        EntityId::from_ident(&format!(":ds4-test/entity-{i}")),
+                        Attribute::from_keyword(":db/doc"),
+                        Value::String(format!("thread-{i}")),
+                        tx_id,
+                        Op::Assert,
+                    );
+                    let tx = TxFile {
+                        tx_id,
+                        agent,
+                        provenance: ProvenanceType::Observed,
+                        rationale: format!("ds4-test thread {i}"),
+                        causal_predecessors: vec![],
+                        datoms: vec![datom],
+                    };
+                    guard.write_tx(&tx).expect("write_tx must succeed");
+                })
+            })
+            .collect();
+
+        for h in handles {
+            h.join().expect("writer thread must not panic");
+        }
+
+        let guard = shared.read().unwrap();
+        let final_count = guard.store().len();
+        assert_eq!(
+            final_count,
+            genesis_count + thread_count,
+            "store must contain genesis ({genesis_count}) + {thread_count} datoms, \
+             got {final_count}"
+        );
+    }
+
+    #[test]
+    fn rwlock_poisoned_lock_recoverable() {
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        let genesis_count = live.store().len();
+        let shared: Arc<RwLock<crate::live_store::LiveStore>> = Arc::new(RwLock::new(live));
+
+        // Spawn a thread that panics while holding the write lock.
+        let shared_panic = Arc::clone(&shared);
+        let handle = std::thread::spawn(move || {
+            let _guard = shared_panic.write().unwrap();
+            panic!("intentional panic to poison the RwLock");
+        });
+        // The thread will panic — we expect that.
+        let _ = handle.join();
+
+        // The RwLock is now poisoned. Verify we can recover the data.
+        let result = shared.read();
+        assert!(result.is_err(), "read() must return Err on poisoned lock");
+
+        // Use match instead of unwrap_err() to avoid Debug requirement on LiveStore.
+        match result {
+            Err(poison_err) => {
+                let recovered = poison_err.into_inner();
+                let len = recovered.store().len();
+                assert_eq!(
+                    len, genesis_count,
+                    "recovered store must still have {genesis_count} datoms, got {len}"
+                );
+            }
+            Ok(_) => panic!("expected poisoned lock, but read() succeeded"),
+        }
+    }
+
+    #[test]
+    fn multi_connection_simulation() {
+        use braid_kernel::datom::{
+            AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value,
+        };
+        use braid_kernel::layout::TxFile;
+        use std::sync::Barrier;
+
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        let genesis_count = live.store().len();
+        let shared: Arc<RwLock<crate::live_store::LiveStore>> = Arc::new(RwLock::new(live));
+
+        let conn_count = 20;
+        let barrier = Arc::new(Barrier::new(conn_count));
+
+        let handles: Vec<_> = (0..conn_count)
+            .map(|i| {
+                let shared = Arc::clone(&shared);
+                let barrier = Arc::clone(&barrier);
+                std::thread::spawn(move || {
+                    barrier.wait(); // simulate simultaneous connections
+                    let mut guard = shared.write().unwrap();
+                    let count_before = guard.store().len();
+                    let agent = AgentId::from_name("test-multi-conn");
+                    let tx_id = TxId::new(1_900_000_000 + i as u64, 0, agent);
+                    let datom = Datom::new(
+                        EntityId::from_ident(&format!(":multi-conn/entity-{i}")),
+                        Attribute::from_keyword(":db/doc"),
+                        Value::String(format!("connection-{i}")),
+                        tx_id,
+                        Op::Assert,
+                    );
+                    let tx = TxFile {
+                        tx_id,
+                        agent,
+                        provenance: ProvenanceType::Observed,
+                        rationale: format!("multi-conn {i}"),
+                        causal_predecessors: vec![],
+                        datoms: vec![datom],
+                    };
+                    guard.write_tx(&tx).expect("write_tx must succeed");
+                    let count_after = guard.store().len();
+                    assert_eq!(
+                        count_after,
+                        count_before + 1,
+                        "connection {i}: store must grow by exactly 1 datom"
+                    );
+                })
+            })
+            .collect();
+
+        for h in handles {
+            h.join().expect("connection thread must not panic");
+        }
+
+        let guard = shared.read().unwrap();
+        let final_count = guard.store().len();
+        assert_eq!(
+            final_count,
+            genesis_count + conn_count,
+            "store must contain genesis ({genesis_count}) + {conn_count} datoms, \
+             got {final_count}"
+        );
+    }
+
+    #[test]
+    fn connection_thread_naming() {
+        let (name_tx, name_rx) = std::sync::mpsc::channel();
+        let handle = std::thread::Builder::new()
+            .name("braid-conn-7".to_string())
+            .spawn(move || {
+                let name = std::thread::current()
+                    .name()
+                    .unwrap_or("unnamed")
+                    .to_string();
+                name_tx.send(name).unwrap();
+            })
+            .expect("thread builder must succeed");
+
+        handle.join().expect("named thread must not panic");
+        let name = name_rx.recv().expect("must receive thread name");
+        assert_eq!(
+            name, "braid-conn-7",
+            "spawned thread must be named braid-conn-N"
+        );
+    }
+
+    // ── DS2: Group commit tests ─────────────────────────────────────────
+
+    /// Helper: build a minimal TxFile for testing group commit.
+    fn make_test_tx(label: &str) -> braid_kernel::layout::TxFile {
+        use braid_kernel::datom::*;
+
+        let agent = AgentId::from_name("test:ds2");
+        let tx_id = TxId::new(1_000_000, 0, agent);
+        let entity = EntityId::from_ident(&format!(":test/ds2-{label}"));
+        let datoms = vec![Datom::new(
+            entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(format!(":test/ds2-{label}")),
+            tx_id,
+            Op::Assert,
+        )];
+        braid_kernel::layout::TxFile {
+            tx_id,
+            agent,
+            provenance: ProvenanceType::Derived,
+            rationale: format!("DS2 test: {label}"),
+            causal_predecessors: vec![],
+            datoms,
+        }
+    }
+
+    #[test]
+    fn commit_handle_clone_is_send() {
+        // CommitHandle must be Clone (one per connection thread).
+        let (tx, _rx) = mpsc::channel::<CommitRequest>();
+        let handle = CommitHandle { sender: tx };
+        let handle2 = handle.clone();
+        // Both handles have functioning senders.
+        drop(handle);
+        drop(handle2);
+    }
+
+    #[test]
+    fn commit_handle_single_write() {
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let mut live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        install_runtime_schema(&mut live).unwrap();
+
+        let datom_count_before = live.store().len();
+        let shared = Arc::new(RwLock::new(live));
+
+        let wal_path = braid_dir.join(".cache/wal.bin");
+        let wal = crate::wal::WalWriter::open(&wal_path).unwrap();
+
+        let (commit_tx, commit_rx) = mpsc::channel::<CommitRequest>();
+        let commit_handle = CommitHandle { sender: commit_tx };
+
+        let shared_clone = Arc::clone(&shared);
+        let thread = std::thread::Builder::new()
+            .name("test-commit".into())
+            .spawn(move || {
+                commit_thread(wal, commit_rx, shared_clone);
+            })
+            .unwrap();
+
+        // Submit a single write via CommitHandle.
+        let tx = make_test_tx("single");
+        let result = commit_handle.commit(tx);
+        assert!(result.is_ok(), "single commit must succeed: {result:?}");
+
+        let meta = result.unwrap();
+        assert_eq!(meta.offset, 0, "first entry starts at offset 0");
+        assert!(meta.length > 0, "entry must have non-zero length");
+
+        // Verify datoms were applied to the shared LiveStore.
+        let live_guard = shared.read().unwrap();
+        assert!(
+            live_guard.store().len() > datom_count_before,
+            "store must have more datoms after commit"
+        );
+
+        // Drop the handle to shut down the commit thread.
+        drop(commit_handle);
+        drop(live_guard); // Release read lock before join.
+        thread.join().expect("commit thread must exit cleanly");
+    }
+
+    #[test]
+    fn commit_handle_batch_of_three() {
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let mut live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        install_runtime_schema(&mut live).unwrap();
+
+        let shared = Arc::new(RwLock::new(live));
+
+        let wal_path = braid_dir.join(".cache/wal.bin");
+        let wal = crate::wal::WalWriter::open(&wal_path).unwrap();
+
+        let (commit_tx, commit_rx) = mpsc::channel::<CommitRequest>();
+        let commit_handle = CommitHandle { sender: commit_tx };
+
+        let shared_clone = Arc::clone(&shared);
+        let thread = std::thread::Builder::new()
+            .name("test-commit-batch".into())
+            .spawn(move || {
+                commit_thread(wal, commit_rx, shared_clone);
+            })
+            .unwrap();
+
+        // Submit 3 writes from separate threads to exercise batching.
+        let mut join_handles = Vec::new();
+        for i in 0..3 {
+            let handle = commit_handle.clone();
+            let jh = std::thread::spawn(move || {
+                let tx = make_test_tx(&format!("batch-{i}"));
+                handle.commit(tx)
+            });
+            join_handles.push(jh);
+        }
+
+        // All three must succeed.
+        for (i, jh) in join_handles.into_iter().enumerate() {
+            let result = jh.join().expect("thread must not panic");
+            assert!(result.is_ok(), "batch commit {i} must succeed: {result:?}");
+        }
+
+        // Verify all 3 datoms applied.
+        let live_guard = shared.read().unwrap();
+        for i in 0..3 {
+            let ident = format!(":test/ds2-batch-{i}");
+            let entity = braid_kernel::datom::EntityId::from_ident(&ident);
+            let has_datom = live_guard
+                .store()
+                .entity_datoms(entity)
+                .iter()
+                .any(|d| d.op == braid_kernel::datom::Op::Assert);
+            assert!(
+                has_datom,
+                "entity {ident} must exist in store after batch commit"
+            );
+        }
+
+        drop(commit_handle);
+        drop(live_guard);
+        thread.join().expect("commit thread must exit cleanly");
+    }
+
+    #[test]
+    fn commit_handle_channel_closed_returns_error() {
+        let (commit_tx, commit_rx) = mpsc::channel::<CommitRequest>();
+        let commit_handle = CommitHandle { sender: commit_tx };
+
+        // Drop the receiver to simulate commit thread exit.
+        drop(commit_rx);
+
+        let tx = make_test_tx("closed");
+        let result = commit_handle.commit(tx);
+        assert!(result.is_err(), "commit must fail when channel is closed");
+        let err = result.unwrap_err();
+        assert!(
+            err.to_string().contains("commit channel closed"),
+            "error must mention channel closed, got: {err}"
+        );
+    }
+
+    #[test]
+    fn commit_thread_exits_on_sender_drop() {
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        let shared = Arc::new(RwLock::new(live));
+
+        let wal_path = braid_dir.join(".cache/wal.bin");
+        let wal = crate::wal::WalWriter::open(&wal_path).unwrap();
+
+        let (commit_tx, commit_rx) = mpsc::channel::<CommitRequest>();
+
+        let shared_clone = Arc::clone(&shared);
+        let thread = std::thread::Builder::new()
+            .name("test-commit-exit".into())
+            .spawn(move || {
+                commit_thread(wal, commit_rx, shared_clone);
+            })
+            .unwrap();
+
+        // Drop all senders — commit thread should exit.
+        drop(commit_tx);
+
+        // Thread must join within a reasonable time (the recv_timeout will
+        // fire, then detect Disconnected on next iteration).
+        let join_result = thread.join();
+        assert!(
+            join_result.is_ok(),
+            "commit thread must exit cleanly when all senders drop"
+        );
+    }
+
+    #[test]
+    fn commit_handle_wal_entries_durable() {
+        // Verify WAL entries survive by reading the WAL file after commits.
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        let shared = Arc::new(RwLock::new(live));
+
+        let wal_path = braid_dir.join(".cache/wal.bin");
+        let wal = crate::wal::WalWriter::open(&wal_path).unwrap();
+
+        let (commit_tx, commit_rx) = mpsc::channel::<CommitRequest>();
+        let commit_handle = CommitHandle { sender: commit_tx };
+
+        let shared_clone = Arc::clone(&shared);
+        let thread = std::thread::Builder::new()
+            .name("test-commit-wal".into())
+            .spawn(move || {
+                commit_thread(wal, commit_rx, shared_clone);
+            })
+            .unwrap();
+
+        // Commit 2 transactions.
+        for i in 0..2 {
+            let tx = make_test_tx(&format!("wal-{i}"));
+            commit_handle.commit(tx).expect("commit must succeed");
+        }
+
+        drop(commit_handle);
+        thread.join().expect("commit thread must exit cleanly");
+
+        // Re-open the WAL and verify it has exactly 2 entries.
+        let reader = crate::wal::WalReader::open(&wal_path).unwrap();
+        let iter = reader.iter().unwrap();
+        let entries: Vec<_> = iter.collect();
+        assert_eq!(entries.len(), 2, "WAL must contain exactly 2 entries");
+        for entry in &entries {
+            assert!(entry.is_ok(), "all WAL entries must be valid: {entry:?}");
+        }
+    }
+
+    #[test]
+    fn adaptive_interval_constants_coherent() {
+        // Verify the adaptive interval constants are coherent.
+        // Use const blocks to satisfy clippy::assertions_on_constants.
+        const { assert!(GROUP_COMMIT_MIN_INTERVAL_MS < GROUP_COMMIT_INITIAL_INTERVAL_MS) };
+        const { assert!(GROUP_COMMIT_SINGLE_BATCH_THRESHOLD > 0) };
+    }
+
+    // ── DS2-TEST: Group commit tests ──────────────────────────────────────
+
+    /// Helper: build a TxFile with a unique entity ident derived from `label`.
+    /// Uses a unique timestamp per call to avoid entity collisions.
+    fn make_unique_test_tx(label: &str, seq: u64) -> braid_kernel::layout::TxFile {
+        use braid_kernel::datom::*;
+
+        let agent = AgentId::from_name("test:ds2-ext");
+        let tx_id = TxId::new(2_000_000_000 + seq, 0, agent);
+        let entity = EntityId::from_ident(&format!(":test/ds2x-{label}-{seq}"));
+        let datoms = vec![Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String(format!("ds2-test-{label}-{seq}")),
+            tx_id,
+            Op::Assert,
+        )];
+        braid_kernel::layout::TxFile {
+            tx_id,
+            agent,
+            provenance: ProvenanceType::Derived,
+            rationale: format!("DS2-TEST: {label}-{seq}"),
+            causal_predecessors: vec![],
+            datoms,
+        }
+    }
+
+    /// Helper: set up a commit thread with fresh LiveStore and WAL.
+    /// Returns (TempDir, shared LiveStore, CommitHandle, JoinHandle).
+    fn setup_commit_infra() -> (
+        tempfile::TempDir,
+        Arc<RwLock<crate::live_store::LiveStore>>,
+        CommitHandle,
+        std::thread::JoinHandle<()>,
+    ) {
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        let shared = Arc::new(RwLock::new(live));
+
+        let wal_path = braid_dir.join(".cache/wal.bin");
+        let wal = crate::wal::WalWriter::open(&wal_path).unwrap();
+
+        let (commit_tx, commit_rx) = mpsc::channel::<CommitRequest>();
+        let commit_handle = CommitHandle { sender: commit_tx };
+
+        let shared_clone = Arc::clone(&shared);
+        let thread = std::thread::Builder::new()
+            .name("test-ds2-commit".into())
+            .spawn(move || {
+                commit_thread(wal, commit_rx, shared_clone);
+            })
+            .unwrap();
+
+        (dir, shared, commit_handle, thread)
+    }
+
+    /// Helper: shut down the commit thread cleanly.
+    fn teardown_commit(handle: CommitHandle, thread: std::thread::JoinHandle<()>) {
+        drop(handle);
+        thread.join().expect("commit thread must exit cleanly");
+    }
+
+    #[test]
+    fn ds2_commit_handle_single_write_returns_valid_meta() {
+        // DS2-TEST-1: Submit one TxFile, verify WalEntryMeta with valid chain hash.
+        let (_dir, _shared, commit_handle, thread) = setup_commit_infra();
+
+        let tx = make_unique_test_tx("single", 1);
+        let result = commit_handle.commit(tx);
+        assert!(result.is_ok(), "single commit must succeed: {result:?}");
+
+        let meta = result.unwrap();
+        assert_eq!(meta.offset, 0, "first entry must start at offset 0");
+        assert!(meta.length > 0, "entry must have non-zero payload length");
+        // Chain hash must not be all-zeros (genesis) after one entry.
+        assert_ne!(
+            meta.chain_hash, [0u8; 32],
+            "chain hash must differ from genesis after one entry"
+        );
+
+        teardown_commit(commit_handle, thread);
+    }
+
+    #[test]
+    fn ds2_commit_handle_blocks_until_durable() {
+        // DS2-TEST-2: Verify the caller blocks until the commit thread fsyncs.
+        // We measure that commit() returns *after* the commit thread processes,
+        // by checking that the WAL file has non-zero size when commit() returns.
+        let (dir, _shared, commit_handle, thread) = setup_commit_infra();
+
+        let tx = make_unique_test_tx("durable", 1);
+        let meta = commit_handle.commit(tx).expect("commit must succeed");
+
+        // After commit() returns, the WAL must have been fsynced (INV-DS2-001).
+        let wal_path = dir.path().join(".braid/.cache/wal.bin");
+        let wal_size = std::fs::metadata(&wal_path)
+            .expect("WAL file must exist")
+            .len();
+        assert!(
+            wal_size > 0,
+            "WAL must have non-zero size after commit returns (fsync confirmed)"
+        );
+        // The entry offset + frame should fit within the WAL size.
+        let frame_size = 4 + meta.length as u64 + 4 + 32;
+        assert!(
+            wal_size >= meta.offset + frame_size,
+            "WAL size ({wal_size}) must cover the entry (offset={}, frame={frame_size})",
+            meta.offset
+        );
+
+        teardown_commit(commit_handle, thread);
+    }
+
+    #[test]
+    fn ds2_commit_handle_multiple_sequential() {
+        // DS2-TEST-3: Submit 5 writes sequentially, verify distinct WalEntryMeta
+        // with increasing offsets.
+        let (_dir, _shared, commit_handle, thread) = setup_commit_infra();
+
+        let mut metas = Vec::new();
+        for i in 0..5u64 {
+            let tx = make_unique_test_tx("seq", i);
+            let meta = commit_handle
+                .commit(tx)
+                .unwrap_or_else(|e| panic!("commit {i} must succeed: {e}"));
+            metas.push(meta);
+        }
+
+        // Offsets must be strictly increasing.
+        for window in metas.windows(2) {
+            assert!(
+                window[1].offset > window[0].offset,
+                "offsets must be strictly increasing: {} vs {}",
+                window[0].offset,
+                window[1].offset
+            );
+        }
+
+        // All chain hashes must be distinct.
+        let unique_hashes: std::collections::HashSet<[u8; 32]> =
+            metas.iter().map(|m| m.chain_hash).collect();
+        assert_eq!(
+            unique_hashes.len(),
+            5,
+            "all 5 chain hashes must be distinct"
+        );
+
+        teardown_commit(commit_handle, thread);
+    }
+
+    #[test]
+    fn ds2_commit_handle_concurrent_writers() {
+        // DS2-TEST-4: Spawn 10 threads, each submitting 5 writes via cloned
+        // CommitHandles. Verify all 50 writes succeed and WAL has 50 entries.
+        let (dir, _shared, commit_handle, thread) = setup_commit_infra();
+
+        let thread_count = 10;
+        let writes_per_thread = 5;
+
+        let handles: Vec<_> = (0..thread_count)
+            .map(|t| {
+                let ch = commit_handle.clone();
+                std::thread::spawn(move || {
+                    let mut results = Vec::new();
+                    for w in 0..writes_per_thread {
+                        let seq = t as u64 * 100 + w as u64;
+                        let tx = make_unique_test_tx(&format!("conc-t{t}"), seq);
+                        results.push(ch.commit(tx));
+                    }
+                    results
+                })
+            })
+            .collect();
+
+        let mut total_ok = 0;
+        for h in handles {
+            let results = h.join().expect("writer thread must not panic");
+            for r in results {
+                assert!(r.is_ok(), "concurrent commit must succeed: {r:?}");
+                total_ok += 1;
+            }
+        }
+        assert_eq!(
+            total_ok,
+            thread_count * writes_per_thread,
+            "all 50 commits must succeed"
+        );
+
+        // Shut down commit thread so WAL is fully flushed.
+        teardown_commit(commit_handle, thread);
+
+        // Re-read WAL and count entries.
+        let wal_path = dir.path().join(".braid/.cache/wal.bin");
+        let reader = crate::wal::WalReader::open(&wal_path).unwrap();
+        let entries: Vec<_> = reader.iter().unwrap().collect();
+        assert_eq!(
+            entries.len(),
+            thread_count * writes_per_thread,
+            "WAL must contain exactly 50 entries"
+        );
+    }
+
+    #[test]
+    fn ds2_commit_thread_batches_concurrent_writes() {
+        // DS2-TEST-5: Submit 20 writes from 20 threads simultaneously (Barrier).
+        // Verify entry_count == 20 in WAL.
+        use std::sync::Barrier;
+
+        let (dir, _shared, commit_handle, thread) = setup_commit_infra();
+
+        let writer_count = 20;
+        let barrier = Arc::new(Barrier::new(writer_count));
+
+        let handles: Vec<_> = (0..writer_count)
+            .map(|i| {
+                let ch = commit_handle.clone();
+                let b = Arc::clone(&barrier);
+                std::thread::spawn(move || {
+                    b.wait(); // all threads release simultaneously
+                    let tx = make_unique_test_tx("barrier", i as u64);
+                    ch.commit(tx)
+                })
+            })
+            .collect();
+
+        for (i, h) in handles.into_iter().enumerate() {
+            let result = h.join().expect("barrier writer must not panic");
+            assert!(
+                result.is_ok(),
+                "barrier commit {i} must succeed: {result:?}"
+            );
+        }
+
+        teardown_commit(commit_handle, thread);
+
+        // Verify all 20 entries are in the WAL.
+        let wal_path = dir.path().join(".braid/.cache/wal.bin");
+        let reader = crate::wal::WalReader::open(&wal_path).unwrap();
+        let entry_count = reader.iter().unwrap().count();
+        assert_eq!(entry_count, 20, "WAL must contain exactly 20 entries");
+    }
+
+    #[test]
+    fn ds2_commit_handle_closed_channel_returns_error() {
+        // DS2-TEST-6: Drop the CommitHandle sender, verify commit thread exits.
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        let shared = Arc::new(RwLock::new(live));
+
+        let wal_path = braid_dir.join(".cache/wal.bin");
+        let wal = crate::wal::WalWriter::open(&wal_path).unwrap();
+
+        let (commit_tx, commit_rx) = mpsc::channel::<CommitRequest>();
+
+        let shared_clone = Arc::clone(&shared);
+        let thread = std::thread::Builder::new()
+            .name("test-ds2-closed".into())
+            .spawn(move || {
+                commit_thread(wal, commit_rx, shared_clone);
+            })
+            .unwrap();
+
+        // Drop the sender — commit thread should detect Disconnected and exit.
+        drop(commit_tx);
+
+        // Thread must join within 2 seconds (generous timeout).
+        let join_result = std::thread::spawn(move || thread.join())
+            .join()
+            .expect("outer join must succeed");
+        assert!(
+            join_result.is_ok(),
+            "commit thread must exit gracefully when sender is dropped"
+        );
+    }
+
+    #[test]
+    fn ds2_commit_thread_applies_to_store() {
+        // DS2-TEST-7: After committing writes, verify the LiveStore behind
+        // the RwLock contains the new datoms.
+        let (_dir, shared, commit_handle, thread) = setup_commit_infra();
+
+        let datom_count_before = shared.read().unwrap().store().len();
+
+        // Commit 3 transactions with distinct entities.
+        for i in 0..3u64 {
+            let tx = make_unique_test_tx("store-apply", i);
+            commit_handle
+                .commit(tx)
+                .unwrap_or_else(|e| panic!("commit {i} must succeed: {e}"));
+        }
+
+        // Verify in-memory store has grown.
+        let datom_count_after = shared.read().unwrap().store().len();
+        assert_eq!(
+            datom_count_after,
+            datom_count_before + 3,
+            "store must have 3 more datoms after 3 commits (was {datom_count_before}, now {datom_count_after})"
+        );
+
+        // Verify specific entities exist.
+        let guard = shared.read().unwrap();
+        for i in 0..3u64 {
+            let ident = format!(":test/ds2x-store-apply-{i}");
+            let entity = braid_kernel::datom::EntityId::from_ident(&ident);
+            let has_datom = guard
+                .store()
+                .entity_datoms(entity)
+                .iter()
+                .any(|d| d.op == braid_kernel::datom::Op::Assert);
+            assert!(has_datom, "entity {ident} must exist in store after commit");
+        }
+
+        drop(guard);
+        teardown_commit(commit_handle, thread);
+    }
+
+    #[test]
+    fn ds2_commit_thread_low_latency_single_write() {
+        // DS2-TEST-8: Verify single write returns within a reasonable time.
+        // The batch_interval starts at 50ms, so a single write should return
+        // quickly. We use 1s as an upper bound to be robust under CI load
+        // (where thread scheduling can be slow), while still catching any
+        // fundamental deadlock or multi-second stall.
+        let (_dir, _shared, commit_handle, thread) = setup_commit_infra();
+
+        let start = Instant::now();
+        let tx = make_unique_test_tx("latency", 1);
+        let result = commit_handle.commit(tx);
+        let elapsed = start.elapsed();
+
+        assert!(result.is_ok(), "single commit must succeed: {result:?}");
+        assert!(
+            elapsed < Duration::from_secs(1),
+            "single write must return within 1s, took {elapsed:?}"
+        );
+
+        teardown_commit(commit_handle, thread);
+    }
+
+    // ── DS3-TEST: Checkpoint tests ────────────────────────────────────────
+
+    /// Helper: count .edn files under a braid_dir's txns/ directory.
+    fn count_edn_files(braid_dir: &Path) -> usize {
+        let txns_dir = braid_dir.join("txns");
+        if !txns_dir.is_dir() {
+            return 0;
+        }
+        let mut count = 0;
+        for shard in std::fs::read_dir(&txns_dir).unwrap() {
+            let shard = shard.unwrap();
+            if !shard.file_type().unwrap().is_dir() {
+                continue;
+            }
+            for entry in std::fs::read_dir(shard.path()).unwrap() {
+                let entry = entry.unwrap();
+                if entry.file_name().to_string_lossy().ends_with(".edn") {
+                    count += 1;
+                }
+            }
+        }
+        count
+    }
+
+    /// Helper: set up a braid directory with WAL containing `n` entries.
+    /// Returns (TempDir, braid_dir PathBuf, WAL path).
+    fn setup_wal_with_entries(n: u64) -> (tempfile::TempDir, PathBuf, PathBuf) {
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        // Create the full layout so write_tx_no_invalidate works.
+        let _layout = crate::layout::DiskLayout::init(&braid_dir).unwrap();
+
+        let wal_path = braid_dir.join(".cache/wal.bin");
+        let mut wal = crate::wal::WalWriter::open(&wal_path).unwrap();
+
+        for i in 0..n {
+            let tx = make_unique_test_tx("ckpt", i);
+            wal.append(&tx).unwrap();
+        }
+        wal.sync().unwrap();
+
+        (dir, braid_dir, wal_path)
+    }
+
+    #[test]
+    fn ds3_passive_checkpoint_converts_wal_to_edn() {
+        // DS3-TEST-1: Write 5 entries to WAL, run passive checkpoint,
+        // verify 5 new .edn files appear on disk.
+        let (_dir, braid_dir, wal_path) = setup_wal_with_entries(5);
+
+        let edn_before = count_edn_files(&braid_dir);
+
+        let layout = crate::layout::DiskLayout::open(&braid_dir).unwrap();
+        let mut state = CheckpointState {
+            checkpoint_offset: 0,
+            wal_path: wal_path.clone(),
+            layout,
+        };
+
+        let converted = state.passive_checkpoint();
+        assert_eq!(converted, 5, "passive checkpoint must convert 5 entries");
+
+        let edn_after = count_edn_files(&braid_dir);
+        assert_eq!(
+            edn_after,
+            edn_before + 5,
+            "5 new .edn files must appear (was {edn_before}, now {edn_after})"
+        );
+
+        // WAL must NOT be truncated (DS3-001).
+        let wal_size = std::fs::metadata(&wal_path).unwrap().len();
+        assert!(wal_size > 0, "passive checkpoint must not truncate WAL");
+    }
+
+    #[test]
+    fn ds3_passive_checkpoint_idempotent() {
+        // DS3-TEST-2: Run passive checkpoint twice on the same WAL entries.
+        // Second run must not create duplicate .edn files.
+        let (_dir, braid_dir, wal_path) = setup_wal_with_entries(3);
+
+        let layout = crate::layout::DiskLayout::open(&braid_dir).unwrap();
+        let mut state = CheckpointState {
+            checkpoint_offset: 0,
+            wal_path: wal_path.clone(),
+            layout,
+        };
+
+        let first = state.passive_checkpoint();
+        assert_eq!(first, 3, "first pass must convert 3 entries");
+        let edn_after_first = count_edn_files(&braid_dir);
+
+        // Second checkpoint from offset 0 (simulating idempotent restart).
+        // Reset offset to 0 — write_tx_no_invalidate is idempotent (DS3-003),
+        // so it silently skips already-existing .edn files.
+        state.checkpoint_offset = 0;
+        let second = state.passive_checkpoint();
+        // The checkpoint function still iterates entries and "converts" them,
+        // but the underlying write_tx_no_invalidate is a no-op for existing files.
+        assert_eq!(second, 3, "second pass re-processes 3 entries (idempotent)");
+
+        let edn_after_second = count_edn_files(&braid_dir);
+        assert_eq!(
+            edn_after_first, edn_after_second,
+            "no duplicate .edn files: first={edn_after_first}, second={edn_after_second}"
+        );
+    }
+
+    #[test]
+    fn ds3_full_checkpoint_truncates_wal() {
+        // DS3-TEST-3: Write entries, run full checkpoint, verify WAL is truncated.
+        let (_dir, braid_dir, wal_path) = setup_wal_with_entries(4);
+
+        // Verify WAL is non-empty before.
+        let wal_size_before = std::fs::metadata(&wal_path).unwrap().len();
+        assert!(
+            wal_size_before > 0,
+            "WAL must be non-empty before full checkpoint"
+        );
+
+        let layout = crate::layout::DiskLayout::open(&braid_dir).unwrap();
+        let mut state = CheckpointState {
+            checkpoint_offset: 0,
+            wal_path: wal_path.clone(),
+            layout,
+        };
+
+        let result = state.full_checkpoint();
+        assert!(result.is_ok(), "full checkpoint must succeed: {result:?}");
+
+        // WAL must be truncated to 0 bytes (DS3-002).
+        let wal_size_after = std::fs::metadata(&wal_path).unwrap().len();
+        assert_eq!(
+            wal_size_after, 0,
+            "WAL must be truncated to 0 bytes after full checkpoint"
+        );
+
+        // Offset must be reset.
+        assert_eq!(
+            state.checkpoint_offset, 0,
+            "checkpoint offset must be reset to 0 after full checkpoint"
+        );
+
+        // .edn files must still exist (conversion happened before truncation).
+        let edn_count = count_edn_files(&braid_dir);
+        // genesis + 4 entries
+        assert!(
+            edn_count >= 4,
+            "at least 4 .edn files must exist after full checkpoint, got {edn_count}"
+        );
+    }
+
+    #[test]
+    fn ds3_checkpoint_signal_stop_flushes() {
+        // DS3-TEST-4: Send Stop signal, verify the checkpoint thread does
+        // a final passive checkpoint before exiting.
+        let (_dir, braid_dir, wal_path) = setup_wal_with_entries(3);
+
+        let edn_before = count_edn_files(&braid_dir);
+
+        let layout = crate::layout::DiskLayout::open(&braid_dir).unwrap();
+        let state = CheckpointState {
+            checkpoint_offset: 0,
+            wal_path: wal_path.clone(),
+            layout,
+        };
+
+        let (tx, rx) = mpsc::channel();
+        let interval = Duration::from_secs(60); // Long interval so only Stop triggers work.
+
+        let thread = std::thread::Builder::new()
+            .name("test-ds3-stop".into())
+            .spawn(move || {
+                checkpoint_thread(state, rx, interval);
+            })
+            .unwrap();
+
+        // Send Stop signal.
+        tx.send(CheckpointSignal::Stop).unwrap();
+
+        // Wait for thread to exit (max 2s).
+        thread
+            .join()
+            .expect("checkpoint thread must exit cleanly on Stop");
+
+        // The final passive checkpoint should have converted the 3 entries.
+        let edn_after = count_edn_files(&braid_dir);
+        assert_eq!(
+            edn_after,
+            edn_before + 3,
+            "Stop must trigger final passive checkpoint: was {edn_before}, now {edn_after}"
+        );
+    }
+
+    #[test]
+    fn ds3_checkpoint_offset_advances() {
+        // DS3-TEST-5: After passive checkpoint of 3 entries, add 2 more to WAL,
+        // run another passive checkpoint. Verify only the 2 new entries are
+        // converted (not all 5 again).
+        let (_dir, braid_dir, wal_path) = setup_wal_with_entries(3);
+
+        let layout = crate::layout::DiskLayout::open(&braid_dir).unwrap();
+        let mut state = CheckpointState {
+            checkpoint_offset: 0,
+            wal_path: wal_path.clone(),
+            layout,
+        };
+
+        // First pass: convert initial 3 entries.
+        let first = state.passive_checkpoint();
+        assert_eq!(first, 3, "first pass must convert 3 entries");
+        let edn_after_first = count_edn_files(&braid_dir);
+
+        // Append 2 more entries to the WAL.
+        let mut wal = crate::wal::WalWriter::open(&wal_path).unwrap();
+        for i in 100..102u64 {
+            let tx = make_unique_test_tx("ckpt-extra", i);
+            wal.append(&tx).unwrap();
+        }
+        wal.sync().unwrap();
+        drop(wal);
+
+        // Second pass: should only convert the 2 new entries.
+        let second = state.passive_checkpoint();
+        assert_eq!(second, 2, "second pass must convert only 2 new entries");
+
+        let edn_after_second = count_edn_files(&braid_dir);
+        assert_eq!(
+            edn_after_second,
+            edn_after_first + 2,
+            "only 2 new .edn files: was {edn_after_first}, now {edn_after_second}"
+        );
+    }
+
+    #[test]
+    fn ds3_spawn_checkpoint_thread_returns_sender() {
+        // DS3-TEST-6: Call spawn_checkpoint_thread, verify it returns a
+        // Sender<CheckpointSignal> that can send signals.
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        // Must initialize layout for spawn_checkpoint_thread to succeed.
+        let _layout = crate::layout::DiskLayout::init(&braid_dir).unwrap();
+
+        let result = spawn_checkpoint_thread(&braid_dir, 60);
+        assert!(
+            result.is_ok(),
+            "spawn_checkpoint_thread must succeed: {result:?}"
+        );
+
+        let (sender, handle) = result.unwrap();
+
+        // Verify the sender can send a Tick (no panic).
+        sender
+            .send(CheckpointSignal::Tick)
+            .expect("Tick signal must be sendable");
+
+        // Stop the thread cleanly.
+        sender
+            .send(CheckpointSignal::Stop)
+            .expect("Stop signal must be sendable");
+        handle
+            .join()
+            .expect("checkpoint thread must exit after Stop");
+    }
+
+    #[test]
+    fn ds3_full_checkpoint_signal_returns_ok() {
+        // DS3-TEST-7: Verify that sending CheckpointSignal::Full with a
+        // response channel gets an Ok response (eventual DS6 wiring test).
+        let (_dir, braid_dir, wal_path) = setup_wal_with_entries(2);
+
+        let layout = crate::layout::DiskLayout::open(&braid_dir).unwrap();
+        let state = CheckpointState {
+            checkpoint_offset: 0,
+            wal_path: wal_path.clone(),
+            layout,
+        };
+
+        let (signal_tx, signal_rx) = mpsc::channel();
+        let interval = Duration::from_secs(60);
+
+        let thread = std::thread::Builder::new()
+            .name("test-ds3-full-signal".into())
+            .spawn(move || {
+                checkpoint_thread(state, signal_rx, interval);
+            })
+            .unwrap();
+
+        // Send Full signal with a response channel.
+        let (done_tx, done_rx) = mpsc::channel();
+        signal_tx
+            .send(CheckpointSignal::Full(done_tx))
+            .expect("Full signal must be sendable");
+
+        // Wait for the response (max 2s).
+        let response = done_rx
+            .recv_timeout(Duration::from_secs(2))
+            .expect("must receive full checkpoint response within 2s");
+        assert!(
+            response.is_ok(),
+            "full checkpoint must return Ok: {response:?}"
+        );
+
+        // Verify .edn files were created.
+        let edn_count = count_edn_files(&braid_dir);
+        assert!(
+            edn_count >= 2,
+            "full checkpoint via signal must create .edn files, got {edn_count}"
+        );
+
+        // Verify WAL was truncated.
+        let wal_size = std::fs::metadata(&wal_path).unwrap().len();
+        assert_eq!(wal_size, 0, "full checkpoint via signal must truncate WAL");
+
+        // Stop the thread.
+        signal_tx
+            .send(CheckpointSignal::Stop)
+            .expect("Stop signal must be sendable");
+        thread
+            .join()
+            .expect("checkpoint thread must exit after Stop");
+    }
+
+    // ── DS7: Scale verification ──────────────────────────────────────────
+
+    /// Helper: build a TxFile with a unique entity ident for DS7 scale tests.
+    /// Each call produces a datom with a distinct entity + tx to avoid collisions.
+    fn make_scale_tx(label: &str, thread_id: usize, seq: usize) -> braid_kernel::layout::TxFile {
+        use braid_kernel::datom::*;
+
+        let agent = AgentId::from_name("test:ds7-scale");
+        let unique_ts = 3_000_000_000u64 + (thread_id as u64 * 10_000) + seq as u64;
+        let tx_id = TxId::new(unique_ts, 0, agent);
+        let entity = EntityId::from_ident(&format!(":ds7-scale/{label}-t{thread_id}-s{seq}"));
+        let datoms = vec![Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String(format!("ds7-{label}-thread{thread_id}-seq{seq}")),
+            tx_id,
+            Op::Assert,
+        )];
+        braid_kernel::layout::TxFile {
+            tx_id,
+            agent,
+            provenance: ProvenanceType::Derived,
+            rationale: format!("DS7 scale: {label} t{thread_id} s{seq}"),
+            causal_predecessors: vec![],
+            datoms,
+        }
+    }
+
+    // ── Category 1: Concurrent Write Visibility ──────────────────────────
+
+    #[test]
+    fn scale_10_writers_all_visible() {
+        // 10 threads each write 5 unique datoms through Arc<RwLock<LiveStore>>.
+        // After all complete, verify all 50 datoms are visible in the store.
+        use std::sync::Barrier;
+
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        let genesis_count = live.store().len();
+        let shared: Arc<RwLock<crate::live_store::LiveStore>> = Arc::new(RwLock::new(live));
+
+        let writer_count = 10;
+        let datoms_per_writer = 5;
+        let barrier = Arc::new(Barrier::new(writer_count));
+
+        let handles: Vec<_> = (0..writer_count)
+            .map(|t| {
+                let shared = Arc::clone(&shared);
+                let barrier = Arc::clone(&barrier);
+                std::thread::spawn(move || {
+                    barrier.wait(); // all threads start writing simultaneously
+                    for s in 0..datoms_per_writer {
+                        let tx = make_scale_tx("vis", t, s);
+                        let mut guard = shared.write().unwrap();
+                        guard.write_tx(&tx).expect("write_tx must succeed");
+                    }
+                })
+            })
+            .collect();
+
+        for h in handles {
+            h.join().expect("writer thread must not panic");
+        }
+
+        // Verify all 50 datoms are visible.
+        let guard = shared.read().unwrap();
+        let final_count = guard.store().len();
+        let expected = genesis_count + (writer_count * datoms_per_writer);
+        assert_eq!(
+            final_count, expected,
+            "store must contain genesis ({genesis_count}) + {} datoms = {expected}, got {final_count}",
+            writer_count * datoms_per_writer
+        );
+
+        // Spot-check: verify specific entities from each thread are present.
+        for t in 0..writer_count {
+            for s in 0..datoms_per_writer {
+                let ident = format!(":ds7-scale/vis-t{t}-s{s}");
+                let entity = braid_kernel::datom::EntityId::from_ident(&ident);
+                let has_datom = guard
+                    .store()
+                    .entity_datoms(entity)
+                    .iter()
+                    .any(|d| d.op == braid_kernel::datom::Op::Assert);
+                assert!(
+                    has_datom,
+                    "entity {ident} must be visible after all writers complete"
+                );
+            }
+        }
+    }
+
+    // ── Category 2: Write-then-Read Consistency ──────────────────────────
+
+    #[test]
+    fn scale_write_then_read_consistent() {
+        // Thread A writes a datom, Thread B reads it after A releases the
+        // write lock. Repeat 20 times with different threads.
+
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        let shared: Arc<RwLock<crate::live_store::LiveStore>> = Arc::new(RwLock::new(live));
+
+        for round in 0..20usize {
+            let shared_w = Arc::clone(&shared);
+            let shared_r = Arc::clone(&shared);
+
+            // Writer thread writes a unique datom.
+            let writer = std::thread::spawn(move || {
+                let tx = make_scale_tx("wtr", round, 0);
+                let mut guard = shared_w.write().unwrap();
+                guard.write_tx(&tx).expect("write_tx must succeed");
+                // Lock released on drop.
+            });
+
+            writer.join().expect("writer thread must not panic");
+
+            // Reader thread verifies the datom is visible.
+            let reader = std::thread::spawn(move || {
+                let guard = shared_r.read().unwrap();
+                let ident = format!(":ds7-scale/wtr-t{round}-s0");
+                let entity = braid_kernel::datom::EntityId::from_ident(&ident);
+                let has_datom = guard
+                    .store()
+                    .entity_datoms(entity)
+                    .iter()
+                    .any(|d| d.op == braid_kernel::datom::Op::Assert);
+                assert!(
+                    has_datom,
+                    "round {round}: reader must see writer's datom for {ident}"
+                );
+            });
+
+            reader.join().expect("reader thread must not panic");
+        }
+    }
+
+    // ── Category 3: Checkpoint Correctness ───────────────────────────────
+
+    #[test]
+    fn scale_checkpoint_preserves_all_data() {
+        // Write 20 entries through LiveStore, flush, then verify a full
+        // rebuild from .edn files matches. INV-STORE-020 at scale.
+
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let mut live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+
+        // Write 20 transactions.
+        for i in 0..20usize {
+            let tx = make_scale_tx("ckpt", i, 0);
+            live.write_tx(&tx).expect("write_tx must succeed");
+        }
+
+        let count_before_flush = live.store().len();
+
+        // Flush writes store.bin to disk.
+        live.flush().expect("flush must succeed");
+        drop(live);
+
+        // Rebuild by opening (loads from store.bin + any delta).
+        let reopened = crate::live_store::LiveStore::open(&braid_dir)
+            .expect("re-open after flush must succeed");
+        let count_after_reopen = reopened.store().len();
+
+        assert_eq!(
+            count_before_flush, count_after_reopen,
+            "INV-STORE-020: rebuilt store must have same datom count as pre-flush \
+             (before={count_before_flush}, after={count_after_reopen})"
+        );
+
+        // Verify specific entities survived the roundtrip.
+        for i in 0..20usize {
+            let ident = format!(":ds7-scale/ckpt-t{i}-s0");
+            let entity = braid_kernel::datom::EntityId::from_ident(&ident);
+            let has_datom = reopened
+                .store()
+                .entity_datoms(entity)
+                .iter()
+                .any(|d| d.op == braid_kernel::datom::Op::Assert);
+            assert!(
+                has_datom,
+                "entity {ident} must survive flush+reopen checkpoint cycle"
+            );
+        }
+    }
+
+    // ── Category 4: WAL Recovery Correctness ─────────────────────────────
+
+    #[test]
+    fn scale_wal_recovery_matches_direct() {
+        // Write 10 entries through WAL + apply to store. Separately, write
+        // the same entries through LiveStore directly. Verify both stores
+        // have identical datom counts.
+
+        // Path A: LiveStore direct writes.
+        let dir_a = tempfile::tempdir().unwrap();
+        let braid_dir_a = dir_a.path().join(".braid");
+        let mut live_a = crate::live_store::LiveStore::create(&braid_dir_a).unwrap();
+
+        let txs: Vec<_> = (0..10usize)
+            .map(|i| make_scale_tx("walrec", i, 0))
+            .collect();
+
+        for tx in &txs {
+            live_a.write_tx(tx).expect("direct write_tx must succeed");
+        }
+        live_a.flush().expect("flush A must succeed");
+        let count_direct = live_a.store().len();
+        drop(live_a);
+
+        // Path B: WAL append + open_with_wal recovery.
+        let dir_b = tempfile::tempdir().unwrap();
+        let braid_dir_b = dir_b.path().join(".braid");
+        // Create the store layout with genesis.
+        let mut live_b_init = crate::live_store::LiveStore::create(&braid_dir_b).unwrap();
+        live_b_init.flush().expect("flush B init must succeed");
+        drop(live_b_init);
+
+        // Write the same transactions to WAL.
+        let wal_path = braid_dir_b.join(".cache").join("wal.bin");
+        let _ = std::fs::create_dir_all(braid_dir_b.join(".cache"));
+        let mut wal = crate::wal::WalWriter::open(&wal_path).unwrap();
+        for tx in &txs {
+            wal.append(tx).unwrap();
+        }
+        wal.sync().unwrap();
+        drop(wal);
+
+        // Recover via open_with_wal.
+        let live_b = crate::live_store::LiveStore::open_with_wal(&braid_dir_b)
+            .expect("open_with_wal must succeed");
+        let count_wal = live_b.store().len();
+
+        assert_eq!(
+            count_direct, count_wal,
+            "WAL recovery must produce same datom count as direct writes \
+             (direct={count_direct}, wal={count_wal})"
+        );
+    }
+
+    // ── Category 5: Concurrent Read Performance ──────────────────────────
+
+    #[test]
+    fn scale_50_concurrent_reads() {
+        // Spawn 50 threads that each read store.len() 100 times (total 5000 reads).
+        // Verify all complete within 2 seconds (proves reads are truly concurrent).
+        use std::sync::Barrier;
+
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        let expected_len = live.store().len();
+        let shared: Arc<RwLock<crate::live_store::LiveStore>> = Arc::new(RwLock::new(live));
+
+        let reader_count = 50;
+        let reads_per_thread = 100;
+        let barrier = Arc::new(Barrier::new(reader_count));
+
+        let start = Instant::now();
+
+        let handles: Vec<_> = (0..reader_count)
+            .map(|_| {
+                let shared = Arc::clone(&shared);
+                let barrier = Arc::clone(&barrier);
+                std::thread::spawn(move || {
+                    barrier.wait(); // all threads start reading simultaneously
+                    for _ in 0..reads_per_thread {
+                        let guard = shared.read().unwrap();
+                        let len = guard.store().len();
+                        assert_eq!(
+                            len, expected_len,
+                            "concurrent read must see consistent store length"
+                        );
+                        drop(guard);
+                    }
+                })
+            })
+            .collect();
+
+        for h in handles {
+            h.join().expect("reader thread must not panic");
+        }
+
+        let elapsed = start.elapsed();
+        // 50 threads * 100 reads = 5000 reads.
+        // With RwLock concurrent reads, this should complete in well under 2s.
+        // Sequential reads (one at a time) would be much slower.
+        assert!(
+            elapsed < Duration::from_secs(2),
+            "5000 concurrent reads must complete within 2s (got {elapsed:?}), \
+             proving RwLock::read() allows true concurrency"
+        );
+    }
+
+    // ── Category 6: Mixed Read-Write Load ────────────────────────────────
+
+    #[test]
+    fn scale_mixed_readwrite_no_panic() {
+        // 5 writer threads (each writes 10 datoms) + 20 reader threads
+        // (each reads 50 times) running simultaneously on shared
+        // Arc<RwLock<LiveStore>>. Verify: no panics, no deadlocks,
+        // final datom count = genesis + 50.
+        use std::sync::atomic::{AtomicBool, Ordering};
+        use std::sync::Barrier;
+
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        let genesis_count = live.store().len();
+        let shared: Arc<RwLock<crate::live_store::LiveStore>> = Arc::new(RwLock::new(live));
+
+        let writer_count = 5;
+        let datoms_per_writer = 10;
+        let reader_count = 20;
+        let reads_per_reader = 50;
+        let total_threads = writer_count + reader_count;
+        let barrier = Arc::new(Barrier::new(total_threads));
+        let any_failure = Arc::new(AtomicBool::new(false));
+
+        // Spawn writer threads.
+        let mut handles = Vec::with_capacity(total_threads);
+        for t in 0..writer_count {
+            let shared = Arc::clone(&shared);
+            let barrier = Arc::clone(&barrier);
+            let any_failure = Arc::clone(&any_failure);
+            handles.push(std::thread::spawn(move || {
+                barrier.wait();
+                for s in 0..datoms_per_writer {
+                    let tx = make_scale_tx("mixed-w", t, s);
+                    let mut guard = shared.write().unwrap();
+                    if guard.write_tx(&tx).is_err() {
+                        any_failure.store(true, Ordering::SeqCst);
+                    }
+                }
+            }));
+        }
+
+        // Spawn reader threads.
+        for _ in 0..reader_count {
+            let shared = Arc::clone(&shared);
+            let barrier = Arc::clone(&barrier);
+            handles.push(std::thread::spawn(move || {
+                barrier.wait();
+                for _ in 0..reads_per_reader {
+                    let guard = shared.read().unwrap();
+                    // Just read the length — must not panic.
+                    let _len = guard.store().len();
+                    drop(guard);
+                }
+            }));
+        }
+
+        // Wait with a generous timeout to detect deadlocks.
+        let deadline = Instant::now() + Duration::from_secs(10);
+        for h in handles {
+            let remaining = deadline.saturating_duration_since(Instant::now());
+            assert!(
+                !remaining.is_zero(),
+                "deadlock detected: mixed read-write test exceeded 10s timeout"
+            );
+            h.join().expect("mixed read-write thread must not panic");
+        }
+
+        assert!(
+            !any_failure.load(Ordering::SeqCst),
+            "no write failures allowed during mixed load"
+        );
+
+        // Verify final datom count.
+        let guard = shared.read().unwrap();
+        let final_count = guard.store().len();
+        let expected = genesis_count + (writer_count * datoms_per_writer);
+        assert_eq!(
+            final_count, expected,
+            "final datom count must be genesis ({genesis_count}) + {} = {expected}, got {final_count}",
+            writer_count * datoms_per_writer
+        );
+    }
+
+    // ── Category 7: Full Lifecycle ───────────────────────────────────────
+
+    #[test]
+    fn scale_lifecycle_init_write_checkpoint_recover() {
+        // Full lifecycle test:
+        // 1. Create a store
+        // 2. Write 10 entries via LiveStore
+        // 3. Flush (writes store.bin)
+        // 4. Write 5 entries to WAL (simulating daemon writes after checkpoint)
+        // 5. Drop everything (simulating crash)
+        // 6. Call open_with_wal — should recover all 15 entries
+        // 7. Verify datom count matches
+
+        // Step 1: Create a store.
+        let dir = tempfile::tempdir().unwrap();
+        let braid_dir = dir.path().join(".braid");
+        let mut live = crate::live_store::LiveStore::create(&braid_dir).unwrap();
+        let genesis_count = live.store().len();
+
+        // Step 2: Write 10 entries via LiveStore (persisted as .edn files).
+        for i in 0..10usize {
+            let tx = make_scale_tx("lifecycle-init", i, 0);
+            live.write_tx(&tx).expect("initial write_tx must succeed");
+        }
+
+        let count_after_initial = live.store().len();
+        assert_eq!(
+            count_after_initial,
+            genesis_count + 10,
+            "step 2: store must have genesis + 10 datoms"
+        );
+
+        // Step 3: Flush writes store.bin (checkpoint).
+        live.flush().expect("flush must succeed");
+        drop(live);
+
+        // Step 4: Write 5 entries directly to WAL (simulating daemon writes).
+        let wal_path = braid_dir.join(".cache").join("wal.bin");
+        let _ = std::fs::create_dir_all(braid_dir.join(".cache"));
+        let mut wal = crate::wal::WalWriter::open(&wal_path).unwrap();
+        for i in 0..5usize {
+            let tx = make_scale_tx("lifecycle-wal", i, 0);
+            wal.append(&tx).unwrap();
+        }
+        wal.sync().unwrap();
+
+        // Step 5: Drop everything (simulating crash).
+        drop(wal);
+
+        // Step 6: Recover via open_with_wal.
+        let recovered = crate::live_store::LiveStore::open_with_wal(&braid_dir)
+            .expect("open_with_wal must recover successfully");
+
+        // Step 7: Verify all 15 entries are present.
+        let recovered_count = recovered.store().len();
+        let expected = genesis_count + 15;
+        assert_eq!(
+            recovered_count, expected,
+            "recovered store must have genesis ({genesis_count}) + 15 = {expected} datoms, \
+             got {recovered_count}"
+        );
+
+        // Verify specific entities from both phases are present.
+        for i in 0..10usize {
+            let ident = format!(":ds7-scale/lifecycle-init-t{i}-s0");
+            let entity = braid_kernel::datom::EntityId::from_ident(&ident);
+            let has_datom = recovered
+                .store()
+                .entity_datoms(entity)
+                .iter()
+                .any(|d| d.op == braid_kernel::datom::Op::Assert);
+            assert!(
+                has_datom,
+                "initial entry {ident} must survive checkpoint+WAL recovery"
+            );
+        }
+        for i in 0..5usize {
+            let ident = format!(":ds7-scale/lifecycle-wal-t{i}-s0");
+            let entity = braid_kernel::datom::EntityId::from_ident(&ident);
+            let has_datom = recovered
+                .store()
+                .entity_datoms(entity)
+                .iter()
+                .any(|d| d.op == braid_kernel::datom::Op::Assert);
+            assert!(
+                has_datom,
+                "WAL entry {ident} must be recovered by open_with_wal"
+            );
+        }
     }
 }

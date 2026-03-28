@@ -29,7 +29,7 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
-use braid_kernel::layout::TxFile;
+use braid_kernel::layout::{serialize_tx, ContentHash, TxFile};
 use braid_kernel::Store;
 
 use crate::error::BraidError;
@@ -82,6 +82,119 @@ impl LiveStore {
             path: path.to_path_buf(),
             dirty: false,
             known_hashes,
+            txns_dir_mtime,
+        })
+    }
+
+    /// Open with WAL-accelerated recovery (DS5).
+    ///
+    /// Three-level recovery:
+    /// 1. **Fast**: checkpoint (store.bin) + WAL delta — O(1) + O(k) where k = WAL
+    ///    entries since last checkpoint. This is the normal daemon restart path.
+    /// 2. **Medium**: checkpoint + EDN delta — O(1) + O(F) where F = new EDN files.
+    ///    This is the existing `open()` path when WAL is missing but cache exists.
+    /// 3. **Slow**: full EDN rebuild — O(N). Fallback when both cache and WAL are
+    ///    corrupted or missing. Already implemented in `load_store()`.
+    ///
+    /// Falls through levels automatically on failure.
+    pub fn open_with_wal(path: &Path) -> Result<Self, BraidError> {
+        let wal_path = path.join(".cache").join("wal.bin");
+
+        // Try Fast recovery: checkpoint + WAL replay
+        if wal_path.exists() {
+            match Self::try_fast_recovery(path, &wal_path) {
+                Ok(live) => return Ok(live),
+                Err(e) => {
+                    eprintln!("DS5: fast recovery failed ({e}), falling back to medium");
+                }
+            }
+        }
+
+        // Medium/Slow: existing open() path (checkpoint + EDN delta or full rebuild)
+        Self::open(path)
+    }
+
+    /// Attempt fast recovery from checkpoint + WAL delta.
+    ///
+    /// Loads the slim cache (store.bin) and its known hash set, then replays
+    /// WAL entries that were written after the checkpoint. The hash for each
+    /// WAL entry is computed using `ContentHash::of(serialize_tx(tx))` — the
+    /// same algorithm as `DiskLayout::write_tx_no_invalidate` — ensuring the
+    /// known_hashes set stays consistent with the EDN filename convention.
+    ///
+    /// If a WAL entry was already checkpointed (its hash is already in the
+    /// known set), applying it is idempotent: `Store::apply_datoms` is a set
+    /// union and duplicate datoms are no-ops (C4).
+    fn try_fast_recovery(path: &Path, wal_path: &Path) -> Result<Self, BraidError> {
+        let layout = DiskLayout::open(path)?;
+
+        // Load checkpoint (slim cache) with its hash list.
+        // This is the same path as open(), but we intercept before the EDN delta.
+        let (store, known_hash_list, _fingerprint) = layout.load_store_with_hashes()?;
+        let mut known_set: HashSet<String> = known_hash_list.into_iter().collect();
+        let checkpoint_size = known_set.len();
+
+        // Open the WAL for reading.
+        let reader = crate::wal::WalReader::open(wal_path)
+            .map_err(|e| BraidError::Validation(format!("WAL open failed: {e}")))?;
+
+        // Replay WAL entries.
+        let iter = reader
+            .iter()
+            .map_err(|e| BraidError::Validation(format!("WAL iter failed: {e}")))?;
+
+        let mut store = store;
+        let mut replay_count = 0u64;
+
+        for entry_result in iter {
+            match entry_result {
+                Ok((tx, _meta)) => {
+                    // Compute the content-addressed hash using the same algorithm
+                    // as DiskLayout::write_tx / write_tx_no_invalidate:
+                    //   hash = ContentHash::of(serialize_tx(tx))
+                    // This ensures WAL-replayed entries produce the same hash as
+                    // their corresponding .edn files (if/when they get checkpointed).
+                    let edn_bytes = serialize_tx(&tx);
+                    let hash_hex = ContentHash::of(&edn_bytes).to_hex();
+
+                    // Skip entries already in the checkpoint (idempotent, but
+                    // avoiding redundant apply_datoms saves CPU).
+                    if !known_set.contains(&hash_hex) {
+                        store.apply_datoms(&tx.datoms);
+                        known_set.insert(hash_hex);
+                        replay_count += 1;
+                    }
+                }
+                Err(_e) => {
+                    // WAL corruption at this entry — stop replay.
+                    // We have a consistent prefix: all entries before this
+                    // point were integrity-verified (CRC32 + chain hash).
+                    eprintln!(
+                        "DS5: WAL replay stopped at entry {replay_count} (corruption), \
+                         using consistent prefix"
+                    );
+                    break;
+                }
+            }
+        }
+
+        if replay_count > 0 {
+            eprintln!(
+                "DS5: fast recovery replayed {replay_count} WAL entries \
+                 (checkpoint had {checkpoint_size} txns)"
+            );
+        }
+
+        let txns_dir_mtime = std::fs::metadata(path.join("txns"))
+            .and_then(|m| m.modified())
+            .ok();
+
+        Ok(LiveStore {
+            layout,
+            store,
+            path: path.to_path_buf(),
+            dirty: replay_count > 0, // Mark dirty so flush() writes updated store.bin
+            known_hashes: known_set,
             txns_dir_mtime,
         })
     }
@@ -216,6 +329,25 @@ impl LiveStore {
         self.dirty = true;
 
         Ok(file_path)
+    }
+
+    /// Apply datoms to the in-memory store without writing to disk.
+    ///
+    /// **DS2 group commit path**: The commit thread handles durability via
+    /// the WAL (`append_batch` + `fsync`). This method updates the in-memory
+    /// store so subsequent queries see the new datoms. The dirty flag is set
+    /// so that `flush()` will serialize the updated `store.bin` on shutdown.
+    ///
+    /// This is intentionally separate from `write_tx()` which does the full
+    /// write-through (EDN file + fsync + in-memory). The group commit path
+    /// replaces EDN file durability with WAL durability, then applies
+    /// in-memory as a second step.
+    ///
+    /// **INV-DS2-004**: After `apply_datoms_in_memory`, the in-memory store
+    /// contains all datoms from the transaction. The WAL provides durability.
+    pub fn apply_datoms_in_memory(&mut self, datoms: &[braid_kernel::datom::Datom]) {
+        self.store.apply_datoms(datoms);
+        self.dirty = true;
     }
 
     /// Detect and apply external transactions written by other processes.
@@ -1082,5 +1214,308 @@ mod tests {
                 live.store().len()
             );
         }
+    }
+
+    // ── DS5-TEST: WAL crash recovery tests ──────────────────────────
+
+    /// DS5-TEST-1: open_with_wal falls back to regular open() when no WAL file exists.
+    #[test]
+    fn open_with_wal_no_wal_file() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+
+        // Create a store and flush so there is a valid cache.
+        {
+            let mut live = LiveStore::create(&braid_path).unwrap();
+            let tx = arb_datom_tx(100_000);
+            live.write_tx(&tx).unwrap();
+            live.flush().unwrap();
+        }
+
+        // No WAL file exists — open_with_wal should fall back to open() and succeed.
+        let wal_path = braid_path.join(".cache").join("wal.bin");
+        assert!(!wal_path.exists(), "precondition: no WAL file");
+
+        let live = LiveStore::open_with_wal(&braid_path).unwrap();
+        assert!(!live.store().is_empty(), "store should have datoms");
+        assert!(!live.is_dirty(), "no WAL replay means not dirty");
+    }
+
+    /// DS5-TEST-2: open_with_wal falls back to open() when WAL file exists but is empty.
+    #[test]
+    fn open_with_wal_empty_wal() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+
+        let expected_len;
+        {
+            let mut live = LiveStore::create(&braid_path).unwrap();
+            let tx = arb_datom_tx(101_000);
+            live.write_tx(&tx).unwrap();
+            live.flush().unwrap();
+            expected_len = live.store().len();
+        }
+
+        // Create an empty WAL file.
+        let cache_dir = braid_path.join(".cache");
+        std::fs::create_dir_all(&cache_dir).unwrap();
+        let wal_path = cache_dir.join("wal.bin");
+        std::fs::write(&wal_path, b"").unwrap();
+        assert!(wal_path.exists(), "precondition: WAL file exists");
+        assert_eq!(
+            std::fs::metadata(&wal_path).unwrap().len(),
+            0,
+            "precondition: WAL file is empty"
+        );
+
+        // open_with_wal should handle empty WAL gracefully (fast recovery
+        // either succeeds with 0 replays or falls back to medium).
+        let live = LiveStore::open_with_wal(&braid_path).unwrap();
+        assert_eq!(
+            live.store().len(),
+            expected_len,
+            "datom count should match original after empty WAL recovery"
+        );
+    }
+
+    /// DS5-TEST-3: Fast recovery replays WAL entries not present in the checkpoint.
+    #[test]
+    fn fast_recovery_replays_wal_entries() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+
+        // Step 1: Create store and flush a checkpoint (store.bin).
+        let checkpoint_len;
+        {
+            let mut live = LiveStore::create(&braid_path).unwrap();
+            live.flush().unwrap();
+            checkpoint_len = live.store().len();
+        }
+
+        // Step 2: Write 3 entries ONLY to the WAL (not to .edn files).
+        let cache_dir = braid_path.join(".cache");
+        std::fs::create_dir_all(&cache_dir).unwrap();
+        let wal_path = cache_dir.join("wal.bin");
+        let mut writer = crate::wal::WalWriter::open(&wal_path).unwrap();
+        let wal_txs: Vec<_> = (0..3).map(|i| arb_datom_tx(102_000 + i)).collect();
+        for tx in &wal_txs {
+            writer.append(tx).unwrap();
+        }
+        writer.sync().unwrap();
+
+        // Step 3: open_with_wal should recover the 3 WAL entries.
+        let live = LiveStore::open_with_wal(&braid_path).unwrap();
+        assert!(
+            live.store().len() > checkpoint_len,
+            "WAL replay should add datoms: checkpoint={}, recovered={}",
+            checkpoint_len,
+            live.store().len()
+        );
+        // Each WAL tx has 1 datom, so we expect checkpoint_len + 3
+        // (each unique entity/attribute/value/tx tuple is a new datom).
+        assert_eq!(
+            live.store().len(),
+            checkpoint_len + 3,
+            "should have exactly 3 more datoms from WAL replay"
+        );
+    }
+
+    /// DS5-TEST-4: Fast recovery does not double-count already-checkpointed entries.
+    #[test]
+    fn fast_recovery_skips_already_checkpointed() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+
+        // Step 1: Create store, write 5 entries through LiveStore, flush.
+        let txs: Vec<_> = (0..5).map(|i| arb_datom_tx(103_000 + i)).collect();
+        let expected_len;
+        {
+            let mut live = LiveStore::create(&braid_path).unwrap();
+            for tx in &txs {
+                live.write_tx(tx).unwrap();
+            }
+            live.flush().unwrap();
+            expected_len = live.store().len();
+        }
+
+        // Step 2: Write the SAME 5 entries to the WAL.
+        let cache_dir = braid_path.join(".cache");
+        let wal_path = cache_dir.join("wal.bin");
+        let mut writer = crate::wal::WalWriter::open(&wal_path).unwrap();
+        for tx in &txs {
+            writer.append(tx).unwrap();
+        }
+        writer.sync().unwrap();
+
+        // Step 3: open_with_wal should NOT double-count.
+        let live = LiveStore::open_with_wal(&braid_path).unwrap();
+        assert_eq!(
+            live.store().len(),
+            expected_len,
+            "WAL replay must not double-count: expected={}, got={}",
+            expected_len,
+            live.store().len()
+        );
+    }
+
+    /// DS5-TEST-5: Fast recovery handles a partially-corrupt WAL (crash mid-write).
+    #[test]
+    fn fast_recovery_handles_partial_wal() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+
+        // Step 1: Create store, flush checkpoint.
+        let checkpoint_len;
+        {
+            let mut live = LiveStore::create(&braid_path).unwrap();
+            live.flush().unwrap();
+            checkpoint_len = live.store().len();
+        }
+
+        // Step 2: Write 3 good entries to WAL, then append garbage bytes.
+        let cache_dir = braid_path.join(".cache");
+        std::fs::create_dir_all(&cache_dir).unwrap();
+        let wal_path = cache_dir.join("wal.bin");
+        {
+            let mut writer = crate::wal::WalWriter::open(&wal_path).unwrap();
+            for i in 0..3 {
+                let tx = arb_datom_tx(104_000 + i);
+                writer.append(&tx).unwrap();
+            }
+            writer.sync().unwrap();
+        }
+
+        // Append garbage bytes to simulate crash mid-write.
+        {
+            use std::io::Write;
+            let mut f = std::fs::OpenOptions::new()
+                .append(true)
+                .open(&wal_path)
+                .unwrap();
+            f.write_all(&[0xDE, 0xAD, 0xBE, 0xEF, 0xFF, 0xFF, 0xFF, 0xFF])
+                .unwrap();
+            f.sync_all().unwrap();
+        }
+
+        // Step 3: open_with_wal should recover the 3 good entries.
+        let live = LiveStore::open_with_wal(&braid_path).unwrap();
+        assert_eq!(
+            live.store().len(),
+            checkpoint_len + 3,
+            "partial WAL: should recover 3 good entries before corruption"
+        );
+    }
+
+    /// DS5-TEST-6: Fully corrupt WAL falls back to medium recovery (checkpoint + EDN delta).
+    #[test]
+    fn medium_recovery_when_wal_corrupt() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+
+        // Step 1: Create store, write txns, flush checkpoint.
+        let expected_len;
+        {
+            let mut live = LiveStore::create(&braid_path).unwrap();
+            for i in 0..3 {
+                let tx = arb_datom_tx(105_000 + i);
+                live.write_tx(&tx).unwrap();
+            }
+            live.flush().unwrap();
+            expected_len = live.store().len();
+        }
+
+        // Step 2: Create a WAL file with only corrupt bytes.
+        let cache_dir = braid_path.join(".cache");
+        std::fs::create_dir_all(&cache_dir).unwrap();
+        let wal_path = cache_dir.join("wal.bin");
+        std::fs::write(&wal_path, [0xBA, 0xAD, 0xCA, 0xFE, 0x00, 0x01, 0x02, 0x03]).unwrap();
+
+        // Step 3: open_with_wal should fall back to medium recovery and succeed.
+        let live = LiveStore::open_with_wal(&braid_path).unwrap();
+        assert_eq!(
+            live.store().len(),
+            expected_len,
+            "corrupt WAL: medium recovery should produce same datom count as checkpoint"
+        );
+    }
+
+    /// DS5-TEST-7: No cache and no WAL — slow recovery rebuilds from .edn files.
+    #[test]
+    fn slow_recovery_when_no_cache_no_wal() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+
+        // Step 1: Create store, write txns, flush so .edn files exist.
+        let expected_len;
+        {
+            let mut live = LiveStore::create(&braid_path).unwrap();
+            for i in 0..4 {
+                let tx = arb_datom_tx(106_000 + i);
+                live.write_tx(&tx).unwrap();
+            }
+            live.flush().unwrap();
+            expected_len = live.store().len();
+        }
+
+        // Step 2: Delete ALL cache files (store.bin, meta.json, etc.) and WAL.
+        let cache_dir = braid_path.join(".cache");
+        if cache_dir.is_dir() {
+            for entry in std::fs::read_dir(&cache_dir).unwrap() {
+                let entry = entry.unwrap();
+                let _ = std::fs::remove_file(entry.path());
+            }
+        }
+
+        // Verify preconditions: no cache, no WAL.
+        assert!(
+            !cache_dir.join("store.bin").exists(),
+            "precondition: store.bin deleted"
+        );
+        assert!(
+            !cache_dir.join("wal.bin").exists(),
+            "precondition: wal.bin deleted"
+        );
+
+        // Step 3: open_with_wal should fall back to full rebuild from .edn files.
+        let live = LiveStore::open_with_wal(&braid_path).unwrap();
+        assert_eq!(
+            live.store().len(),
+            expected_len,
+            "slow recovery: full rebuild must match original datom count"
+        );
+    }
+
+    /// DS5-TEST-8: WAL replay marks the store dirty (so flush writes updated cache).
+    #[test]
+    fn recovery_marks_dirty_when_wal_has_entries() {
+        let tmp = tempfile::tempdir().unwrap();
+        let braid_path = tmp.path().join(".braid");
+
+        // Step 1: Create store, flush checkpoint.
+        {
+            let live = LiveStore::create(&braid_path).unwrap();
+            // Drop triggers best-effort flush.
+            drop(live);
+        }
+
+        // Step 2: Write entries to WAL (not to .edn).
+        let cache_dir = braid_path.join(".cache");
+        std::fs::create_dir_all(&cache_dir).unwrap();
+        let wal_path = cache_dir.join("wal.bin");
+        {
+            let mut writer = crate::wal::WalWriter::open(&wal_path).unwrap();
+            for i in 0..2 {
+                let tx = arb_datom_tx(107_000 + i);
+                writer.append(&tx).unwrap();
+            }
+            writer.sync().unwrap();
+        }
+
+        // Step 3: open_with_wal should replay and mark dirty.
+        let live = LiveStore::open_with_wal(&braid_path).unwrap();
+        assert!(
+            live.is_dirty(),
+            "store must be dirty after WAL replay so flush writes updated cache"
+        );
     }
 }

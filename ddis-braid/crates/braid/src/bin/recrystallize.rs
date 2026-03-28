@@ -32,10 +32,7 @@ fn main() {
         .unwrap_or_else(|| PathBuf::from(".braid"));
 
     if !braid_path.join("txns").is_dir() {
-        eprintln!(
-            "error: no braid store found at {}",
-            braid_path.display()
-        );
+        eprintln!("error: no braid store found at {}", braid_path.display());
         std::process::exit(1);
     }
 
@@ -147,9 +144,7 @@ fn main() {
             .and_then(|v| v.parse().ok())
             .unwrap_or(braid_kernel::concept::MIN_CLUSTER_SIZE);
 
-    eprintln!(
-        "crystallizing: threshold={crystallize_threshold:.3}, min_size={min_cluster_size}"
-    );
+    eprintln!("crystallizing: threshold={crystallize_threshold:.3}, min_size={min_cluster_size}");
 
     let new_concepts = crystallize_concepts(&observations, crystallize_threshold, min_cluster_size);
 
@@ -351,9 +346,7 @@ fn next_tx_id(store: &Store, agent: AgentId) -> TxId {
 }
 
 /// Resolve the best available TextEmbedder for the given store path.
-fn resolve_embedder(
-    store_path: &std::path::Path,
-) -> (Box<dyn TextEmbedder>, &'static str) {
+fn resolve_embedder(store_path: &std::path::Path) -> (Box<dyn TextEmbedder>, &'static str) {
     let model_name = "potion-base-8M";
     let model_file = "model.safetensors";
     let tokenizer_file = "tokenizer.json";
@@ -405,7 +398,6 @@ fn resolve_embedder(
     }
 
     // Fallback: HashEmbedder.
-    let hash =
-        braid_kernel::embedding::HashEmbedder::new(braid_kernel::embedding::DEFAULT_DIM);
+    let hash = braid_kernel::embedding::HashEmbedder::new(braid_kernel::embedding::DEFAULT_DIM);
     (Box::new(hash), "hash")
 }

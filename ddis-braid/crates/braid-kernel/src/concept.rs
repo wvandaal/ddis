@@ -410,7 +410,10 @@ pub fn split_concept(
     }
 
     // Compute internal variance of the full set.
-    let embeddings_ref: Vec<&[f32]> = member_embeddings.iter().map(|(_, e, _)| e.as_slice()).collect();
+    let embeddings_ref: Vec<&[f32]> = member_embeddings
+        .iter()
+        .map(|(_, e, _)| e.as_slice())
+        .collect();
     let cent = crate::embedding::centroid(&embeddings_ref);
     let var = crate::embedding::variance(&embeddings_ref, &cent) as f64;
 
@@ -450,7 +453,10 @@ pub fn split_concept(
     }
 
     // Generate sub-concepts from final groups.
-    let member_texts: Vec<&str> = member_embeddings.iter().map(|(_, _, t)| t.as_str()).collect();
+    let member_texts: Vec<&str> = member_embeddings
+        .iter()
+        .map(|(_, _, t)| t.as_str())
+        .collect();
 
     final_groups
         .into_iter()
@@ -461,10 +467,7 @@ pub fn split_concept(
                 .iter()
                 .map(|&i| member_embeddings[i].1.as_slice())
                 .collect();
-            let group_texts: Vec<&str> = group
-                .iter()
-                .map(|&i| member_texts[i])
-                .collect();
+            let group_texts: Vec<&str> = group.iter().map(|&i| member_texts[i]).collect();
 
             let centroid = crate::embedding::centroid(&group_embeddings);
             let variance = crate::embedding::variance(&group_embeddings, &centroid) as f64;
@@ -520,8 +523,22 @@ fn split_recursive(
     }
 
     // Recurse on each half.
-    split_recursive(member_embeddings, sim_matrix, &left, split_threshold, min_split_size, result);
-    split_recursive(member_embeddings, sim_matrix, &right, split_threshold, min_split_size, result);
+    split_recursive(
+        member_embeddings,
+        sim_matrix,
+        &left,
+        split_threshold,
+        min_split_size,
+        result,
+    );
+    split_recursive(
+        member_embeddings,
+        sim_matrix,
+        &right,
+        split_threshold,
+        min_split_size,
+        result,
+    );
 }
 
 /// List all concepts in the store, sorted by member count descending.

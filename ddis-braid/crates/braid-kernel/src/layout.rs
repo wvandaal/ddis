@@ -47,6 +47,8 @@
 use std::collections::BTreeSet;
 use std::fmt;
 
+use serde::{Deserialize, Serialize};
+
 use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 
 /// A content hash (BLAKE3, 32 bytes).
@@ -178,7 +180,7 @@ impl Default for LayoutConfig {
 // ---------------------------------------------------------------------------
 
 /// A serialized transaction in canonical EDN format.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TxFile {
     /// Transaction metadata.
     pub tx_id: TxId,
