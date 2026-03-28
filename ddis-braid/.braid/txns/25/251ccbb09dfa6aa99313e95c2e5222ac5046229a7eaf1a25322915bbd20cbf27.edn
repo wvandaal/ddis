@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774717771/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BENCH-1: 50-agent concurrent write/read benchmark with P99 latency measurement"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cf7954d614f13fa14052f93bbba766b8ee76e32ef7b974d4619f446355304063" :a :db/ident :v :task/t-5cdfb3b7 :op :assert}
+   {:e #blake3 "cf7954d614f13fa14052f93bbba766b8ee76e32ef7b974d4619f446355304063" :a :task/created-at :v 1774717770 :op :assert}
+   {:e #blake3 "cf7954d614f13fa14052f93bbba766b8ee76e32ef7b974d4619f446355304063" :a :task/description :v "50 threads each writing 20 observations through daemon socket. Measure P99, P95, P50, mean latency. Verify P99 < 50ms. Also 50 threads reading braid_status 100 times each — measure read P99 < 500ms. Output latency histogram to stderr for analysis. ACCEPTANCE: (A) 50-writer test completes. (B) P99 write latency measured and asserted. (C) 50-reader test completes. (D) P99 read latency measured and asserted. FILE: tests/daemon_integration.rs or new bench file. ~150 LOC." :op :assert}
+   {:e #blake3 "cf7954d614f13fa14052f93bbba766b8ee76e32ef7b974d4619f446355304063" :a :task/id :v "t-5cdfb3b7" :op :assert}
+   {:e #blake3 "cf7954d614f13fa14052f93bbba766b8ee76e32ef7b974d4619f446355304063" :a :task/labels :v :label/BENCH :op :assert}
+   {:e #blake3 "cf7954d614f13fa14052f93bbba766b8ee76e32ef7b974d4619f446355304063" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "cf7954d614f13fa14052f93bbba766b8ee76e32ef7b974d4619f446355304063" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cf7954d614f13fa14052f93bbba766b8ee76e32ef7b974d4619f446355304063" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cf7954d614f13fa14052f93bbba766b8ee76e32ef7b974d4619f446355304063" :a :task/title :v "BENCH-1: 50-agent concurrent write/read benchmark with P99 latency measurement" :op :assert}
+   {:e #blake3 "cf7954d614f13fa14052f93bbba766b8ee76e32ef7b974d4619f446355304063" :a :task/title-l0 :v "BENCH-1" :op :assert}
+   {:e #blake3 "cf7954d614f13fa14052f93bbba766b8ee76e32ef7b974d4619f446355304063" :a :task/title-l1 :v "BENCH-1: 50-agent concurrent write/read benchmark with P99 latency measurement" :op :assert}
+   {:e #blake3 "cf7954d614f13fa14052f93bbba766b8ee76e32ef7b974d4619f446355304063" :a :task/traces-to :v #blake3 "729bb67c5068a417d0e883ea6639e85633e8ba9607ca9e032c2942608f426541" :op :assert}
+   {:e #blake3 "cf7954d614f13fa14052f93bbba766b8ee76e32ef7b974d4619f446355304063" :a :task/type :v :task.type/task :op :assert}
+ ]}

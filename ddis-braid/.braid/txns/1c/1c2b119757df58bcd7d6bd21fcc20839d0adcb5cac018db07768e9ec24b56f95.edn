@@ -1,0 +1,13 @@
+{:tx/id #hlc "1774718682/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bd36b5c337b86bedefd26abae713adfaf4e1c8afc09056838186212f73414985" :a :db/ident :v :recon/trace-0c2d95f4dce46b1e :op :assert}
+   {:e #blake3 "bd36b5c337b86bedefd26abae713adfaf4e1c8afc09056838186212f73414985" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "bd36b5c337b86bedefd26abae713adfaf4e1c8afc09056838186212f73414985" :a :recon/trace-neighborhood :v "HARVEST" :op :assert}
+   {:e #blake3 "bd36b5c337b86bedefd26abae713adfaf4e1c8afc09056838186212f73414985" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.harvest.neg-harvest-003" :op :assert}
+   {:e #blake3 "bd36b5c337b86bedefd26abae713adfaf4e1c8afc09056838186212f73414985" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.e2e_distillation.neg-harvest-003" :op :assert}
+   {:e #blake3 "bd36b5c337b86bedefd26abae713adfaf4e1c8afc09056838186212f73414985" :a :recon/trace-refs :v "NEG-HARVEST-003" :op :assert}
+ ]}

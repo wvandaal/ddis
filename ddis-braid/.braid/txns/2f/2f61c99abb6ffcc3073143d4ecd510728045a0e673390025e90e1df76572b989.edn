@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774718654/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SOUND-2: Fix LIVE view per-attribute resolution"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "93068a484d7fe3aa906dd1d03e0024d41df103a2036f1ffd12900247613a03ab" :a :db/ident :v :task/t-1bbc902a :op :assert}
+   {:e #blake3 "93068a484d7fe3aa906dd1d03e0024d41df103a2036f1ffd12900247613a03ab" :a :task/created-at :v 1774718653 :op :assert}
+   {:e #blake3 "93068a484d7fe3aa906dd1d03e0024d41df103a2036f1ffd12900247613a03ab" :a :task/description :v "Route LIVE updates through schema.resolution_mode(attr). LWW for LWW attrs, keep-all for Multi, lattice join for Lattice. FILE: store.rs. ~40 LOC." :op :assert}
+   {:e #blake3 "93068a484d7fe3aa906dd1d03e0024d41df103a2036f1ffd12900247613a03ab" :a :task/id :v "t-1bbc902a" :op :assert}
+   {:e #blake3 "93068a484d7fe3aa906dd1d03e0024d41df103a2036f1ffd12900247613a03ab" :a :task/labels :v :label/SOUNDNESS :op :assert}
+   {:e #blake3 "93068a484d7fe3aa906dd1d03e0024d41df103a2036f1ffd12900247613a03ab" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "93068a484d7fe3aa906dd1d03e0024d41df103a2036f1ffd12900247613a03ab" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "93068a484d7fe3aa906dd1d03e0024d41df103a2036f1ffd12900247613a03ab" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "93068a484d7fe3aa906dd1d03e0024d41df103a2036f1ffd12900247613a03ab" :a :task/title :v "SOUND-2: Fix LIVE view per-attribute resolution" :op :assert}
+   {:e #blake3 "93068a484d7fe3aa906dd1d03e0024d41df103a2036f1ffd12900247613a03ab" :a :task/title-l0 :v "SOUND-2" :op :assert}
+   {:e #blake3 "93068a484d7fe3aa906dd1d03e0024d41df103a2036f1ffd12900247613a03ab" :a :task/title-l1 :v "SOUND-2: Fix LIVE view per-attribute resolution" :op :assert}
+   {:e #blake3 "93068a484d7fe3aa906dd1d03e0024d41df103a2036f1ffd12900247613a03ab" :a :task/traces-to :v #blake3 "fd00a7254b7645334d1058a6047b9dcdc3b3dfbc8f5bbd715971933e1f04f7af" :op :assert}
+   {:e #blake3 "93068a484d7fe3aa906dd1d03e0024d41df103a2036f1ffd12900247613a03ab" :a :task/type :v :task.type/task :op :assert}
+ ]}

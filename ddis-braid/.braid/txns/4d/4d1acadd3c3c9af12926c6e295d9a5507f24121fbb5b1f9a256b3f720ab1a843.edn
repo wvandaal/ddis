@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774717481/0/c2d7b6409ce02c3dddb8f7152a05d089"
+ :tx/agent "c2d7b6409ce02c3dddb8f7152a05d089"
+ :tx/provenance :observed
+ :tx/rationale "AUDIT FINDING: Crystallization guard missing in harvest.rs. NEG-HARVEST-003 states 'No premature crystallization' but there is no enforcement. Observations are crystallized without stability checks. Fix: crystallization_guard() verifying minimum confidence >= 0.3 and at least 1 supporting observation before allowing conversion to spec element. Traces to: NEG-HARVEST-003, F-SPEC-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6f05ad23199619569fb364617d0e9ba4c485ad777b13295487b43870af1971e6" :a :db/doc :v "AUDIT FINDING: Crystallization guard missing in harvest.rs. NEG-HARVEST-003 states 'No premature crystallization' but there is no enforcement. Observations are crystallized without stability checks. Fix: crystallization_guard() verifying minimum confidence >= 0.3 and at least 1 supporting observation before allowing conversion to spec element. Traces to: NEG-HARVEST-003, F-SPEC-001." :op :assert}
+   {:e #blake3 "6f05ad23199619569fb364617d0e9ba4c485ad777b13295487b43870af1971e6" :a :db/ident :v :observation/audit-finding-crystallization-guard-missing-in-harvestrs :op :assert}
+   {:e #blake3 "6f05ad23199619569fb364617d0e9ba4c485ad777b13295487b43870af1971e6" :a :exploration/body :v "AUDIT FINDING: Crystallization guard missing in harvest.rs. NEG-HARVEST-003 states 'No premature crystallization' but there is no enforcement. Observations are crystallized without stability checks. Fix: crystallization_guard() verifying minimum confidence >= 0.3 and at least 1 supporting observation before allowing conversion to spec element. Traces to: NEG-HARVEST-003, F-SPEC-001." :op :assert}
+   {:e #blake3 "6f05ad23199619569fb364617d0e9ba4c485ad777b13295487b43870af1971e6" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "6f05ad23199619569fb364617d0e9ba4c485ad777b13295487b43870af1971e6" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "6f05ad23199619569fb364617d0e9ba4c485ad777b13295487b43870af1971e6" :a :exploration/content-hash :v #bytes "68b41180e1b63f6fd6e89b048cae8b9148cdda5bf549a72ede2a6db882a3b664" :op :assert}
+   {:e #blake3 "6f05ad23199619569fb364617d0e9ba4c485ad777b13295487b43870af1971e6" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "6f05ad23199619569fb364617d0e9ba4c485ad777b13295487b43870af1971e6" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "6f05ad23199619569fb364617d0e9ba4c485ad777b13295487b43870af1971e6" :a :exploration/source-session :v #blake3 "7a1d37fe44b3daf30ac3f2de63cce2f882ac021bf9a76ca01c2c2cca7542aed0" :op :assert}
+ ]}

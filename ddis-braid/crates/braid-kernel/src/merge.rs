@@ -119,7 +119,7 @@ pub fn detect_merge_conflicts(store: &Store) -> Vec<ConflictSet> {
         let cs = ConflictSet::from_datoms(entity, attr.clone(), &datoms);
         let mode = store.schema().resolution_mode(&attr);
 
-        if has_conflict(&cs, &mode) {
+        if has_conflict(&cs, &mode, Some(store)) {
             conflicts.push(cs);
         }
     }

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774717728/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SOUND-6: Crystallization guard — crystallization_guard(candidates, store) filters candidates below minimum confidence (default 0.3, configurable via :config/min-crystallization-confidence)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "31debd86ce434684d1d11cf9609272b1d100e307ca12c7e556ed7362d6418a86" :a :db/ident :v :task/t-6ade6443 :op :assert}
+   {:e #blake3 "31debd86ce434684d1d11cf9609272b1d100e307ca12c7e556ed7362d6418a86" :a :task/created-at :v 1774717727 :op :assert}
+   {:e #blake3 "31debd86ce434684d1d11cf9609272b1d100e307ca12c7e556ed7362d6418a86" :a :task/description :v "SOUND-6: Crystallization guard — crystallization_guard(candidates, store) filters candidates below minimum confidence (default 0.3, configurable via :config/min-crystallization-confidence). Also requires at least 1 supporting observation. Wire into harvest pipeline before crystallization. ACCEPTANCE: (A) Low-confidence obs not crystallized. (B) Well-supported obs pass guard. (C) Threshold configurable. FILE: harvest.rs. ~80 LOC." :op :assert}
+   {:e #blake3 "31debd86ce434684d1d11cf9609272b1d100e307ca12c7e556ed7362d6418a86" :a :task/id :v "t-6ade6443" :op :assert}
+   {:e #blake3 "31debd86ce434684d1d11cf9609272b1d100e307ca12c7e556ed7362d6418a86" :a :task/labels :v :label/SOUNDNESS :op :assert}
+   {:e #blake3 "31debd86ce434684d1d11cf9609272b1d100e307ca12c7e556ed7362d6418a86" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "31debd86ce434684d1d11cf9609272b1d100e307ca12c7e556ed7362d6418a86" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "31debd86ce434684d1d11cf9609272b1d100e307ca12c7e556ed7362d6418a86" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "31debd86ce434684d1d11cf9609272b1d100e307ca12c7e556ed7362d6418a86" :a :task/title :v "SOUND-6: Crystallization guard — crystallization_guard(candidates, store) filters candidates below minimum confidence (default 0.3, configurable via :config/min-crystallization-confidence)" :op :assert}
+   {:e #blake3 "31debd86ce434684d1d11cf9609272b1d100e307ca12c7e556ed7362d6418a86" :a :task/title-l0 :v "SOUND-6" :op :assert}
+   {:e #blake3 "31debd86ce434684d1d11cf9609272b1d100e307ca12c7e556ed7362d6418a86" :a :task/title-l1 :v "SOUND-6: Crystallization guard — crystallization_guard(candidates, store) f..." :op :assert}
+   {:e #blake3 "31debd86ce434684d1d11cf9609272b1d100e307ca12c7e556ed7362d6418a86" :a :task/traces-to :v #blake3 "f7a743e10cfa3ebbb24d9e92d2e85e5930c6542a54abc3438015c7e30dec0cca" :op :assert}
+   {:e #blake3 "31debd86ce434684d1d11cf9609272b1d100e307ca12c7e556ed7362d6418a86" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774718661/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SOUND-4: Wire validate_evolution into transact"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f1369309d84d98e6263a75d18fe8dd341c8d077afa243f7925bd61f35b1de989" :a :db/ident :v :task/t-568bb88b :op :assert}
+   {:e #blake3 "f1369309d84d98e6263a75d18fe8dd341c8d077afa243f7925bd61f35b1de989" :a :task/created-at :v 1774718660 :op :assert}
+   {:e #blake3 "f1369309d84d98e6263a75d18fe8dd341c8d077afa243f7925bd61f35b1de989" :a :task/description :v "Call schema.validate_evolution() before applying datoms in transact(). Return StoreError on invalid evolution. FILE: store.rs. ~10 LOC." :op :assert}
+   {:e #blake3 "f1369309d84d98e6263a75d18fe8dd341c8d077afa243f7925bd61f35b1de989" :a :task/id :v "t-568bb88b" :op :assert}
+   {:e #blake3 "f1369309d84d98e6263a75d18fe8dd341c8d077afa243f7925bd61f35b1de989" :a :task/labels :v :label/SOUNDNESS :op :assert}
+   {:e #blake3 "f1369309d84d98e6263a75d18fe8dd341c8d077afa243f7925bd61f35b1de989" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f1369309d84d98e6263a75d18fe8dd341c8d077afa243f7925bd61f35b1de989" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f1369309d84d98e6263a75d18fe8dd341c8d077afa243f7925bd61f35b1de989" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f1369309d84d98e6263a75d18fe8dd341c8d077afa243f7925bd61f35b1de989" :a :task/title :v "SOUND-4: Wire validate_evolution into transact" :op :assert}
+   {:e #blake3 "f1369309d84d98e6263a75d18fe8dd341c8d077afa243f7925bd61f35b1de989" :a :task/title-l0 :v "SOUND-4" :op :assert}
+   {:e #blake3 "f1369309d84d98e6263a75d18fe8dd341c8d077afa243f7925bd61f35b1de989" :a :task/title-l1 :v "SOUND-4: Wire validate_evolution into transact" :op :assert}
+   {:e #blake3 "f1369309d84d98e6263a75d18fe8dd341c8d077afa243f7925bd61f35b1de989" :a :task/traces-to :v #blake3 "4d01c52c10c3bd3c9f0a4b3b4f705754bd09c7421dca5afe4f87a12c12ea60bc" :op :assert}
+   {:e #blake3 "f1369309d84d98e6263a75d18fe8dd341c8d077afa243f7925bd61f35b1de989" :a :task/type :v :task.type/task :op :assert}
+ ]}

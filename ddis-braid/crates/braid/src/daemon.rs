@@ -17,14 +17,20 @@
 //! ## Concurrency Model (DS2/DS4)
 //!
 //! The accept loop spawns one thread per incoming connection. The shared
-//! `LiveStore` is wrapped in `Arc<RwLock<LiveStore>>`. For `tools/call`
-//! requests, the dispatch thread acquires a write lock to run the tool
-//! handler and build the runtime observation `TxFile`, then **releases
-//! the lock** before submitting the `TxFile` to the group commit thread
-//! via [`CommitHandle`]. The commit thread WAL-fsyncs the batch, then
-//! acquires its own write lock to apply datoms in-memory. This eliminates
-//! per-write EDN file creation and fsync — the checkpoint thread handles
-//! EDN conversion in the background.
+//! `LiveStore` is wrapped in `Arc<RwLock<LiveStore>>`.
+//!
+//! **Read/write lock split**: Read-only `tools/call` requests (`braid_status`,
+//! `braid_query`, `braid_guidance`, `braid_task_ready`) acquire `read()` —
+//! concurrent with other reads, zero contention. Write tools and all other
+//! methods acquire `write()` (exclusive).
+//!
+//! For write-path `tools/call` requests, the dispatch thread acquires a
+//! write lock to run the tool handler and build the runtime observation
+//! `TxFile`, then **releases the lock** before submitting the `TxFile` to
+//! the group commit thread via [`CommitHandle`]. The commit thread
+//! WAL-fsyncs the batch, then acquires its own write lock to apply datoms
+//! in-memory. This eliminates per-write EDN file creation and fsync — the
+//! checkpoint thread handles EDN conversion in the background.
 //!
 //! # Invariants
 //!
@@ -1437,26 +1443,30 @@ fn epoch_ms_now() -> u64 {
 
 /// Handle one client connection with shared `LiveStore` (DS4 multi-threaded path).
 ///
-/// Reads newline-delimited JSON-RPC messages, acquires a write lock on the
-/// shared `LiveStore` for each dispatch, and writes responses back. The lock
-/// is held only for the duration of a single request, allowing other connection
-/// threads to interleave between requests.
+/// Reads newline-delimited JSON-RPC messages and dispatches them using a
+/// read/write lock split on the shared `LiveStore`:
 ///
-/// **DS2**: Runtime observation datoms are committed via [`CommitHandle`]
-/// OUTSIDE the write lock. The dispatch acquires the write lock, calls
-/// [`build_observation_tx`] which returns `(response, TxFile)`, then releases
-/// the lock. The `TxFile` is then submitted to `commit_handle.commit()`,
-/// which blocks until the commit thread WAL-fsyncs and applies datoms to
-/// the in-memory store under its own write lock acquisition.
+/// - **Read path** (DS4): Read-only `tools/call` requests (`braid_status`,
+///   `braid_query`, `braid_guidance`, `braid_task_ready`) acquire
+///   `shared.read()` — truly concurrent with other reads, zero contention.
+///   Dispatches through [`build_observation_tx_read`] which uses `&Store` +
+///   `&Path` (no mutable borrow).
+///
+/// - **Write path** (DS2): Mutating `tools/call` requests and all other
+///   methods acquire `shared.write()` (exclusive). Dispatches through
+///   [`build_observation_tx`] which uses `&mut LiveStore`.
+///
+/// Both paths produce a runtime observation `TxFile` that is committed via
+/// [`CommitHandle`] OUTSIDE the lock scope.
 ///
 /// **DS6**: After a `braid_harvest` with `commit=true`, sends
 /// [`CheckpointSignal::Full`] to the checkpoint thread and waits for
 /// completion. This ensures all WAL entries are converted to `.edn` files
 /// before the git commit runs.
 ///
-/// **INV-DAEMON-002**: `refresh_if_needed()` inside every locked dispatch.
-/// **INV-DAEMON-003**: Runtime datoms emitted via [`build_observation_tx`] + [`CommitHandle`].
-/// **INV-DAEMON-012**: Lock scope is per-request, not per-connection.
+/// **INV-DAEMON-002**: `refresh_if_needed()` inside every write-locked dispatch.
+/// **INV-DAEMON-003**: Runtime datoms emitted on both read and write paths.
+/// **INV-DAEMON-012**: Read tools acquire `RwLock::read()` — concurrent reads.
 fn handle_connection_shared(
     stream: std::os::unix::net::UnixStream,
     shared: &Arc<RwLock<crate::live_store::LiveStore>>,
@@ -1525,112 +1535,142 @@ fn handle_connection_shared(
             tool_name
         };
 
-        // DS2/DS4: Dispatch under write lock, then commit runtime datom via
-        // CommitHandle OUTSIDE the lock. This prevents deadlock: the commit
-        // thread also needs shared.write() to apply datoms in-memory.
-        //
-        // For tools/call: build_observation_tx returns (response, TxFile).
-        // The TxFile escapes the lock scope and is committed below.
-        // For all other methods: no runtime TxFile is produced.
-        let (response, runtime_tx) = match shared.write() {
-            Ok(mut live) => {
-                // INV-DAEMON-002: refresh before every dispatch.
-                let _ = live.refresh_if_needed();
+        // DS4 READ/WRITE SPLIT: Classify tools/call requests BEFORE acquiring
+        // any lock. Read-only tools (status, query, guidance, task_ready)
+        // acquire shared.read() — concurrent with other reads, zero contention.
+        // Write tools and all other methods acquire shared.write() (exclusive).
+        let is_read_tool_call = method == "tools/call"
+            && params
+                .get("name")
+                .and_then(|n| n.as_str())
+                .map(crate::mcp::is_read_only_tool)
+                .unwrap_or(false);
 
-                match method {
-                    // Daemon-specific methods.
-                    "daemon/shutdown" => {
-                        // Set the global shutdown flag.
-                        if let Ok(guard) = SHUTDOWN_FLAG.lock() {
-                            if let Some(ref flag) = *guard {
-                                flag.store(true, Ordering::Relaxed);
+        // DS4: Read path — shared.read() for read-only tools/call.
+        // No refresh_if_needed() (read lock cannot refresh), no UAQ-6 writes.
+        // Runtime observation TxFile is still built and submitted to CommitHandle.
+        let (response, runtime_tx) = if is_read_tool_call {
+            match shared.read() {
+                Ok(live) => {
+                    let (resp, tx) =
+                        build_observation_tx_read(&id, &params, live.store(), live.path());
+                    // Read lock dropped here.
+                    (resp, Some(tx))
+                }
+                Err(poisoned) => {
+                    eprintln!("daemon: RwLock poisoned (read path), recovering");
+                    let live = poisoned.into_inner();
+                    let (resp, tx) =
+                        build_observation_tx_read(&id, &params, live.store(), live.path());
+                    (resp, Some(tx))
+                }
+            }
+        } else {
+            // DS2/DS4: Write path — shared.write() for mutating tools and
+            // non-tool methods. Dispatch under write lock, then commit runtime
+            // datom via CommitHandle OUTSIDE the lock.
+            match shared.write() {
+                Ok(mut live) => {
+                    // INV-DAEMON-002: refresh before every dispatch.
+                    let _ = live.refresh_if_needed();
+
+                    match method {
+                        // Daemon-specific methods.
+                        "daemon/shutdown" => {
+                            // Set the global shutdown flag.
+                            if let Ok(guard) = SHUTDOWN_FLAG.lock() {
+                                if let Some(ref flag) = *guard {
+                                    flag.store(true, Ordering::Relaxed);
+                                }
                             }
+                            (
+                                crate::mcp::jsonrpc_ok(&id, json!({"status": "stopping"})),
+                                None,
+                            )
                         }
-                        (
-                            crate::mcp::jsonrpc_ok(&id, json!({"status": "stopping"})),
-                            None,
-                        )
-                    }
-                    "daemon/status" => {
-                        let uptime_secs = start_time.elapsed().as_secs();
-                        let datom_count = live.store().len();
-                        let entity_count = live.store().entity_count();
-                        let reqs = request_count.load(Ordering::Relaxed);
-                        (
-                            crate::mcp::jsonrpc_ok(
+                        "daemon/status" => {
+                            let uptime_secs = start_time.elapsed().as_secs();
+                            let datom_count = live.store().len();
+                            let entity_count = live.store().entity_count();
+                            let reqs = request_count.load(Ordering::Relaxed);
+                            (
+                                crate::mcp::jsonrpc_ok(
+                                    &id,
+                                    json!({
+                                        "pid": std::process::id(),
+                                        "uptime_secs": uptime_secs,
+                                        "request_count": reqs,
+                                        "datom_count": datom_count,
+                                        "entity_count": entity_count,
+                                    }),
+                                ),
+                                None,
+                            )
+                        }
+                        // Standard MCP methods — delegate to shared handlers.
+                        "initialize" => {
+                            (crate::mcp::handle_initialize(&id, &params, &mut live), None)
+                        }
+                        "initialized" => {
+                            if is_notification {
+                                continue;
+                            }
+                            (crate::mcp::jsonrpc_ok(&id, json!({})), None)
+                        }
+                        "tools/list" => (crate::mcp::handle_tools_list(&id), None),
+                        "tools/call" => {
+                            // DS2: Dispatch + build runtime TxFile under write lock,
+                            // but do NOT write it here. The TxFile escapes the lock
+                            // scope and is submitted to CommitHandle below.
+                            let (resp, tx) = build_observation_tx(&id, &params, &mut live);
+                            (resp, Some(tx))
+                        }
+                        "ping" => (crate::mcp::jsonrpc_ok(&id, json!({})), None),
+                        "notifications/cancelled" | "notifications/progress" => continue,
+                        _ => (
+                            crate::mcp::jsonrpc_error(
                                 &id,
-                                json!({
-                                    "pid": std::process::id(),
-                                    "uptime_secs": uptime_secs,
-                                    "request_count": reqs,
-                                    "datom_count": datom_count,
-                                    "entity_count": entity_count,
-                                }),
+                                crate::mcp::METHOD_NOT_FOUND,
+                                &format!("unknown method: {method}"),
                             ),
                             None,
-                        )
-                    }
-                    // Standard MCP methods — delegate to shared handlers.
-                    "initialize" => (crate::mcp::handle_initialize(&id, &params, &mut live), None),
-                    "initialized" => {
-                        if is_notification {
-                            continue;
-                        }
-                        (crate::mcp::jsonrpc_ok(&id, json!({})), None)
-                    }
-                    "tools/list" => (crate::mcp::handle_tools_list(&id), None),
-                    "tools/call" => {
-                        // DS2: Dispatch + build runtime TxFile under write lock,
-                        // but do NOT write it here. The TxFile escapes the lock
-                        // scope and is submitted to CommitHandle below.
-                        let (resp, tx) = build_observation_tx(&id, &params, &mut live);
-                        (resp, Some(tx))
-                    }
-                    "ping" => (crate::mcp::jsonrpc_ok(&id, json!({})), None),
-                    "notifications/cancelled" | "notifications/progress" => continue,
-                    _ => (
-                        crate::mcp::jsonrpc_error(
-                            &id,
-                            crate::mcp::METHOD_NOT_FOUND,
-                            &format!("unknown method: {method}"),
                         ),
-                        None,
-                    ),
+                    }
+                    // Write lock is dropped here at end of match arm scope.
                 }
-                // Write lock is dropped here at end of match arm scope.
-            }
-            Err(poisoned) => {
-                // RwLock poisoned — a sibling thread panicked while holding the lock.
-                // Recover the lock and attempt the dispatch anyway. This is best-effort:
-                // the store state may be inconsistent, but returning a protocol error
-                // for every subsequent request is worse than trying.
-                eprintln!("daemon: RwLock poisoned, recovering for dispatch");
-                let mut live = poisoned.into_inner();
-                let _ = live.refresh_if_needed();
-                match method {
-                    "daemon/shutdown" => {
-                        if let Ok(guard) = SHUTDOWN_FLAG.lock() {
-                            if let Some(ref flag) = *guard {
-                                flag.store(true, Ordering::Relaxed);
+                Err(poisoned) => {
+                    // RwLock poisoned — a sibling thread panicked while holding the lock.
+                    // Recover the lock and attempt the dispatch anyway. This is best-effort:
+                    // the store state may be inconsistent, but returning a protocol error
+                    // for every subsequent request is worse than trying.
+                    eprintln!("daemon: RwLock poisoned, recovering for dispatch");
+                    let mut live = poisoned.into_inner();
+                    let _ = live.refresh_if_needed();
+                    match method {
+                        "daemon/shutdown" => {
+                            if let Ok(guard) = SHUTDOWN_FLAG.lock() {
+                                if let Some(ref flag) = *guard {
+                                    flag.store(true, Ordering::Relaxed);
+                                }
                             }
+                            (
+                                crate::mcp::jsonrpc_ok(&id, json!({"status": "stopping"})),
+                                None,
+                            )
                         }
-                        (
-                            crate::mcp::jsonrpc_ok(&id, json!({"status": "stopping"})),
+                        "tools/call" => {
+                            let (resp, tx) = build_observation_tx(&id, &params, &mut live);
+                            (resp, Some(tx))
+                        }
+                        _ => (
+                            crate::mcp::jsonrpc_error(
+                                &id,
+                                crate::mcp::METHOD_NOT_FOUND,
+                                "RwLock poisoned — limited dispatch available",
+                            ),
                             None,
-                        )
-                    }
-                    "tools/call" => {
-                        let (resp, tx) = build_observation_tx(&id, &params, &mut live);
-                        (resp, Some(tx))
-                    }
-                    _ => (
-                        crate::mcp::jsonrpc_error(
-                            &id,
-                            crate::mcp::METHOD_NOT_FOUND,
-                            "RwLock poisoned — limited dispatch available",
                         ),
-                        None,
-                    ),
+                    }
                 }
             }
         };
@@ -1790,6 +1830,126 @@ fn build_observation_tx(
             entity,
             Attribute::from_keyword(":runtime/cache-hit"),
             Value::Boolean(cache_hit),
+            tx_id,
+            Op::Assert,
+        ),
+    ];
+
+    let tx_file = TxFile {
+        tx_id,
+        agent,
+        provenance: ProvenanceType::Derived,
+        rationale: format!("runtime observation: {tool_name}"),
+        causal_predecessors: vec![],
+        datoms,
+    };
+
+    (result, tx_file)
+}
+
+/// Handle a read-only `tools/call` request, returning the JSON-RPC response
+/// and a runtime observation `TxFile`.
+///
+/// Read-path counterpart to [`build_observation_tx`]. Dispatches through
+/// [`crate::mcp::handle_tools_call_read`] which only takes `&Store` + `&Path`
+/// (no `&mut LiveStore`). This allows the caller to hold `RwLock::read()`
+/// instead of `RwLock::write()`, enabling concurrent read dispatches.
+///
+/// **INV-DAEMON-003**: Runtime datom emission on the read path.
+/// **INV-DAEMON-012**: Read tools run under shared (read) lock.
+fn build_observation_tx_read(
+    id: &JsonValue,
+    params: &JsonValue,
+    store: &braid_kernel::Store,
+    root: &std::path::Path,
+) -> (JsonValue, braid_kernel::layout::TxFile) {
+    use braid_kernel::datom::*;
+    use braid_kernel::layout::TxFile;
+
+    let start = Instant::now();
+    let datom_count_before = store.len() as i64;
+
+    // Dispatch to read-only MCP handler.
+    let result = crate::mcp::handle_tools_call_read(id, params, store, root);
+
+    // Build runtime datoms (never fail the original request).
+    let elapsed_us = start.elapsed().as_micros() as i64;
+    let is_error = result
+        .get("result")
+        .and_then(|r| r.get("isError"))
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false)
+        || result.get("error").is_some();
+    let outcome = if is_error { "error" } else { "success" };
+
+    let tool_name = params
+        .get("name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    let request_id_str = format!("{}", id);
+
+    let wall_ms = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as i64;
+
+    let agent = AgentId::from_name("braid:daemon");
+    let tx_id = crate::commands::write::next_tx_id(store, agent);
+
+    let ident = format!(
+        ":runtime/req-{}",
+        &blake3::hash(format!("{}:{}", request_id_str, wall_ms).as_bytes()).to_hex()[..16]
+    );
+    let entity = EntityId::from_ident(&ident);
+
+    let datoms = vec![
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(ident),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":runtime/command"),
+            Value::String(tool_name.to_string()),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":runtime/request-id"),
+            Value::String(request_id_str),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":runtime/latency-us"),
+            Value::Long(elapsed_us),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":runtime/outcome"),
+            Value::String(outcome.to_string()),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":runtime/datom-count"),
+            Value::Long(datom_count_before),
+            tx_id,
+            Op::Assert,
+        ),
+        // Read path always hits the in-memory cache (no refresh needed).
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":runtime/cache-hit"),
+            Value::Boolean(true),
             tx_id,
             Op::Assert,
         ),

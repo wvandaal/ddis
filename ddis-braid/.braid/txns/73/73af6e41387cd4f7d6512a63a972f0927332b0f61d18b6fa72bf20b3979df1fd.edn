@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774717630/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PERF-RW-3: Tune group commit interval for P99 < 50ms write target"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ca66f6d86d173cb7809409937b4efe19389a303fd8a67aca5a22a088a5fd6104" :a :db/ident :v :task/t-6780b2d8 :op :assert}
+   {:e #blake3 "ca66f6d86d173cb7809409937b4efe19389a303fd8a67aca5a22a088a5fd6104" :a :task/created-at :v 1774717629 :op :assert}
+   {:e #blake3 "ca66f6d86d173cb7809409937b4efe19389a303fd8a67aca5a22a088a5fd6104" :a :task/description :v "Reduce GROUP_COMMIT_INITIAL_INTERVAL_MS from 50ms to 25ms. Current worst-case: 50ms wait + 5-20ms fsync = 65-70ms, exceeding P99 < 50ms target. At 25ms: worst-case 25ms + 20ms = 45ms, within target. Also reduce GROUP_COMMIT_SINGLE_BATCH_THRESHOLD from 10 to 5 for faster adaptive response. ACCEPTANCE: (A) Constants updated. (B) P99 write latency benchmark shows < 50ms at 50 agents. FILE: daemon.rs." :op :assert}
+   {:e #blake3 "ca66f6d86d173cb7809409937b4efe19389a303fd8a67aca5a22a088a5fd6104" :a :task/id :v "t-6780b2d8" :op :assert}
+   {:e #blake3 "ca66f6d86d173cb7809409937b4efe19389a303fd8a67aca5a22a088a5fd6104" :a :task/labels :v :label/DAEMON-PERF :op :assert}
+   {:e #blake3 "ca66f6d86d173cb7809409937b4efe19389a303fd8a67aca5a22a088a5fd6104" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ca66f6d86d173cb7809409937b4efe19389a303fd8a67aca5a22a088a5fd6104" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ca66f6d86d173cb7809409937b4efe19389a303fd8a67aca5a22a088a5fd6104" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ca66f6d86d173cb7809409937b4efe19389a303fd8a67aca5a22a088a5fd6104" :a :task/title :v "PERF-RW-3: Tune group commit interval for P99 < 50ms write target" :op :assert}
+   {:e #blake3 "ca66f6d86d173cb7809409937b4efe19389a303fd8a67aca5a22a088a5fd6104" :a :task/title-l0 :v "PERF-RW-3" :op :assert}
+   {:e #blake3 "ca66f6d86d173cb7809409937b4efe19389a303fd8a67aca5a22a088a5fd6104" :a :task/title-l1 :v "PERF-RW-3: Tune group commit interval for P99 < 50ms write target" :op :assert}
+   {:e #blake3 "ca66f6d86d173cb7809409937b4efe19389a303fd8a67aca5a22a088a5fd6104" :a :task/traces-to :v #blake3 "bfcbecadd11d99142fd00d5598225689a7ac5635438021f4336ad3b3778f3949" :op :assert}
+   {:e #blake3 "ca66f6d86d173cb7809409937b4efe19389a303fd8a67aca5a22a088a5fd6104" :a :task/type :v :task.type/task :op :assert}
+ ]}

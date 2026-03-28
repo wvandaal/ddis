@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774717399/0/1363f196c68ed164cf6dfcd159cf523d"
+ :tx/agent "1363f196c68ed164cf6dfcd159cf523d"
+ :tx/provenance :observed
+ :tx/rationale "AUDIT FINDING: causally_independent() is unimplemented. resolution.rs:225-238 has_conflict() checks only 3 of 6 required conditions. Condition 6 (causal independence) requires BFS over :tx/causal-predecessors chain. Without this, sequential single-agent updates are incorrectly flagged as conflicts. This is a P1-HIGH soundness bug — conflict detection is unsound. Traces to: INV-RESOLUTION-004, F-CORR-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c216ec9496bdbd968d1985f173b4d938f76c91c1617ea6a4299b171925cc25b8" :a :db/doc :v "AUDIT FINDING: causally_independent() is unimplemented. resolution.rs:225-238 has_conflict() checks only 3 of 6 required conditions. Condition 6 (causal independence) requires BFS over :tx/causal-predecessors chain. Without this, sequential single-agent updates are incorrectly flagged as conflicts. This is a P1-HIGH soundness bug — conflict detection is unsound. Traces to: INV-RESOLUTION-004, F-CORR-001." :op :assert}
+   {:e #blake3 "c216ec9496bdbd968d1985f173b4d938f76c91c1617ea6a4299b171925cc25b8" :a :db/ident :v :observation/audit-finding-causally-independent-is-unimplemented-reso :op :assert}
+   {:e #blake3 "c216ec9496bdbd968d1985f173b4d938f76c91c1617ea6a4299b171925cc25b8" :a :exploration/body :v "AUDIT FINDING: causally_independent() is unimplemented. resolution.rs:225-238 has_conflict() checks only 3 of 6 required conditions. Condition 6 (causal independence) requires BFS over :tx/causal-predecessors chain. Without this, sequential single-agent updates are incorrectly flagged as conflicts. This is a P1-HIGH soundness bug — conflict detection is unsound. Traces to: INV-RESOLUTION-004, F-CORR-001." :op :assert}
+   {:e #blake3 "c216ec9496bdbd968d1985f173b4d938f76c91c1617ea6a4299b171925cc25b8" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "c216ec9496bdbd968d1985f173b4d938f76c91c1617ea6a4299b171925cc25b8" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "c216ec9496bdbd968d1985f173b4d938f76c91c1617ea6a4299b171925cc25b8" :a :exploration/content-hash :v #bytes "0468da6ea532515be702a5c1e9eccbbf799f455b49ffaea6be80741904d42929" :op :assert}
+   {:e #blake3 "c216ec9496bdbd968d1985f173b4d938f76c91c1617ea6a4299b171925cc25b8" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "c216ec9496bdbd968d1985f173b4d938f76c91c1617ea6a4299b171925cc25b8" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "c216ec9496bdbd968d1985f173b4d938f76c91c1617ea6a4299b171925cc25b8" :a :exploration/source-session :v #blake3 "7a1d37fe44b3daf30ac3f2de63cce2f882ac021bf9a76ca01c2c2cca7542aed0" :op :assert}
+ ]}

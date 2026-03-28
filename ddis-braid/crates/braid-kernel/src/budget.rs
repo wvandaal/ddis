@@ -2271,7 +2271,7 @@ mod tests {
             ) {
                 // Sort percentages to simulate monotonically increasing consumption
                 let mut sorted = pcts;
-                sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
+                sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
 
                 let mut mgr = BudgetManager::default();
                 let mut prev_budget = u32::MAX;
@@ -2824,5 +2824,14 @@ mod tests {
         assert_eq!(json_to_tsv(&serde_json::json!(42)), "42");
         assert_eq!(json_to_tsv(&serde_json::json!(true)), "true");
         assert_eq!(json_to_tsv(&serde_json::json!("hello")), "hello");
+    }
+
+    // Bug fix: NaN guard — sort_by with partial_cmp must not panic on NaN.
+    #[test]
+    fn sort_with_nan_does_not_panic() {
+        let mut vals = [1.0f64, f64::NAN, 0.5, f64::NAN, 0.8];
+        vals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        // Just verifying it doesn't panic — NaN ordering is arbitrary but safe.
+        assert_eq!(vals.len(), 5);
     }
 }

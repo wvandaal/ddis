@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774718635/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PERF-RW-2: Read-only MCP tool variants"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b44049fd44fca932f78fc2b982a9dc5a4b5b41657f74e27b89b006adcf8e94e1" :a :db/ident :v :task/t-20a6ab43 :op :assert}
+   {:e #blake3 "b44049fd44fca932f78fc2b982a9dc5a4b5b41657f74e27b89b006adcf8e94e1" :a :task/created-at :v 1774718634 :op :assert}
+   {:e #blake3 "b44049fd44fca932f78fc2b982a9dc5a4b5b41657f74e27b89b006adcf8e94e1" :a :task/description :v "Create tool_status_read, tool_query_read, tool_guidance_read, tool_task_ready_read accepting &Store instead of &mut LiveStore. FILE: mcp.rs." :op :assert}
+   {:e #blake3 "b44049fd44fca932f78fc2b982a9dc5a4b5b41657f74e27b89b006adcf8e94e1" :a :task/id :v "t-20a6ab43" :op :assert}
+   {:e #blake3 "b44049fd44fca932f78fc2b982a9dc5a4b5b41657f74e27b89b006adcf8e94e1" :a :task/labels :v :label/DAEMON-PERF :op :assert}
+   {:e #blake3 "b44049fd44fca932f78fc2b982a9dc5a4b5b41657f74e27b89b006adcf8e94e1" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b44049fd44fca932f78fc2b982a9dc5a4b5b41657f74e27b89b006adcf8e94e1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b44049fd44fca932f78fc2b982a9dc5a4b5b41657f74e27b89b006adcf8e94e1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b44049fd44fca932f78fc2b982a9dc5a4b5b41657f74e27b89b006adcf8e94e1" :a :task/title :v "PERF-RW-2: Read-only MCP tool variants" :op :assert}
+   {:e #blake3 "b44049fd44fca932f78fc2b982a9dc5a4b5b41657f74e27b89b006adcf8e94e1" :a :task/title-l0 :v "PERF-RW-2" :op :assert}
+   {:e #blake3 "b44049fd44fca932f78fc2b982a9dc5a4b5b41657f74e27b89b006adcf8e94e1" :a :task/title-l1 :v "PERF-RW-2: Read-only MCP tool variants" :op :assert}
+   {:e #blake3 "b44049fd44fca932f78fc2b982a9dc5a4b5b41657f74e27b89b006adcf8e94e1" :a :task/traces-to :v #blake3 "a791c7dcd0f32f60945a75d98a0fdde333becfc48a508787ad79ac6dcf032f2e" :op :assert}
+   {:e #blake3 "b44049fd44fca932f78fc2b982a9dc5a4b5b41657f74e27b89b006adcf8e94e1" :a :task/type :v :task.type/task :op :assert}
+ ]}

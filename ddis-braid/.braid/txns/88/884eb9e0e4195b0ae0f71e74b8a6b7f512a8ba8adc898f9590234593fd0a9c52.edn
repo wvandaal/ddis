@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774717722/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SOUND-5: Retraction existence check — before accepting Op::Retract, verify at least one Op::Assert exists with matching (e,a,v)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dbc10b3888787d97e6a6d0663a6e8c52376d690be3fd44228d7126c914d5b8f3" :a :db/ident :v :task/t-32fe144d :op :assert}
+   {:e #blake3 "dbc10b3888787d97e6a6d0663a6e8c52376d690be3fd44228d7126c914d5b8f3" :a :task/created-at :v 1774717721 :op :assert}
+   {:e #blake3 "dbc10b3888787d97e6a6d0663a6e8c52376d690be3fd44228d7126c914d5b8f3" :a :task/description :v "SOUND-5: Retraction existence check — before accepting Op::Retract, verify at least one Op::Assert exists with matching (e,a,v). Log warning for ghost retractions (not hard-error under C1). ACCEPTANCE: (A) Retracting existing datom succeeds silently. (B) Ghost retraction logs warning. (C) Store still accepts ghost retraction (C1 append-only). FILE: store.rs. ~20 LOC." :op :assert}
+   {:e #blake3 "dbc10b3888787d97e6a6d0663a6e8c52376d690be3fd44228d7126c914d5b8f3" :a :task/id :v "t-32fe144d" :op :assert}
+   {:e #blake3 "dbc10b3888787d97e6a6d0663a6e8c52376d690be3fd44228d7126c914d5b8f3" :a :task/labels :v :label/SOUNDNESS :op :assert}
+   {:e #blake3 "dbc10b3888787d97e6a6d0663a6e8c52376d690be3fd44228d7126c914d5b8f3" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "dbc10b3888787d97e6a6d0663a6e8c52376d690be3fd44228d7126c914d5b8f3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "dbc10b3888787d97e6a6d0663a6e8c52376d690be3fd44228d7126c914d5b8f3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "dbc10b3888787d97e6a6d0663a6e8c52376d690be3fd44228d7126c914d5b8f3" :a :task/title :v "SOUND-5: Retraction existence check — before accepting Op::Retract, verify at least one Op::Assert exists with matching (e,a,v)" :op :assert}
+   {:e #blake3 "dbc10b3888787d97e6a6d0663a6e8c52376d690be3fd44228d7126c914d5b8f3" :a :task/title-l0 :v "SOUND-5" :op :assert}
+   {:e #blake3 "dbc10b3888787d97e6a6d0663a6e8c52376d690be3fd44228d7126c914d5b8f3" :a :task/title-l1 :v "SOUND-5: Retraction existence check — before accepting Op::Retract, verify..." :op :assert}
+   {:e #blake3 "dbc10b3888787d97e6a6d0663a6e8c52376d690be3fd44228d7126c914d5b8f3" :a :task/traces-to :v #blake3 "108635b5769d437b57b653f4b414dbe6e3f2281c0a27b13f961700a9e857a9eb" :op :assert}
+   {:e #blake3 "dbc10b3888787d97e6a6d0663a6e8c52376d690be3fd44228d7126c914d5b8f3" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774717705/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SOUND-3: Guard NaN in budget.rs partial_cmp — replace .unwrap() with .unwrap_or(Ordering::Equal) at line 2274"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "63bb24c05fff7726ab016157348b69b0fb3632c73ace0f0802bfff3d60637a34" :a :db/ident :v :task/t-cea0b64d :op :assert}
+   {:e #blake3 "63bb24c05fff7726ab016157348b69b0fb3632c73ace0f0802bfff3d60637a34" :a :task/created-at :v 1774717704 :op :assert}
+   {:e #blake3 "63bb24c05fff7726ab016157348b69b0fb3632c73ace0f0802bfff3d60637a34" :a :task/description :v "SOUND-3: Guard NaN in budget.rs partial_cmp — replace .unwrap() with .unwrap_or(Ordering::Equal) at line 2274. 1-line fix. ACCEPTANCE: (A) No panic with NaN input. (B) Existing sort behavior unchanged for valid f64. FILE: budget.rs." :op :assert}
+   {:e #blake3 "63bb24c05fff7726ab016157348b69b0fb3632c73ace0f0802bfff3d60637a34" :a :task/id :v "t-cea0b64d" :op :assert}
+   {:e #blake3 "63bb24c05fff7726ab016157348b69b0fb3632c73ace0f0802bfff3d60637a34" :a :task/labels :v :label/SOUNDNESS :op :assert}
+   {:e #blake3 "63bb24c05fff7726ab016157348b69b0fb3632c73ace0f0802bfff3d60637a34" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "63bb24c05fff7726ab016157348b69b0fb3632c73ace0f0802bfff3d60637a34" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "63bb24c05fff7726ab016157348b69b0fb3632c73ace0f0802bfff3d60637a34" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "63bb24c05fff7726ab016157348b69b0fb3632c73ace0f0802bfff3d60637a34" :a :task/title :v "SOUND-3: Guard NaN in budget.rs partial_cmp — replace .unwrap() with .unwrap_or(Ordering::Equal) at line 2274" :op :assert}
+   {:e #blake3 "63bb24c05fff7726ab016157348b69b0fb3632c73ace0f0802bfff3d60637a34" :a :task/title-l0 :v "SOUND-3" :op :assert}
+   {:e #blake3 "63bb24c05fff7726ab016157348b69b0fb3632c73ace0f0802bfff3d60637a34" :a :task/title-l1 :v "SOUND-3: Guard NaN in budget.rs partial_cmp — replace .unwrap() with .unwra..." :op :assert}
+   {:e #blake3 "63bb24c05fff7726ab016157348b69b0fb3632c73ace0f0802bfff3d60637a34" :a :task/traces-to :v #blake3 "ebf8bfc2f6b6642686d1a8116129a8f2d85b3d686bed62171178456ac2e95d04" :op :assert}
+   {:e #blake3 "63bb24c05fff7726ab016157348b69b0fb3632c73ace0f0802bfff3d60637a34" :a :task/type :v :task.type/task :op :assert}
+ ]}

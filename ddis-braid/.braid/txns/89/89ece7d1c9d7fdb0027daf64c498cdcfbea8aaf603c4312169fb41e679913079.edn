@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774717500/0/f3a6934f1250507acec8ec575c2b6489"
+ :tx/agent "f3a6934f1250507acec8ec575c2b6489"
+ :tx/provenance :observed
+ :tx/rationale "AUDIT FINDING: No performance benchmarks exist. Spec targets P99 write < 50ms at 50 agents and P99 read < 500ms at 50 agents. Current integration tests assert '< 500ms' for single writes — a heartbeat check, not verification. Need: 50-thread benchmark with P99 latency histograms. Group commit worst-case latency: 50ms batch wait + 5-20ms fsync = 65-70ms, which EXCEEDS the 50ms target. Initial batch interval may need reduction from 50ms to 25ms. Traces to: DS7, PERF verification targets."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0ac159f21dbdca20b2202904fc9766caa066c75ecb49adba73d9722e5bf62ee7" :a :db/doc :v "AUDIT FINDING: No performance benchmarks exist. Spec targets P99 write < 50ms at 50 agents and P99 read < 500ms at 50 agents. Current integration tests assert '< 500ms' for single writes — a heartbeat check, not verification. Need: 50-thread benchmark with P99 latency histograms. Group commit worst-case latency: 50ms batch wait + 5-20ms fsync = 65-70ms, which EXCEEDS the 50ms target. Initial batch interval may need reduction from 50ms to 25ms. Traces to: DS7, PERF verification targets." :op :assert}
+   {:e #blake3 "0ac159f21dbdca20b2202904fc9766caa066c75ecb49adba73d9722e5bf62ee7" :a :db/ident :v :observation/audit-finding-no-performance-benchmarks-exist-spec-targets :op :assert}
+   {:e #blake3 "0ac159f21dbdca20b2202904fc9766caa066c75ecb49adba73d9722e5bf62ee7" :a :exploration/body :v "AUDIT FINDING: No performance benchmarks exist. Spec targets P99 write < 50ms at 50 agents and P99 read < 500ms at 50 agents. Current integration tests assert '< 500ms' for single writes — a heartbeat check, not verification. Need: 50-thread benchmark with P99 latency histograms. Group commit worst-case latency: 50ms batch wait + 5-20ms fsync = 65-70ms, which EXCEEDS the 50ms target. Initial batch interval may need reduction from 50ms to 25ms. Traces to: DS7, PERF verification targets." :op :assert}
+   {:e #blake3 "0ac159f21dbdca20b2202904fc9766caa066c75ecb49adba73d9722e5bf62ee7" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "0ac159f21dbdca20b2202904fc9766caa066c75ecb49adba73d9722e5bf62ee7" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "0ac159f21dbdca20b2202904fc9766caa066c75ecb49adba73d9722e5bf62ee7" :a :exploration/content-hash :v #bytes "570b5b88dae29862a3d9f1a22e3e6a10847bbbf8459ff3a0e1a94af66979fa16" :op :assert}
+   {:e #blake3 "0ac159f21dbdca20b2202904fc9766caa066c75ecb49adba73d9722e5bf62ee7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "0ac159f21dbdca20b2202904fc9766caa066c75ecb49adba73d9722e5bf62ee7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "0ac159f21dbdca20b2202904fc9766caa066c75ecb49adba73d9722e5bf62ee7" :a :exploration/source-session :v #blake3 "7a1d37fe44b3daf30ac3f2de63cce2f882ac021bf9a76ca01c2c2cca7542aed0" :op :assert}
+ ]}

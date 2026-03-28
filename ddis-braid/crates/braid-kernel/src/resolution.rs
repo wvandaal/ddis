@@ -222,7 +222,89 @@ fn resolve_lww(active: &[(Value, TxId)]) -> ResolvedValue {
 /// NEG-DELIBERATION-001: No decision without stability guard.
 /// NEG-DELIBERATION-002: No losing branch leak.
 /// NEG-DELIBERATION-003: No backward lifecycle transition.
-pub fn has_conflict(conflict: &ConflictSet, mode: &ResolutionMode) -> bool {
+/// Check whether `tx1` is a causal ancestor of `tx2` by BFS over
+/// `:tx/causal-predecessors` Ref datoms in the store.
+///
+/// INV-RESOLUTION-004 condition 6: conflict requires causal independence.
+/// Two transactions are causally independent iff neither is an ancestor of
+/// the other.
+pub fn is_causal_ancestor(store: &Store, tx1: TxId, tx2: TxId) -> bool {
+    use std::collections::{HashSet, VecDeque};
+
+    if tx1 == tx2 {
+        return false; // A tx is not its own ancestor (irreflexivity)
+    }
+
+    let causal_attr = Attribute::from_keyword(":tx/causal-predecessors");
+
+    // Build a map: tx_entity -> set of predecessor TxIds
+    // We search backwards from tx2 to see if tx1 is reachable.
+    let mut queue: VecDeque<TxId> = VecDeque::new();
+    let mut visited: HashSet<TxId> = HashSet::new();
+
+    queue.push_back(tx2);
+    visited.insert(tx2);
+
+    while let Some(current_tx) = queue.pop_front() {
+        // Find the tx entity for current_tx, then look up its causal predecessors.
+        // Tx entities are identified by :tx/time with value Instant(wall_time).
+        // But we use the AVET index on :tx/causal-predecessors to find all
+        // predecessor links, then filter by entity.
+        //
+        // Simpler approach: scan entity_datoms for the tx entity. The tx entity
+        // is EntityId::from_content(serde_json::to_vec(&current_tx)).
+        let tx_entity =
+            EntityId::from_content(&serde_json::to_vec(&current_tx).unwrap_or_default());
+        for datom in store.entity_datoms(tx_entity) {
+            if datom.attribute == causal_attr && datom.op == Op::Assert {
+                if let Value::Ref(pred_entity) = &datom.value {
+                    // The predecessor entity is itself a tx entity. We need to find
+                    // the TxId it represents. We look for a :tx/time datom on that entity.
+                    let pred_tx_opt = store
+                        .entity_datoms(*pred_entity)
+                        .iter()
+                        .find(|d| d.attribute.as_str() == ":tx/time" && d.op == Op::Assert)
+                        .and_then(|d| match &d.value {
+                            Value::Instant(wall_time) => {
+                                // Reconstruct a TxId for comparison. We only have
+                                // wall_time; use it for the ancestor check since
+                                // wall_time uniquely identifies transactions in
+                                // practice (HLC monotonicity).
+                                if *wall_time == tx1.wall_time {
+                                    Some(tx1) // Exact match
+                                } else {
+                                    None
+                                }
+                            }
+                            _ => None,
+                        });
+                    if pred_tx_opt == Some(tx1) {
+                        return true; // tx1 is a direct predecessor of current_tx
+                    }
+                    // Continue BFS: add the predecessor's TxId (approximated by its datom's tx)
+                    for d in store.entity_datoms(*pred_entity) {
+                        if !visited.contains(&d.tx) {
+                            visited.insert(d.tx);
+                            queue.push_back(d.tx);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    false
+}
+
+/// Check if a conflict set represents a true conflict requiring resolution.
+///
+/// INV-RESOLUTION-004: Six-condition conflict predicate.
+/// Conditions 1-5 are checked structurally (same entity, same attribute, different
+/// values, both assertions, cardinality :one). Condition 6 (causal independence) is
+/// checked via BFS over `:tx/causal-predecessors` when a store is provided.
+///
+/// Pass `store = None` for conservative detection (skip causal independence check).
+pub fn has_conflict(conflict: &ConflictSet, mode: &ResolutionMode, store: Option<&Store>) -> bool {
     if *mode == ResolutionMode::Multi {
         return false; // Multi-value mode never conflicts
     }
@@ -234,7 +316,29 @@ pub fn has_conflict(conflict: &ConflictSet, mode: &ResolutionMode) -> bool {
 
     // Check if there are different values
     let first_val = &active[0].0;
-    active.iter().any(|(v, _)| v != first_val)
+    if !active.iter().any(|(v, _)| v != first_val) {
+        return false;
+    }
+
+    // INV-RESOLUTION-004 condition 6: causal independence.
+    // If store is available, verify that the conflicting transactions are
+    // causally independent. If one is an ancestor of the other, the later
+    // one supersedes — this is not a true conflict.
+    if let Some(store) = store {
+        let txs: Vec<TxId> = active.iter().map(|(_, tx)| *tx).collect();
+        // For all pairs: if any pair has a causal relationship, not a conflict
+        for i in 0..txs.len() {
+            for j in (i + 1)..txs.len() {
+                if is_causal_ancestor(store, txs[i], txs[j])
+                    || is_causal_ancestor(store, txs[j], txs[i])
+                {
+                    return false;
+                }
+            }
+        }
+    }
+
+    true
 }
 
 /// Compute the LIVE view of an entity — resolve all attributes.
@@ -350,7 +454,7 @@ pub fn detect_conflicts(
     let conflict_set = ConflictSet::from_datoms(entity, attribute.clone(), &datoms);
     let mode = store.schema().resolution_mode(attribute);
 
-    if !has_conflict(&conflict_set, &mode) {
+    if !has_conflict(&conflict_set, &mode, Some(store)) {
         return None;
     }
 
@@ -695,7 +799,7 @@ mod tests {
             retractions: vec![],
         };
 
-        assert!(!has_conflict(&conflict, &ResolutionMode::Lww));
+        assert!(!has_conflict(&conflict, &ResolutionMode::Lww, None));
     }
 
     // Verifies: INV-RESOLUTION-003 — Conservative Conflict Detection
@@ -717,7 +821,7 @@ mod tests {
             retractions: vec![],
         };
 
-        assert!(has_conflict(&conflict, &ResolutionMode::Lww));
+        assert!(has_conflict(&conflict, &ResolutionMode::Lww, None));
     }
 
     // Verifies: INV-RESOLUTION-001 — Per-Attribute Resolution
@@ -738,7 +842,7 @@ mod tests {
             retractions: vec![],
         };
 
-        assert!(!has_conflict(&conflict, &ResolutionMode::Multi));
+        assert!(!has_conflict(&conflict, &ResolutionMode::Multi, None));
     }
 
     // Verifies: INV-RESOLUTION-001 — Per-Attribute Resolution
@@ -1199,7 +1303,7 @@ mod tests {
                         // so there can be no conflict (different values required).
                         if attr_datoms.len() <= 1 {
                             prop_assert!(
-                                !has_conflict(&cs, &mode),
+                                !has_conflict(&cs, &mode, Some(&store)),
                                 "single assertion cannot be a conflict"
                             );
                         }
@@ -1654,5 +1758,47 @@ mod tests {
                 );
             }
         }
+    }
+
+    // Bug fix: has_conflict with store=None still detects conflicts (backward compat)
+    #[test]
+    fn has_conflict_without_store_detects_conflicts() {
+        let e = EntityId::from_ident(":test/causal");
+        let a = Attribute::from_keyword(":db/doc");
+        let agent = test_agent();
+
+        let cs = ConflictSet {
+            entity: e,
+            attribute: a,
+            assertions: vec![
+                (Value::String("v1".into()), TxId::new(100, 0, agent)),
+                (Value::String("v2".into()), TxId::new(200, 0, agent)),
+            ],
+            retractions: vec![],
+        };
+
+        // Without store (None), causal independence is not checked — conservative detection
+        assert!(
+            has_conflict(&cs, &ResolutionMode::Lww, None),
+            "different values without store should be conflict"
+        );
+    }
+
+    // Bug fix: is_causal_ancestor returns false for empty/unrelated store
+    #[test]
+    fn is_causal_ancestor_returns_false_for_unrelated_txs() {
+        let store = Store::genesis();
+        let agent = AgentId::from_name("test");
+        let tx1 = TxId::new(100, 0, agent);
+        let tx2 = TxId::new(200, 0, agent);
+
+        assert!(
+            !is_causal_ancestor(&store, tx1, tx2),
+            "unrelated txs should not be causal ancestors"
+        );
+        assert!(
+            !is_causal_ancestor(&store, tx2, tx1),
+            "unrelated txs should not be causal ancestors"
+        );
     }
 }

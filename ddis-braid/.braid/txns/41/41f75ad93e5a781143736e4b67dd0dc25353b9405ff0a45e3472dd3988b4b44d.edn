@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774718591/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: SOUNDNESS — Fix 6 silent correctness bugs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d692668295f3a0bb1e60acfb318b8a9cfb77feb1922e3ec6b02877d30ccc8f65" :a :db/ident :v :task/t-2fcef0e5 :op :assert}
+   {:e #blake3 "d692668295f3a0bb1e60acfb318b8a9cfb77feb1922e3ec6b02877d30ccc8f65" :a :task/created-at :v 1774718590 :op :assert}
+   {:e #blake3 "d692668295f3a0bb1e60acfb318b8a9cfb77feb1922e3ec6b02877d30ccc8f65" :a :task/description :v "6 silent correctness bugs from Session 047 audit: causally_independent, LIVE LWW, NaN panic, validate_evolution, retraction check, crystallization guard." :op :assert}
+   {:e #blake3 "d692668295f3a0bb1e60acfb318b8a9cfb77feb1922e3ec6b02877d30ccc8f65" :a :task/id :v "t-2fcef0e5" :op :assert}
+   {:e #blake3 "d692668295f3a0bb1e60acfb318b8a9cfb77feb1922e3ec6b02877d30ccc8f65" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "d692668295f3a0bb1e60acfb318b8a9cfb77feb1922e3ec6b02877d30ccc8f65" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d692668295f3a0bb1e60acfb318b8a9cfb77feb1922e3ec6b02877d30ccc8f65" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d692668295f3a0bb1e60acfb318b8a9cfb77feb1922e3ec6b02877d30ccc8f65" :a :task/title :v "EPIC: SOUNDNESS — Fix 6 silent correctness bugs" :op :assert}
+   {:e #blake3 "d692668295f3a0bb1e60acfb318b8a9cfb77feb1922e3ec6b02877d30ccc8f65" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "d692668295f3a0bb1e60acfb318b8a9cfb77feb1922e3ec6b02877d30ccc8f65" :a :task/title-l1 :v "EPIC: SOUNDNESS — Fix 6 silent correctness bugs" :op :assert}
+   {:e #blake3 "d692668295f3a0bb1e60acfb318b8a9cfb77feb1922e3ec6b02877d30ccc8f65" :a :task/traces-to :v #blake3 "fd00a7254b7645334d1058a6047b9dcdc3b3dfbc8f5bbd715971933e1f04f7af" :op :assert}
+   {:e #blake3 "d692668295f3a0bb1e60acfb318b8a9cfb77feb1922e3ec6b02877d30ccc8f65" :a :task/type :v :task.type/epic :op :assert}
+ ]}

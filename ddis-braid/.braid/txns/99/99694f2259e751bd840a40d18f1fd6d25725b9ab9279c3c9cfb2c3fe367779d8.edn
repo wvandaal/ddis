@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774717430/0/c26ec3149ad2fe0ac6f3b9c5f2e23969"
+ :tx/agent "c26ec3149ad2fe0ac6f3b9c5f2e23969"
+ :tx/provenance :observed
+ :tx/rationale "AUDIT FINDING: NaN panic risk in budget.rs:2274. Uses partial_cmp(b).unwrap() on f64 sort. Cheeger/Fiedler can produce NaN from ill-conditioned matrices. All other sort sites have been patched with unwrap_or(Ordering::Equal) but this one was missed. 1-line fix. Traces to: F-CORR-005."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "97512417da94d8a474e9d31961474b4e444e0679676fbd1b7e0f88726f6c8ac6" :a :db/doc :v "AUDIT FINDING: NaN panic risk in budget.rs:2274. Uses partial_cmp(b).unwrap() on f64 sort. Cheeger/Fiedler can produce NaN from ill-conditioned matrices. All other sort sites have been patched with unwrap_or(Ordering::Equal) but this one was missed. 1-line fix. Traces to: F-CORR-005." :op :assert}
+   {:e #blake3 "97512417da94d8a474e9d31961474b4e444e0679676fbd1b7e0f88726f6c8ac6" :a :db/ident :v :observation/audit-finding-nan-panic-risk-in-budgetrs2274-uses-partia :op :assert}
+   {:e #blake3 "97512417da94d8a474e9d31961474b4e444e0679676fbd1b7e0f88726f6c8ac6" :a :exploration/body :v "AUDIT FINDING: NaN panic risk in budget.rs:2274. Uses partial_cmp(b).unwrap() on f64 sort. Cheeger/Fiedler can produce NaN from ill-conditioned matrices. All other sort sites have been patched with unwrap_or(Ordering::Equal) but this one was missed. 1-line fix. Traces to: F-CORR-005." :op :assert}
+   {:e #blake3 "97512417da94d8a474e9d31961474b4e444e0679676fbd1b7e0f88726f6c8ac6" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "97512417da94d8a474e9d31961474b4e444e0679676fbd1b7e0f88726f6c8ac6" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "97512417da94d8a474e9d31961474b4e444e0679676fbd1b7e0f88726f6c8ac6" :a :exploration/content-hash :v #bytes "ef03daf461aa6c17c968f43eacc6f94180b5839a77d01e4957d5bf78ebea104f" :op :assert}
+   {:e #blake3 "97512417da94d8a474e9d31961474b4e444e0679676fbd1b7e0f88726f6c8ac6" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "97512417da94d8a474e9d31961474b4e444e0679676fbd1b7e0f88726f6c8ac6" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "97512417da94d8a474e9d31961474b4e444e0679676fbd1b7e0f88726f6c8ac6" :a :exploration/source-session :v #blake3 "7a1d37fe44b3daf30ac3f2de63cce2f882ac021bf9a76ca01c2c2cca7542aed0" :op :assert}
+ ]}

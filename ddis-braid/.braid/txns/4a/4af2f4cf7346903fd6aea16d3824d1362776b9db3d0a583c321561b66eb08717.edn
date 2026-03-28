@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774717415/0/ad4be92fef377c557ed44e41e354695a"
+ :tx/agent "ad4be92fef377c557ed44e41e354695a"
+ :tx/provenance :observed
+ :tx/rationale "AUDIT FINDING: LIVE view in store.rs hardcodes LWW resolution for ALL attributes regardless of schema-declared resolution mode. Lines 1355-1365, 1497-1507, 1577-1586 all use the same pattern: if d.tx > *tx then overwrite. Multi-cardinality and Lattice-mode attributes silently lose all but the latest value. INV-STORE-012 violated. Fix: route LIVE updates through schema.resolution_mode(attr). Traces to: INV-STORE-012, F-CORR-002."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "afad95681814ce4254bb7ddf08f1dc906870d1ee656695c1b053097a90a6ceb0" :a :db/doc :v "AUDIT FINDING: LIVE view in store.rs hardcodes LWW resolution for ALL attributes regardless of schema-declared resolution mode. Lines 1355-1365, 1497-1507, 1577-1586 all use the same pattern: if d.tx > *tx then overwrite. Multi-cardinality and Lattice-mode attributes silently lose all but the latest value. INV-STORE-012 violated. Fix: route LIVE updates through schema.resolution_mode(attr). Traces to: INV-STORE-012, F-CORR-002." :op :assert}
+   {:e #blake3 "afad95681814ce4254bb7ddf08f1dc906870d1ee656695c1b053097a90a6ceb0" :a :db/ident :v :observation/audit-finding-live-view-in-storers-hardcodes-lww-resolutio :op :assert}
+   {:e #blake3 "afad95681814ce4254bb7ddf08f1dc906870d1ee656695c1b053097a90a6ceb0" :a :exploration/body :v "AUDIT FINDING: LIVE view in store.rs hardcodes LWW resolution for ALL attributes regardless of schema-declared resolution mode. Lines 1355-1365, 1497-1507, 1577-1586 all use the same pattern: if d.tx > *tx then overwrite. Multi-cardinality and Lattice-mode attributes silently lose all but the latest value. INV-STORE-012 violated. Fix: route LIVE updates through schema.resolution_mode(attr). Traces to: INV-STORE-012, F-CORR-002." :op :assert}
+   {:e #blake3 "afad95681814ce4254bb7ddf08f1dc906870d1ee656695c1b053097a90a6ceb0" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "afad95681814ce4254bb7ddf08f1dc906870d1ee656695c1b053097a90a6ceb0" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "afad95681814ce4254bb7ddf08f1dc906870d1ee656695c1b053097a90a6ceb0" :a :exploration/content-hash :v #bytes "c770d820a20e9d5220b78ba100525f77f42562760f63c7a6b69f6a8e885e696b" :op :assert}
+   {:e #blake3 "afad95681814ce4254bb7ddf08f1dc906870d1ee656695c1b053097a90a6ceb0" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "afad95681814ce4254bb7ddf08f1dc906870d1ee656695c1b053097a90a6ceb0" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "afad95681814ce4254bb7ddf08f1dc906870d1ee656695c1b053097a90a6ceb0" :a :exploration/source-session :v #blake3 "7a1d37fe44b3daf30ac3f2de63cce2f882ac021bf9a76ca01c2c2cca7542aed0" :op :assert}
+ ]}

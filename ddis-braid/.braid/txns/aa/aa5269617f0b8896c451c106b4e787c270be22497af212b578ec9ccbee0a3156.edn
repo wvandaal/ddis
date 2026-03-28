@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774717465/0/79a1e2a207cc9b62ad61cab6f35da9e5"
+ :tx/agent "79a1e2a207cc9b62ad61cab6f35da9e5"
+ :tx/provenance :observed
+ :tx/rationale "AUDIT FINDING: Retraction existence check missing. When Op::Retract datom applied, system does NOT verify original Assert exists. Ghost retractions accumulate. store.rs:1735-1749 accepts all datoms without precondition checks. Fix: warn on ghost retractions (not hard-error — they're annoying but not data-corrupting under C1). Traces to: INV-SCHEMA-004, F-CORR-011."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2c7977337bcf9354681031bcfe04f77b206f98c5d095dfa6bacb5fa6bd8f98a9" :a :db/ident :v :task/t-d3810fa9 :op :assert}
+   {:e #blake3 "2c7977337bcf9354681031bcfe04f77b206f98c5d095dfa6bacb5fa6bd8f98a9" :a :task/body :v "AUDIT FINDING: Retraction existence check missing. When Op::Retract datom applied, system does NOT verify original Assert exists. Ghost retractions accumulate. store.rs:1735-1749 accepts all datoms without precondition checks. Fix: warn on ghost retractions (not hard-error — they're annoying but not data-corrupting under C1). Traces to: INV-SCHEMA-004, F-CORR-011." :op :assert}
+   {:e #blake3 "2c7977337bcf9354681031bcfe04f77b206f98c5d095dfa6bacb5fa6bd8f98a9" :a :task/created-at :v 1774717464 :op :assert}
+   {:e #blake3 "2c7977337bcf9354681031bcfe04f77b206f98c5d095dfa6bacb5fa6bd8f98a9" :a :task/id :v "t-d3810fa9" :op :assert}
+   {:e #blake3 "2c7977337bcf9354681031bcfe04f77b206f98c5d095dfa6bacb5fa6bd8f98a9" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "2c7977337bcf9354681031bcfe04f77b206f98c5d095dfa6bacb5fa6bd8f98a9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2c7977337bcf9354681031bcfe04f77b206f98c5d095dfa6bacb5fa6bd8f98a9" :a :task/title :v "AUDIT FINDING: Retraction existence check missing. When Op::Retract datom" :op :assert}
+   {:e #blake3 "2c7977337bcf9354681031bcfe04f77b206f98c5d095dfa6bacb5fa6bd8f98a9" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "65fde29f2b65e4a1352908bf19560d5515fcd36ff1e96b64f7fb7addbd3803b6" :a :db/doc :v "AUDIT FINDING: Retraction existence check missing. When Op::Retract datom applied, system does NOT verify original Assert exists. Ghost retractions accumulate. store.rs:1735-1749 accepts all datoms without precondition checks. Fix: warn on ghost retractions (not hard-error — they're annoying but not data-corrupting under C1). Traces to: INV-SCHEMA-004, F-CORR-011." :op :assert}
+   {:e #blake3 "65fde29f2b65e4a1352908bf19560d5515fcd36ff1e96b64f7fb7addbd3803b6" :a :db/ident :v :observation/audit-finding-retraction-existence-check-missing-when-op :op :assert}
+   {:e #blake3 "65fde29f2b65e4a1352908bf19560d5515fcd36ff1e96b64f7fb7addbd3803b6" :a :exploration/body :v "AUDIT FINDING: Retraction existence check missing. When Op::Retract datom applied, system does NOT verify original Assert exists. Ghost retractions accumulate. store.rs:1735-1749 accepts all datoms without precondition checks. Fix: warn on ghost retractions (not hard-error — they're annoying but not data-corrupting under C1). Traces to: INV-SCHEMA-004, F-CORR-011." :op :assert}
+   {:e #blake3 "65fde29f2b65e4a1352908bf19560d5515fcd36ff1e96b64f7fb7addbd3803b6" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "65fde29f2b65e4a1352908bf19560d5515fcd36ff1e96b64f7fb7addbd3803b6" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "65fde29f2b65e4a1352908bf19560d5515fcd36ff1e96b64f7fb7addbd3803b6" :a :exploration/content-hash :v #bytes "b438fa8e510c7ac2ddc62e8d130acb2d330cf6ed6e8be8758a5803b3b674646f" :op :assert}
+   {:e #blake3 "65fde29f2b65e4a1352908bf19560d5515fcd36ff1e96b64f7fb7addbd3803b6" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "65fde29f2b65e4a1352908bf19560d5515fcd36ff1e96b64f7fb7addbd3803b6" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "65fde29f2b65e4a1352908bf19560d5515fcd36ff1e96b64f7fb7addbd3803b6" :a :exploration/source-session :v #blake3 "7a1d37fe44b3daf30ac3f2de63cce2f882ac021bf9a76ca01c2c2cca7542aed0" :op :assert}
+ ]}

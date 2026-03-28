@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774718689/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BENCH-2: Sustained 60s load test with pipeline verification"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8a12ef8a196b7c6b335366f17e5cfcab849ed916abe27d3a0ac488b14bab4d62" :a :db/ident :v :task/t-232d923a :op :assert}
+   {:e #blake3 "8a12ef8a196b7c6b335366f17e5cfcab849ed916abe27d3a0ac488b14bab4d62" :a :task/created-at :v 1774718688 :op :assert}
+   {:e #blake3 "8a12ef8a196b7c6b335366f17e5cfcab849ed916abe27d3a0ac488b14bab4d62" :a :task/description :v "Daemon 60s, 10 agents, observe/query/harvest cycles. Verify WAL growth, passive checkpoint, full checkpoint, WAL truncation, SIGKILL recovery. FILE: tests/daemon_integration.rs. ~200 LOC." :op :assert}
+   {:e #blake3 "8a12ef8a196b7c6b335366f17e5cfcab849ed916abe27d3a0ac488b14bab4d62" :a :task/id :v "t-232d923a" :op :assert}
+   {:e #blake3 "8a12ef8a196b7c6b335366f17e5cfcab849ed916abe27d3a0ac488b14bab4d62" :a :task/labels :v :label/BENCH :op :assert}
+   {:e #blake3 "8a12ef8a196b7c6b335366f17e5cfcab849ed916abe27d3a0ac488b14bab4d62" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8a12ef8a196b7c6b335366f17e5cfcab849ed916abe27d3a0ac488b14bab4d62" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8a12ef8a196b7c6b335366f17e5cfcab849ed916abe27d3a0ac488b14bab4d62" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8a12ef8a196b7c6b335366f17e5cfcab849ed916abe27d3a0ac488b14bab4d62" :a :task/title :v "BENCH-2: Sustained 60s load test with pipeline verification" :op :assert}
+   {:e #blake3 "8a12ef8a196b7c6b335366f17e5cfcab849ed916abe27d3a0ac488b14bab4d62" :a :task/title-l0 :v "BENCH-2" :op :assert}
+   {:e #blake3 "8a12ef8a196b7c6b335366f17e5cfcab849ed916abe27d3a0ac488b14bab4d62" :a :task/title-l1 :v "BENCH-2: Sustained 60s load test with pipeline verification" :op :assert}
+   {:e #blake3 "8a12ef8a196b7c6b335366f17e5cfcab849ed916abe27d3a0ac488b14bab4d62" :a :task/traces-to :v #blake3 "460274aa36ed62f3ede040aea063cce747e8f445bbec3fd11358d1c967e11e82" :op :assert}
+   {:e #blake3 "8a12ef8a196b7c6b335366f17e5cfcab849ed916abe27d3a0ac488b14bab4d62" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774717611/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PERF-RW-2: Read-only MCP tool variants for braid_status/query/guidance/task_ready"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "91f7321e31ca4e8a0389f95573bba00859eff04cf2e05a1eb711d70f21c55ddb" :a :db/ident :v :task/t-885ca92b :op :assert}
+   {:e #blake3 "91f7321e31ca4e8a0389f95573bba00859eff04cf2e05a1eb711d70f21c55ddb" :a :task/created-at :v 1774717610 :op :assert}
+   {:e #blake3 "91f7321e31ca4e8a0389f95573bba00859eff04cf2e05a1eb711d70f21c55ddb" :a :task/description :v "Create read-only variants for 4 MCP tools: tool_status_read(store, layout), tool_query_read(store, args), tool_guidance_read(store), tool_task_ready_read(store). These accept &Store instead of &mut LiveStore. Extract the read-only logic from existing tool functions (most only call live.store()). Add call_tool_read() dispatcher. ACCEPTANCE: (A) 4 read-only variants compile and produce identical output to &mut versions. (B) Unit tests cover each variant. FILE: mcp.rs. DEPENDS-ON: none (can be done before PERF-RW-1)." :op :assert}
+   {:e #blake3 "91f7321e31ca4e8a0389f95573bba00859eff04cf2e05a1eb711d70f21c55ddb" :a :task/id :v "t-885ca92b" :op :assert}
+   {:e #blake3 "91f7321e31ca4e8a0389f95573bba00859eff04cf2e05a1eb711d70f21c55ddb" :a :task/labels :v :label/DAEMON-PERF :op :assert}
+   {:e #blake3 "91f7321e31ca4e8a0389f95573bba00859eff04cf2e05a1eb711d70f21c55ddb" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "91f7321e31ca4e8a0389f95573bba00859eff04cf2e05a1eb711d70f21c55ddb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "91f7321e31ca4e8a0389f95573bba00859eff04cf2e05a1eb711d70f21c55ddb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "91f7321e31ca4e8a0389f95573bba00859eff04cf2e05a1eb711d70f21c55ddb" :a :task/title :v "PERF-RW-2: Read-only MCP tool variants for braid_status/query/guidance/task_ready" :op :assert}
+   {:e #blake3 "91f7321e31ca4e8a0389f95573bba00859eff04cf2e05a1eb711d70f21c55ddb" :a :task/title-l0 :v "PERF-RW-2" :op :assert}
+   {:e #blake3 "91f7321e31ca4e8a0389f95573bba00859eff04cf2e05a1eb711d70f21c55ddb" :a :task/title-l1 :v "PERF-RW-2: Read-only MCP tool variants for braid_status/query/guidance/task_r..." :op :assert}
+   {:e #blake3 "91f7321e31ca4e8a0389f95573bba00859eff04cf2e05a1eb711d70f21c55ddb" :a :task/traces-to :v #blake3 "a791c7dcd0f32f60945a75d98a0fdde333becfc48a508787ad79ac6dcf032f2e" :op :assert}
+   {:e #blake3 "91f7321e31ca4e8a0389f95573bba00859eff04cf2e05a1eb711d70f21c55ddb" :a :task/type :v :task.type/task :op :assert}
+ ]}

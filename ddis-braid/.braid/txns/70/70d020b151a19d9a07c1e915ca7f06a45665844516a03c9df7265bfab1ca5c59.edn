@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774717698/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SOUND-2: Fix LIVE view per-attribute resolution — route through schema.resolution_mode(attr)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c7f17f48773a26117be914ded4a5a1565b290100be32bb274248fa271b670ae5" :a :db/ident :v :task/t-03d6f9fd :op :assert}
+   {:e #blake3 "c7f17f48773a26117be914ded4a5a1565b290100be32bb274248fa271b670ae5" :a :task/created-at :v 1774717697 :op :assert}
+   {:e #blake3 "c7f17f48773a26117be914ded4a5a1565b290100be32bb274248fa271b670ae5" :a :task/description :v "SOUND-2: Fix LIVE view per-attribute resolution — route through schema.resolution_mode(attr). Replace hardcoded LWW in index_datom (store.rs:1355-1365, 1497-1507, 1577-1586). For LWW: keep latest by tx (current). For Multi: keep all values. For Lattice: apply lattice join. ACCEPTANCE: (A) LWW attributes behave as before. (B) Multi-cardinality attributes retain all values. (C) Tests for each resolution mode. FILE: store.rs. ~40 LOC." :op :assert}
+   {:e #blake3 "c7f17f48773a26117be914ded4a5a1565b290100be32bb274248fa271b670ae5" :a :task/id :v "t-03d6f9fd" :op :assert}
+   {:e #blake3 "c7f17f48773a26117be914ded4a5a1565b290100be32bb274248fa271b670ae5" :a :task/labels :v :label/SOUNDNESS :op :assert}
+   {:e #blake3 "c7f17f48773a26117be914ded4a5a1565b290100be32bb274248fa271b670ae5" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "c7f17f48773a26117be914ded4a5a1565b290100be32bb274248fa271b670ae5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c7f17f48773a26117be914ded4a5a1565b290100be32bb274248fa271b670ae5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c7f17f48773a26117be914ded4a5a1565b290100be32bb274248fa271b670ae5" :a :task/title :v "SOUND-2: Fix LIVE view per-attribute resolution — route through schema.resolution_mode(attr)" :op :assert}
+   {:e #blake3 "c7f17f48773a26117be914ded4a5a1565b290100be32bb274248fa271b670ae5" :a :task/title-l0 :v "SOUND-2" :op :assert}
+   {:e #blake3 "c7f17f48773a26117be914ded4a5a1565b290100be32bb274248fa271b670ae5" :a :task/title-l1 :v "SOUND-2: Fix LIVE view per-attribute resolution — route through schema.reso..." :op :assert}
+   {:e #blake3 "c7f17f48773a26117be914ded4a5a1565b290100be32bb274248fa271b670ae5" :a :task/traces-to :v #blake3 "fd00a7254b7645334d1058a6047b9dcdc3b3dfbc8f5bbd715971933e1f04f7af" :op :assert}
+   {:e #blake3 "c7f17f48773a26117be914ded4a5a1565b290100be32bb274248fa271b670ae5" :a :task/type :v :task.type/task :op :assert}
+ ]}

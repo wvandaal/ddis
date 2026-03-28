@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774717690/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SOUND-1: Implement causally_independent() — BFS over causal predecessor chain, wire into has_conflict() as condition 6"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fe54c3deec76115a14bd10ad8e61720f339582ce5581ff6c9924e8e2d88f206d" :a :db/ident :v :task/t-3b6f24cb :op :assert}
+   {:e #blake3 "fe54c3deec76115a14bd10ad8e61720f339582ce5581ff6c9924e8e2d88f206d" :a :task/created-at :v 1774717689 :op :assert}
+   {:e #blake3 "fe54c3deec76115a14bd10ad8e61720f339582ce5581ff6c9924e8e2d88f206d" :a :task/description :v "SOUND-1: Implement causally_independent() — BFS over causal predecessor chain, wire into has_conflict() as condition 6. Implement is_causal_ancestor(store, tx1, tx2) via BFS over :tx/causal-predecessors Ref datoms. Wire into has_conflict: condition 6 = !is_causal_ancestor(store, tx1, tx2) && !is_causal_ancestor(store, tx2, tx1). Add store parameter to has_conflict if needed. ACCEPTANCE: (A) Sequential single-agent updates NOT flagged as conflicts. (B) Truly concurrent updates ARE flagged. (C) BFS terminates on acyclic DAG. FILE: resolution.rs. ~50 LOC." :op :assert}
+   {:e #blake3 "fe54c3deec76115a14bd10ad8e61720f339582ce5581ff6c9924e8e2d88f206d" :a :task/id :v "t-3b6f24cb" :op :assert}
+   {:e #blake3 "fe54c3deec76115a14bd10ad8e61720f339582ce5581ff6c9924e8e2d88f206d" :a :task/labels :v :label/SOUNDNESS :op :assert}
+   {:e #blake3 "fe54c3deec76115a14bd10ad8e61720f339582ce5581ff6c9924e8e2d88f206d" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "fe54c3deec76115a14bd10ad8e61720f339582ce5581ff6c9924e8e2d88f206d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "fe54c3deec76115a14bd10ad8e61720f339582ce5581ff6c9924e8e2d88f206d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "fe54c3deec76115a14bd10ad8e61720f339582ce5581ff6c9924e8e2d88f206d" :a :task/title :v "SOUND-1: Implement causally_independent() — BFS over causal predecessor chain, wire into has_conflict() as condition 6" :op :assert}
+   {:e #blake3 "fe54c3deec76115a14bd10ad8e61720f339582ce5581ff6c9924e8e2d88f206d" :a :task/title-l0 :v "SOUND-1" :op :assert}
+   {:e #blake3 "fe54c3deec76115a14bd10ad8e61720f339582ce5581ff6c9924e8e2d88f206d" :a :task/title-l1 :v "SOUND-1: Implement causally_independent() — BFS over causal predecessor cha..." :op :assert}
+   {:e #blake3 "fe54c3deec76115a14bd10ad8e61720f339582ce5581ff6c9924e8e2d88f206d" :a :task/traces-to :v #blake3 "43a58c02c56d8ee62b91286879953180b6729e0212702470c02580679f0c2439" :op :assert}
+   {:e #blake3 "fe54c3deec76115a14bd10ad8e61720f339582ce5581ff6c9924e8e2d88f206d" :a :task/type :v :task.type/task :op :assert}
+ ]}

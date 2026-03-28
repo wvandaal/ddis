@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774717713/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SOUND-4: Wire validate_evolution into transact — call schema.validate_evolution() before applying datoms in transact()"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bb5ca80fddb18b5cf7df116ccc2eb9c727921a338e3b496e3269fcd05b0fc3ae" :a :db/ident :v :task/t-d21fb964 :op :assert}
+   {:e #blake3 "bb5ca80fddb18b5cf7df116ccc2eb9c727921a338e3b496e3269fcd05b0fc3ae" :a :task/created-at :v 1774717712 :op :assert}
+   {:e #blake3 "bb5ca80fddb18b5cf7df116ccc2eb9c727921a338e3b496e3269fcd05b0fc3ae" :a :task/description :v "SOUND-4: Wire validate_evolution into transact — call schema.validate_evolution() before applying datoms in transact(). Return StoreError if evolution invalid. ACCEPTANCE: (A) Valid evolutions accepted. (B) Invalid evolutions rejected with error. (C) Existing tests unbroken. FILE: store.rs. ~10 LOC." :op :assert}
+   {:e #blake3 "bb5ca80fddb18b5cf7df116ccc2eb9c727921a338e3b496e3269fcd05b0fc3ae" :a :task/id :v "t-d21fb964" :op :assert}
+   {:e #blake3 "bb5ca80fddb18b5cf7df116ccc2eb9c727921a338e3b496e3269fcd05b0fc3ae" :a :task/labels :v :label/SOUNDNESS :op :assert}
+   {:e #blake3 "bb5ca80fddb18b5cf7df116ccc2eb9c727921a338e3b496e3269fcd05b0fc3ae" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "bb5ca80fddb18b5cf7df116ccc2eb9c727921a338e3b496e3269fcd05b0fc3ae" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bb5ca80fddb18b5cf7df116ccc2eb9c727921a338e3b496e3269fcd05b0fc3ae" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bb5ca80fddb18b5cf7df116ccc2eb9c727921a338e3b496e3269fcd05b0fc3ae" :a :task/title :v "SOUND-4: Wire validate_evolution into transact — call schema.validate_evolution() before applying datoms in transact()" :op :assert}
+   {:e #blake3 "bb5ca80fddb18b5cf7df116ccc2eb9c727921a338e3b496e3269fcd05b0fc3ae" :a :task/title-l0 :v "SOUND-4" :op :assert}
+   {:e #blake3 "bb5ca80fddb18b5cf7df116ccc2eb9c727921a338e3b496e3269fcd05b0fc3ae" :a :task/title-l1 :v "SOUND-4: Wire validate_evolution into transact — call schema.validate_evolu..." :op :assert}
+   {:e #blake3 "bb5ca80fddb18b5cf7df116ccc2eb9c727921a338e3b496e3269fcd05b0fc3ae" :a :task/traces-to :v #blake3 "4d01c52c10c3bd3c9f0a4b3b4f705754bd09c7421dca5afe4f87a12c12ea60bc" :op :assert}
+   {:e #blake3 "bb5ca80fddb18b5cf7df116ccc2eb9c727921a338e3b496e3269fcd05b0fc3ae" :a :task/type :v :task.type/task :op :assert}
+ ]}

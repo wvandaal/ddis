@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774717446/0/cd62bcc18028c5e0e85f7811fb1b83ee"
+ :tx/agent "cd62bcc18028c5e0e85f7811fb1b83ee"
+ :tx/provenance :observed
+ :tx/rationale "AUDIT FINDING: validate_evolution() exists in schema.rs:540 but is NEVER called during the transaction path. transact() at store.rs:1679 accepts all datoms without schema evolution validation. Invalid schema evolutions silently accepted. Traces to: INV-SCHEMA-002, F-CORR-010."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8b0b099f064168b81ba1a7014e2a8c6708159d1c2377fd453ab37fb86114abca" :a :db/doc :v "AUDIT FINDING: validate_evolution() exists in schema.rs:540 but is NEVER called during the transaction path. transact() at store.rs:1679 accepts all datoms without schema evolution validation. Invalid schema evolutions silently accepted. Traces to: INV-SCHEMA-002, F-CORR-010." :op :assert}
+   {:e #blake3 "8b0b099f064168b81ba1a7014e2a8c6708159d1c2377fd453ab37fb86114abca" :a :db/ident :v :observation/audit-finding-validate-evolution-exists-in-schemars540 :op :assert}
+   {:e #blake3 "8b0b099f064168b81ba1a7014e2a8c6708159d1c2377fd453ab37fb86114abca" :a :exploration/body :v "AUDIT FINDING: validate_evolution() exists in schema.rs:540 but is NEVER called during the transaction path. transact() at store.rs:1679 accepts all datoms without schema evolution validation. Invalid schema evolutions silently accepted. Traces to: INV-SCHEMA-002, F-CORR-010." :op :assert}
+   {:e #blake3 "8b0b099f064168b81ba1a7014e2a8c6708159d1c2377fd453ab37fb86114abca" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "8b0b099f064168b81ba1a7014e2a8c6708159d1c2377fd453ab37fb86114abca" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "8b0b099f064168b81ba1a7014e2a8c6708159d1c2377fd453ab37fb86114abca" :a :exploration/content-hash :v #bytes "3a4153a64b524fb2716796280db2dbcdf0481ba81240e603dc501907b5297135" :op :assert}
+   {:e #blake3 "8b0b099f064168b81ba1a7014e2a8c6708159d1c2377fd453ab37fb86114abca" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "8b0b099f064168b81ba1a7014e2a8c6708159d1c2377fd453ab37fb86114abca" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "8b0b099f064168b81ba1a7014e2a8c6708159d1c2377fd453ab37fb86114abca" :a :exploration/source-session :v #blake3 "7a1d37fe44b3daf30ac3f2de63cce2f882ac021bf9a76ca01c2c2cca7542aed0" :op :assert}
+ ]}

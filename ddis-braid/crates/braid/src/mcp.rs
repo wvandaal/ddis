@@ -387,6 +387,327 @@ pub(crate) fn call_tool(
     }
 }
 
+// ---------------------------------------------------------------------------
+// Read-only tool dispatch (daemon read path — DS4 RwLock split)
+// ---------------------------------------------------------------------------
+
+/// Classify whether a tool is read-only (safe under `shared.read()`).
+///
+/// Read-only tools only call `Store` query methods and never mutate the
+/// `LiveStore`. They can run concurrently with other reads, eliminating
+/// write-lock contention for the most frequent daemon requests.
+///
+/// **INV-DAEMON-012**: Read tools acquire `RwLock::read()` — zero contention
+/// with other concurrent reads.
+pub(crate) fn is_read_only_tool(name: &str) -> bool {
+    matches!(
+        name,
+        "braid_status" | "braid_query" | "braid_guidance" | "braid_task_ready"
+    )
+}
+
+/// Execute a read-only tool using `&Store` + `&Path` (no `&mut LiveStore`).
+///
+/// This is the daemon read-path counterpart to [`call_tool`]. The four
+/// read-only tools (`braid_status`, `braid_query`, `braid_guidance`,
+/// `braid_task_ready`) only need immutable store access. By dispatching
+/// them here under `RwLock::read()`, multiple concurrent reads proceed
+/// without blocking each other or blocking behind a write.
+///
+/// Status runs in "quiet" mode (no UAQ-6 attention writes) — the daemon
+/// write path handles attention tracking when the full `LiveStore` is
+/// available.
+pub(crate) fn call_tool_read(
+    store: &braid_kernel::Store,
+    root: &Path,
+    name: &str,
+    arguments: &JsonValue,
+) -> Result<JsonValue, BraidError> {
+    match name {
+        "braid_status" => tool_status_read(store, root),
+        "braid_query" => tool_query_read(store, arguments),
+        "braid_guidance" => tool_guidance_read(store),
+        "braid_task_ready" => tool_task_ready_read(store),
+        _ => Err(BraidError::Validation(format!(
+            "{name} is not a read-only tool"
+        ))),
+    }
+}
+
+/// Handle a `tools/call` JSON-RPC request via the read-only path.
+///
+/// Mirrors [`handle_tools_call`] but dispatches through [`call_tool_read`]
+/// and appends the guidance footer from `&Store` (no mutable borrow).
+pub(crate) fn handle_tools_call_read(
+    id: &JsonValue,
+    params: &JsonValue,
+    store: &braid_kernel::Store,
+    root: &Path,
+) -> JsonValue {
+    let name = match params.get("name").and_then(|v| v.as_str()) {
+        Some(n) => n,
+        None => return jsonrpc_error(id, INVALID_PARAMS, "missing 'name' in tools/call params"),
+    };
+
+    let arguments = params.get("arguments").cloned().unwrap_or(json!({}));
+
+    match call_tool_read(store, root, name, &arguments) {
+        Ok(mut result) => {
+            // INV-GUIDANCE-001: Append M(t) footer to every successful response.
+            append_guidance_footer_store(&mut result, store);
+            jsonrpc_ok(id, result)
+        }
+        Err(e) => jsonrpc_ok(
+            id,
+            json!({
+                "content": [{
+                    "type": "text",
+                    "text": format!("error: {e}"),
+                }],
+                "isError": true,
+            }),
+        ),
+    }
+}
+
+/// Read-only `braid_status` — same output as [`tool_status`] but without
+/// UAQ-6 attention tracking writes (quiet mode).
+///
+/// Computes the full status projection from `&Store` + `&Path`, then
+/// renders in agent mode. Skips Phase 2 (attention writes) entirely.
+fn tool_status_read(store: &braid_kernel::Store, root: &Path) -> Result<JsonValue, BraidError> {
+    use braid_kernel::guidance::{
+        compute_methodology_score, compute_routing_with_calibration, count_txns_since_last_harvest,
+        telemetry_from_store,
+    };
+
+    let tx_since_harvest = count_txns_since_last_harvest(store);
+    // Approximate hash count from store transaction count (hashes are only
+    // used for .len() display). Using tx_since_harvest + harvest baseline
+    // is close enough; the exact count is a display-only metric.
+    let telemetry = telemetry_from_store(store);
+    let _methodology = compute_methodology_score(&telemetry);
+
+    let (routings, calibration) = compute_routing_with_calibration(store, braid_kernel::now_secs());
+    let snapshot = crate::commands::status::StatusSnapshot::compute_with_layout(store, root, None);
+
+    // INV-HASH-LIST-001: Use distinct_tx_count from MaterializedViews —
+    // same semantic as LiveStore::known_hash_count() but from &Store.
+    // The hashes vec is only used for .len() display; contents don't matter.
+    let hash_count = store.views().distinct_tx_count as usize;
+    let hashes: Vec<String> = vec![String::new(); hash_count];
+
+    let projection = crate::commands::status::build_status_projection(
+        root,
+        store,
+        &hashes,
+        tx_since_harvest,
+        &snapshot,
+        &routings,
+        &calibration,
+    );
+
+    // Render agent-mode output (same as tool_status)
+    let text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text,
+        }],
+    }))
+}
+
+/// Read-only `braid_query` — identical to [`tool_query`] (already read-only).
+fn tool_query_read(store: &braid_kernel::Store, args: &JsonValue) -> Result<JsonValue, BraidError> {
+    // INV-QUERY-002, INV-INTERFACE-010: Datalog parameter takes priority.
+    if let Some(datalog_src) = args.get("datalog").and_then(|v| v.as_str()) {
+        return tool_query_datalog(store, datalog_src);
+    }
+
+    // Fallback: entity/attribute filter scan.
+    let entity_filter = args.get("entity").and_then(|v| v.as_str());
+    let attribute_filter = args.get("attribute").and_then(|v| v.as_str());
+
+    let entity_id = entity_filter.map(EntityId::from_ident);
+    let attr = attribute_filter.map(Attribute::from_keyword);
+
+    let mut lines = Vec::new();
+    let mut count = 0;
+
+    for datom in store.datoms() {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        if let Some(eid) = entity_id {
+            if datom.entity != eid {
+                continue;
+            }
+        }
+        if let Some(ref a) = attr {
+            if datom.attribute != *a {
+                continue;
+            }
+        }
+
+        lines.push(format!(
+            "[{} {} {:?}]",
+            hex::encode(&datom.entity.as_bytes()[..8]),
+            datom.attribute.as_str(),
+            datom.value,
+        ));
+        count += 1;
+    }
+
+    lines.push(format!("\n{count} datom(s)"));
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": lines.join("\n"),
+        }],
+    }))
+}
+
+/// Read-only `braid_guidance` — identical to [`tool_guidance`] (already read-only).
+fn tool_guidance_read(store: &braid_kernel::Store) -> Result<JsonValue, BraidError> {
+    use braid_kernel::guidance::{
+        compute_methodology_score, compute_routing_with_calibration, derive_actions_with_routing,
+        format_actions, telemetry_from_store, Trend,
+    };
+
+    let telemetry = telemetry_from_store(store);
+    let score = compute_methodology_score(&telemetry);
+    let (routings, _calibration) =
+        compute_routing_with_calibration(store, braid_kernel::now_secs());
+    let actions = derive_actions_with_routing(store, &routings, None, braid_kernel::now_secs());
+    let fitness = store.fitness();
+
+    let mut out = String::new();
+
+    // M(t) headline
+    let trend_str = match score.trend {
+        Trend::Up => "up",
+        Trend::Down => "down",
+        Trend::Stable => "stable",
+    };
+    out.push_str(&format!(
+        "methodology: M(t)={:.2} trend={}\n",
+        score.score, trend_str,
+    ));
+    if score.drift_signal {
+        out.push_str("WARNING: drift signal active (M(t) < 0.5)\n");
+    }
+
+    // M(t) sub-metric breakdown
+    let m = &score.components;
+    let sub_metrics: [(&str, f64, f64, f64); 4] = [
+        ("transact_frequency", m.transact_frequency, 0.30, 0.40),
+        ("spec_language_ratio", m.spec_language_ratio, 0.23, 0.30),
+        ("query_diversity", m.query_diversity, 0.17, 0.25),
+        ("harvest_quality", m.harvest_quality, 0.30, 0.50),
+    ];
+    out.push_str("M(t) sub-metrics:\n");
+    for (name, val, weight, threshold) in &sub_metrics {
+        let status = if *val >= *threshold { "above" } else { "below" };
+        out.push_str(&format!(
+            "  {}: {:.2} (weight: {:.2}, threshold: {:.2}) \u{2014} {}\n",
+            name, val, weight, threshold, status,
+        ));
+    }
+
+    // F(S) summary
+    out.push_str(&format!("fitness: F(S)={:.2}\n", fitness.total));
+
+    // All guidance-derived actions
+    out.push_str(&format_actions(&actions));
+
+    // R(t) task routing
+    if !routings.is_empty() {
+        out.push_str("R(t) task routing:\n");
+        for (i, r) in routings.iter().enumerate() {
+            out.push_str(&format!(
+                "  [{}] \"{}\" (impact={:.2}) \u{2192} braid go {}\n",
+                i + 1,
+                r.label,
+                r.impact,
+                r.label,
+            ));
+        }
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": out,
+        }],
+    }))
+}
+
+/// Read-only `braid_task_ready` — identical to [`tool_task_ready`] (already read-only).
+fn tool_task_ready_read(store: &braid_kernel::Store) -> Result<JsonValue, BraidError> {
+    let ready = braid_kernel::compute_ready_set(store);
+
+    if ready.is_empty() {
+        return Ok(json!({
+            "content": [{"type": "text", "text": "No ready tasks (all blocked or closed)."}],
+        }));
+    }
+
+    let mut lines = Vec::new();
+    lines.push(format!("{} task(s) ready:\n", ready.len()));
+    for t in ready.iter().take(15) {
+        let type_label = t.task_type.trim_start_matches(":task.type/");
+        lines.push(format!(
+            "  [P{}] {} \"{}\" ({}) \u{2192} braid go {}",
+            t.priority,
+            t.id,
+            braid_kernel::safe_truncate_bytes(&t.title, 80),
+            type_label,
+            t.id,
+        ));
+    }
+
+    Ok(json!({
+        "content": [{"type": "text", "text": lines.join("\n")}],
+    }))
+}
+
+/// Append the guidance footer from a `&Store` reference (no `LiveStore` needed).
+///
+/// Read-path counterpart to [`append_guidance_footer`]. Identical logic but
+/// takes `&Store` directly instead of going through `LiveStore::store()`.
+pub(crate) fn append_guidance_footer_store(result: &mut JsonValue, store: &braid_kernel::Store) {
+    let telemetry = braid_kernel::guidance::telemetry_from_store(store);
+    let methodology = braid_kernel::guidance::compute_methodology_score(&telemetry);
+
+    let footer =
+        braid_kernel::guidance::build_command_footer(store, None, braid_kernel::now_secs());
+    if footer.is_empty() {
+        return;
+    }
+
+    let combined = if methodology.drift_signal {
+        let anti_drift = format!(
+            "\u{26a0} Methodology drift (M(t)={:.2}). Before continuing: braid bilateral --verbose",
+            methodology.score
+        );
+        format!("{anti_drift}\n{footer}")
+    } else {
+        footer
+    };
+
+    if let Some(content) = result.get_mut("content").and_then(|c| c.as_array_mut()) {
+        if let Some(last) = content.last_mut() {
+            if let Some(text) = last.get_mut("text") {
+                if let Some(s) = text.as_str() {
+                    *text = JsonValue::String(format!("{s}\n\n{combined}"));
+                }
+            }
+        }
+    }
+}
+
 /// `braid_status` — Show store status.
 ///
 /// Returns the same rich dashboard as `braid status` CLI (agent mode):

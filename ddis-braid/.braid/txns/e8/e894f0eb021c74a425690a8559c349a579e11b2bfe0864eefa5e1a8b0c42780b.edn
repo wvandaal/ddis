@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774718630/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PERF-RW-1: Read/write lock split — read tools use shared.read()"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "91adea98a79e97a1fa41072edcee11b158fc2e633ba2ec69a3ad7b22e00e1bcc" :a :db/ident :v :task/t-3e77eea8 :op :assert}
+   {:e #blake3 "91adea98a79e97a1fa41072edcee11b158fc2e633ba2ec69a3ad7b22e00e1bcc" :a :task/created-at :v 1774718629 :op :assert}
+   {:e #blake3 "91adea98a79e97a1fa41072edcee11b158fc2e633ba2ec69a3ad7b22e00e1bcc" :a :task/description :v "Read tools use shared.read() for concurrent reads. Create call_tool_read in mcp.rs. Add is_read_only_tool classifier in daemon.rs. ACCEPTANCE: Read tools use shared.read(), write tools use shared.write(), concurrent reads don't serialize, all 78 integration tests pass. FILE: daemon.rs, mcp.rs." :op :assert}
+   {:e #blake3 "91adea98a79e97a1fa41072edcee11b158fc2e633ba2ec69a3ad7b22e00e1bcc" :a :task/id :v "t-3e77eea8" :op :assert}
+   {:e #blake3 "91adea98a79e97a1fa41072edcee11b158fc2e633ba2ec69a3ad7b22e00e1bcc" :a :task/labels :v :label/DAEMON-PERF :op :assert}
+   {:e #blake3 "91adea98a79e97a1fa41072edcee11b158fc2e633ba2ec69a3ad7b22e00e1bcc" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "91adea98a79e97a1fa41072edcee11b158fc2e633ba2ec69a3ad7b22e00e1bcc" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "91adea98a79e97a1fa41072edcee11b158fc2e633ba2ec69a3ad7b22e00e1bcc" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "91adea98a79e97a1fa41072edcee11b158fc2e633ba2ec69a3ad7b22e00e1bcc" :a :task/title :v "PERF-RW-1: Read/write lock split — read tools use shared.read()" :op :assert}
+   {:e #blake3 "91adea98a79e97a1fa41072edcee11b158fc2e633ba2ec69a3ad7b22e00e1bcc" :a :task/title-l0 :v "PERF-RW-1" :op :assert}
+   {:e #blake3 "91adea98a79e97a1fa41072edcee11b158fc2e633ba2ec69a3ad7b22e00e1bcc" :a :task/title-l1 :v "PERF-RW-1: Read/write lock split — read tools use shared.read()" :op :assert}
+   {:e #blake3 "91adea98a79e97a1fa41072edcee11b158fc2e633ba2ec69a3ad7b22e00e1bcc" :a :task/traces-to :v #blake3 "a791c7dcd0f32f60945a75d98a0fdde333becfc48a508787ad79ac6dcf032f2e" :op :assert}
+   {:e #blake3 "91adea98a79e97a1fa41072edcee11b158fc2e633ba2ec69a3ad7b22e00e1bcc" :a :task/type :v :task.type/task :op :assert}
+ ]}

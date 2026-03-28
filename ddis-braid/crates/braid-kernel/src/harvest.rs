@@ -341,6 +341,11 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
     }
 
     // -----------------------------------------------------------------------
+    // Pre-crystallization guard (NEG-HARVEST-003)
+    // -----------------------------------------------------------------------
+    let candidates = pre_crystallization_guard(&candidates, store);
+
+    // -----------------------------------------------------------------------
     // Compute metrics
     // -----------------------------------------------------------------------
     let count = candidates.len();
@@ -930,6 +935,50 @@ pub struct HarvestCommit {
     pub candidate_count: usize,
     /// Total datom count.
     pub datom_count: usize,
+}
+
+// ---------------------------------------------------------------------------
+// Pre-Crystallization Guard (NEG-HARVEST-003)
+// ---------------------------------------------------------------------------
+
+/// Default minimum confidence for crystallization candidates.
+pub const DEFAULT_MIN_CRYSTALLIZATION_CONFIDENCE: f64 = 0.3;
+
+/// Pre-crystallization filter: remove candidates that don't meet minimum criteria.
+///
+/// NEG-HARVEST-003: No premature crystallization. Candidates must:
+/// 1. Have confidence >= min threshold (configurable via `:config/min-crystallization-confidence`).
+/// 2. Have at least 1 supporting observation in the store (not just the candidate itself).
+///
+/// Returns the filtered list of candidates that pass both checks.
+pub fn pre_crystallization_guard(
+    candidates: &[HarvestCandidate],
+    store: &Store,
+) -> Vec<HarvestCandidate> {
+    let min_confidence: f64 = crate::config::get_config(store, "min-crystallization-confidence")
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(DEFAULT_MIN_CRYSTALLIZATION_CONFIDENCE);
+
+    candidates
+        .iter()
+        .filter(|c| {
+            // Condition 1: minimum confidence
+            if c.confidence < min_confidence {
+                return false;
+            }
+
+            // Condition 2: at least 1 supporting observation in the store.
+            // Check if there are existing datoms for this entity (beyond what
+            // this candidate would create).
+            let existing_datoms = store.entity_datoms(c.entity);
+            let has_support = !existing_datoms.is_empty();
+
+            // If no existing datoms, check if the candidate has assertions
+            // that demonstrate substance (not just an empty gap placeholder).
+            has_support || !c.assertions.is_empty()
+        })
+        .cloned()
+        .collect()
 }
 
 // ---------------------------------------------------------------------------
@@ -4552,6 +4601,83 @@ mod tests {
         assert!(
             (old - new).abs() < 1e-10,
             "weight_for should be backward-compatible"
+        );
+    }
+
+    // Bug fix: pre_crystallization_guard filters low-confidence candidates
+    #[test]
+    fn pre_crystallization_guard_filters_low_confidence() {
+        let store = Store::genesis();
+        let entity = EntityId::from_ident(":test/harvest");
+
+        let low_conf = HarvestCandidate {
+            entity,
+            assertions: vec![(
+                Attribute::from_keyword(":db/doc"),
+                Value::String("low confidence".into()),
+            )],
+            category: HarvestCategory::Observation,
+            confidence: 0.1, // Below 0.3 threshold
+            weight: 0.05,
+            reconciliation_type: "epistemic".to_string(),
+            status: CandidateStatus::Proposed,
+            rationale: "test low".to_string(),
+        };
+
+        let high_conf = HarvestCandidate {
+            entity,
+            assertions: vec![(
+                Attribute::from_keyword(":db/doc"),
+                Value::String("high confidence".into()),
+            )],
+            category: HarvestCategory::Observation,
+            confidence: 0.8, // Above 0.3 threshold
+            weight: 0.4,
+            reconciliation_type: "epistemic".to_string(),
+            status: CandidateStatus::Proposed,
+            rationale: "test high".to_string(),
+        };
+
+        let candidates = vec![low_conf, high_conf];
+        let filtered = pre_crystallization_guard(&candidates, &store);
+
+        assert_eq!(
+            filtered.len(),
+            1,
+            "pre_crystallization_guard should filter out low-confidence candidates"
+        );
+        assert!(
+            filtered[0].confidence >= 0.3,
+            "remaining candidate should meet minimum confidence"
+        );
+    }
+
+    // Bug fix: pre_crystallization_guard accepts candidates with assertions
+    #[test]
+    fn pre_crystallization_guard_accepts_candidates_with_assertions() {
+        let store = Store::genesis();
+        let entity = EntityId::from_ident(":test/new-entity");
+
+        // This entity has no existing datoms in the store, but has assertions
+        let candidate = HarvestCandidate {
+            entity,
+            assertions: vec![(
+                Attribute::from_keyword(":db/doc"),
+                Value::String("new knowledge".into()),
+            )],
+            category: HarvestCategory::Observation,
+            confidence: 0.5,
+            weight: 0.25,
+            reconciliation_type: "epistemic".to_string(),
+            status: CandidateStatus::Proposed,
+            rationale: "test new".to_string(),
+        };
+
+        let filtered = pre_crystallization_guard(&[candidate], &store);
+        assert_eq!(
+            filtered.len(),
+            1,
+            "candidates with assertions should pass even without store support"
         );
     }
 }

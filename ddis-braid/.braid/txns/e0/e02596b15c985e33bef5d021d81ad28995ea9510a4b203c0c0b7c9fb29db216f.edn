@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774717520/0/138ca9d363d970ee5372e481fe0c8701"
+ :tx/agent "138ca9d363d970ee5372e481fe0c8701"
+ :tx/provenance :observed
+ :tx/rationale "AUDIT FINDING: No sustained load test exercises the full WAL → checkpoint → recovery pipeline as a system. Integration tests each spin up a fresh daemon, do 2-5 operations, and tear down. Need: daemon running for 60+ seconds, 10 concurrent agents doing observe/query/harvest cycles, with WAL growth → passive checkpoint → full checkpoint → WAL truncation → SIGKILL → recovery. This exercises the machinery as a system, not isolated components. Traces to: DS7, INV-DAEMON-006."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f91a70e239ec1543fa6d66dfa127bf9f58adce2274d05068577fc883d95e8312" :a :db/doc :v "AUDIT FINDING: No sustained load test exercises the full WAL → checkpoint → recovery pipeline as a system. Integration tests each spin up a fresh daemon, do 2-5 operations, and tear down. Need: daemon running for 60+ seconds, 10 concurrent agents doing observe/query/harvest cycles, with WAL growth → passive checkpoint → full checkpoint → WAL truncation → SIGKILL → recovery. This exercises the machinery as a system, not isolated components. Traces to: DS7, INV-DAEMON-006." :op :assert}
+   {:e #blake3 "f91a70e239ec1543fa6d66dfa127bf9f58adce2274d05068577fc883d95e8312" :a :db/ident :v :observation/audit-finding-no-sustained-load-test-exercises-the-full-wal :op :assert}
+   {:e #blake3 "f91a70e239ec1543fa6d66dfa127bf9f58adce2274d05068577fc883d95e8312" :a :exploration/body :v "AUDIT FINDING: No sustained load test exercises the full WAL → checkpoint → recovery pipeline as a system. Integration tests each spin up a fresh daemon, do 2-5 operations, and tear down. Need: daemon running for 60+ seconds, 10 concurrent agents doing observe/query/harvest cycles, with WAL growth → passive checkpoint → full checkpoint → WAL truncation → SIGKILL → recovery. This exercises the machinery as a system, not isolated components. Traces to: DS7, INV-DAEMON-006." :op :assert}
+   {:e #blake3 "f91a70e239ec1543fa6d66dfa127bf9f58adce2274d05068577fc883d95e8312" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "f91a70e239ec1543fa6d66dfa127bf9f58adce2274d05068577fc883d95e8312" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "f91a70e239ec1543fa6d66dfa127bf9f58adce2274d05068577fc883d95e8312" :a :exploration/content-hash :v #bytes "4eac5a393e4a8b2dc94f62dc230f6d6b02f9d3fc867cb93e3c5e4753784b913a" :op :assert}
+   {:e #blake3 "f91a70e239ec1543fa6d66dfa127bf9f58adce2274d05068577fc883d95e8312" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f91a70e239ec1543fa6d66dfa127bf9f58adce2274d05068577fc883d95e8312" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f91a70e239ec1543fa6d66dfa127bf9f58adce2274d05068577fc883d95e8312" :a :exploration/source-session :v #blake3 "7a1d37fe44b3daf30ac3f2de63cce2f882ac021bf9a76ca01c2c2cca7542aed0" :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774717791/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BENCH-2: Sustained 60s load test with WAL → checkpoint → kill → recovery"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "45b1e1b2e9623c30cd54c4d67111a7f5e40709eed0525b8cbe24304abecb2c6c" :a :db/ident :v :task/t-47572436 :op :assert}
+   {:e #blake3 "45b1e1b2e9623c30cd54c4d67111a7f5e40709eed0525b8cbe24304abecb2c6c" :a :task/created-at :v 1774717790 :op :assert}
+   {:e #blake3 "45b1e1b2e9623c30cd54c4d67111a7f5e40709eed0525b8cbe24304abecb2c6c" :a :task/description :v "Daemon running 60+ seconds. 10 concurrent agents each doing observe/query/harvest cycles continuously. Verify: WAL grows during writes, passive checkpoint fires and converts to .edn, harvest --commit triggers full checkpoint + WAL truncation, SIGKILL → restart → all data recovered. This exercises the full pipeline as a system. ACCEPTANCE: (A) 60s sustained operation with no errors. (B) Passive checkpoint creates .edn files. (C) Full checkpoint truncates WAL. (D) SIGKILL recovery loses zero data. (E) All 10 agents' data present after recovery. FILE: tests/daemon_integration.rs. ~200 LOC." :op :assert}
+   {:e #blake3 "45b1e1b2e9623c30cd54c4d67111a7f5e40709eed0525b8cbe24304abecb2c6c" :a :task/id :v "t-47572436" :op :assert}
+   {:e #blake3 "45b1e1b2e9623c30cd54c4d67111a7f5e40709eed0525b8cbe24304abecb2c6c" :a :task/labels :v :label/BENCH :op :assert}
+   {:e #blake3 "45b1e1b2e9623c30cd54c4d67111a7f5e40709eed0525b8cbe24304abecb2c6c" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "45b1e1b2e9623c30cd54c4d67111a7f5e40709eed0525b8cbe24304abecb2c6c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "45b1e1b2e9623c30cd54c4d67111a7f5e40709eed0525b8cbe24304abecb2c6c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "45b1e1b2e9623c30cd54c4d67111a7f5e40709eed0525b8cbe24304abecb2c6c" :a :task/title :v "BENCH-2: Sustained 60s load test with WAL → checkpoint → kill → recovery" :op :assert}
+   {:e #blake3 "45b1e1b2e9623c30cd54c4d67111a7f5e40709eed0525b8cbe24304abecb2c6c" :a :task/title-l0 :v "BENCH-2" :op :assert}
+   {:e #blake3 "45b1e1b2e9623c30cd54c4d67111a7f5e40709eed0525b8cbe24304abecb2c6c" :a :task/title-l1 :v "BENCH-2: Sustained 60s load test with WAL → checkpoint → kill → recovery" :op :assert}
+   {:e #blake3 "45b1e1b2e9623c30cd54c4d67111a7f5e40709eed0525b8cbe24304abecb2c6c" :a :task/traces-to :v #blake3 "460274aa36ed62f3ede040aea063cce747e8f445bbec3fd11358d1c967e11e82" :op :assert}
+   {:e #blake3 "45b1e1b2e9623c30cd54c4d67111a7f5e40709eed0525b8cbe24304abecb2c6c" :a :task/type :v :task.type/task :op :assert}
+ ]}

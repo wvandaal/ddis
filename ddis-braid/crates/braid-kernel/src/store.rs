@@ -1352,17 +1352,23 @@ impl Store {
                 .entry((d.attribute.clone(), d.value.clone()))
                 .or_default()
                 .push(d.clone());
-            // LIVE: LWW — highest tx wins per (entity, attribute) (INV-STORE-012)
-            let key = (d.entity, d.attribute.clone());
-            self.live_view
-                .entry(key)
-                .and_modify(|(v, tx)| {
-                    if d.tx > *tx {
-                        *v = d.value.clone();
-                        *tx = d.tx;
-                    }
-                })
-                .or_insert((d.value.clone(), d.tx));
+            // LIVE: per-attribute resolution respecting schema cardinality (INV-STORE-012).
+            // Cardinality::One → LWW (highest tx wins).
+            // Cardinality::Many → skip LIVE view (it can only hold one value; callers
+            //   must use entity_datoms for Many-valued attributes).
+            let cardinality = self.schema.cardinality(&d.attribute);
+            if cardinality == crate::schema::Cardinality::One {
+                let key = (d.entity, d.attribute.clone());
+                self.live_view
+                    .entry(key)
+                    .and_modify(|(v, tx)| {
+                        if d.tx > *tx {
+                            *v = d.value.clone();
+                            *tx = d.tx;
+                        }
+                    })
+                    .or_insert((d.value.clone(), d.tx));
+            }
         }
         // SOUND-LIVE-v2: Handle retractions in LIVE view.
         // Remove the live_view entry if the retracted value matches and
@@ -1494,17 +1500,22 @@ impl Store {
                     .entry((d.attribute.clone(), d.value.clone()))
                     .or_default()
                     .push(d.clone());
-                // LIVE: LWW — highest tx wins per (entity, attribute)
-                let key = (d.entity, d.attribute.clone());
-                live_view
-                    .entry(key)
-                    .and_modify(|(v, tx)| {
-                        if d.tx > *tx {
-                            *v = d.value.clone();
-                            *tx = d.tx;
-                        }
-                    })
-                    .or_insert((d.value.clone(), d.tx));
+                // LIVE: per-attribute resolution respecting schema cardinality.
+                // Cardinality::One → LWW (highest tx wins).
+                // Cardinality::Many → skip (LIVE view holds one value; Many needs entity_datoms).
+                let cardinality = schema.cardinality(&d.attribute);
+                if cardinality == crate::schema::Cardinality::One {
+                    let key = (d.entity, d.attribute.clone());
+                    live_view
+                        .entry(key)
+                        .and_modify(|(v, tx)| {
+                            if d.tx > *tx {
+                                *v = d.value.clone();
+                                *tx = d.tx;
+                            }
+                        })
+                        .or_insert((d.value.clone(), d.tx));
+                }
             }
             // SOUND-LIVE-v2: Handle retractions in LIVE view.
             // If the retracted value matches the current live_view entry and the
@@ -1574,16 +1585,20 @@ impl Store {
                     .entry((d.attribute.clone(), d.value.clone()))
                     .or_default()
                     .push(d.clone());
-                let key = (d.entity, d.attribute.clone());
-                live_view
-                    .entry(key)
-                    .and_modify(|(v, tx)| {
-                        if d.tx > *tx {
-                            *v = d.value.clone();
-                            *tx = d.tx;
-                        }
-                    })
-                    .or_insert((d.value.clone(), d.tx));
+                // LIVE: skip Cardinality::Many (can only hold one value)
+                let cardinality = schema.cardinality(&d.attribute);
+                if cardinality == crate::schema::Cardinality::One {
+                    let key = (d.entity, d.attribute.clone());
+                    live_view
+                        .entry(key)
+                        .and_modify(|(v, tx)| {
+                            if d.tx > *tx {
+                                *v = d.value.clone();
+                                *tx = d.tx;
+                            }
+                        })
+                        .or_insert((d.value.clone(), d.tx));
+                }
             }
             if d.op == Op::Retract {
                 let key = (d.entity, d.attribute.clone());
@@ -1732,8 +1747,53 @@ impl Store {
             }
         }
 
+        // INV-SCHEMA-003: Validate schema evolution before applying datoms.
+        // If the transaction contains :db/* attributes, build a provisional schema
+        // from the union of existing datoms + new datoms and validate it.
+        let has_schema_change = tx
+            .datoms()
+            .iter()
+            .any(|d| d.attribute.as_str().starts_with(":db/"));
+        if has_schema_change {
+            let mut provisional_datoms = self.datoms.clone();
+            for d in tx.datoms() {
+                provisional_datoms.insert(d.clone());
+            }
+            let new_schema = Schema::from_datoms(&provisional_datoms);
+            let evolution_errors = self.schema.validate_evolution(&new_schema);
+            if !evolution_errors.is_empty() {
+                let msg = evolution_errors
+                    .iter()
+                    .map(|e| format!("{:?}", e))
+                    .collect::<Vec<_>>()
+                    .join("; ");
+                return Err(StoreError::SchemaViolation {
+                    attr: Attribute::from_keyword(":db/schema"),
+                    expected: "compatible schema evolution".to_string(),
+                    got: msg,
+                });
+            }
+        }
+
         // Insert the user datoms
         for datom in tx.datoms() {
+            // Bug fix: Retraction existence check.
+            // Before accepting Op::Retract, verify a matching Assert exists.
+            // Ghost retractions are not data-corrupting so we warn (not error).
+            if datom.op == Op::Retract {
+                let has_matching_assert = self.datoms.iter().any(|d| {
+                    d.entity == datom.entity
+                        && d.attribute == datom.attribute
+                        && d.value == datom.value
+                        && d.op == Op::Assert
+                });
+                if !has_matching_assert {
+                    eprintln!(
+                        "braid: warning: retraction for ({:?}, {}, {:?}) has no matching assert — ghost retraction",
+                        datom.entity, datom.attribute.as_str(), datom.value,
+                    );
+                }
+            }
             if self.datoms.insert(datom.clone()) {
                 datom_count += 1;
                 self.index_datom(datom);
@@ -1864,16 +1924,20 @@ impl Store {
                     .entry((d.attribute.clone(), d.value.clone()))
                     .or_default()
                     .push(d.clone());
-                let key = (d.entity, d.attribute.clone());
-                self.live_view
-                    .entry(key)
-                    .and_modify(|(v, tx)| {
-                        if d.tx > *tx {
-                            *v = d.value.clone();
-                            *tx = d.tx;
-                        }
-                    })
-                    .or_insert((d.value.clone(), d.tx));
+                // LIVE: skip Cardinality::Many (can only hold one value)
+                let cardinality = self.schema.cardinality(&d.attribute);
+                if cardinality == crate::schema::Cardinality::One {
+                    let key = (d.entity, d.attribute.clone());
+                    self.live_view
+                        .entry(key)
+                        .and_modify(|(v, tx)| {
+                            if d.tx > *tx {
+                                *v = d.value.clone();
+                                *tx = d.tx;
+                            }
+                        })
+                        .or_insert((d.value.clone(), d.tx));
+                }
             }
             // SOUND-LIVE-v2: Handle retractions in LIVE view (same logic as from_datoms).
             if d.op == Op::Retract {
@@ -6276,6 +6340,108 @@ mod tests {
         assert_eq!(
             store.live_value(e2, &doc_attr),
             Some(&Value::String("doc 2".into())),
+        );
+    }
+
+    // Bug fix: LIVE view does not overwrite Cardinality::Many attributes
+    #[test]
+    fn live_view_skips_cardinality_many() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        // :tx/causal-predecessors is Cardinality::Many in the schema
+        let many_attr = Attribute::from_keyword(":tx/causal-predecessors");
+
+        let entity = EntityId::from_ident(":test/many-card");
+        let ref_target1 = EntityId::from_ident(":test/target1");
+        let ref_target2 = EntityId::from_ident(":test/target2");
+
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "test many")
+            .assert(entity, many_attr.clone(), Value::Ref(ref_target1))
+            .assert(entity, many_attr.clone(), Value::Ref(ref_target2))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        // LIVE view should NOT contain the Many-cardinality attribute
+        // (it can only hold one value; Many needs entity_datoms)
+        assert_eq!(
+            store.live_value(entity, &many_attr),
+            None,
+            "LIVE view must not contain Cardinality::Many attributes"
+        );
+
+        // But the datoms should be present via entity_datoms
+        let datoms = store.entity_datoms(entity);
+        let many_datoms: Vec<_> = datoms
+            .iter()
+            .filter(|d| d.attribute == many_attr && d.op == Op::Assert)
+            .collect();
+        assert_eq!(
+            many_datoms.len(),
+            2,
+            "Both Many-cardinality assertions should exist in entity_datoms"
+        );
+    }
+
+    // Bug fix: validate_evolution rejects schema-breaking transact
+    #[test]
+    fn transact_rejects_schema_evolution_violation() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        // :db/doc is valueType String. Try to change it to Long.
+        // Build a datom that modifies :db/doc's valueType attribute.
+        let doc_entity = EntityId::from_ident(":db/doc");
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "break schema")
+            .assert(
+                doc_entity,
+                Attribute::from_keyword(":db/valueType"),
+                Value::Keyword(":db.type/long".into()),
+            )
+            .commit(&store)
+            .unwrap();
+
+        let result = store.transact(tx);
+        assert!(
+            result.is_err(),
+            "transact should reject schema evolution violation (type change)"
+        );
+    }
+
+    // Bug fix: retraction with no matching assert emits warning (not error)
+    #[test]
+    fn ghost_retraction_still_applies() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+        let entity = EntityId::from_ident(":test/ghost");
+
+        let before = store.len();
+
+        // Create a retraction for a value that was never asserted
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "ghost retract")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("exists".into()),
+            )
+            .retract(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("never-asserted".into()),
+            )
+            .commit(&store)
+            .unwrap();
+
+        // Should succeed (ghost retractions are warnings, not errors)
+        let result = store.transact(tx);
+        assert!(
+            result.is_ok(),
+            "ghost retraction should not cause transact to fail"
+        );
+        assert!(
+            store.len() > before,
+            "store should grow even with ghost retraction"
         );
     }
 }

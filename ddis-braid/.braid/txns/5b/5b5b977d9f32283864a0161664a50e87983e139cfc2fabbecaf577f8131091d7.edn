@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774717648/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: SOUNDNESS — Fix 6 silent correctness bugs from Session 047 audit"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c323e76d5eb9e3ea4b216d1d7c7d3366fa48ee2b2d62519401b49ccadb136f47" :a :db/ident :v :task/t-14cb26d1 :op :assert}
+   {:e #blake3 "c323e76d5eb9e3ea4b216d1d7c7d3366fa48ee2b2d62519401b49ccadb136f47" :a :task/created-at :v 1774717647 :op :assert}
+   {:e #blake3 "c323e76d5eb9e3ea4b216d1d7c7d3366fa48ee2b2d62519401b49ccadb136f47" :a :task/description :v "6 known soundness bugs that can produce wrong answers silently. (1) causally_independent() unimplemented — conflict predicate unsound. (2) LIVE view hardcodes LWW — per-attribute resolution ignored. (3) NaN panic in budget.rs — partial_cmp unwrap. (4) validate_evolution unwired — invalid schema accepted. (5) Retraction existence check missing — ghost retractions accumulate. (6) Crystallization guard missing — premature spec elements. All identified in Session 047 audit. Zero tolerance for silent correctness bugs." :op :assert}
+   {:e #blake3 "c323e76d5eb9e3ea4b216d1d7c7d3366fa48ee2b2d62519401b49ccadb136f47" :a :task/id :v "t-14cb26d1" :op :assert}
+   {:e #blake3 "c323e76d5eb9e3ea4b216d1d7c7d3366fa48ee2b2d62519401b49ccadb136f47" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "c323e76d5eb9e3ea4b216d1d7c7d3366fa48ee2b2d62519401b49ccadb136f47" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c323e76d5eb9e3ea4b216d1d7c7d3366fa48ee2b2d62519401b49ccadb136f47" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c323e76d5eb9e3ea4b216d1d7c7d3366fa48ee2b2d62519401b49ccadb136f47" :a :task/title :v "EPIC: SOUNDNESS — Fix 6 silent correctness bugs from Session 047 audit" :op :assert}
+   {:e #blake3 "c323e76d5eb9e3ea4b216d1d7c7d3366fa48ee2b2d62519401b49ccadb136f47" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "c323e76d5eb9e3ea4b216d1d7c7d3366fa48ee2b2d62519401b49ccadb136f47" :a :task/title-l1 :v "EPIC: SOUNDNESS — Fix 6 silent correctness bugs from Session 047 audit" :op :assert}
+   {:e #blake3 "c323e76d5eb9e3ea4b216d1d7c7d3366fa48ee2b2d62519401b49ccadb136f47" :a :task/traces-to :v #blake3 "fd00a7254b7645334d1058a6047b9dcdc3b3dfbc8f5bbd715971933e1f04f7af" :op :assert}
+   {:e #blake3 "c323e76d5eb9e3ea4b216d1d7c7d3366fa48ee2b2d62519401b49ccadb136f47" :a :task/type :v :task.type/epic :op :assert}
+ ]}

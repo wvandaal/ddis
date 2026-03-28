@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774717570/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: DAEMON-PERF — Complete read/write lock split + full group commit activation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6b0cd546117404f1ed34c54354b9a21840e1d8dddf8d3cff72bad9119fd8d1e7" :a :db/ident :v :task/t-cfdddcbb :op :assert}
+   {:e #blake3 "6b0cd546117404f1ed34c54354b9a21840e1d8dddf8d3cff72bad9119fd8d1e7" :a :task/created-at :v 1774717569 :op :assert}
+   {:e #blake3 "6b0cd546117404f1ed34c54354b9a21840e1d8dddf8d3cff72bad9119fd8d1e7" :a :task/description :v "Root cause: daemon serializes ALL requests through write lock. Read tools (status, query, guidance, task_ready) are genuinely read-only but acquire exclusive lock. Group commit carries only runtime datoms (~10% of writes). Tool writes still use direct write_tx under write lock. Two deliverables: (1) Read tools use shared.read() for concurrent reads, (2) Tool writes eventually route through CommitHandle. Verification: P99 read < 500ms, P99 write < 50ms at 50 concurrent agents. Traces to: INV-DAEMON-012, DS2, DS4." :op :assert}
+   {:e #blake3 "6b0cd546117404f1ed34c54354b9a21840e1d8dddf8d3cff72bad9119fd8d1e7" :a :task/id :v "t-cfdddcbb" :op :assert}
+   {:e #blake3 "6b0cd546117404f1ed34c54354b9a21840e1d8dddf8d3cff72bad9119fd8d1e7" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "6b0cd546117404f1ed34c54354b9a21840e1d8dddf8d3cff72bad9119fd8d1e7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6b0cd546117404f1ed34c54354b9a21840e1d8dddf8d3cff72bad9119fd8d1e7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6b0cd546117404f1ed34c54354b9a21840e1d8dddf8d3cff72bad9119fd8d1e7" :a :task/title :v "EPIC: DAEMON-PERF — Complete read/write lock split + full group commit activation" :op :assert}
+   {:e #blake3 "6b0cd546117404f1ed34c54354b9a21840e1d8dddf8d3cff72bad9119fd8d1e7" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "6b0cd546117404f1ed34c54354b9a21840e1d8dddf8d3cff72bad9119fd8d1e7" :a :task/title-l1 :v "EPIC: DAEMON-PERF — Complete read/write lock split + full group commit acti..." :op :assert}
+   {:e #blake3 "6b0cd546117404f1ed34c54354b9a21840e1d8dddf8d3cff72bad9119fd8d1e7" :a :task/traces-to :v #blake3 "a791c7dcd0f32f60945a75d98a0fdde333becfc48a508787ad79ac6dcf032f2e" :op :assert}
+   {:e #blake3 "6b0cd546117404f1ed34c54354b9a21840e1d8dddf8d3cff72bad9119fd8d1e7" :a :task/type :v :task.type/epic :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774718568/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: DAEMON-PERF — Read/write lock split + group commit activation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b5873b29b954d9d21c4b6110793e10566c93b949a55efd194e2b47c14be53137" :a :db/ident :v :task/t-cabc7171 :op :assert}
+   {:e #blake3 "b5873b29b954d9d21c4b6110793e10566c93b949a55efd194e2b47c14be53137" :a :task/created-at :v 1774718567 :op :assert}
+   {:e #blake3 "b5873b29b954d9d21c4b6110793e10566c93b949a55efd194e2b47c14be53137" :a :task/description :v "Complete read/write lock split + group commit activation. Two deliverables: (1) Read tools use shared.read(), (2) Write traffic benefits from group commit batching. Verification: P99 targets." :op :assert}
+   {:e #blake3 "b5873b29b954d9d21c4b6110793e10566c93b949a55efd194e2b47c14be53137" :a :task/id :v "t-cabc7171" :op :assert}
+   {:e #blake3 "b5873b29b954d9d21c4b6110793e10566c93b949a55efd194e2b47c14be53137" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "b5873b29b954d9d21c4b6110793e10566c93b949a55efd194e2b47c14be53137" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b5873b29b954d9d21c4b6110793e10566c93b949a55efd194e2b47c14be53137" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b5873b29b954d9d21c4b6110793e10566c93b949a55efd194e2b47c14be53137" :a :task/title :v "EPIC: DAEMON-PERF — Read/write lock split + group commit activation" :op :assert}
+   {:e #blake3 "b5873b29b954d9d21c4b6110793e10566c93b949a55efd194e2b47c14be53137" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "b5873b29b954d9d21c4b6110793e10566c93b949a55efd194e2b47c14be53137" :a :task/title-l1 :v "EPIC: DAEMON-PERF — Read/write lock split + group commit activation" :op :assert}
+   {:e #blake3 "b5873b29b954d9d21c4b6110793e10566c93b949a55efd194e2b47c14be53137" :a :task/traces-to :v #blake3 "a791c7dcd0f32f60945a75d98a0fdde333becfc48a508787ad79ac6dcf032f2e" :op :assert}
+   {:e #blake3 "b5873b29b954d9d21c4b6110793e10566c93b949a55efd194e2b47c14be53137" :a :task/type :v :task.type/epic :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774717753/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: BENCH — Performance benchmarks + sustained load test"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a4cec728a5829d0d57f90eee7a1e59d35e5bd037045bde16e9b464e86f279885" :a :db/ident :v :task/t-7e57e92f :op :assert}
+   {:e #blake3 "a4cec728a5829d0d57f90eee7a1e59d35e5bd037045bde16e9b464e86f279885" :a :task/created-at :v 1774717752 :op :assert}
+   {:e #blake3 "a4cec728a5829d0d57f90eee7a1e59d35e5bd037045bde16e9b464e86f279885" :a :task/description :v "No performance benchmarks verify the spec targets. No sustained load test exercises the full pipeline as a system. Three deliverables: (1) 50-agent benchmark with P99 latency histograms, (2) Sustained load test: daemon 60s, 10 agents, WAL→checkpoint→recovery, (3) Measure actual P99 vs spec targets. Without measurement, DAEMON-SCALE is an engine with no speedometer." :op :assert}
+   {:e #blake3 "a4cec728a5829d0d57f90eee7a1e59d35e5bd037045bde16e9b464e86f279885" :a :task/id :v "t-7e57e92f" :op :assert}
+   {:e #blake3 "a4cec728a5829d0d57f90eee7a1e59d35e5bd037045bde16e9b464e86f279885" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a4cec728a5829d0d57f90eee7a1e59d35e5bd037045bde16e9b464e86f279885" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a4cec728a5829d0d57f90eee7a1e59d35e5bd037045bde16e9b464e86f279885" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a4cec728a5829d0d57f90eee7a1e59d35e5bd037045bde16e9b464e86f279885" :a :task/title :v "EPIC: BENCH — Performance benchmarks + sustained load test" :op :assert}
+   {:e #blake3 "a4cec728a5829d0d57f90eee7a1e59d35e5bd037045bde16e9b464e86f279885" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "a4cec728a5829d0d57f90eee7a1e59d35e5bd037045bde16e9b464e86f279885" :a :task/title-l1 :v "EPIC: BENCH — Performance benchmarks + sustained load test" :op :assert}
+   {:e #blake3 "a4cec728a5829d0d57f90eee7a1e59d35e5bd037045bde16e9b464e86f279885" :a :task/traces-to :v #blake3 "729bb67c5068a417d0e883ea6639e85633e8ba9607ca9e032c2942608f426541" :op :assert}
+   {:e #blake3 "a4cec728a5829d0d57f90eee7a1e59d35e5bd037045bde16e9b464e86f279885" :a :task/type :v :task.type/epic :op :assert}
+ ]}
