@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774817111/0/70fafd719b19d862b01f16ed1cb4bb3f"
+ :tx/agent "70fafd719b19d862b01f16ed1cb4bb3f"
+ :tx/provenance :observed
+ :tx/rationale "FERRATOMIC PERFORMANCE: Derived targets — snapshot load <5ns (ArcSwap), point read <10µs (im::OrdMap at 100M), write throughput 50-200K datoms/sec (group commit). im::OrdMap scaling gate at Phase 4b with IndexBackend trait fallback to BTreeMap. Write amplification budget ≤2KB/datom. Tail latency P99.99 <10ms. Cold start <5s at 100M. WAL with io_uring + two-fsync barrier. Memory ~350 bytes/datom with im overhead. Capacity: 100M datoms ≈ 35GB RAM, 1.5GB disk (zstd)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c61ee35e13a913c408332c10404c5f078748c4150a2fc380f4558f4d6367d4d7" :a :db/doc :v "FERRATOMIC PERFORMANCE: Derived targets — snapshot load <5ns (ArcSwap), point read <10µs (im::OrdMap at 100M), write throughput 50-200K datoms/sec (group commit). im::OrdMap scaling gate at Phase 4b with IndexBackend trait fallback to BTreeMap. Write amplification budget ≤2KB/datom. Tail latency P99.99 <10ms. Cold start <5s at 100M. WAL with io_uring + two-fsync barrier. Memory ~350 bytes/datom with im overhead. Capacity: 100M datoms ≈ 35GB RAM, 1.5GB disk (zstd)." :op :assert}
+   {:e #blake3 "c61ee35e13a913c408332c10404c5f078748c4150a2fc380f4558f4d6367d4d7" :a :db/ident :v :observation/ferratomic-performance-derived-targets-snapshot-load-5ns :op :assert}
+   {:e #blake3 "c61ee35e13a913c408332c10404c5f078748c4150a2fc380f4558f4d6367d4d7" :a :exploration/body :v "FERRATOMIC PERFORMANCE: Derived targets — snapshot load <5ns (ArcSwap), point read <10µs (im::OrdMap at 100M), write throughput 50-200K datoms/sec (group commit). im::OrdMap scaling gate at Phase 4b with IndexBackend trait fallback to BTreeMap. Write amplification budget ≤2KB/datom. Tail latency P99.99 <10ms. Cold start <5s at 100M. WAL with io_uring + two-fsync barrier. Memory ~350 bytes/datom with im overhead. Capacity: 100M datoms ≈ 35GB RAM, 1.5GB disk (zstd)." :op :assert}
+   {:e #blake3 "c61ee35e13a913c408332c10404c5f078748c4150a2fc380f4558f4d6367d4d7" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "c61ee35e13a913c408332c10404c5f078748c4150a2fc380f4558f4d6367d4d7" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "c61ee35e13a913c408332c10404c5f078748c4150a2fc380f4558f4d6367d4d7" :a :exploration/content-hash :v #bytes "d0a2b57f0fdfceb4b9ad7ab21d2e0ca3b40bf4688b3a8d8b8b49e31831aeae4a" :op :assert}
+   {:e #blake3 "c61ee35e13a913c408332c10404c5f078748c4150a2fc380f4558f4d6367d4d7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "c61ee35e13a913c408332c10404c5f078748c4150a2fc380f4558f4d6367d4d7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "c61ee35e13a913c408332c10404c5f078748c4150a2fc380f4558f4d6367d4d7" :a :exploration/source-session :v #blake3 "a5068dcaf9959c1ec3e4b1763b7063f810af100c086c88e4802095fecffd30c2" :op :assert}
+ ]}

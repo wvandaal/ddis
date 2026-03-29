@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774817300/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3afbb9d2"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/close-reason :v "Specification complete. spec/23-ferratomic.md: 6815 lines, 36 INV, 7 ADR, 5 NEG. docs/design/FERRATOMIC_ARCHITECTURE.md: 1924 lines, 17 sections." :op :assert}
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/closed-at :v 1774817299 :op :assert}
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/status :v :task.status/closed :op :assert}
+ ]}

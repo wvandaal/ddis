@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817260/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P4B-SHARD: Entity-hash sharding. shard(datom) = BLAKE3(datom.entity) mod k. Entity-local queries single-shard. Attribute-scan fan-out + parallel merge. Per-shard CRDT (independent merge). ACCEPTANCE: INV-FERR-017 pass (shard union = store). DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-017."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "59c2bf3c99549e44312df740057b9d1743574fe5b9a7beebda36bd10bf803b74" :a :db/ident :v :task/t-32f52093 :op :assert}
+   {:e #blake3 "59c2bf3c99549e44312df740057b9d1743574fe5b9a7beebda36bd10bf803b74" :a :task/acceptance :v "INV-FERR-017 pass (shard union = store). DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-017." :op :assert}
+   {:e #blake3 "59c2bf3c99549e44312df740057b9d1743574fe5b9a7beebda36bd10bf803b74" :a :task/body :v "ACCEPTANCE: INV-FERR-017 pass (shard union = store). DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-017." :op :assert}
+   {:e #blake3 "59c2bf3c99549e44312df740057b9d1743574fe5b9a7beebda36bd10bf803b74" :a :task/created-at :v 1774817259 :op :assert}
+   {:e #blake3 "59c2bf3c99549e44312df740057b9d1743574fe5b9a7beebda36bd10bf803b74" :a :task/id :v "t-32f52093" :op :assert}
+   {:e #blake3 "59c2bf3c99549e44312df740057b9d1743574fe5b9a7beebda36bd10bf803b74" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "59c2bf3c99549e44312df740057b9d1743574fe5b9a7beebda36bd10bf803b74" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "59c2bf3c99549e44312df740057b9d1743574fe5b9a7beebda36bd10bf803b74" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "59c2bf3c99549e44312df740057b9d1743574fe5b9a7beebda36bd10bf803b74" :a :task/title :v "FERR-P4B-SHARD: Entity-hash sharding. shard(datom) = BLAKE3(datom.entity) mod k. Entity-local queries single-shard. Attribute-scan fan-out + parallel merge. Per-shard CRDT (independent merge)" :op :assert}
+   {:e #blake3 "59c2bf3c99549e44312df740057b9d1743574fe5b9a7beebda36bd10bf803b74" :a :task/title-l0 :v "FERR-P4B-SHARD" :op :assert}
+   {:e #blake3 "59c2bf3c99549e44312df740057b9d1743574fe5b9a7beebda36bd10bf803b74" :a :task/title-l1 :v "FERR-P4B-SHARD: Entity-hash sharding" :op :assert}
+   {:e #blake3 "59c2bf3c99549e44312df740057b9d1743574fe5b9a7beebda36bd10bf803b74" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774817106/0/97b7a3bdf040570f5ada8ccb4ec75c5a"
+ :tx/agent "97b7a3bdf040570f5ada8ccb4ec75c5a"
+ :tx/provenance :observed
+ :tx/rationale "FERRATOMIC DISTRIBUTION: CRDT mesh architecture — any node accepts writes, merge propagates via SWIM gossip. Entity-hash sharding (BLAKE3(entity_id) mod k). Merkle anti-entropy for divergence repair. HLC (Hybrid Logical Clock) for causal ordering. At-least-once observer delivery with epoch-based dedup. Read replica protocol: leader checkpoint → WAL stream → follower. Substrate agnosticism: Transport trait (Local/Network) + DatabaseEngine trait (Embedded/Distributed). Transition from embedded to distributed requires zero application code changes."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "23946eccd6557b94b78a2c7d83c6795853603d6fbecc254cc3904ca3eb153892" :a :db/doc :v "FERRATOMIC DISTRIBUTION: CRDT mesh architecture — any node accepts writes, merge propagates via SWIM gossip. Entity-hash sharding (BLAKE3(entity_id) mod k). Merkle anti-entropy for divergence repair. HLC (Hybrid Logical Clock) for causal ordering. At-least-once observer delivery with epoch-based dedup. Read replica protocol: leader checkpoint → WAL stream → follower. Substrate agnosticism: Transport trait (Local/Network) + DatabaseEngine trait (Embedded/Distributed). Transition from embedded to distributed requires zero application code changes." :op :assert}
+   {:e #blake3 "23946eccd6557b94b78a2c7d83c6795853603d6fbecc254cc3904ca3eb153892" :a :db/ident :v :observation/ferratomic-distribution-crdt-mesh-architecture-any-node-a :op :assert}
+   {:e #blake3 "23946eccd6557b94b78a2c7d83c6795853603d6fbecc254cc3904ca3eb153892" :a :exploration/body :v "FERRATOMIC DISTRIBUTION: CRDT mesh architecture — any node accepts writes, merge propagates via SWIM gossip. Entity-hash sharding (BLAKE3(entity_id) mod k). Merkle anti-entropy for divergence repair. HLC (Hybrid Logical Clock) for causal ordering. At-least-once observer delivery with epoch-based dedup. Read replica protocol: leader checkpoint → WAL stream → follower. Substrate agnosticism: Transport trait (Local/Network) + DatabaseEngine trait (Embedded/Distributed). Transition from embedded to distributed requires zero application code changes." :op :assert}
+   {:e #blake3 "23946eccd6557b94b78a2c7d83c6795853603d6fbecc254cc3904ca3eb153892" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "23946eccd6557b94b78a2c7d83c6795853603d6fbecc254cc3904ca3eb153892" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "23946eccd6557b94b78a2c7d83c6795853603d6fbecc254cc3904ca3eb153892" :a :exploration/content-hash :v #bytes "29f20766fd406b678589b52ea6d150184ca4dffd9d87a96f5db9464d0c616640" :op :assert}
+   {:e #blake3 "23946eccd6557b94b78a2c7d83c6795853603d6fbecc254cc3904ca3eb153892" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "23946eccd6557b94b78a2c7d83c6795853603d6fbecc254cc3904ca3eb153892" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "23946eccd6557b94b78a2c7d83c6795853603d6fbecc254cc3904ca3eb153892" :a :exploration/source-session :v #blake3 "a5068dcaf9959c1ec3e4b1763b7063f810af100c086c88e4802095fecffd30c2" :op :assert}
+ ]}

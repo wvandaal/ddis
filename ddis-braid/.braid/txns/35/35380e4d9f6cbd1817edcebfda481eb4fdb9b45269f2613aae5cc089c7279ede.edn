@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817223/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P4A-STORE: ferratomic-core Store with im::OrdMap indexes. 6 indexes: EAVT (primary, im::OrdSet), entity (im::OrdMap), attribute (im::OrdMap), VAET (im::OrdMap), AVET (im::OrdMap), LIVE (im::OrdMap). apply_datoms incremental. merge via set union. IndexBackend trait for fallback to BTreeMap. ACCEPTANCE: INV-FERR-001..005, 018 pass (all proptest + Kani). DEPENDS-ON: FERR-P3-TYPES. TRACES: INV-FERR-001..005, 017, 018, 025."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6819601765ac89aa5ba155a89a73d67e817f93c2ef451d419b5515ee06a1e785" :a :db/ident :v :task/t-6dc8a0e8 :op :assert}
+   {:e #blake3 "6819601765ac89aa5ba155a89a73d67e817f93c2ef451d419b5515ee06a1e785" :a :task/acceptance :v "INV-FERR-001..005, 018 pass (all proptest + Kani). DEPENDS-ON: FERR-P3-TYPES. TRACES: INV-FERR-001..005, 017, 018, 025." :op :assert}
+   {:e #blake3 "6819601765ac89aa5ba155a89a73d67e817f93c2ef451d419b5515ee06a1e785" :a :task/body :v "ACCEPTANCE: INV-FERR-001..005, 018 pass (all proptest + Kani). DEPENDS-ON: FERR-P3-TYPES. TRACES: INV-FERR-001..005, 017, 018, 025." :op :assert}
+   {:e #blake3 "6819601765ac89aa5ba155a89a73d67e817f93c2ef451d419b5515ee06a1e785" :a :task/created-at :v 1774817222 :op :assert}
+   {:e #blake3 "6819601765ac89aa5ba155a89a73d67e817f93c2ef451d419b5515ee06a1e785" :a :task/id :v "t-6dc8a0e8" :op :assert}
+   {:e #blake3 "6819601765ac89aa5ba155a89a73d67e817f93c2ef451d419b5515ee06a1e785" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6819601765ac89aa5ba155a89a73d67e817f93c2ef451d419b5515ee06a1e785" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6819601765ac89aa5ba155a89a73d67e817f93c2ef451d419b5515ee06a1e785" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6819601765ac89aa5ba155a89a73d67e817f93c2ef451d419b5515ee06a1e785" :a :task/title :v "FERR-P4A-STORE: ferratomic-core Store with im::OrdMap indexes. 6 indexes: EAVT (primary, im::OrdSet), entity (im::OrdMap), attribute (im::OrdMap), VAET (im::OrdMap), AVET (im::OrdMap), LIVE (im::OrdMap). apply_datoms incremental. merge via set union. IndexBackend trait for fallback to BTreeMap" :op :assert}
+   {:e #blake3 "6819601765ac89aa5ba155a89a73d67e817f93c2ef451d419b5515ee06a1e785" :a :task/title-l0 :v "FERR-P4A-STORE" :op :assert}
+   {:e #blake3 "6819601765ac89aa5ba155a89a73d67e817f93c2ef451d419b5515ee06a1e785" :a :task/title-l1 :v "FERR-P4A-STORE: ferratomic-core Store with im::OrdMap indexes" :op :assert}
+   {:e #blake3 "6819601765ac89aa5ba155a89a73d67e817f93c2ef451d419b5515ee06a1e785" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817206/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P2-STATERIGHT: Stateright model checking. Write ferratomic-verify/stateright/ with crdt_model.rs, snapshot_model.rs, federation_model.rs, recovery_model.rs. State: CrdtState{nodes, in_flight}. Actions: Write/InitMerge/DeliverMerge. Properties: convergence (quiescent → equal), monotonic (no shrink), snapshot isolation. ACCEPTANCE: stateright check passes for 3 nodes, 4 datom IDs. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-001..003, 006, 010, 014, 022."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :db/ident :v :task/t-3afbb9d2 :op :assert}
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/acceptance :v "stateright check passes for 3 nodes, 4 datom IDs. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-001..003, 006, 010, 014, 022." :op :assert}
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/body :v "ACCEPTANCE: stateright check passes for 3 nodes, 4 datom IDs. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-001..003, 006, 010, 014, 022." :op :assert}
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/created-at :v 1774817205 :op :assert}
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/id :v "t-3afbb9d2" :op :assert}
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/title :v "FERR-P2-STATERIGHT: Stateright model checking. Write ferratomic-verify/stateright/ with crdt_model.rs, snapshot_model.rs, federation_model.rs, recovery_model.rs. State: CrdtState{nodes, in_flight}. Actions: Write/InitMerge/DeliverMerge. Properties: convergence (quiescent → equal), monotonic (no shrink), snapshot isolation" :op :assert}
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/title-l0 :v "FERR-P2-STATERIGHT" :op :assert}
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/title-l1 :v "FERR-P2-STATERIGHT: Stateright model checking" :op :assert}
+   {:e #blake3 "0e01b70bc46e7fede26ce9d3843c70ec20c9a1dd052db8b4c44f51e415775b7f" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817201/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P0: Formal specification complete. spec/23-ferratomic.md (6815 lines, 36 INV, 7 ADR, 5 NEG). docs/design/FERRATOMIC_ARCHITECTURE.md (1924 lines, 17 sections). Every INV has Level 0/1/2 + Falsification + proptest + Lean theorem. ACCEPTANCE: spec review passes adversarial audit. TRACES: INV-FERR-001..036."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "807e3f8588601f2db66a1271a81582a7ebb9849d32d2f99e8a69c6b65d62ff19" :a :db/ident :v :task/t-5b3343a6 :op :assert}
+   {:e #blake3 "807e3f8588601f2db66a1271a81582a7ebb9849d32d2f99e8a69c6b65d62ff19" :a :task/acceptance :v "spec review passes adversarial audit. TRACES: INV-FERR-001..036." :op :assert}
+   {:e #blake3 "807e3f8588601f2db66a1271a81582a7ebb9849d32d2f99e8a69c6b65d62ff19" :a :task/body :v "ACCEPTANCE: spec review passes adversarial audit. TRACES: INV-FERR-001..036." :op :assert}
+   {:e #blake3 "807e3f8588601f2db66a1271a81582a7ebb9849d32d2f99e8a69c6b65d62ff19" :a :task/created-at :v 1774817200 :op :assert}
+   {:e #blake3 "807e3f8588601f2db66a1271a81582a7ebb9849d32d2f99e8a69c6b65d62ff19" :a :task/id :v "t-5b3343a6" :op :assert}
+   {:e #blake3 "807e3f8588601f2db66a1271a81582a7ebb9849d32d2f99e8a69c6b65d62ff19" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "807e3f8588601f2db66a1271a81582a7ebb9849d32d2f99e8a69c6b65d62ff19" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "807e3f8588601f2db66a1271a81582a7ebb9849d32d2f99e8a69c6b65d62ff19" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "807e3f8588601f2db66a1271a81582a7ebb9849d32d2f99e8a69c6b65d62ff19" :a :task/title :v "FERR-P0: Formal specification complete. spec/23-ferratomic.md (6815 lines, 36 INV, 7 ADR, 5 NEG). docs/design/FERRATOMIC_ARCHITECTURE.md (1924 lines, 17 sections). Every INV has Level 0/1/2 + Falsification + proptest + Lean theorem" :op :assert}
+   {:e #blake3 "807e3f8588601f2db66a1271a81582a7ebb9849d32d2f99e8a69c6b65d62ff19" :a :task/title-l0 :v "FERR-P0" :op :assert}
+   {:e #blake3 "807e3f8588601f2db66a1271a81582a7ebb9849d32d2f99e8a69c6b65d62ff19" :a :task/title-l1 :v "FERR-P0: Formal specification complete" :op :assert}
+   {:e #blake3 "807e3f8588601f2db66a1271a81582a7ebb9849d32d2f99e8a69c6b65d62ff19" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817211/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P2-KANI: Kani bounded model checking. Write ferratomic-verify/kani/ with index_harness.rs (bijection ≤8 datoms), wal_harness.rs (ordering), value_harness.rs (type safety), clock_harness.rs (HLC monotonicity). ACCEPTANCE: cargo kani passes all harnesses. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-005, 008, 015, 018, 019."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d010b832d27909fea92042f41acf647a5f25e083059befd7c0eb17e1f6dbb887" :a :db/ident :v :task/t-af19af38 :op :assert}
+   {:e #blake3 "d010b832d27909fea92042f41acf647a5f25e083059befd7c0eb17e1f6dbb887" :a :task/acceptance :v "cargo kani passes all harnesses. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-005, 008, 015, 018, 019." :op :assert}
+   {:e #blake3 "d010b832d27909fea92042f41acf647a5f25e083059befd7c0eb17e1f6dbb887" :a :task/body :v "ACCEPTANCE: cargo kani passes all harnesses. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-005, 008, 015, 018, 019." :op :assert}
+   {:e #blake3 "d010b832d27909fea92042f41acf647a5f25e083059befd7c0eb17e1f6dbb887" :a :task/created-at :v 1774817210 :op :assert}
+   {:e #blake3 "d010b832d27909fea92042f41acf647a5f25e083059befd7c0eb17e1f6dbb887" :a :task/id :v "t-af19af38" :op :assert}
+   {:e #blake3 "d010b832d27909fea92042f41acf647a5f25e083059befd7c0eb17e1f6dbb887" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "d010b832d27909fea92042f41acf647a5f25e083059befd7c0eb17e1f6dbb887" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d010b832d27909fea92042f41acf647a5f25e083059befd7c0eb17e1f6dbb887" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d010b832d27909fea92042f41acf647a5f25e083059befd7c0eb17e1f6dbb887" :a :task/title :v "FERR-P2-KANI: Kani bounded model checking. Write ferratomic-verify/kani/ with index_harness.rs (bijection ≤8 datoms), wal_harness.rs (ordering), value_harness.rs (type safety), clock_harness.rs (HLC monotonicity)" :op :assert}
+   {:e #blake3 "d010b832d27909fea92042f41acf647a5f25e083059befd7c0eb17e1f6dbb887" :a :task/title-l0 :v "FERR-P2-KANI" :op :assert}
+   {:e #blake3 "d010b832d27909fea92042f41acf647a5f25e083059befd7c0eb17e1f6dbb887" :a :task/title-l1 :v "FERR-P2-KANI: Kani bounded model checking" :op :assert}
+   {:e #blake3 "d010b832d27909fea92042f41acf647a5f25e083059befd7c0eb17e1f6dbb887" :a :task/type :v :task.type/task :op :assert}
+ ]}

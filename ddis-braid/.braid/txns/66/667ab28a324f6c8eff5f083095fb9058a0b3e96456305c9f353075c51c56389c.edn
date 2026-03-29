@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774817270/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P5-MIGRATE: braid-kernel migration to ferratomic. API adapter wrapping ferratomic_core::Database. MaterializedViews implements DatomObserver. EDN format compatibility (reads existing .braid/ stores). store.bin one-time migration. INV-STORE→INV-FERR mapping verified. ACCEPTANCE: all existing braid tests pass with ferratomic backend. DEPENDS-ON: FERR-P4A-*. TRACES: INV-STORE-001..013 → INV-FERR mapping."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d4ecc80947bf5704546b8f937131f030242fded5464f6ec440f99863c2cc19cf" :a :db/ident :v :task/t-c24727f7 :op :assert}
+   {:e #blake3 "d4ecc80947bf5704546b8f937131f030242fded5464f6ec440f99863c2cc19cf" :a :task/acceptance :v "all existing braid tests pass with ferratomic backend. DEPENDS-ON: FERR-P4A-*. TRACES: INV-STORE-001..013 → INV-FERR mapping." :op :assert}
+   {:e #blake3 "d4ecc80947bf5704546b8f937131f030242fded5464f6ec440f99863c2cc19cf" :a :task/body :v "ACCEPTANCE: all existing braid tests pass with ferratomic backend. DEPENDS-ON: FERR-P4A-*. TRACES: INV-STORE-001..013 → INV-FERR mapping." :op :assert}
+   {:e #blake3 "d4ecc80947bf5704546b8f937131f030242fded5464f6ec440f99863c2cc19cf" :a :task/created-at :v 1774817269 :op :assert}
+   {:e #blake3 "d4ecc80947bf5704546b8f937131f030242fded5464f6ec440f99863c2cc19cf" :a :task/id :v "t-c24727f7" :op :assert}
+   {:e #blake3 "d4ecc80947bf5704546b8f937131f030242fded5464f6ec440f99863c2cc19cf" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "d4ecc80947bf5704546b8f937131f030242fded5464f6ec440f99863c2cc19cf" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d4ecc80947bf5704546b8f937131f030242fded5464f6ec440f99863c2cc19cf" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d4ecc80947bf5704546b8f937131f030242fded5464f6ec440f99863c2cc19cf" :a :task/title :v "FERR-P5-MIGRATE: braid-kernel migration to ferratomic. API adapter wrapping ferratomic_core::Database. MaterializedViews implements DatomObserver. EDN format compatibility (reads existing .braid/ stores). store.bin one-time migration. INV-STORE→INV-FERR mapping verified" :op :assert}
+   {:e #blake3 "d4ecc80947bf5704546b8f937131f030242fded5464f6ec440f99863c2cc19cf" :a :task/title-l0 :v "FERR-P5-MIGRATE" :op :assert}
+   {:e #blake3 "d4ecc80947bf5704546b8f937131f030242fded5464f6ec440f99863c2cc19cf" :a :task/title-l1 :v "FERR-P5-MIGRATE: braid-kernel migration to ferratomic" :op :assert}
+   {:e #blake3 "d4ecc80947bf5704546b8f937131f030242fded5464f6ec440f99863c2cc19cf" :a :task/traces-to :v #blake3 "e28e7edc1de3fd309bdb24646b12535d322634aa0f3488861155aaade266b8c3" :op :assert}
+   {:e #blake3 "d4ecc80947bf5704546b8f937131f030242fded5464f6ec440f99863c2cc19cf" :a :task/type :v :task.type/task :op :assert}
+ ]}

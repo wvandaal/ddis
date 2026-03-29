@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817237/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P4A-SCHEMA: Schema validation on transact. Schema-as-data (19 axiomatic meta-schema attrs at genesis). transact_genesis() bypasses validation for bootstrap. All subsequent transactions validate attribute existence + value type match. FerraError::SchemaViolation on mismatch. ACCEPTANCE: INV-FERR-009, 031 pass. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-009, 029, 031, 032."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aba1696c5a7b15e23e6737cf25b7970e73cebfc32a357a6717b92b92dbd3dea1" :a :db/ident :v :task/t-1052ff84 :op :assert}
+   {:e #blake3 "aba1696c5a7b15e23e6737cf25b7970e73cebfc32a357a6717b92b92dbd3dea1" :a :task/acceptance :v "INV-FERR-009, 031 pass. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-009, 029, 031, 032." :op :assert}
+   {:e #blake3 "aba1696c5a7b15e23e6737cf25b7970e73cebfc32a357a6717b92b92dbd3dea1" :a :task/body :v "ACCEPTANCE: INV-FERR-009, 031 pass. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-009, 029, 031, 032." :op :assert}
+   {:e #blake3 "aba1696c5a7b15e23e6737cf25b7970e73cebfc32a357a6717b92b92dbd3dea1" :a :task/created-at :v 1774817236 :op :assert}
+   {:e #blake3 "aba1696c5a7b15e23e6737cf25b7970e73cebfc32a357a6717b92b92dbd3dea1" :a :task/id :v "t-1052ff84" :op :assert}
+   {:e #blake3 "aba1696c5a7b15e23e6737cf25b7970e73cebfc32a357a6717b92b92dbd3dea1" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "aba1696c5a7b15e23e6737cf25b7970e73cebfc32a357a6717b92b92dbd3dea1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "aba1696c5a7b15e23e6737cf25b7970e73cebfc32a357a6717b92b92dbd3dea1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "aba1696c5a7b15e23e6737cf25b7970e73cebfc32a357a6717b92b92dbd3dea1" :a :task/title :v "FERR-P4A-SCHEMA: Schema validation on transact. Schema-as-data (19 axiomatic meta-schema attrs at genesis). transact_genesis() bypasses validation for bootstrap. All subsequent transactions validate attribute existence + value type match. FerraError::SchemaViolation on mismatch" :op :assert}
+   {:e #blake3 "aba1696c5a7b15e23e6737cf25b7970e73cebfc32a357a6717b92b92dbd3dea1" :a :task/title-l0 :v "FERR-P4A-SCHEMA" :op :assert}
+   {:e #blake3 "aba1696c5a7b15e23e6737cf25b7970e73cebfc32a357a6717b92b92dbd3dea1" :a :task/title-l1 :v "FERR-P4A-SCHEMA: Schema validation on transact" :op :assert}
+   {:e #blake3 "aba1696c5a7b15e23e6737cf25b7970e73cebfc32a357a6717b92b92dbd3dea1" :a :task/type :v :task.type/task :op :assert}
+ ]}

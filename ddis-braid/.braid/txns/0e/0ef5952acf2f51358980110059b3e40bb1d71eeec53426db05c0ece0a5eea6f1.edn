@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817268/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P4D-DATALOG: ferratomic-datalog query engine. Parser (Datalog syntax→AST), planner (join ordering, index selection), evaluator (execution against IndexAccess trait), CALM classification (monotonic vs non-monotonic). Cross-shard query: monotonic fan-out+merge, non-monotonic require shard spec. ACCEPTANCE: INV-FERR-033 pass. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-033."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e384d06cd2b2c44533b1aa405ea1a806ad0dcd889ba035442d37fb43ceb61668" :a :db/ident :v :task/t-f1272d17 :op :assert}
+   {:e #blake3 "e384d06cd2b2c44533b1aa405ea1a806ad0dcd889ba035442d37fb43ceb61668" :a :task/acceptance :v "INV-FERR-033 pass. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-033." :op :assert}
+   {:e #blake3 "e384d06cd2b2c44533b1aa405ea1a806ad0dcd889ba035442d37fb43ceb61668" :a :task/body :v "ACCEPTANCE: INV-FERR-033 pass. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-033." :op :assert}
+   {:e #blake3 "e384d06cd2b2c44533b1aa405ea1a806ad0dcd889ba035442d37fb43ceb61668" :a :task/created-at :v 1774817267 :op :assert}
+   {:e #blake3 "e384d06cd2b2c44533b1aa405ea1a806ad0dcd889ba035442d37fb43ceb61668" :a :task/id :v "t-f1272d17" :op :assert}
+   {:e #blake3 "e384d06cd2b2c44533b1aa405ea1a806ad0dcd889ba035442d37fb43ceb61668" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e384d06cd2b2c44533b1aa405ea1a806ad0dcd889ba035442d37fb43ceb61668" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e384d06cd2b2c44533b1aa405ea1a806ad0dcd889ba035442d37fb43ceb61668" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e384d06cd2b2c44533b1aa405ea1a806ad0dcd889ba035442d37fb43ceb61668" :a :task/title :v "FERR-P4D-DATALOG: ferratomic-datalog query engine. Parser (Datalog syntax→AST), planner (join ordering, index selection), evaluator (execution against IndexAccess trait), CALM classification (monotonic vs non-monotonic). Cross-shard query: monotonic fan-out+merge, non-monotonic require shard spec" :op :assert}
+   {:e #blake3 "e384d06cd2b2c44533b1aa405ea1a806ad0dcd889ba035442d37fb43ceb61668" :a :task/title-l0 :v "FERR-P4D-DATALOG" :op :assert}
+   {:e #blake3 "e384d06cd2b2c44533b1aa405ea1a806ad0dcd889ba035442d37fb43ceb61668" :a :task/title-l1 :v "FERR-P4D-DATALOG: ferratomic-datalog query engine" :op :assert}
+   {:e #blake3 "e384d06cd2b2c44533b1aa405ea1a806ad0dcd889ba035442d37fb43ceb61668" :a :task/type :v :task.type/task :op :assert}
+ ]}

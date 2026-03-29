@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817234/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P4A-OBSERVER: DatomObserver trait + at-least-once broadcast. Async broadcast channel with bounded buffer. SnapshotNotification{epoch, new_datom_count, snapshot}. Epoch-based dedup. Catch-up protocol for slow observers. ACCEPTANCE: INV-FERR-011 pass. integration::observer tests pass. DEPENDS-ON: FERR-P4A-MVCC. TRACES: INV-FERR-011."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c10b08e787a6684d63cd12c05d981b45a52821baebc89cf4352945057391562b" :a :db/ident :v :task/t-2f9864a5 :op :assert}
+   {:e #blake3 "c10b08e787a6684d63cd12c05d981b45a52821baebc89cf4352945057391562b" :a :task/acceptance :v "INV-FERR-011 pass. integration::observer tests pass. DEPENDS-ON: FERR-P4A-MVCC. TRACES: INV-FERR-011." :op :assert}
+   {:e #blake3 "c10b08e787a6684d63cd12c05d981b45a52821baebc89cf4352945057391562b" :a :task/body :v "ACCEPTANCE: INV-FERR-011 pass. integration::observer tests pass. DEPENDS-ON: FERR-P4A-MVCC. TRACES: INV-FERR-011." :op :assert}
+   {:e #blake3 "c10b08e787a6684d63cd12c05d981b45a52821baebc89cf4352945057391562b" :a :task/created-at :v 1774817233 :op :assert}
+   {:e #blake3 "c10b08e787a6684d63cd12c05d981b45a52821baebc89cf4352945057391562b" :a :task/id :v "t-2f9864a5" :op :assert}
+   {:e #blake3 "c10b08e787a6684d63cd12c05d981b45a52821baebc89cf4352945057391562b" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c10b08e787a6684d63cd12c05d981b45a52821baebc89cf4352945057391562b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c10b08e787a6684d63cd12c05d981b45a52821baebc89cf4352945057391562b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c10b08e787a6684d63cd12c05d981b45a52821baebc89cf4352945057391562b" :a :task/title :v "FERR-P4A-OBSERVER: DatomObserver trait + at-least-once broadcast. Async broadcast channel with bounded buffer. SnapshotNotification{epoch, new_datom_count, snapshot}. Epoch-based dedup. Catch-up protocol for slow observers" :op :assert}
+   {:e #blake3 "c10b08e787a6684d63cd12c05d981b45a52821baebc89cf4352945057391562b" :a :task/title-l0 :v "FERR-P4A-OBSERVER" :op :assert}
+   {:e #blake3 "c10b08e787a6684d63cd12c05d981b45a52821baebc89cf4352945057391562b" :a :task/title-l1 :v "FERR-P4A-OBSERVER: DatomObserver trait + at-least-once broadcast" :op :assert}
+   {:e #blake3 "c10b08e787a6684d63cd12c05d981b45a52821baebc89cf4352945057391562b" :a :task/type :v :task.type/task :op :assert}
+ ]}

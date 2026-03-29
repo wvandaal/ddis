@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774817228/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fdd33351ed2472276470941caba87da12eaf1223dc829ef12dd5c246b9268f37" :a :db/ident :v :recon/trace-bdc40a62a73db751 :op :assert}
+   {:e #blake3 "fdd33351ed2472276470941caba87da12eaf1223dc829ef12dd5c246b9268f37" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "fdd33351ed2472276470941caba87da12eaf1223dc829ef12dd5c246b9268f37" :a :recon/trace-neighborhood :v "FERR" :op :assert}
+   {:e #blake3 "fdd33351ed2472276470941caba87da12eaf1223dc829ef12dd5c246b9268f37" :a :recon/trace-refs :v "INV-FERR-006" :op :assert}
+ ]}

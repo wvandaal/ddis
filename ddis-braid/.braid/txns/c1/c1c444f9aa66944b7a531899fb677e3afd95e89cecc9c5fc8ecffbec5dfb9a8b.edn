@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817214/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P2-PROPTEST: Property-based test suite. Write ferratomic-verify/proptest/ with generators.rs (arb_datom, arb_store, arb_snapshot), algebraic.rs (semilattice laws, round-trip, Ord consistency), conformance.rs (Lean-Rust conformance via manifest). ACCEPTANCE: cargo test proptest passes 100K+ iterations. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-001..012."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "518f2c84782c55a5a4636f584ab30a6696c6669584d0a6e756fe9f2e2fb57c11" :a :db/ident :v :task/t-c223eb76 :op :assert}
+   {:e #blake3 "518f2c84782c55a5a4636f584ab30a6696c6669584d0a6e756fe9f2e2fb57c11" :a :task/acceptance :v "cargo test proptest passes 100K+ iterations. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-001..012." :op :assert}
+   {:e #blake3 "518f2c84782c55a5a4636f584ab30a6696c6669584d0a6e756fe9f2e2fb57c11" :a :task/body :v "ACCEPTANCE: cargo test proptest passes 100K+ iterations. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-001..012." :op :assert}
+   {:e #blake3 "518f2c84782c55a5a4636f584ab30a6696c6669584d0a6e756fe9f2e2fb57c11" :a :task/created-at :v 1774817213 :op :assert}
+   {:e #blake3 "518f2c84782c55a5a4636f584ab30a6696c6669584d0a6e756fe9f2e2fb57c11" :a :task/id :v "t-c223eb76" :op :assert}
+   {:e #blake3 "518f2c84782c55a5a4636f584ab30a6696c6669584d0a6e756fe9f2e2fb57c11" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "518f2c84782c55a5a4636f584ab30a6696c6669584d0a6e756fe9f2e2fb57c11" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "518f2c84782c55a5a4636f584ab30a6696c6669584d0a6e756fe9f2e2fb57c11" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "518f2c84782c55a5a4636f584ab30a6696c6669584d0a6e756fe9f2e2fb57c11" :a :task/title :v "FERR-P2-PROPTEST: Property-based test suite. Write ferratomic-verify/proptest/ with generators.rs (arb_datom, arb_store, arb_snapshot), algebraic.rs (semilattice laws, round-trip, Ord consistency), conformance.rs (Lean-Rust conformance via manifest)" :op :assert}
+   {:e #blake3 "518f2c84782c55a5a4636f584ab30a6696c6669584d0a6e756fe9f2e2fb57c11" :a :task/title-l0 :v "FERR-P2-PROPTEST" :op :assert}
+   {:e #blake3 "518f2c84782c55a5a4636f584ab30a6696c6669584d0a6e756fe9f2e2fb57c11" :a :task/title-l1 :v "FERR-P2-PROPTEST: Property-based test suite" :op :assert}
+   {:e #blake3 "518f2c84782c55a5a4636f584ab30a6696c6669584d0a6e756fe9f2e2fb57c11" :a :task/type :v :task.type/task :op :assert}
+ ]}

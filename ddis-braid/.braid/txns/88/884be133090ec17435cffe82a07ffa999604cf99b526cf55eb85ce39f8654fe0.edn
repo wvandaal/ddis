@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817220/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P3-TYPES: ferratom crate type definitions. Datom, EntityId, Attribute (Arc<str> interned), Value (11 variants with Arc sharing), TxId (HLC), Op, Schema, AttributeDef, HybridClock, AgentId, Frontier, FerraError (exhaustive enum). Types ARE propositions — Datom implements Ord/Eq/Hash for set membership, EntityId is Copy for zero-cost identity. #![forbid(unsafe_code)]. ACCEPTANCE: cargo check passes, types encode INV-FERR-003/012/019/023. DEPENDS-ON: FERR-P1, FERR-P2-*. TRACES: INV-FERR-012, 015, 019, 023."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3a4a124c8ab4670e846218a8cc5f45cd3c31e1b9087d35c1f333ba11e7133503" :a :db/ident :v :task/t-d8f79e60 :op :assert}
+   {:e #blake3 "3a4a124c8ab4670e846218a8cc5f45cd3c31e1b9087d35c1f333ba11e7133503" :a :task/acceptance :v "cargo check passes, types encode INV-FERR-003/012/019/023. DEPENDS-ON: FERR-P1, FERR-P2-*. TRACES: INV-FERR-012, 015, 019, 023." :op :assert}
+   {:e #blake3 "3a4a124c8ab4670e846218a8cc5f45cd3c31e1b9087d35c1f333ba11e7133503" :a :task/body :v "ACCEPTANCE: cargo check passes, types encode INV-FERR-003/012/019/023. DEPENDS-ON: FERR-P1, FERR-P2-*. TRACES: INV-FERR-012, 015, 019, 023." :op :assert}
+   {:e #blake3 "3a4a124c8ab4670e846218a8cc5f45cd3c31e1b9087d35c1f333ba11e7133503" :a :task/created-at :v 1774817219 :op :assert}
+   {:e #blake3 "3a4a124c8ab4670e846218a8cc5f45cd3c31e1b9087d35c1f333ba11e7133503" :a :task/id :v "t-d8f79e60" :op :assert}
+   {:e #blake3 "3a4a124c8ab4670e846218a8cc5f45cd3c31e1b9087d35c1f333ba11e7133503" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "3a4a124c8ab4670e846218a8cc5f45cd3c31e1b9087d35c1f333ba11e7133503" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3a4a124c8ab4670e846218a8cc5f45cd3c31e1b9087d35c1f333ba11e7133503" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3a4a124c8ab4670e846218a8cc5f45cd3c31e1b9087d35c1f333ba11e7133503" :a :task/title :v "FERR-P3-TYPES: ferratom crate type definitions. Datom, EntityId, Attribute (Arc<str> interned), Value (11 variants with Arc sharing), TxId (HLC), Op, Schema, AttributeDef, HybridClock, AgentId, Frontier, FerraError (exhaustive enum). Types ARE propositions — Datom implements Ord/Eq/Hash for set membership, EntityId is Copy for zero-cost identity. #![forbid(unsafe_code)]" :op :assert}
+   {:e #blake3 "3a4a124c8ab4670e846218a8cc5f45cd3c31e1b9087d35c1f333ba11e7133503" :a :task/title-l0 :v "FERR-P3-TYPES" :op :assert}
+   {:e #blake3 "3a4a124c8ab4670e846218a8cc5f45cd3c31e1b9087d35c1f333ba11e7133503" :a :task/title-l1 :v "FERR-P3-TYPES: ferratom crate type definitions" :op :assert}
+   {:e #blake3 "3a4a124c8ab4670e846218a8cc5f45cd3c31e1b9087d35c1f333ba11e7133503" :a :task/type :v :task.type/task :op :assert}
+ ]}

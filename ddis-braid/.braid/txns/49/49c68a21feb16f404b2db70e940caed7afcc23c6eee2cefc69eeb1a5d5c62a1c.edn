@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817257/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P4B-BENCH: im::OrdMap scaling benchmarks. criterion.rs: bench_im_scaling at 1K/10K/100K/1M/10M/100M entries. bench_snapshot_load, bench_point_read, bench_write_throughput, bench_concurrent_reads, bench_tail_latency (HdrHistogram). Performance regression gate: CI fails if >10% regression. ACCEPTANCE: INV-FERR-025..028 measured. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-025, 026, 027, 028."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4d0c7f1806cf7d3d37fe35d958a53eb3fa1a15821f46252a3cd59bb946b5432f" :a :db/ident :v :task/t-3726b211 :op :assert}
+   {:e #blake3 "4d0c7f1806cf7d3d37fe35d958a53eb3fa1a15821f46252a3cd59bb946b5432f" :a :task/acceptance :v "INV-FERR-025..028 measured. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-025, 026, 027, 028." :op :assert}
+   {:e #blake3 "4d0c7f1806cf7d3d37fe35d958a53eb3fa1a15821f46252a3cd59bb946b5432f" :a :task/body :v "ACCEPTANCE: INV-FERR-025..028 measured. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-025, 026, 027, 028." :op :assert}
+   {:e #blake3 "4d0c7f1806cf7d3d37fe35d958a53eb3fa1a15821f46252a3cd59bb946b5432f" :a :task/created-at :v 1774817256 :op :assert}
+   {:e #blake3 "4d0c7f1806cf7d3d37fe35d958a53eb3fa1a15821f46252a3cd59bb946b5432f" :a :task/id :v "t-3726b211" :op :assert}
+   {:e #blake3 "4d0c7f1806cf7d3d37fe35d958a53eb3fa1a15821f46252a3cd59bb946b5432f" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "4d0c7f1806cf7d3d37fe35d958a53eb3fa1a15821f46252a3cd59bb946b5432f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4d0c7f1806cf7d3d37fe35d958a53eb3fa1a15821f46252a3cd59bb946b5432f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4d0c7f1806cf7d3d37fe35d958a53eb3fa1a15821f46252a3cd59bb946b5432f" :a :task/title :v "FERR-P4B-BENCH: im::OrdMap scaling benchmarks. criterion.rs: bench_im_scaling at 1K/10K/100K/1M/10M/100M entries. bench_snapshot_load, bench_point_read, bench_write_throughput, bench_concurrent_reads, bench_tail_latency (HdrHistogram). Performance regression gate: CI fails if >10% regression" :op :assert}
+   {:e #blake3 "4d0c7f1806cf7d3d37fe35d958a53eb3fa1a15821f46252a3cd59bb946b5432f" :a :task/title-l0 :v "FERR-P4B-BENCH" :op :assert}
+   {:e #blake3 "4d0c7f1806cf7d3d37fe35d958a53eb3fa1a15821f46252a3cd59bb946b5432f" :a :task/title-l1 :v "FERR-P4B-BENCH: im::OrdMap scaling benchmarks" :op :assert}
+   {:e #blake3 "4d0c7f1806cf7d3d37fe35d958a53eb3fa1a15821f46252a3cd59bb946b5432f" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817217/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P2-INTEGRATION: Integration test suite. Write ferratomic-verify/integration/ with lifecycle.rs (open→write→read→merge→close), recovery.rs (crash→recover→verify), observer.rs (subscribe→write→verify delivery), federation.rs (multi-node merge→convergence). ALL TESTS MUST FAIL initially (red phase TDD). ACCEPTANCE: tests compile, all fail, failure messages document expected behavior. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-006..008, 014, 020..022."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4bc0096022b5e2be667dc83d29a2e7ceb67545e399e7ec4733b104baa8cf7e88" :a :db/ident :v :task/t-c70de2a3 :op :assert}
+   {:e #blake3 "4bc0096022b5e2be667dc83d29a2e7ceb67545e399e7ec4733b104baa8cf7e88" :a :task/acceptance :v "tests compile, all fail, failure messages document expected behavior. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-006..008, 014, 020..022." :op :assert}
+   {:e #blake3 "4bc0096022b5e2be667dc83d29a2e7ceb67545e399e7ec4733b104baa8cf7e88" :a :task/body :v "ACCEPTANCE: tests compile, all fail, failure messages document expected behavior. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-006..008, 014, 020..022." :op :assert}
+   {:e #blake3 "4bc0096022b5e2be667dc83d29a2e7ceb67545e399e7ec4733b104baa8cf7e88" :a :task/created-at :v 1774817216 :op :assert}
+   {:e #blake3 "4bc0096022b5e2be667dc83d29a2e7ceb67545e399e7ec4733b104baa8cf7e88" :a :task/id :v "t-c70de2a3" :op :assert}
+   {:e #blake3 "4bc0096022b5e2be667dc83d29a2e7ceb67545e399e7ec4733b104baa8cf7e88" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "4bc0096022b5e2be667dc83d29a2e7ceb67545e399e7ec4733b104baa8cf7e88" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4bc0096022b5e2be667dc83d29a2e7ceb67545e399e7ec4733b104baa8cf7e88" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4bc0096022b5e2be667dc83d29a2e7ceb67545e399e7ec4733b104baa8cf7e88" :a :task/title :v "FERR-P2-INTEGRATION: Integration test suite. Write ferratomic-verify/integration/ with lifecycle.rs (open→write→read→merge→close), recovery.rs (crash→recover→verify), observer.rs (subscribe→write→verify delivery), federation.rs (multi-node merge→convergence). ALL TESTS MUST FAIL initially (red phase TDD)" :op :assert}
+   {:e #blake3 "4bc0096022b5e2be667dc83d29a2e7ceb67545e399e7ec4733b104baa8cf7e88" :a :task/title-l0 :v "FERR-P2-INTEGRATION" :op :assert}
+   {:e #blake3 "4bc0096022b5e2be667dc83d29a2e7ceb67545e399e7ec4733b104baa8cf7e88" :a :task/title-l1 :v "FERR-P2-INTEGRATION: Integration test suite" :op :assert}
+   {:e #blake3 "4bc0096022b5e2be667dc83d29a2e7ceb67545e399e7ec4733b104baa8cf7e88" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817262/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P4C-TRANSPORT: Transport trait + LocalTransport + NetworkTransport. DatabaseEngine trait with EmbeddedEngine + DistributedEngine. Substrate agnosticism: transition requires Config change only. TokioTransport fallback if asupersync immature. ACCEPTANCE: INV-FERR-024 pass (same API for embedded/distributed). integration::substrate_swap test passes. DEPENDS-ON: FERR-P4A-MVCC. TRACES: INV-FERR-024."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "24653710dc0ff059ccdb4aedf34962b41d3cadd40f12dbc740ffcc0f999681b0" :a :db/ident :v :task/t-9eba21ca :op :assert}
+   {:e #blake3 "24653710dc0ff059ccdb4aedf34962b41d3cadd40f12dbc740ffcc0f999681b0" :a :task/acceptance :v "INV-FERR-024 pass (same API for embedded/distributed). integration::substrate_swap test passes. DEPENDS-ON: FERR-P4A-MVCC. TRACES: INV-FERR-024." :op :assert}
+   {:e #blake3 "24653710dc0ff059ccdb4aedf34962b41d3cadd40f12dbc740ffcc0f999681b0" :a :task/body :v "ACCEPTANCE: INV-FERR-024 pass (same API for embedded/distributed). integration::substrate_swap test passes. DEPENDS-ON: FERR-P4A-MVCC. TRACES: INV-FERR-024." :op :assert}
+   {:e #blake3 "24653710dc0ff059ccdb4aedf34962b41d3cadd40f12dbc740ffcc0f999681b0" :a :task/created-at :v 1774817261 :op :assert}
+   {:e #blake3 "24653710dc0ff059ccdb4aedf34962b41d3cadd40f12dbc740ffcc0f999681b0" :a :task/id :v "t-9eba21ca" :op :assert}
+   {:e #blake3 "24653710dc0ff059ccdb4aedf34962b41d3cadd40f12dbc740ffcc0f999681b0" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "24653710dc0ff059ccdb4aedf34962b41d3cadd40f12dbc740ffcc0f999681b0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "24653710dc0ff059ccdb4aedf34962b41d3cadd40f12dbc740ffcc0f999681b0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "24653710dc0ff059ccdb4aedf34962b41d3cadd40f12dbc740ffcc0f999681b0" :a :task/title :v "FERR-P4C-TRANSPORT: Transport trait + LocalTransport + NetworkTransport. DatabaseEngine trait with EmbeddedEngine + DistributedEngine. Substrate agnosticism: transition requires Config change only. TokioTransport fallback if asupersync immature" :op :assert}
+   {:e #blake3 "24653710dc0ff059ccdb4aedf34962b41d3cadd40f12dbc740ffcc0f999681b0" :a :task/title-l0 :v "FERR-P4C-TRANSPORT" :op :assert}
+   {:e #blake3 "24653710dc0ff059ccdb4aedf34962b41d3cadd40f12dbc740ffcc0f999681b0" :a :task/title-l1 :v "FERR-P4C-TRANSPORT: Transport trait + LocalTransport + NetworkTransport" :op :assert}
+   {:e #blake3 "24653710dc0ff059ccdb4aedf34962b41d3cadd40f12dbc740ffcc0f999681b0" :a :task/type :v :task.type/task :op :assert}
+ ]}

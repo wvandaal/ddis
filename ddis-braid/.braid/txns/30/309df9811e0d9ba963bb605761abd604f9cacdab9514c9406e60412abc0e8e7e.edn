@@ -1,0 +1,28 @@
+{:tx/id #hlc "1774817093/0/c3d89db29683c1a81cb5f0a24f045b16"
+ :tx/agent "c3d89db29683c1a81cb5f0a24f045b16"
+ :tx/provenance :derived
+ :tx/rationale "PERF-4b: reflexive FEGH — bridge hypotheses on self-model"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "09337a6dc711ef4b745ef81c6b8d851284c3fa7311e6382d67adb0bb12a6e705" :a :db/doc :v "What connects t-56363369 to t-420f?" :op :assert}
+   {:e #blake3 "09337a6dc711ef4b745ef81c6b8d851284c3fa7311e6382d67adb0bb12a6e705" :a :db/ident :v :hypothesis/reflexive-1774817092580-2 :op :assert}
+   {:e #blake3 "09337a6dc711ef4b745ef81c6b8d851284c3fa7311e6382d67adb0bb12a6e705" :a :hypothesis/alpha :v 0.009487912226555413 :op :assert}
+   {:e #blake3 "09337a6dc711ef4b745ef81c6b8d851284c3fa7311e6382d67adb0bb12a6e705" :a :hypothesis/delta-fs :v 0.47439561132777064 :op :assert}
+   {:e #blake3 "09337a6dc711ef4b745ef81c6b8d851284c3fa7311e6382d67adb0bb12a6e705" :a :hypothesis/item-type :v "reflexive" :op :assert}
+   {:e #blake3 "09337a6dc711ef4b745ef81c6b8d851284c3fa7311e6382d67adb0bb12a6e705" :a :hypothesis/source-label :v "t-56363369" :op :assert}
+   {:e #blake3 "09337a6dc711ef4b745ef81c6b8d851284c3fa7311e6382d67adb0bb12a6e705" :a :hypothesis/target-label :v "t-420f" :op :assert}
+   {:e #blake3 "e7a13c0235c1f4e2f331369b258b9d24f2c1a0e6e9a8ad4b8e15f3d870d2242a" :a :db/doc :v "What connects t-56363369 to t-6094?" :op :assert}
+   {:e #blake3 "e7a13c0235c1f4e2f331369b258b9d24f2c1a0e6e9a8ad4b8e15f3d870d2242a" :a :db/ident :v :hypothesis/reflexive-1774817092580-0 :op :assert}
+   {:e #blake3 "e7a13c0235c1f4e2f331369b258b9d24f2c1a0e6e9a8ad4b8e15f3d870d2242a" :a :hypothesis/alpha :v 0.013338876372432867 :op :assert}
+   {:e #blake3 "e7a13c0235c1f4e2f331369b258b9d24f2c1a0e6e9a8ad4b8e15f3d870d2242a" :a :hypothesis/delta-fs :v 0.6669438186216433 :op :assert}
+   {:e #blake3 "e7a13c0235c1f4e2f331369b258b9d24f2c1a0e6e9a8ad4b8e15f3d870d2242a" :a :hypothesis/item-type :v "reflexive" :op :assert}
+   {:e #blake3 "e7a13c0235c1f4e2f331369b258b9d24f2c1a0e6e9a8ad4b8e15f3d870d2242a" :a :hypothesis/source-label :v "t-56363369" :op :assert}
+   {:e #blake3 "e7a13c0235c1f4e2f331369b258b9d24f2c1a0e6e9a8ad4b8e15f3d870d2242a" :a :hypothesis/target-label :v "t-6094" :op :assert}
+   {:e #blake3 "f3a70d2411bd1a7b84257da16cd6978ce660f1cbe8a108bd3d4e91ddc3fdaf33" :a :db/doc :v "What connects t-56363369 to t-f12bff46?" :op :assert}
+   {:e #blake3 "f3a70d2411bd1a7b84257da16cd6978ce660f1cbe8a108bd3d4e91ddc3fdaf33" :a :db/ident :v :hypothesis/reflexive-1774817092580-1 :op :assert}
+   {:e #blake3 "f3a70d2411bd1a7b84257da16cd6978ce660f1cbe8a108bd3d4e91ddc3fdaf33" :a :hypothesis/alpha :v 0.010034298959524084 :op :assert}
+   {:e #blake3 "f3a70d2411bd1a7b84257da16cd6978ce660f1cbe8a108bd3d4e91ddc3fdaf33" :a :hypothesis/delta-fs :v 0.5017149479762042 :op :assert}
+   {:e #blake3 "f3a70d2411bd1a7b84257da16cd6978ce660f1cbe8a108bd3d4e91ddc3fdaf33" :a :hypothesis/item-type :v "reflexive" :op :assert}
+   {:e #blake3 "f3a70d2411bd1a7b84257da16cd6978ce660f1cbe8a108bd3d4e91ddc3fdaf33" :a :hypothesis/source-label :v "t-56363369" :op :assert}
+   {:e #blake3 "f3a70d2411bd1a7b84257da16cd6978ce660f1cbe8a108bd3d4e91ddc3fdaf33" :a :hypothesis/target-label :v "t-f12bff46" :op :assert}
+ ]}

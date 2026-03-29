@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817231/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P4A-WAL: Write-ahead log with group commit. WAL frame format: [length:u32][crc32c:u32][chain_hash:32B][datom_count:u32][datoms...]. Two-fsync barrier: WAL durable before snapshot publication. io_uring for async append (pwrite+fdatasync fallback). Three-level recovery: checkpoint+WAL→checkpoint+EDN→full rebuild. ACCEPTANCE: INV-FERR-008, 013, 014 pass. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-008, 013, 014."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "826b7b10f8095cd64b2486eea6e1d1b7465cd0d5f5d8e9992258016d8ba76766" :a :db/ident :v :task/t-9058281c :op :assert}
+   {:e #blake3 "826b7b10f8095cd64b2486eea6e1d1b7465cd0d5f5d8e9992258016d8ba76766" :a :task/acceptance :v "INV-FERR-008, 013, 014 pass. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-008, 013, 014." :op :assert}
+   {:e #blake3 "826b7b10f8095cd64b2486eea6e1d1b7465cd0d5f5d8e9992258016d8ba76766" :a :task/body :v "ACCEPTANCE: INV-FERR-008, 013, 014 pass. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-008, 013, 014." :op :assert}
+   {:e #blake3 "826b7b10f8095cd64b2486eea6e1d1b7465cd0d5f5d8e9992258016d8ba76766" :a :task/created-at :v 1774817230 :op :assert}
+   {:e #blake3 "826b7b10f8095cd64b2486eea6e1d1b7465cd0d5f5d8e9992258016d8ba76766" :a :task/id :v "t-9058281c" :op :assert}
+   {:e #blake3 "826b7b10f8095cd64b2486eea6e1d1b7465cd0d5f5d8e9992258016d8ba76766" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "826b7b10f8095cd64b2486eea6e1d1b7465cd0d5f5d8e9992258016d8ba76766" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "826b7b10f8095cd64b2486eea6e1d1b7465cd0d5f5d8e9992258016d8ba76766" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "826b7b10f8095cd64b2486eea6e1d1b7465cd0d5f5d8e9992258016d8ba76766" :a :task/title :v "FERR-P4A-WAL: Write-ahead log with group commit. WAL frame format: [length:u32][crc32c:u32][chain_hash:32B][datom_count:u32][datoms...]. Two-fsync barrier: WAL durable before snapshot publication. io_uring for async append (pwrite+fdatasync fallback). Three-level recovery: checkpoint+WAL→checkpoint+EDN→full rebuild" :op :assert}
+   {:e #blake3 "826b7b10f8095cd64b2486eea6e1d1b7465cd0d5f5d8e9992258016d8ba76766" :a :task/title-l0 :v "FERR-P4A-WAL" :op :assert}
+   {:e #blake3 "826b7b10f8095cd64b2486eea6e1d1b7465cd0d5f5d8e9992258016d8ba76766" :a :task/title-l1 :v "FERR-P4A-WAL: Write-ahead log with group commit" :op :assert}
+   {:e #blake3 "826b7b10f8095cd64b2486eea6e1d1b7465cd0d5f5d8e9992258016d8ba76766" :a :task/type :v :task.type/task :op :assert}
+ ]}

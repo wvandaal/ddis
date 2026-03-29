@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817227/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P4A-MVCC: ArcSwap snapshots + WriterActor. Database struct with ArcSwap<StoreInner>. Snapshot type (lock-free load). WriterActor: mpsc channel, group commit (25ms batch, adaptive 5ms under load), two-fsync barrier. ACCEPTANCE: INV-FERR-006, 007, 020, 021 pass. bench_snapshot_load <5ns. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-006, 007, 020, 021, 027."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5781670531efb49128de5b5b8eb0c574ba51c29e5f50a842a1ce7ea78957f095" :a :db/ident :v :task/t-f3e87428 :op :assert}
+   {:e #blake3 "5781670531efb49128de5b5b8eb0c574ba51c29e5f50a842a1ce7ea78957f095" :a :task/acceptance :v "INV-FERR-006, 007, 020, 021 pass. bench_snapshot_load <5ns. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-006, 007, 020, 021, 027." :op :assert}
+   {:e #blake3 "5781670531efb49128de5b5b8eb0c574ba51c29e5f50a842a1ce7ea78957f095" :a :task/body :v "ACCEPTANCE: INV-FERR-006, 007, 020, 021 pass. bench_snapshot_load <5ns. DEPENDS-ON: FERR-P4A-STORE. TRACES: INV-FERR-006, 007, 020, 021, 027." :op :assert}
+   {:e #blake3 "5781670531efb49128de5b5b8eb0c574ba51c29e5f50a842a1ce7ea78957f095" :a :task/created-at :v 1774817226 :op :assert}
+   {:e #blake3 "5781670531efb49128de5b5b8eb0c574ba51c29e5f50a842a1ce7ea78957f095" :a :task/id :v "t-f3e87428" :op :assert}
+   {:e #blake3 "5781670531efb49128de5b5b8eb0c574ba51c29e5f50a842a1ce7ea78957f095" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5781670531efb49128de5b5b8eb0c574ba51c29e5f50a842a1ce7ea78957f095" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5781670531efb49128de5b5b8eb0c574ba51c29e5f50a842a1ce7ea78957f095" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5781670531efb49128de5b5b8eb0c574ba51c29e5f50a842a1ce7ea78957f095" :a :task/title :v "FERR-P4A-MVCC: ArcSwap snapshots + WriterActor. Database struct with ArcSwap<StoreInner>. Snapshot type (lock-free load). WriterActor: mpsc channel, group commit (25ms batch, adaptive 5ms under load), two-fsync barrier" :op :assert}
+   {:e #blake3 "5781670531efb49128de5b5b8eb0c574ba51c29e5f50a842a1ce7ea78957f095" :a :task/title-l0 :v "FERR-P4A-MVCC" :op :assert}
+   {:e #blake3 "5781670531efb49128de5b5b8eb0c574ba51c29e5f50a842a1ce7ea78957f095" :a :task/title-l1 :v "FERR-P4A-MVCC: ArcSwap snapshots + WriterActor" :op :assert}
+   {:e #blake3 "5781670531efb49128de5b5b8eb0c574ba51c29e5f50a842a1ce7ea78957f095" :a :task/type :v :task.type/task :op :assert}
+ ]}

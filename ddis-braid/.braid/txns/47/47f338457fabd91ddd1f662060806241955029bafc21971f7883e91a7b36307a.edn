@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817204/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P1: Lean 4 theorem statements and proofs. Write ferratomic-verify/lean/ with Datom.lean, Store.lean, Index.lean, Clock.lean, Schema.lean, Convergence.lean. Every INV-FERR with V:LEAN tag gets a machine-checked theorem. Foundation: DatomStore = Finset Datom, merge = union, mathlib provides Finset.union_comm/assoc/self. ACCEPTANCE: lake build succeeds, all theorems type-check. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-001..004, 010, 012, 015..018."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9dd105f8f25ca1edbadca16e253f3da2b62439fbbbf71a0f47ac0a33e16e8961" :a :db/ident :v :task/t-41a8aa9b :op :assert}
+   {:e #blake3 "9dd105f8f25ca1edbadca16e253f3da2b62439fbbbf71a0f47ac0a33e16e8961" :a :task/acceptance :v "lake build succeeds, all theorems type-check. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-001..004, 010, 012, 015..018." :op :assert}
+   {:e #blake3 "9dd105f8f25ca1edbadca16e253f3da2b62439fbbbf71a0f47ac0a33e16e8961" :a :task/body :v "ACCEPTANCE: lake build succeeds, all theorems type-check. DEPENDS-ON: FERR-P0. TRACES: INV-FERR-001..004, 010, 012, 015..018." :op :assert}
+   {:e #blake3 "9dd105f8f25ca1edbadca16e253f3da2b62439fbbbf71a0f47ac0a33e16e8961" :a :task/created-at :v 1774817203 :op :assert}
+   {:e #blake3 "9dd105f8f25ca1edbadca16e253f3da2b62439fbbbf71a0f47ac0a33e16e8961" :a :task/id :v "t-41a8aa9b" :op :assert}
+   {:e #blake3 "9dd105f8f25ca1edbadca16e253f3da2b62439fbbbf71a0f47ac0a33e16e8961" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "9dd105f8f25ca1edbadca16e253f3da2b62439fbbbf71a0f47ac0a33e16e8961" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9dd105f8f25ca1edbadca16e253f3da2b62439fbbbf71a0f47ac0a33e16e8961" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9dd105f8f25ca1edbadca16e253f3da2b62439fbbbf71a0f47ac0a33e16e8961" :a :task/title :v "FERR-P1: Lean 4 theorem statements and proofs. Write ferratomic-verify/lean/ with Datom.lean, Store.lean, Index.lean, Clock.lean, Schema.lean, Convergence.lean. Every INV-FERR with V:LEAN tag gets a machine-checked theorem. Foundation: DatomStore = Finset Datom, merge = union, mathlib provides Finset.union_comm/assoc/self" :op :assert}
+   {:e #blake3 "9dd105f8f25ca1edbadca16e253f3da2b62439fbbbf71a0f47ac0a33e16e8961" :a :task/title-l0 :v "FERR-P1" :op :assert}
+   {:e #blake3 "9dd105f8f25ca1edbadca16e253f3da2b62439fbbbf71a0f47ac0a33e16e8961" :a :task/title-l1 :v "FERR-P1: Lean 4 theorem statements and proofs" :op :assert}
+   {:e #blake3 "9dd105f8f25ca1edbadca16e253f3da2b62439fbbbf71a0f47ac0a33e16e8961" :a :task/type :v :task.type/task :op :assert}
+ ]}

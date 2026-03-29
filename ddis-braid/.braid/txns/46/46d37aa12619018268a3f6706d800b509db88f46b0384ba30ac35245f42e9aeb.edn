@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774817148/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: FERRATOMIC — Embedded Datom Database Engine. Standalone crate extraction from braid-kernel with enterprise-scale concurrency, formal verification (Lean/Stateright/Kani), cloud-scale distribution (CRDT mesh), substrate agnosticism. 36 invariants, 7 ADRs, 5 NEGs. Spec: spec/23-ferratomic.md. Arch: docs/design/FERRATOMIC_ARCHITECTURE.md. TRACES: SEED.md §4, C1, C2, C4, C8."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "30f3e3fe0e0f7a62dc802db8ab19e9bc0f3f8e75a050156bd01f42ffa3234e11" :a :db/ident :v :task/t-07c3f036 :op :assert}
+   {:e #blake3 "30f3e3fe0e0f7a62dc802db8ab19e9bc0f3f8e75a050156bd01f42ffa3234e11" :a :task/created-at :v 1774817147 :op :assert}
+   {:e #blake3 "30f3e3fe0e0f7a62dc802db8ab19e9bc0f3f8e75a050156bd01f42ffa3234e11" :a :task/id :v "t-07c3f036" :op :assert}
+   {:e #blake3 "30f3e3fe0e0f7a62dc802db8ab19e9bc0f3f8e75a050156bd01f42ffa3234e11" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "30f3e3fe0e0f7a62dc802db8ab19e9bc0f3f8e75a050156bd01f42ffa3234e11" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "30f3e3fe0e0f7a62dc802db8ab19e9bc0f3f8e75a050156bd01f42ffa3234e11" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "30f3e3fe0e0f7a62dc802db8ab19e9bc0f3f8e75a050156bd01f42ffa3234e11" :a :task/title :v "EPIC: FERRATOMIC — Embedded Datom Database Engine. Standalone crate extraction from braid-kernel with enterprise-scale concurrency, formal verification (Lean/Stateright/Kani), cloud-scale distribution (CRDT mesh), substrate agnosticism. 36 invariants, 7 ADRs, 5 NEGs. Spec: spec/23-ferratomic.md. Arch: docs/design/FERRATOMIC_ARCHITECTURE.md. TRACES: SEED.md §4, C1, C2, C4, C8." :op :assert}
+   {:e #blake3 "30f3e3fe0e0f7a62dc802db8ab19e9bc0f3f8e75a050156bd01f42ffa3234e11" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "30f3e3fe0e0f7a62dc802db8ab19e9bc0f3f8e75a050156bd01f42ffa3234e11" :a :task/title-l1 :v "EPIC: FERRATOMIC — Embedded Datom Database Engine" :op :assert}
+   {:e #blake3 "30f3e3fe0e0f7a62dc802db8ab19e9bc0f3f8e75a050156bd01f42ffa3234e11" :a :task/type :v :task.type/epic :op :assert}
+ ]}

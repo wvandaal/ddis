@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774817265/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FERR-P4C-FEDERATION: CRDT mesh federation. SWIM gossip (period=1s, suspicion=5s, indirect=3, max_msg=1400B). Merkle anti-entropy (entity-prefix trie). Read replica protocol (checkpoint→WAL stream→follower). Partition detection (2× protocol period). ACCEPTANCE: INV-FERR-010, 022, 030, 034..036 pass. DEPENDS-ON: FERR-P4C-TRANSPORT. TRACES: INV-FERR-010, 022, 030, 034, 035, 036."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3dff065d8c91aa6ef956b721f5ecbe827c88d4e152f949716e16b7b574c936ba" :a :db/ident :v :task/t-96ff7fe6 :op :assert}
+   {:e #blake3 "3dff065d8c91aa6ef956b721f5ecbe827c88d4e152f949716e16b7b574c936ba" :a :task/acceptance :v "INV-FERR-010, 022, 030, 034..036 pass. DEPENDS-ON: FERR-P4C-TRANSPORT. TRACES: INV-FERR-010, 022, 030, 034, 035, 036." :op :assert}
+   {:e #blake3 "3dff065d8c91aa6ef956b721f5ecbe827c88d4e152f949716e16b7b574c936ba" :a :task/body :v "ACCEPTANCE: INV-FERR-010, 022, 030, 034..036 pass. DEPENDS-ON: FERR-P4C-TRANSPORT. TRACES: INV-FERR-010, 022, 030, 034, 035, 036." :op :assert}
+   {:e #blake3 "3dff065d8c91aa6ef956b721f5ecbe827c88d4e152f949716e16b7b574c936ba" :a :task/created-at :v 1774817264 :op :assert}
+   {:e #blake3 "3dff065d8c91aa6ef956b721f5ecbe827c88d4e152f949716e16b7b574c936ba" :a :task/id :v "t-96ff7fe6" :op :assert}
+   {:e #blake3 "3dff065d8c91aa6ef956b721f5ecbe827c88d4e152f949716e16b7b574c936ba" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "3dff065d8c91aa6ef956b721f5ecbe827c88d4e152f949716e16b7b574c936ba" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3dff065d8c91aa6ef956b721f5ecbe827c88d4e152f949716e16b7b574c936ba" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3dff065d8c91aa6ef956b721f5ecbe827c88d4e152f949716e16b7b574c936ba" :a :task/title :v "FERR-P4C-FEDERATION: CRDT mesh federation. SWIM gossip (period=1s, suspicion=5s, indirect=3, max_msg=1400B). Merkle anti-entropy (entity-prefix trie). Read replica protocol (checkpoint→WAL stream→follower). Partition detection (2× protocol period)" :op :assert}
+   {:e #blake3 "3dff065d8c91aa6ef956b721f5ecbe827c88d4e152f949716e16b7b574c936ba" :a :task/title-l0 :v "FERR-P4C-FEDERATION" :op :assert}
+   {:e #blake3 "3dff065d8c91aa6ef956b721f5ecbe827c88d4e152f949716e16b7b574c936ba" :a :task/title-l1 :v "FERR-P4C-FEDERATION: CRDT mesh federation" :op :assert}
+   {:e #blake3 "3dff065d8c91aa6ef956b721f5ecbe827c88d4e152f949716e16b7b574c936ba" :a :task/type :v :task.type/task :op :assert}
+ ]}
