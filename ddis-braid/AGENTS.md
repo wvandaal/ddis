@@ -159,17 +159,16 @@ and all previously-observed tuples remain present.
 
 ## Session Protocol
 
-**Start**:
-```bash
-braid daemon start --path .braid          # Start daemon FIRST — all subsequent commands route through it
-braid seed --task "your task"             # Context assembly (routed through daemon: ~20ms vs ~300ms)
-```
-Read this file (especially the braid-seed section below for prior session context).
+**Start**: Read this file (especially the braid-seed section below for prior session context).
+Or run `braid seed --task "your task"` for fresh context assembly.
 Trace task to bedrock vision, convergence thesis (ADR-FOUNDATION-014), or specific INV/ADR.
 Ask: "Does this close a loop or open one?" and "Would this work for a non-DDIS project?"
 
+The daemon is transparent: the first CLI command auto-starts it (INV-DAEMON-011),
+subsequent commands route through the socket (~20ms vs ~300ms cold load), and the
+daemon self-terminates after 5 minutes idle. No manual lifecycle management.
+
 **During**: `braid observe "insight" --confidence 0.8` to capture knowledge.
-All braid CLI commands auto-route through the daemon when it's running (INV-DAEMON-007).
 Record failure modes in `docs/design/FAILURE_MODES.md` with FM-NNN IDs.
 Document every design decision as an ADR.
 
@@ -177,7 +176,6 @@ Document every design decision as an ADR.
 ```bash
 braid harvest --task "<task>" --commit   # Persist + full checkpoint (WAL → .edn)
 braid seed --inject AGENTS.md           # Refresh seed for next session
-braid daemon stop --path .braid          # Graceful shutdown (flush + cleanup)
 cargo check --all-targets && cargo clippy --all-targets -- -D warnings
 cargo fmt --check && cargo test          # Quality gates
 # Then: git add, git commit, git push
