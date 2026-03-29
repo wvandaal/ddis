@@ -1840,7 +1840,7 @@ mod tests {
         let store = store_with(&store, datoms_b);
 
         // Add dependency B → A
-        let entity_b = find_task_by_id(&store, &generate_task_id("Task B")).unwrap();
+        let entity_b = find_task_by_id(&store, &generate_task_id_full("Task B", None, 0, "task")).unwrap();
         let store = store_with(&store, vec![dep_add_datom(entity_b, entity_a, tx)]);
 
         let ready = compute_ready_set(&store);

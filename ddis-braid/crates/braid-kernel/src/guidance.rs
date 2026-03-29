@@ -3861,7 +3861,7 @@ mod tests {
             now: crate::now_secs(),
         });
         let store = routing_store_with(&store, datoms_island);
-        let island_entity = find_task_by_id(&store, &generate_task_id("Island P1 task")).unwrap();
+        let island_entity = find_task_by_id(&store, &crate::task::generate_task_id_full("Island P1 task", None, 1, "task")).unwrap();
 
         // Create a P2 "hub" task (lower priority but blocks 5 tasks)
         let (_, datoms_hub) = create_task_datoms(CreateTaskParams {
@@ -3875,7 +3875,7 @@ mod tests {
             now: crate::now_secs(),
         });
         let store = routing_store_with(&store, datoms_hub);
-        let hub_entity = find_task_by_id(&store, &generate_task_id("Hub P2 task")).unwrap();
+        let hub_entity = find_task_by_id(&store, &crate::task::generate_task_id_full("Hub P2 task", None, 2, "task")).unwrap();
 
         // Create 5 downstream tasks that depend on the hub
         for i in 0..5 {
@@ -3891,7 +3891,7 @@ mod tests {
                 now: crate::now_secs(),
             });
             let store_tmp = routing_store_with(&store, datoms_down);
-            let down_entity = find_task_by_id(&store_tmp, &generate_task_id(&title)).unwrap();
+            let down_entity = find_task_by_id(&store_tmp, &crate::task::generate_task_id_full(&title, None, 3, "task")).unwrap();
             // Each downstream depends on the hub
             let store_tmp =
                 routing_store_with(&store_tmp, vec![dep_add_datom(down_entity, hub_entity, tx)]);
