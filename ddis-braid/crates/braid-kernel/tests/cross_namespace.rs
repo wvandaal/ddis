@@ -184,7 +184,10 @@ fn store_query_trilateral_coherence() {
 
     let inv_entity = EntityId::from_ident(":inv/store-001");
 
-    // Transact a fully-linked ISP entity (intent + spec + impl)
+    // Transact ISP entity (intent + spec + impl).
+    // Note: This test registers all attributes as :db.type/string, so it cannot
+    // create :spec/traces-to or :impl/implements Ref links. Link-based Phi
+    // (WAVE2-PHI) measures reachability via Ref datoms, so Phi > 0 here.
     let tx = Transaction::new(a, ProvenanceType::Observed, "Register INV-STORE-001")
         .assert(
             inv_entity,
@@ -234,22 +237,32 @@ fn store_query_trilateral_coherence() {
         other => panic!("Expected Rel result, got {other:?}"),
     }
 
-    // Trilateral: Phi should be 0 because the entity has all three layers
+    // Trilateral: Phi uses link-based reachability (WAVE2-PHI).
+    // D_IS > 0: No :spec/traces-to Ref link targets the intent entity.
+    // D_SP > 0: No :impl/implements Ref link targets the spec entity.
+    // (This test's schema registers all attrs as :db.type/string, so no Ref links.)
     let (phi, components) = compute_phi_default(&store);
-    assert_eq!(components.d_is, 0, "No intent-spec gap (entity has both)");
-    assert_eq!(components.d_sp, 0, "No spec-impl gap (entity has both)");
-    assert_eq!(phi, 0.0, "Fully linked entity -> Phi = 0");
+    assert_eq!(
+        components.d_is, 1,
+        "Intent not covered by :spec/traces-to Ref link"
+    );
+    assert_eq!(
+        components.d_sp, 1,
+        "Spec not covered by :impl/implements Ref link"
+    );
+    assert!(phi > 0.0, "Phi > 0: no cross-boundary Ref links");
 
-    // ISP check should be coherent
+    // ISP check should still be coherent (isp_check uses entity-attribute presence,
+    // not link-based reachability)
     assert_eq!(
         isp_check(&store, inv_entity),
         IspResult::Coherent,
         "Entity with all three ISP layers must be Coherent"
     );
 
-    // Coherence report should be in the Coherent quadrant
+    // Coherence report: GapsOnly (Phi > 0, beta_1 = 0 for acyclic)
     let report = check_coherence(&store);
-    assert_eq!(report.quadrant, CoherenceQuadrant::Coherent);
+    assert_eq!(report.quadrant, CoherenceQuadrant::GapsOnly);
     assert_eq!(report.isp_bypasses, 0);
 }
 

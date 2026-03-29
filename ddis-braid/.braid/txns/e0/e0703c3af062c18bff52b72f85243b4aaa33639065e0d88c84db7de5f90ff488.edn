@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774738936/0/ed124d12c89fd89e0c05314248ac1d07"
+ :tx/agent "ed124d12c89fd89e0c05314248ac1d07"
+ :tx/provenance :observed
+ :tx/rationale "WAVE-2 REMAINING: Phi metric in trilateral.rs:230-254 uses entity set overlap (D_IS = |Intent \\ Spec|) instead of link-based traceability. Should follow :spec/traces-to and :impl/implements Ref links to compute actual reachability between ISP layers. Infrastructure exists: REF_EDGE_ATTRS at line 410-417 already includes both link types, beta_1 cycle computation does graph traversal. Fix: rewrite compute_phi to use traversal. ~40 LOC. Traces to: F-SPEC-002, INV-TRILATERAL-002."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f07ab22399a953df7f70cf5c3de16e1f4fc968fee6d62409038e01a503a494af" :a :db/doc :v "WAVE-2 REMAINING: Phi metric in trilateral.rs:230-254 uses entity set overlap (D_IS = |Intent \\ Spec|) instead of link-based traceability. Should follow :spec/traces-to and :impl/implements Ref links to compute actual reachability between ISP layers. Infrastructure exists: REF_EDGE_ATTRS at line 410-417 already includes both link types, beta_1 cycle computation does graph traversal. Fix: rewrite compute_phi to use traversal. ~40 LOC. Traces to: F-SPEC-002, INV-TRILATERAL-002." :op :assert}
+   {:e #blake3 "f07ab22399a953df7f70cf5c3de16e1f4fc968fee6d62409038e01a503a494af" :a :db/ident :v :observation/wave-2-remaining-phi-metric-in-trilateralrs230-254-uses-e :op :assert}
+   {:e #blake3 "f07ab22399a953df7f70cf5c3de16e1f4fc968fee6d62409038e01a503a494af" :a :exploration/body :v "WAVE-2 REMAINING: Phi metric in trilateral.rs:230-254 uses entity set overlap (D_IS = |Intent \\ Spec|) instead of link-based traceability. Should follow :spec/traces-to and :impl/implements Ref links to compute actual reachability between ISP layers. Infrastructure exists: REF_EDGE_ATTRS at line 410-417 already includes both link types, beta_1 cycle computation does graph traversal. Fix: rewrite compute_phi to use traversal. ~40 LOC. Traces to: F-SPEC-002, INV-TRILATERAL-002." :op :assert}
+   {:e #blake3 "f07ab22399a953df7f70cf5c3de16e1f4fc968fee6d62409038e01a503a494af" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "f07ab22399a953df7f70cf5c3de16e1f4fc968fee6d62409038e01a503a494af" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "f07ab22399a953df7f70cf5c3de16e1f4fc968fee6d62409038e01a503a494af" :a :exploration/content-hash :v #bytes "34957172aa9b059f868d16884b5dcc82451867d98e88e67eca252c10d452b67d" :op :assert}
+   {:e #blake3 "f07ab22399a953df7f70cf5c3de16e1f4fc968fee6d62409038e01a503a494af" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f07ab22399a953df7f70cf5c3de16e1f4fc968fee6d62409038e01a503a494af" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f07ab22399a953df7f70cf5c3de16e1f4fc968fee6d62409038e01a503a494af" :a :exploration/source-session :v #blake3 "7a1d37fe44b3daf30ac3f2de63cce2f882ac021bf9a76ca01c2c2cca7542aed0" :op :assert}
+ ]}

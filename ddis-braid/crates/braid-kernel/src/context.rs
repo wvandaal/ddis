@@ -2240,6 +2240,282 @@ pub fn generate_methodology_section(store: &Store, k_eff: f64, now: u64) -> Stri
 }
 
 // ---------------------------------------------------------------------------
+// Guidance Feedback Loop (WAVE2-LOOP)
+// ---------------------------------------------------------------------------
+//
+// Closes the open loop between "guidance recommended X" and "did X happen?"
+//
+// The guidance system already computes drift_signal and emits recommendations
+// in the footer. This module adds:
+// 1. Recording recommendations as datoms (`:guidance/recommendation`)
+// 2. Measuring outcome (did the target metric improve?)
+// 3. Detecting ineffective guidance (3+ consecutive no-improvement cycles)
+//
+// The dampening factor (0.8x weight reduction for ineffective metrics) is
+// applied in `compute_methodology_score_dampened` in methodology.rs.
+
+/// Metric name and its corresponding recommendation keyword.
+///
+/// Maps M(t) component field names to `:drift/*` keywords for datom storage.
+fn metric_to_keyword(metric_name: &str) -> &'static str {
+    match metric_name {
+        "transact_frequency" => ":drift/transact-frequency",
+        "spec_language_ratio" => ":drift/spec-language",
+        "query_diversity" => ":drift/query-diversity",
+        "harvest_quality" => ":drift/harvest-quality",
+        "session_activity" => ":drift/session-activity",
+        _ => ":drift/unknown",
+    }
+}
+
+/// Identify the worst-scoring M(t) sub-metric by field name.
+///
+/// Returns the field name of the lowest-scoring component.
+pub fn worst_metric_name(components: &MethodologyComponents) -> &'static str {
+    let metrics: [(&str, f64); 5] = [
+        ("transact_frequency", components.transact_frequency),
+        ("spec_language_ratio", components.spec_language_ratio),
+        ("query_diversity", components.query_diversity),
+        ("harvest_quality", components.harvest_quality),
+        ("session_activity", components.session_activity),
+    ];
+    metrics
+        .iter()
+        .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
+        .map(|(name, _)| *name)
+        .unwrap_or("harvest_quality")
+}
+
+/// Record a guidance recommendation as datoms in the store.
+///
+/// Creates an entity with:
+/// - `:guidance/recommendation` — the `:drift/*` keyword for the weakest metric
+/// - `:guidance/given-at` — wall-clock timestamp
+/// - `:guidance/target-metric` — the metric field name
+///
+/// Returns the datoms to be transacted. The caller is responsible for applying
+/// them to the store (keeping this function pure and testable).
+///
+/// WAVE2-LOOP step 1: Persist what the guidance system recommended.
+pub fn guidance_recommendation_datoms(
+    components: &MethodologyComponents,
+    now: u64,
+) -> Vec<crate::datom::Datom> {
+    let metric_name = worst_metric_name(components);
+    let keyword = metric_to_keyword(metric_name);
+
+    // Deterministic entity ID from the recommendation content + timestamp
+    let ident = format!(":guidance/rec-{}-{}", metric_name, now);
+    let entity = EntityId::from_ident(&ident);
+
+    // Placeholder tx — will be stamped by the transaction system
+    let placeholder_agent = crate::datom::AgentId::from_name("braid:guidance");
+    let placeholder_tx = crate::datom::TxId::new(0, 0, placeholder_agent);
+
+    vec![
+        crate::datom::Datom::new(
+            entity,
+            Attribute::from_keyword(":guidance/recommendation"),
+            Value::Keyword(keyword.to_string()),
+            placeholder_tx,
+            Op::Assert,
+        ),
+        crate::datom::Datom::new(
+            entity,
+            Attribute::from_keyword(":guidance/given-at"),
+            Value::Long(now as i64),
+            placeholder_tx,
+            Op::Assert,
+        ),
+        crate::datom::Datom::new(
+            entity,
+            Attribute::from_keyword(":guidance/target-metric"),
+            Value::String(metric_name.to_string()),
+            placeholder_tx,
+            Op::Assert,
+        ),
+    ]
+}
+
+/// A measured guidance outcome: the recommendation entity and the metric change.
+#[derive(Clone, Debug)]
+pub struct GuidanceOutcome {
+    /// The entity that recorded the recommendation.
+    pub entity: EntityId,
+    /// The target metric name (e.g., "spec_language_ratio").
+    pub metric_name: String,
+    /// The `:drift/*` keyword.
+    pub keyword: String,
+    /// Improvement: positive means the metric got better, negative means worse.
+    pub improvement: f64,
+}
+
+/// Measure the effectiveness of recent guidance recommendations.
+///
+/// For each `:guidance/recommendation` datom, compares the target metric's
+/// value at guidance-time (inferred from the recommendation's position in the
+/// sequence) with its current value.
+///
+/// WAVE2-LOOP step 2: Did the agent follow the guidance?
+pub fn measure_guidance_effectiveness(
+    store: &Store,
+    current_components: &MethodologyComponents,
+) -> Vec<GuidanceOutcome> {
+    let rec_attr = Attribute::from_keyword(":guidance/recommendation");
+    let metric_attr = Attribute::from_keyword(":guidance/target-metric");
+
+    let mut outcomes = Vec::new();
+
+    for datom in store.attribute_datoms(&rec_attr) {
+        if datom.op != Op::Assert {
+            continue;
+        }
+
+        let keyword = match &datom.value {
+            Value::Keyword(k) => k.clone(),
+            _ => continue,
+        };
+
+        // Find the target metric name for this entity
+        let metric_name = store
+            .entity_datoms(datom.entity)
+            .iter()
+            .find(|d| d.attribute == metric_attr && d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                Value::String(s) => Some(s.clone()),
+                _ => None,
+            });
+
+        let metric_name = match metric_name {
+            Some(n) => n,
+            None => continue,
+        };
+
+        // Get the current value of this metric
+        let current_value = metric_value_by_name(current_components, &metric_name);
+
+        // The "improvement" is the current value itself — since the guidance
+        // recommended improving this metric, any value above 0.5 is "good"
+        // and the trend across consecutive recommendations matters most.
+        // We use (current - 0.5) as a simple proxy: positive = above threshold.
+        let improvement = current_value - 0.5;
+
+        outcomes.push(GuidanceOutcome {
+            entity: datom.entity,
+            metric_name,
+            keyword,
+            improvement,
+        });
+    }
+
+    outcomes
+}
+
+/// Look up a metric component value by field name.
+fn metric_value_by_name(components: &MethodologyComponents, name: &str) -> f64 {
+    match name {
+        "transact_frequency" => components.transact_frequency,
+        "spec_language_ratio" => components.spec_language_ratio,
+        "query_diversity" => components.query_diversity,
+        "harvest_quality" => components.harvest_quality,
+        "session_activity" => components.session_activity,
+        _ => 0.0,
+    }
+}
+
+/// Detect metrics receiving ineffective guidance.
+///
+/// A metric is "ineffective" if 3+ consecutive guidance recommendations
+/// for that metric all show no improvement (current metric value < 0.5).
+///
+/// Returns the set of ineffective metric names and creates `:guidance/ineffective`
+/// datoms for tracking.
+///
+/// WAVE2-LOOP step 3: Detect when guidance is not working.
+pub fn detect_ineffective_guidance(
+    store: &Store,
+    current_components: &MethodologyComponents,
+    now: u64,
+) -> (Vec<String>, Vec<crate::datom::Datom>) {
+    let outcomes = measure_guidance_effectiveness(store, current_components);
+
+    // Group outcomes by metric name and count consecutive non-improvements
+    let mut metric_counts: BTreeMap<String, u32> = BTreeMap::new();
+    for outcome in &outcomes {
+        if outcome.improvement <= 0.0 {
+            *metric_counts
+                .entry(outcome.metric_name.clone())
+                .or_insert(0) += 1;
+        }
+    }
+
+    let placeholder_agent = crate::datom::AgentId::from_name("braid:guidance");
+    let placeholder_tx = crate::datom::TxId::new(0, 0, placeholder_agent);
+
+    let mut ineffective_metrics = Vec::new();
+    let mut datoms = Vec::new();
+
+    for (metric_name, count) in &metric_counts {
+        if *count >= 3 {
+            let keyword = metric_to_keyword(metric_name);
+
+            // Check if we already have an ineffective datom for this metric
+            let ineff_attr = Attribute::from_keyword(":guidance/ineffective");
+            let already_recorded = store.attribute_datoms(&ineff_attr).iter().any(|d| {
+                d.op == Op::Assert && matches!(&d.value, Value::Keyword(k) if k == keyword)
+            });
+
+            if !already_recorded {
+                let ident = format!(":guidance/ineff-{}-{}", metric_name, now);
+                let entity = EntityId::from_ident(&ident);
+
+                datoms.push(crate::datom::Datom::new(
+                    entity,
+                    Attribute::from_keyword(":guidance/ineffective"),
+                    Value::Keyword(keyword.to_string()),
+                    placeholder_tx,
+                    Op::Assert,
+                ));
+            }
+
+            ineffective_metrics.push(metric_name.clone());
+        }
+    }
+
+    (ineffective_metrics, datoms)
+}
+
+/// Query the store for currently-known ineffective metrics.
+///
+/// Returns the set of metric field names where guidance has been ineffective.
+/// Used by `compute_methodology_score_dampened` to apply weight dampening.
+pub fn ineffective_metric_names(store: &Store) -> Vec<String> {
+    let ineff_attr = Attribute::from_keyword(":guidance/ineffective");
+    let mut names = Vec::new();
+
+    for datom in store.attribute_datoms(&ineff_attr) {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        if let Value::Keyword(k) = &datom.value {
+            let name = match k.as_str() {
+                ":drift/transact-frequency" => "transact_frequency",
+                ":drift/spec-language" => "spec_language_ratio",
+                ":drift/query-diversity" => "query_diversity",
+                ":drift/harvest-quality" => "harvest_quality",
+                ":drift/session-activity" => "session_activity",
+                _ => continue,
+            };
+            if !names.contains(&name.to_string()) {
+                names.push(name.to_string());
+            }
+        }
+    }
+
+    names
+}
+
+// ---------------------------------------------------------------------------
 // Tests (ATT-2-IMPL)
 // ---------------------------------------------------------------------------
 
@@ -2436,6 +2712,216 @@ mod tests {
         assert!(
             !verbose_only.contains(&"coherence".to_string()),
             "coherence block should NOT be verbose-only"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // WAVE2-LOOP: Guidance Feedback Loop Tests
+    // -----------------------------------------------------------------------
+
+    /// WAVE2-LOOP Test 1: After guidance emission, `:guidance/recommendation`
+    /// datom exists in store.
+    #[test]
+    fn guidance_recommendation_datom_persists_in_store() {
+        let mut store = store_with_schema();
+        let now = 1700000000u64;
+
+        // Create components with a clear worst metric (harvest_quality = 0.0)
+        let components = MethodologyComponents {
+            transact_frequency: 0.8,
+            spec_language_ratio: 0.7,
+            query_diversity: 0.6,
+            harvest_quality: 0.0,
+            session_activity: 0.5,
+        };
+
+        // Generate recommendation datoms
+        let rec_datoms = guidance_recommendation_datoms(&components, now);
+        assert!(
+            !rec_datoms.is_empty(),
+            "guidance_recommendation_datoms should produce datoms"
+        );
+
+        // Apply them to the store
+        store.apply_datoms(&rec_datoms);
+
+        // Verify `:guidance/recommendation` datom exists
+        let rec_attr = Attribute::from_keyword(":guidance/recommendation");
+        let found = store.attribute_datoms(&rec_attr);
+        assert!(
+            !found.is_empty(),
+            ":guidance/recommendation datom should exist after applying recommendation"
+        );
+
+        // Verify the keyword matches the worst metric
+        let keyword = found
+            .iter()
+            .find(|d| d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                Value::Keyword(k) => Some(k.clone()),
+                _ => None,
+            });
+        assert_eq!(
+            keyword.as_deref(),
+            Some(":drift/harvest-quality"),
+            "recommendation should target the worst metric (harvest_quality)"
+        );
+
+        // Verify `:guidance/given-at` datom exists with correct timestamp
+        let given_attr = Attribute::from_keyword(":guidance/given-at");
+        let given_found = store.attribute_datoms(&given_attr);
+        assert!(
+            !given_found.is_empty(),
+            ":guidance/given-at datom should exist"
+        );
+        let ts = given_found
+            .iter()
+            .find(|d| d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                Value::Long(t) => Some(*t),
+                _ => None,
+            });
+        assert_eq!(
+            ts,
+            Some(now as i64),
+            ":guidance/given-at should equal the provided timestamp"
+        );
+
+        // Verify `:guidance/target-metric` datom exists
+        let metric_attr = Attribute::from_keyword(":guidance/target-metric");
+        let metric_found = store.attribute_datoms(&metric_attr);
+        assert!(
+            !metric_found.is_empty(),
+            ":guidance/target-metric datom should exist"
+        );
+        let metric_val = metric_found
+            .iter()
+            .find(|d| d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                Value::String(s) => Some(s.clone()),
+                _ => None,
+            });
+        assert_eq!(
+            metric_val.as_deref(),
+            Some("harvest_quality"),
+            ":guidance/target-metric should name the worst metric"
+        );
+    }
+
+    /// WAVE2-LOOP Test 2: When agent follows guidance (metric improves),
+    /// no ineffective signal is emitted.
+    #[test]
+    fn guidance_no_ineffective_signal_when_metric_improves() {
+        let mut store = store_with_schema();
+        let now = 1700000000u64;
+
+        // Record 3 guidance recommendations for harvest_quality
+        for i in 0..3 {
+            let components = MethodologyComponents {
+                transact_frequency: 0.8,
+                spec_language_ratio: 0.7,
+                query_diversity: 0.6,
+                harvest_quality: 0.1, // Low at recommendation time
+                session_activity: 0.5,
+            };
+            let datoms = guidance_recommendation_datoms(&components, now + i);
+            store.apply_datoms(&datoms);
+        }
+
+        // Now the metric has improved above threshold
+        let improved_components = MethodologyComponents {
+            transact_frequency: 0.8,
+            spec_language_ratio: 0.7,
+            query_diversity: 0.6,
+            harvest_quality: 0.9, // Improved!
+            session_activity: 0.5,
+        };
+
+        let (ineffective, datoms) =
+            detect_ineffective_guidance(&store, &improved_components, now + 10);
+
+        assert!(
+            ineffective.is_empty(),
+            "no metric should be ineffective when the target metric improved: {:?}",
+            ineffective
+        );
+        assert!(
+            datoms.is_empty(),
+            "no ineffective datoms should be produced when guidance is effective"
+        );
+    }
+
+    /// WAVE2-LOOP Test 3: When agent ignores guidance (metric stagnates for
+    /// 3 cycles), `:guidance/ineffective` is emitted.
+    #[test]
+    fn guidance_ineffective_signal_after_three_stagnant_cycles() {
+        let mut store = store_with_schema();
+        let now = 1700000000u64;
+
+        // Record 3 guidance recommendations for harvest_quality
+        for i in 0..3 {
+            let components = MethodologyComponents {
+                transact_frequency: 0.8,
+                spec_language_ratio: 0.7,
+                query_diversity: 0.6,
+                harvest_quality: 0.1, // Low — will be the worst metric
+                session_activity: 0.5,
+            };
+            let datoms = guidance_recommendation_datoms(&components, now + i);
+            store.apply_datoms(&datoms);
+        }
+
+        // Metric has NOT improved — still below 0.5
+        let stagnant_components = MethodologyComponents {
+            transact_frequency: 0.8,
+            spec_language_ratio: 0.7,
+            query_diversity: 0.6,
+            harvest_quality: 0.2, // Still bad
+            session_activity: 0.5,
+        };
+
+        let (ineffective, datoms) =
+            detect_ineffective_guidance(&store, &stagnant_components, now + 10);
+
+        assert!(
+            ineffective.contains(&"harvest_quality".to_string()),
+            "harvest_quality should be detected as ineffective: {:?}",
+            ineffective
+        );
+        assert!(
+            !datoms.is_empty(),
+            ":guidance/ineffective datoms should be produced"
+        );
+
+        // Apply the ineffective datoms and verify they're in the store
+        store.apply_datoms(&datoms);
+
+        let ineff_attr = Attribute::from_keyword(":guidance/ineffective");
+        let found = store.attribute_datoms(&ineff_attr);
+        assert!(
+            !found.is_empty(),
+            ":guidance/ineffective datom should exist after detection"
+        );
+        let ineff_keyword =
+            found
+                .iter()
+                .find(|d| d.op == Op::Assert)
+                .and_then(|d| match &d.value {
+                    Value::Keyword(k) => Some(k.clone()),
+                    _ => None,
+                });
+        assert_eq!(
+            ineff_keyword.as_deref(),
+            Some(":drift/harvest-quality"),
+            ":guidance/ineffective should carry the drift keyword"
+        );
+
+        // Verify ineffective_metric_names returns the metric
+        let names = ineffective_metric_names(&store);
+        assert!(
+            names.contains(&"harvest_quality".to_string()),
+            "ineffective_metric_names should include harvest_quality: {:?}",
+            names
         );
     }
 }

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774740321/0/48e1fa02153b1e41756274e1bc4107d4"
+ :tx/agent "48e1fa02153b1e41756274e1bc4107d4"
+ :tx/provenance :observed
+ :tx/rationale "ROOT CAUSE FOUND: Task ID resolution failures caused by duplicate task creation from shell for-loop with IFS pipe parsing. The shell mangled variable interpolation, creating txn files with truncated task IDs (e.g., ':task/id \"l\"' instead of ':task/id \"t-1ad0e33d\"'). Same entity hash (content-addressed from ident) means both txns target the same entity. LWW resolution picks the LATER timestamp which has the CORRUPTED value. Fix: never use shell for-loops with IFS for braid task creation. Always create tasks individually. The braid CLI itself works correctly — this is a caller error."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bdc3e934710cd4f87ca48d4d09efceb5b70fd280b7d7512b4735202bd124edbf" :a :db/doc :v "ROOT CAUSE FOUND: Task ID resolution failures caused by duplicate task creation from shell for-loop with IFS pipe parsing. The shell mangled variable interpolation, creating txn files with truncated task IDs (e.g., ':task/id \"l\"' instead of ':task/id \"t-1ad0e33d\"'). Same entity hash (content-addressed from ident) means both txns target the same entity. LWW resolution picks the LATER timestamp which has the CORRUPTED value. Fix: never use shell for-loops with IFS for braid task creation. Always create tasks individually. The braid CLI itself works correctly — this is a caller error." :op :assert}
+   {:e #blake3 "bdc3e934710cd4f87ca48d4d09efceb5b70fd280b7d7512b4735202bd124edbf" :a :db/ident :v :observation/root-cause-found-task-id-resolution-failures-caused-by-dupl :op :assert}
+   {:e #blake3 "bdc3e934710cd4f87ca48d4d09efceb5b70fd280b7d7512b4735202bd124edbf" :a :exploration/body :v "ROOT CAUSE FOUND: Task ID resolution failures caused by duplicate task creation from shell for-loop with IFS pipe parsing. The shell mangled variable interpolation, creating txn files with truncated task IDs (e.g., ':task/id \"l\"' instead of ':task/id \"t-1ad0e33d\"'). Same entity hash (content-addressed from ident) means both txns target the same entity. LWW resolution picks the LATER timestamp which has the CORRUPTED value. Fix: never use shell for-loops with IFS for braid task creation. Always create tasks individually. The braid CLI itself works correctly — this is a caller error." :op :assert}
+   {:e #blake3 "bdc3e934710cd4f87ca48d4d09efceb5b70fd280b7d7512b4735202bd124edbf" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "bdc3e934710cd4f87ca48d4d09efceb5b70fd280b7d7512b4735202bd124edbf" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "bdc3e934710cd4f87ca48d4d09efceb5b70fd280b7d7512b4735202bd124edbf" :a :exploration/content-hash :v #bytes "9e2ae0c1c86df67f61cb70468fe0415365a3afa0f2556d7e6363e580086bc955" :op :assert}
+   {:e #blake3 "bdc3e934710cd4f87ca48d4d09efceb5b70fd280b7d7512b4735202bd124edbf" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "bdc3e934710cd4f87ca48d4d09efceb5b70fd280b7d7512b4735202bd124edbf" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "bdc3e934710cd4f87ca48d4d09efceb5b70fd280b7d7512b4735202bd124edbf" :a :exploration/source-session :v #blake3 "3989a55a490daec1ad8e46044fe8adea1635d66a48965d91ee3678ecceca8508" :op :assert}
+ ]}

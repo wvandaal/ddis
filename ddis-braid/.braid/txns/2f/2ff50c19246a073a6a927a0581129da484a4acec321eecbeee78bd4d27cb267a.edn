@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774738988/0/48e1fa02153b1e41756274e1bc4107d4"
+ :tx/agent "48e1fa02153b1e41756274e1bc4107d4"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WAVE2-LOOP: Close guidance feedback loop"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aad36b83b28fa45e8ffd4ae7a483ed15d7d6f718af97f8bafda41504040f3a16" :a :db/ident :v :task/t-f38d5047 :op :assert}
+   {:e #blake3 "aad36b83b28fa45e8ffd4ae7a483ed15d7d6f718af97f8bafda41504040f3a16" :a :task/created-at :v 1774738987 :op :assert}
+   {:e #blake3 "aad36b83b28fa45e8ffd4ae7a483ed15d7d6f718af97f8bafda41504040f3a16" :a :task/description :v "Close guidance feedback loop. (1) Record guidance recommendations as datoms: :guidance/recommendation (keyword), :guidance/given-at (long), :guidance/target-metric (string). Wire into build_command_footer. (2) Measure outcome: compare telemetry before/after guidance window. (3) Detect divergence: if recommended target not met for 3+ cycles, emit :guidance/ineffective datom. (4) Adjust: down-weight ineffective channels in compute_methodology_score. Add 3 tests: (A) Guidance recorded as datom. (B) Effective guidance → no ineffective signal. (C) Ignored guidance → ineffective signal emitted. ACCEPTANCE: Closed loop — guidance adjusts based on measured effectiveness. FILE: guidance.rs, methodology.rs. ~150 LOC." :op :assert}
+   {:e #blake3 "aad36b83b28fa45e8ffd4ae7a483ed15d7d6f718af97f8bafda41504040f3a16" :a :task/id :v "t-f38d5047" :op :assert}
+   {:e #blake3 "aad36b83b28fa45e8ffd4ae7a483ed15d7d6f718af97f8bafda41504040f3a16" :a :task/labels :v :label/WAVE-2 :op :assert}
+   {:e #blake3 "aad36b83b28fa45e8ffd4ae7a483ed15d7d6f718af97f8bafda41504040f3a16" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "aad36b83b28fa45e8ffd4ae7a483ed15d7d6f718af97f8bafda41504040f3a16" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "aad36b83b28fa45e8ffd4ae7a483ed15d7d6f718af97f8bafda41504040f3a16" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "aad36b83b28fa45e8ffd4ae7a483ed15d7d6f718af97f8bafda41504040f3a16" :a :task/title :v "WAVE2-LOOP: Close guidance feedback loop" :op :assert}
+   {:e #blake3 "aad36b83b28fa45e8ffd4ae7a483ed15d7d6f718af97f8bafda41504040f3a16" :a :task/title-l0 :v "WAVE2-LOOP" :op :assert}
+   {:e #blake3 "aad36b83b28fa45e8ffd4ae7a483ed15d7d6f718af97f8bafda41504040f3a16" :a :task/title-l1 :v "WAVE2-LOOP: Close guidance feedback loop" :op :assert}
+   {:e #blake3 "aad36b83b28fa45e8ffd4ae7a483ed15d7d6f718af97f8bafda41504040f3a16" :a :task/traces-to :v #blake3 "44b01037f650e23ce40cea6697d5ab1639fb17d9b54b418bf8ddf9fe26ee2057" :op :assert}
+   {:e #blake3 "aad36b83b28fa45e8ffd4ae7a483ed15d7d6f718af97f8bafda41504040f3a16" :a :task/type :v :task.type/task :op :assert}
+ ]}

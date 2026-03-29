@@ -328,6 +328,96 @@ pub fn compute_methodology_score(telemetry: &SessionTelemetry) -> MethodologySco
     }
 }
 
+/// Compute M(t) with guidance feedback dampening (WAVE2-LOOP step 4).
+///
+/// When the guidance system detects that recommendations for a metric have
+/// been ineffective (3+ cycles with no improvement), that metric's weight
+/// is reduced by 0.8x. This prevents the system from repeatedly nagging
+/// about a metric the agent cannot currently improve.
+///
+/// `ineffective_metrics` contains field names (e.g., "spec_language_ratio")
+/// for which guidance has been ineffective.
+///
+/// The total weight is renormalized to 1.0 after dampening.
+pub fn compute_methodology_score_dampened(
+    telemetry: &SessionTelemetry,
+    ineffective_metrics: &[String],
+) -> MethodologyScore {
+    if ineffective_metrics.is_empty() {
+        return compute_methodology_score(telemetry);
+    }
+
+    let total = telemetry.total_turns.max(1) as f64;
+
+    let m1 = (telemetry.transact_turns as f64 / total).min(1.0);
+    let m2 = (telemetry.spec_language_turns as f64 / total).min(1.0);
+    let m3 = (telemetry.query_type_count as f64 / 4.0).min(1.0);
+    let m4 = telemetry.harvest_quality;
+    let m5 = ((telemetry.session_observation_count + telemetry.session_task_count) as f64 / 10.0)
+        .min(1.0);
+
+    let metric_names = [
+        "transact_frequency",
+        "spec_language_ratio",
+        "query_diversity",
+        "harvest_quality",
+        "session_activity",
+    ];
+    let metrics = [m1, m2, m3, m4, m5];
+
+    // Apply 0.8x dampening to ineffective metrics
+    const DAMPEN: f64 = 0.8;
+    let mut weights: [f64; 5] = STAGE0_WEIGHTS;
+    for (i, name) in metric_names.iter().enumerate() {
+        if ineffective_metrics.iter().any(|m| m == *name) {
+            weights[i] *= DAMPEN;
+        }
+    }
+
+    // Renormalize weights to sum to 1.0
+    let weight_sum: f64 = weights.iter().sum();
+    if weight_sum > 0.0 {
+        for w in &mut weights {
+            *w /= weight_sum;
+        }
+    }
+
+    let raw_score: f64 = weights.iter().zip(metrics.iter()).map(|(w, m)| w * m).sum();
+
+    let score = if telemetry.harvest_is_recent {
+        raw_score.max(0.50)
+    } else {
+        raw_score
+    };
+
+    let trend = if telemetry.history.len() >= 2 {
+        let recent: Vec<f64> = telemetry.history.iter().rev().take(5).copied().collect();
+        let mean = recent.iter().sum::<f64>() / recent.len() as f64;
+        if score > mean + 0.05 {
+            Trend::Up
+        } else if score < mean - 0.05 {
+            Trend::Down
+        } else {
+            Trend::Stable
+        }
+    } else {
+        Trend::Stable
+    };
+
+    MethodologyScore {
+        score,
+        components: MethodologyComponents {
+            transact_frequency: m1,
+            spec_language_ratio: m2,
+            query_diversity: m3,
+            harvest_quality: m4,
+            session_activity: m5,
+        },
+        trend,
+        drift_signal: score < 0.5,
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Telemetry Extraction from Store
 // ---------------------------------------------------------------------------

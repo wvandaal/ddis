@@ -2743,6 +2743,35 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Command name that produced this trace (e.g., observe, task, spec)",
         ),
+        // =================================================================
+        // Guidance Feedback Loop (4) — WAVE2-LOOP, closed-loop guidance
+        // Records guidance recommendations as datoms so outcomes can be
+        // measured and ineffective guidance detected + dampened.
+        // =================================================================
+        attr(
+            ":guidance/recommendation",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Guidance recommendation category keyword (e.g., :drift/spec-language, :drift/harvest-quality, :drift/transact-frequency, :drift/query-diversity, :drift/session-activity)",
+        ),
+        attr(
+            ":guidance/given-at",
+            ValueType::Long,
+            Cardinality::One,
+            "Wall-clock time (unix seconds) when the guidance recommendation was emitted",
+        ),
+        attr(
+            ":guidance/target-metric",
+            ValueType::String,
+            Cardinality::One,
+            "The M(t) sub-metric name that needs improvement (e.g., spec_language_ratio, harvest_quality)",
+        ),
+        attr(
+            ":guidance/ineffective",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Marks a metric as having received 3+ consecutive guidance recommendations with no improvement. Value is the metric keyword (e.g., :drift/spec-language)",
+        ),
     ]
 }
 

@@ -1,0 +1,14 @@
+{:tx/id #hlc "1774740188/0/c3d89db29683c1a81cb5f0a24f045b16"
+ :tx/agent "c3d89db29683c1a81cb5f0a24f045b16"
+ :tx/provenance :derived
+ :tx/rationale "runtime observation: braid_query"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f9b44faa7612ee00ce5b82a38bdc0437f1691979de975236f0c2e21c73ddb968" :a :db/ident :v :runtime/req-84b6ab0491dd4615 :op :assert}
+   {:e #blake3 "f9b44faa7612ee00ce5b82a38bdc0437f1691979de975236f0c2e21c73ddb968" :a :runtime/cache-hit :v true :op :assert}
+   {:e #blake3 "f9b44faa7612ee00ce5b82a38bdc0437f1691979de975236f0c2e21c73ddb968" :a :runtime/command :v "braid_query" :op :assert}
+   {:e #blake3 "f9b44faa7612ee00ce5b82a38bdc0437f1691979de975236f0c2e21c73ddb968" :a :runtime/datom-count :v 171563 :op :assert}
+   {:e #blake3 "f9b44faa7612ee00ce5b82a38bdc0437f1691979de975236f0c2e21c73ddb968" :a :runtime/latency-ms :v 0 :op :assert}
+   {:e #blake3 "f9b44faa7612ee00ce5b82a38bdc0437f1691979de975236f0c2e21c73ddb968" :a :runtime/outcome :v "error" :op :assert}
+   {:e #blake3 "f9b44faa7612ee00ce5b82a38bdc0437f1691979de975236f0c2e21c73ddb968" :a :runtime/request-id :v "1" :op :assert}
+ ]}

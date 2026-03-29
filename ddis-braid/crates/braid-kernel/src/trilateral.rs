@@ -210,12 +210,12 @@ pub fn live_projections(store: &Store) -> (LiveView, LiveView, LiveView) {
 // Divergence Φ (INV-TRILATERAL-002)
 // ---------------------------------------------------------------------------
 
-/// Divergence components between boundary pairs.
+/// Divergence components between boundary pairs (link-based reachability).
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct DivergenceComponents {
-    /// D_IS: entities in Intent but not in Spec (intent-spec gap).
+    /// D_IS: Intent entities with no `:spec/traces-to` Ref link targeting them.
     pub d_is: usize,
-    /// D_SP: entities in Spec but not in Impl (spec-impl gap).
+    /// D_SP: Spec entities with no `:impl/implements` Ref link targeting them.
     pub d_sp: usize,
 }
 
@@ -223,29 +223,55 @@ pub struct DivergenceComponents {
 ///
 /// `Φ = w_is × D_IS + w_sp × D_SP`
 ///
-/// where D_IS = |entities in Intent \ entities in Spec|
-/// and   D_SP = |entities in Spec \ entities in Impl|
+/// D_IS = count of Intent entities with NO `:spec/traces-to` Ref link targeting them.
+/// D_SP = count of Spec entities with NO `:impl/implements` Ref link targeting them.
+///
+/// This measures **link-based reachability**, not entity set overlap. An intent entity
+/// is "covered" only when some spec entity explicitly traces to it via `:spec/traces-to`.
+/// A spec entity is "covered" only when some impl entity implements it via `:impl/implements`.
 ///
 /// Default weights: w_is = 0.4, w_sp = 0.6 (spec-impl gap weighted higher).
 pub fn compute_phi(store: &Store, w_is: f64, w_sp: f64) -> (f64, DivergenceComponents) {
-    let (live_i, live_s, live_p) = live_projections(store);
+    let (live_i, live_s, _live_p) = live_projections(store);
 
-    // Convert to BTreeSet for O(log n) lookup in set difference
-    let spec_set: BTreeSet<&EntityId> = live_s.entities.iter().collect();
-    let impl_set: BTreeSet<&EntityId> = live_p.entities.iter().collect();
+    // Build set of entities targeted by :spec/traces-to Ref datoms.
+    // A spec entity with `:spec/traces-to Value::Ref(intent_entity)` means
+    // that intent_entity is reachable (covered) from the spec layer.
+    let traces_to_attr = Attribute::from_keyword(":spec/traces-to");
+    let mut spec_trace_targets: BTreeSet<EntityId> = BTreeSet::new();
+    for datom in store.attribute_datoms(&traces_to_attr) {
+        if datom.op == Op::Assert {
+            if let Value::Ref(target) = &datom.value {
+                spec_trace_targets.insert(*target);
+            }
+        }
+    }
 
-    // D_IS: intent entities not covered by spec
+    // Build set of entities targeted by :impl/implements Ref datoms.
+    // An impl entity with `:impl/implements Value::Ref(spec_entity)` means
+    // that spec_entity is reachable (covered) from the impl layer.
+    let implements_attr = Attribute::from_keyword(":impl/implements");
+    let mut impl_targets: BTreeSet<EntityId> = BTreeSet::new();
+    for datom in store.attribute_datoms(&implements_attr) {
+        if datom.op == Op::Assert {
+            if let Value::Ref(target) = &datom.value {
+                impl_targets.insert(*target);
+            }
+        }
+    }
+
+    // D_IS: intent entities not reached by any :spec/traces-to link
     let d_is = live_i
         .entities
         .iter()
-        .filter(|e| !spec_set.contains(e))
+        .filter(|e| !spec_trace_targets.contains(e))
         .count();
 
-    // D_SP: spec entities not covered by impl
+    // D_SP: spec entities not reached by any :impl/implements link
     let d_sp = live_s
         .entities
         .iter()
-        .filter(|e| !impl_set.contains(e))
+        .filter(|e| !impl_targets.contains(e))
         .count();
 
     let components = DivergenceComponents { d_is, d_sp };
@@ -1254,26 +1280,8 @@ mod tests {
             Store::from_datoms(datoms)
         }
 
-        fn store_with_intent_and_spec() -> Store {
-            let mut datoms = Store::genesis().datom_set().clone();
-            let e1 = EntityId::from_ident(":test/entity-a");
-            let tx = make_tx(1);
-            datoms.insert(Datom::new(
-                e1,
-                Attribute::from_keyword(":intent/goal"),
-                Value::String("some goal".into()),
-                tx,
-                Op::Assert,
-            ));
-            datoms.insert(Datom::new(
-                e1,
-                Attribute::from_keyword(":spec/id"),
-                Value::String("INV-TEST-001".into()),
-                tx,
-                Op::Assert,
-            ));
-            Store::from_datoms(datoms)
-        }
+        // store_with_intent_and_spec removed: link-based Phi uses Ref links,
+        // not same-entity attribute co-occurrence.
 
         proptest! {
             #[test]
@@ -1313,36 +1321,47 @@ mod tests {
 
         #[test]
         fn phi_equilibrium_iff_all_cross_boundary_links() {
-            // A store where every intent entity also has spec+impl coverage
-            // should have phi = 0.
+            // A store where every intent entity is traced-to by a spec entity,
+            // and every spec entity is implemented by an impl entity -> Phi = 0.
             let mut datoms = Store::genesis().datom_set().clone();
-            let e1 = EntityId::from_ident(":test/coherent-entity");
+            let intent_e = EntityId::from_ident(":test/coherent-intent");
+            let spec_e = EntityId::from_ident(":test/coherent-spec");
+            let impl_e = EntityId::from_ident(":test/coherent-impl");
             let tx = make_tx(1);
-            // All three layers present for e1
+            // Intent entity
             datoms.insert(Datom::new(
-                e1,
+                intent_e,
                 Attribute::from_keyword(":intent/goal"),
                 Value::String("a goal".into()),
                 tx,
                 Op::Assert,
             ));
+            // Spec entity with :spec/traces-to -> intent entity
             datoms.insert(Datom::new(
-                e1,
+                spec_e,
                 Attribute::from_keyword(":spec/id"),
                 Value::String("INV-X-001".into()),
                 tx,
                 Op::Assert,
             ));
             datoms.insert(Datom::new(
-                e1,
-                Attribute::from_keyword(":impl/file"),
-                Value::String("src/x.rs".into()),
+                spec_e,
+                Attribute::from_keyword(":spec/traces-to"),
+                Value::Ref(intent_e),
+                tx,
+                Op::Assert,
+            ));
+            // Impl entity with :impl/implements -> spec entity
+            datoms.insert(Datom::new(
+                impl_e,
+                Attribute::from_keyword(":impl/implements"),
+                Value::Ref(spec_e),
                 tx,
                 Op::Assert,
             ));
             let store = Store::from_datoms(datoms);
             let (phi, components) = compute_phi_default(&store);
-            assert_eq!(phi, 0.0, "fully linked entity should produce phi=0");
+            assert_eq!(phi, 0.0, "fully linked ISP chain should produce phi=0");
             assert_eq!(components.d_is, 0);
             assert_eq!(components.d_sp, 0);
         }
@@ -1358,8 +1377,8 @@ mod tests {
 
         #[test]
         fn phi_monotonic_non_increase_under_link_intent_to_spec() {
-            // Adding a spec datom for an entity that only has intent should
-            // not increase phi (it should decrease D_IS).
+            // Adding a :spec/traces-to link that targets the intent entity
+            // should not increase D_IS (it should decrease it).
             let store_before = store_with_intent_only();
             let (phi_before, _) = compute_phi_default(&store_before);
             assert!(
@@ -1367,47 +1386,53 @@ mod tests {
                 "precondition: phi should be positive for intent-only store"
             );
 
-            let store_after = store_with_intent_and_spec();
-            let (phi_after, _) = compute_phi_default(&store_after);
+            // Create a store with the same intent entity PLUS a spec entity
+            // that traces to it via :spec/traces-to.
+            let mut datoms = store_before.datom_set().clone();
+            let intent_e = EntityId::from_ident(":test/entity-a");
+            let spec_e = EntityId::from_ident(":test/spec-for-a");
+            let tx = make_tx(2);
+            datoms.insert(Datom::new(
+                spec_e,
+                Attribute::from_keyword(":spec/id"),
+                Value::String("INV-TEST-LINK-001".into()),
+                tx,
+                Op::Assert,
+            ));
+            datoms.insert(Datom::new(
+                spec_e,
+                Attribute::from_keyword(":spec/traces-to"),
+                Value::Ref(intent_e),
+                tx,
+                Op::Assert,
+            ));
+            let store_after = Store::from_datoms(datoms);
 
-            // Adding the spec link should reduce phi (D_IS goes from 1 to 0)
-            // but D_SP may increase (spec entity now in spec but not in impl).
-            // The key property: phi should not increase beyond what was resolved.
-            // Specifically, the intent-spec gap is resolved, and only spec-impl
-            // gap may appear, which is weighted differently.
-            // For this specific case: before: 0.4*1 + 0.6*0 = 0.4
-            // After: 0.4*0 + 0.6*1 = 0.6 -- phi actually increases!
-            // This reveals the boundary behavior: adding a link can shift weight.
-            // The true Lyapunov property is: Phi is non-negative and a monotone
-            // function of the gap counts, not that it monotonically decreases
-            // under arbitrary single-link operations.
-            //
-            // The correct monotonic non-increase property: adding a LINK that
-            // CLOSES a gap (same boundary) cannot increase the gap count for
-            // that boundary.
             let components_after = compute_phi_default(&store_after).1;
             let components_before = compute_phi_default(&store_before).1;
-            // D_IS: intent-spec gap should not increase when we add a spec datom
-            // for an entity that already has intent
+            // D_IS: intent-spec gap should decrease when we add a :spec/traces-to link
             assert!(
                 components_after.d_is <= components_before.d_is,
-                "adding spec for intent entity must not increase D_IS: {} > {}",
+                "adding :spec/traces-to for intent entity must not increase D_IS: {} > {}",
                 components_after.d_is,
                 components_before.d_is
             );
-            // And phi_after is still non-negative
-            assert!(phi_after >= 0.0);
+            // D_IS should actually go to 0 (the intent entity is now traced-to)
+            assert_eq!(
+                components_after.d_is, 0,
+                "intent entity should be covered by :spec/traces-to link"
+            );
         }
 
         #[test]
         fn phi_monotonic_non_increase_under_link_spec_to_impl() {
-            // Adding an impl datom for an entity that already has spec should
-            // not increase D_SP.
+            // Adding an :impl/implements link targeting the spec entity should
+            // not increase D_SP (it should decrease it).
             let mut datoms = Store::genesis().datom_set().clone();
-            let e1 = EntityId::from_ident(":test/entity-b");
+            let spec_e = EntityId::from_ident(":test/entity-b");
             let tx = make_tx(1);
             datoms.insert(Datom::new(
-                e1,
+                spec_e,
                 Attribute::from_keyword(":spec/id"),
                 Value::String("INV-B-001".into()),
                 tx,
@@ -1418,11 +1443,12 @@ mod tests {
             assert!(phi_before > 0.0, "spec-only entity should have phi > 0");
             assert_eq!(comp_before.d_sp, 1);
 
-            // Now add impl for the same entity
+            // Now add an impl entity with :impl/implements -> spec entity
+            let impl_e = EntityId::from_ident(":test/impl-for-b");
             datoms.insert(Datom::new(
-                e1,
-                Attribute::from_keyword(":impl/file"),
-                Value::String("src/b.rs".into()),
+                impl_e,
+                Attribute::from_keyword(":impl/implements"),
+                Value::Ref(spec_e),
                 tx,
                 Op::Assert,
             ));
@@ -1431,9 +1457,13 @@ mod tests {
 
             assert!(
                 comp_after.d_sp <= comp_before.d_sp,
-                "adding impl for spec entity must not increase D_SP: {} > {}",
+                "adding :impl/implements for spec entity must not increase D_SP: {} > {}",
                 comp_after.d_sp,
                 comp_before.d_sp
+            );
+            assert_eq!(
+                comp_after.d_sp, 0,
+                "spec entity should be covered by :impl/implements link"
             );
             assert!(
                 phi_after <= phi_before,
@@ -1443,33 +1473,42 @@ mod tests {
 
         #[test]
         fn phi_full_coherence_from_gaps() {
-            // Start with gaps in all boundaries, then close them all.
-            // Final phi should be 0.
+            // Start with gaps in all boundaries, then close them all with
+            // proper cross-boundary links. Final phi should be 0.
             let mut datoms = Store::genesis().datom_set().clone();
-            let e1 = EntityId::from_ident(":test/entity-full");
+            let intent_e = EntityId::from_ident(":test/intent-full");
+            let spec_e = EntityId::from_ident(":test/spec-full");
+            let impl_e = EntityId::from_ident(":test/impl-full");
             let tx = make_tx(1);
 
-            // Intent only
+            // Intent entity
             datoms.insert(Datom::new(
-                e1,
+                intent_e,
                 Attribute::from_keyword(":intent/goal"),
                 Value::String("goal".into()),
                 tx,
                 Op::Assert,
             ));
-            // Spec for e1
+            // Spec entity with :spec/traces-to -> intent
             datoms.insert(Datom::new(
-                e1,
+                spec_e,
                 Attribute::from_keyword(":spec/id"),
                 Value::String("INV-FULL-001".into()),
                 tx,
                 Op::Assert,
             ));
-            // Impl for e1
             datoms.insert(Datom::new(
-                e1,
-                Attribute::from_keyword(":impl/file"),
-                Value::String("src/full.rs".into()),
+                spec_e,
+                Attribute::from_keyword(":spec/traces-to"),
+                Value::Ref(intent_e),
+                tx,
+                Op::Assert,
+            ));
+            // Impl entity with :impl/implements -> spec
+            datoms.insert(Datom::new(
+                impl_e,
+                Attribute::from_keyword(":impl/implements"),
+                Value::Ref(spec_e),
                 tx,
                 Op::Assert,
             ));
@@ -1479,6 +1518,227 @@ mod tests {
             assert_eq!(phi, 0.0);
             assert_eq!(components.d_is, 0);
             assert_eq!(components.d_sp, 0);
+        }
+
+        // ---------------------------------------------------------------
+        // WAVE2-PHI: Link-based traceability tests
+        // ---------------------------------------------------------------
+
+        /// WAVE2-PHI test 1: Fully linked ISP chain -> Phi = 0.
+        /// Intent entity traced-to by spec, spec entity implemented by impl.
+        #[test]
+        fn phi_link_based_fully_linked_isp_is_zero() {
+            let mut datoms = Store::genesis().datom_set().clone();
+            let tx = make_tx(1);
+            let intent_a = EntityId::from_ident(":test/link-intent-a");
+            let intent_b = EntityId::from_ident(":test/link-intent-b");
+            let spec_a = EntityId::from_ident(":test/link-spec-a");
+            let spec_b = EntityId::from_ident(":test/link-spec-b");
+            let impl_a = EntityId::from_ident(":test/link-impl-a");
+            let impl_b = EntityId::from_ident(":test/link-impl-b");
+
+            // Two intent entities
+            datoms.insert(Datom::new(
+                intent_a,
+                Attribute::from_keyword(":intent/goal"),
+                Value::String("goal-a".into()),
+                tx,
+                Op::Assert,
+            ));
+            datoms.insert(Datom::new(
+                intent_b,
+                Attribute::from_keyword(":intent/goal"),
+                Value::String("goal-b".into()),
+                tx,
+                Op::Assert,
+            ));
+
+            // Two spec entities, each traces-to one intent entity
+            datoms.insert(Datom::new(
+                spec_a,
+                Attribute::from_keyword(":spec/id"),
+                Value::String("INV-LINK-A".into()),
+                tx,
+                Op::Assert,
+            ));
+            datoms.insert(Datom::new(
+                spec_a,
+                Attribute::from_keyword(":spec/traces-to"),
+                Value::Ref(intent_a),
+                tx,
+                Op::Assert,
+            ));
+            datoms.insert(Datom::new(
+                spec_b,
+                Attribute::from_keyword(":spec/id"),
+                Value::String("INV-LINK-B".into()),
+                tx,
+                Op::Assert,
+            ));
+            datoms.insert(Datom::new(
+                spec_b,
+                Attribute::from_keyword(":spec/traces-to"),
+                Value::Ref(intent_b),
+                tx,
+                Op::Assert,
+            ));
+
+            // Two impl entities, each implements one spec entity
+            datoms.insert(Datom::new(
+                impl_a,
+                Attribute::from_keyword(":impl/implements"),
+                Value::Ref(spec_a),
+                tx,
+                Op::Assert,
+            ));
+            datoms.insert(Datom::new(
+                impl_b,
+                Attribute::from_keyword(":impl/implements"),
+                Value::Ref(spec_b),
+                tx,
+                Op::Assert,
+            ));
+
+            let store = Store::from_datoms(datoms);
+            let (phi, components) = compute_phi_default(&store);
+            assert_eq!(
+                components.d_is, 0,
+                "all intent entities are traced-to by spec entities"
+            );
+            assert_eq!(
+                components.d_sp, 0,
+                "all spec entities are implemented by impl entities"
+            );
+            assert_eq!(phi, 0.0, "fully linked ISP chain must have Phi = 0");
+        }
+
+        /// WAVE2-PHI test 2: Unlinked intent entity -> Phi > 0.
+        /// An intent entity exists but no spec entity traces to it.
+        #[test]
+        fn phi_link_based_unlinked_intent_is_positive() {
+            let mut datoms = Store::genesis().datom_set().clone();
+            let tx = make_tx(1);
+            let intent_e = EntityId::from_ident(":test/unlinked-intent");
+            let spec_e = EntityId::from_ident(":test/orphan-spec");
+
+            // Intent entity with no :spec/traces-to targeting it
+            datoms.insert(Datom::new(
+                intent_e,
+                Attribute::from_keyword(":intent/goal"),
+                Value::String("unlinked goal".into()),
+                tx,
+                Op::Assert,
+            ));
+
+            // Spec entity exists but does NOT trace to the intent entity
+            let unrelated = EntityId::from_ident(":test/unrelated-target");
+            datoms.insert(Datom::new(
+                spec_e,
+                Attribute::from_keyword(":spec/id"),
+                Value::String("INV-ORPHAN-001".into()),
+                tx,
+                Op::Assert,
+            ));
+            datoms.insert(Datom::new(
+                spec_e,
+                Attribute::from_keyword(":spec/traces-to"),
+                Value::Ref(unrelated),
+                tx,
+                Op::Assert,
+            ));
+
+            let store = Store::from_datoms(datoms);
+            let (phi, components) = compute_phi_default(&store);
+            assert_eq!(
+                components.d_is, 1,
+                "intent entity with no :spec/traces-to targeting it counts as gap"
+            );
+            assert!(phi > 0.0, "unlinked intent entity must produce Phi > 0");
+        }
+
+        /// WAVE2-PHI test 3: Partially linked -> Phi between 0 and max.
+        /// Some intent entities linked, some not. Some spec entities linked, some not.
+        #[test]
+        fn phi_link_based_partial_links() {
+            let mut datoms = Store::genesis().datom_set().clone();
+            let tx = make_tx(1);
+            let intent_linked = EntityId::from_ident(":test/partial-intent-linked");
+            let intent_unlinked = EntityId::from_ident(":test/partial-intent-unlinked");
+            let spec_linked = EntityId::from_ident(":test/partial-spec-linked");
+            let spec_unlinked = EntityId::from_ident(":test/partial-spec-unlinked");
+            let impl_e = EntityId::from_ident(":test/partial-impl");
+
+            // Two intent entities
+            datoms.insert(Datom::new(
+                intent_linked,
+                Attribute::from_keyword(":intent/goal"),
+                Value::String("linked goal".into()),
+                tx,
+                Op::Assert,
+            ));
+            datoms.insert(Datom::new(
+                intent_unlinked,
+                Attribute::from_keyword(":intent/goal"),
+                Value::String("unlinked goal".into()),
+                tx,
+                Op::Assert,
+            ));
+
+            // spec_linked traces to intent_linked (covers it)
+            datoms.insert(Datom::new(
+                spec_linked,
+                Attribute::from_keyword(":spec/id"),
+                Value::String("INV-PARTIAL-001".into()),
+                tx,
+                Op::Assert,
+            ));
+            datoms.insert(Datom::new(
+                spec_linked,
+                Attribute::from_keyword(":spec/traces-to"),
+                Value::Ref(intent_linked),
+                tx,
+                Op::Assert,
+            ));
+
+            // spec_unlinked has no impl targeting it
+            datoms.insert(Datom::new(
+                spec_unlinked,
+                Attribute::from_keyword(":spec/id"),
+                Value::String("INV-PARTIAL-002".into()),
+                tx,
+                Op::Assert,
+            ));
+
+            // impl_e implements spec_linked (covers it), but NOT spec_unlinked
+            datoms.insert(Datom::new(
+                impl_e,
+                Attribute::from_keyword(":impl/implements"),
+                Value::Ref(spec_linked),
+                tx,
+                Op::Assert,
+            ));
+
+            let store = Store::from_datoms(datoms);
+            let (phi, components) = compute_phi_default(&store);
+
+            assert_eq!(
+                components.d_is, 1,
+                "one intent entity is unlinked, expected D_IS=1"
+            );
+            assert_eq!(
+                components.d_sp, 1,
+                "one spec entity is unlinked, expected D_SP=1"
+            );
+            let expected_phi = 0.4 * 1.0 + 0.6 * 1.0;
+            assert!(
+                (phi - expected_phi).abs() < f64::EPSILON,
+                "Phi should be {} for partial links, got {}",
+                expected_phi,
+                phi
+            );
+            assert!(phi > 0.0, "partial links must have Phi > 0");
+            let max_phi = 0.4 * 2.0 + 0.6 * 2.0;
+            assert!(phi < max_phi, "partial links must have Phi < max");
         }
     }
 
@@ -1636,19 +1896,17 @@ mod tests {
             }
 
             // ---------------------------------------------------------------
-            // INV-TRILATERAL-004: Convergence monotonicity — adding a LINK
-            // that closes a specific boundary gap (:spec/traces-to closes
-            // intent-spec, :impl/implements closes spec-impl) must not
-            // increase the gap count for that boundary.
+            // INV-TRILATERAL-004: Convergence monotonicity — adding a
+            // :spec/traces-to link targeting an intent entity, or an
+            // :impl/implements link targeting a spec entity, must not
+            // increase the corresponding gap component (D_IS or D_SP).
             // ---------------------------------------------------------------
 
-            /// INV-TRILATERAL-004: Adding a :spec/traces-to or :impl/implements
-            /// link for an entity that has a gap in that boundary must not
-            /// increase the corresponding gap component (D_IS or D_SP).
-            /// The overall Phi may shift between components (e.g., closing an
-            /// intent-spec gap may reveal a spec-impl gap), but the targeted
-            /// boundary's gap count is monotonically non-increasing under
-            /// link operations that address it.
+            /// INV-TRILATERAL-004: Adding a :spec/traces-to link targeting an
+            /// intent entity, or an :impl/implements link targeting a spec entity,
+            /// must not increase the corresponding gap component (D_IS or D_SP).
+            /// Link-based reachability: the link's VALUE (Ref target) determines
+            /// which entity gets covered, not the link's source entity.
             #[test]
             fn inv_trilateral_004_convergence_under_link_ops(
                 suffix in 1u32..500,
@@ -1694,22 +1952,21 @@ mod tests {
                 let mut datoms_after = datoms_before;
 
                 if add_spec_link {
-                    // LINK operation: add :spec/traces-to (closes intent-spec gap)
-                    // This adds a spec-layer datom for entity e.
-                    let target = EntityId::from_ident(":test/conv-target");
+                    // LINK operation: add :spec/traces-to targeting entity e
+                    // (covers e in D_IS if e is an intent entity).
+                    let linker = EntityId::from_ident(&format!(":test/spec-linker-{suffix}"));
                     datoms_after.insert(Datom::new(
-                        e,
+                        linker,
                         Attribute::from_keyword(":spec/traces-to"),
-                        Value::Ref(target),
+                        Value::Ref(e),
                         tx,
                         Op::Assert,
                     ));
                     let store_after = Store::from_datoms(datoms_after);
                     let (_, comp_after) = compute_phi_default(&store_after);
 
-                    // Adding a spec-layer datom can only reduce or maintain D_IS
-                    // (the intent-spec gap), never increase it, because the entity
-                    // now appears in the spec projection.
+                    // Adding a :spec/traces-to link targeting e can only reduce
+                    // or maintain D_IS (if e is an intent entity, it's now covered).
                     prop_assert!(
                         comp_after.d_is <= comp_before.d_is,
                         "D_IS must not increase after adding :spec/traces-to link: {} > {}",
@@ -1717,20 +1974,21 @@ mod tests {
                         comp_before.d_is,
                     );
                 } else {
-                    // LINK operation: add :impl/implements (closes spec-impl gap)
-                    let target = EntityId::from_ident(":test/conv-target");
+                    // LINK operation: add :impl/implements targeting entity e
+                    // (covers e in D_SP if e is a spec entity).
+                    let linker = EntityId::from_ident(&format!(":test/impl-linker-{suffix}"));
                     datoms_after.insert(Datom::new(
-                        e,
+                        linker,
                         Attribute::from_keyword(":impl/implements"),
-                        Value::Ref(target),
+                        Value::Ref(e),
                         tx,
                         Op::Assert,
                     ));
                     let store_after = Store::from_datoms(datoms_after);
                     let (_, comp_after) = compute_phi_default(&store_after);
 
-                    // Adding an impl-layer datom can only reduce or maintain D_SP
-                    // (the spec-impl gap), never increase it.
+                    // Adding an :impl/implements link targeting e can only reduce
+                    // or maintain D_SP (if e is a spec entity, it's now covered).
                     prop_assert!(
                         comp_after.d_sp <= comp_before.d_sp,
                         "D_SP must not increase after adding :impl/implements link: {} > {}",

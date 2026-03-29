@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774738970/0/48e1fa02153b1e41756274e1bc4107d4"
+ :tx/agent "48e1fa02153b1e41756274e1bc4107d4"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WAVE2-PHI: Fix Phi to use link-based traceability"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ef0cf48be45c66b1ed7aa6fe7b2c1f3525f4cb526fd83c068df589699c9a9c86" :a :db/ident :v :task/t-423fc0d0 :op :assert}
+   {:e #blake3 "ef0cf48be45c66b1ed7aa6fe7b2c1f3525f4cb526fd83c068df589699c9a9c86" :a :task/created-at :v 1774738969 :op :assert}
+   {:e #blake3 "ef0cf48be45c66b1ed7aa6fe7b2c1f3525f4cb526fd83c068df589699c9a9c86" :a :task/description :v "Rewrite compute_phi() in trilateral.rs to use link-based reachability instead of entity set overlap. D_IS = count of Intent entities with NO :spec/traces-to path to any Spec entity. D_SP = count of Spec entities with NO :impl/implements path to any Impl entity. Use existing REF_EDGE_ATTRS infrastructure for traversal. Add 3 tests: (A) fully linked ISP → Phi=0. (B) unlinked intent → Phi > 0. (C) partially linked → Phi between 0 and max. ACCEPTANCE: Phi measures actual traceability, not entity co-occurrence. FILE: trilateral.rs. ~40 LOC." :op :assert}
+   {:e #blake3 "ef0cf48be45c66b1ed7aa6fe7b2c1f3525f4cb526fd83c068df589699c9a9c86" :a :task/id :v "t-423fc0d0" :op :assert}
+   {:e #blake3 "ef0cf48be45c66b1ed7aa6fe7b2c1f3525f4cb526fd83c068df589699c9a9c86" :a :task/labels :v :label/WAVE-2 :op :assert}
+   {:e #blake3 "ef0cf48be45c66b1ed7aa6fe7b2c1f3525f4cb526fd83c068df589699c9a9c86" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "ef0cf48be45c66b1ed7aa6fe7b2c1f3525f4cb526fd83c068df589699c9a9c86" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ef0cf48be45c66b1ed7aa6fe7b2c1f3525f4cb526fd83c068df589699c9a9c86" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ef0cf48be45c66b1ed7aa6fe7b2c1f3525f4cb526fd83c068df589699c9a9c86" :a :task/title :v "WAVE2-PHI: Fix Phi to use link-based traceability" :op :assert}
+   {:e #blake3 "ef0cf48be45c66b1ed7aa6fe7b2c1f3525f4cb526fd83c068df589699c9a9c86" :a :task/title-l0 :v "WAVE2-PHI" :op :assert}
+   {:e #blake3 "ef0cf48be45c66b1ed7aa6fe7b2c1f3525f4cb526fd83c068df589699c9a9c86" :a :task/title-l1 :v "WAVE2-PHI: Fix Phi to use link-based traceability" :op :assert}
+   {:e #blake3 "ef0cf48be45c66b1ed7aa6fe7b2c1f3525f4cb526fd83c068df589699c9a9c86" :a :task/traces-to :v #blake3 "8ee015fa51ca56f3f58687b3b8ed2b7d8320c2b33c11fde974857ef568f9bf79" :op :assert}
+   {:e #blake3 "ef0cf48be45c66b1ed7aa6fe7b2c1f3525f4cb526fd83c068df589699c9a9c86" :a :task/type :v :task.type/task :op :assert}
+ ]}
