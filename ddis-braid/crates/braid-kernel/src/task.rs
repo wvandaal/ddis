@@ -191,19 +191,52 @@ impl TaskSummary {
 /// Format: `t-{8 chars}` derived from BLAKE3 hash of the title.
 /// Deterministic: same title → same ID.
 ///
+/// # Identity model (C2: identity by content)
+///
+/// The task ID is a content-addressed hash of all identity-bearing fields:
+/// title, description, priority, and type. Two tasks with identical content
+/// produce identical IDs (idempotent creation). Two tasks with ANY differing
+/// field produce distinct IDs (no collision). Fields excluded from identity:
+/// - `created-at`: runtime state, not content
+/// - `traces-to`: relationship, not identity
+/// - `labels`: metadata, not identity
+/// - `agent`: provenance, not identity
+///
+/// Uses 8 hex chars (32 bits). At 100,000 tasks with content-addressed hashing,
+/// collision requires identical title+description+priority+type — which is a
+/// legitimate duplicate, not a collision.
+///
 /// # History
 ///
-/// Previously used 4 hex chars (16 bits = 65,536 possibilities). At 375 tasks,
-/// the birthday problem gave 66% collision probability, and a confirmed collision
-/// was found: t-09cc had two different task titles mapped to the same entity.
-/// Increased to 8 hex chars (32 bits = ~4 billion possibilities). Expected
-/// collisions at 2,000 tasks: 0.0005. At 100,000 tasks: 1.2.
-///
-/// See: Session 024 audit, FM-034 (Task ID Birthday Collision).
+/// Previously hashed only title (Session 024 → FM-034 collision at 4 chars).
+/// Extended to 8 chars but still title-only (Session 049 → LWW corruption
+/// when shell mangled arguments created same entity with different values).
+/// Fixed in Session 049 to hash all identity-bearing fields (Option B).
 pub fn generate_task_id(title: &str) -> String {
-    let hash = blake3::hash(title.as_bytes());
-    let hex = hash.to_hex();
-    format!("t-{}", &hex[..8])
+    generate_task_id_full(title, None, 2, "task")
+}
+
+/// Content-addressed task ID from all identity-bearing fields (C2).
+///
+/// Two creates with different descriptions produce different entities.
+/// Two creates with identical everything produce the same entity with
+/// identical datoms (idempotent merge under C4 set-union CRDT).
+pub fn generate_task_id_full(
+    title: &str,
+    description: Option<&str>,
+    priority: i64,
+    task_type: &str,
+) -> String {
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(title.as_bytes());
+    hasher.update(b"\x00"); // field separator
+    hasher.update(description.unwrap_or("").as_bytes());
+    hasher.update(b"\x00");
+    hasher.update(&priority.to_le_bytes());
+    hasher.update(b"\x00");
+    hasher.update(task_type.as_bytes());
+    let hash = hasher.finalize();
+    format!("t-{}", &hash.to_hex()[..8])
 }
 
 // ---------------------------------------------------------------------------
@@ -375,7 +408,16 @@ pub fn create_task_datoms(params: CreateTaskParams<'_>) -> (EntityId, Vec<Datom>
         labels,
         now,
     } = params;
-    let task_id = generate_task_id(title);
+    let type_str = match task_type {
+        TaskType::Task => "task",
+        TaskType::Bug => "bug",
+        TaskType::Feature => "feature",
+        TaskType::Epic => "epic",
+        TaskType::Question => "question",
+        TaskType::Docs => "docs",
+        TaskType::Test => "test",
+    };
+    let task_id = generate_task_id_full(title, description, priority, type_str);
     let ident = format!(":task/{task_id}");
     let entity = EntityId::from_ident(&ident);
 

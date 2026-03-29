@@ -19,7 +19,7 @@ use braid_kernel::guidance::compute_routing_from_store;
 use braid_kernel::layout::TxFile;
 use braid_kernel::task::{
     self, check_dependency_acyclicity, close_task_datoms, compute_ready_set, dep_add_datom,
-    extract_acceptance_criteria, find_task_by_id, generate_task_id, parse_spec_refs,
+    extract_acceptance_criteria, find_task_by_id, parse_spec_refs,
     parse_verification_pattern, resolve_spec_refs, run_verification, set_attribute_datom,
     task_counts, task_summary, update_status_datom, CreateTaskParams, TaskStatus, TaskType,
     VerificationPattern,
@@ -113,6 +113,30 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
     }
 
     let tt = TaskType::from_keyword(task_type).unwrap_or(TaskType::Task);
+
+    // DUPLICATE GUARD (defense-in-depth, C2): Content-addressed identity check.
+    // Task ID is BLAKE3(title + description + priority + type) — two creates with
+    // identical content produce the same entity (idempotent under C4 set-union).
+    // Two creates with any differing field produce distinct entities (no collision).
+    // The guard rejects truly duplicate creates; the content-addressed ID model
+    // makes accidental collisions cryptographically unlikely (~2^-128).
+    let type_str = match tt {
+        TaskType::Task => "task",
+        TaskType::Bug => "bug",
+        TaskType::Feature => "feature",
+        TaskType::Epic => "epic",
+        TaskType::Question => "question",
+        TaskType::Docs => "docs",
+        TaskType::Test => "test",
+    };
+    let task_id = task::generate_task_id_full(title, description, priority, type_str);
+    if task::find_task_by_id(store, &task_id).is_some() {
+        return Err(BraidError::Validation(format!(
+            "task already exists: {task_id} (identical content). \
+             Use `braid task show {task_id}` to view the existing task."
+        )));
+    }
+
     let agent_id = AgentId::from_name(agent);
     let tx_id = super::write::next_tx_id(store, agent_id);
 
@@ -139,19 +163,6 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         labels,
         now: braid_kernel::now_secs(),
     });
-
-    // DUPLICATE GUARD: Reject if this entity already exists in the store.
-    // The task ID is deterministic (BLAKE3 of title), so creating the same
-    // task twice targets the same entity. Without this guard, the second
-    // creation overwrites fields via LWW, potentially corrupting the task
-    // if the caller's shell mangled the arguments.
-    let task_id = generate_task_id(title);
-    if task::find_task_by_id(store, &task_id).is_some() {
-        return Err(BraidError::Validation(format!(
-            "task already exists: {task_id} (title hash collision or duplicate create). \
-             Use `braid task show {task_id}` to view the existing task."
-        )));
-    }
 
     // Build warnings for unresolved refs
     let mut warnings = Vec::new();
@@ -2452,8 +2463,8 @@ mod tests {
         create_test_task(&path, "Task A", 1);
         create_test_task(&path, "Task B", 0);
 
-        let id_a = generate_task_id("Task A");
-        let id_b = generate_task_id("Task B");
+        let id_a = task::generate_task_id("Task A");
+        let id_b = task::generate_task_id("Task B");
 
         dep_add(&path, &id_b, &id_a, "test", None).unwrap();
 
@@ -2538,7 +2549,7 @@ mod tests {
 
         // Verify the store has :task/traces-to datom
         let store = layout.load_store().unwrap();
-        let task_id = generate_task_id("Fix INV-STORE-001 violation");
+        let task_id = task::generate_task_id("Fix INV-STORE-001 violation");
         let task_entity = find_task_by_id(&store, &task_id).expect("task should exist");
         let task_datoms = store.entity_datoms(task_entity);
         let has_traces_to = task_datoms.iter().any(|d| {
@@ -2601,7 +2612,7 @@ mod tests {
 
         // Create task with priority 2
         create_test_task(&path, "Priority diff test", 2);
-        let task_id = generate_task_id("Priority diff test");
+        let task_id = task::generate_task_id("Priority diff test");
 
         // Set priority from 2 to 0 — should show "2→0"
         let result = set(&path, &task_id, "priority", "0", "test", None).unwrap();
@@ -2627,7 +2638,7 @@ mod tests {
 
         // Create task with priority 2
         create_test_task(&path, "Unchanged diff test", 2);
-        let task_id = generate_task_id("Unchanged diff test");
+        let task_id = task::generate_task_id("Unchanged diff test");
 
         // Set priority to same value (2) — should show "(unchanged)"
         let result = set(&path, &task_id, "priority", "2", "test", None).unwrap();
@@ -2647,7 +2658,7 @@ mod tests {
         crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         create_test_task(&path, "Status diff test", 2);
-        let task_id = generate_task_id("Status diff test");
+        let task_id = task::generate_task_id("Status diff test");
 
         // Set status from open to in-progress
         let result = set(&path, &task_id, "status", "in-progress", "test", None).unwrap();
@@ -2683,7 +2694,7 @@ mod tests {
         crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         create_test_task(&path, "Invalid attr test", 2);
-        let task_id = generate_task_id("Invalid attr test");
+        let task_id = task::generate_task_id("Invalid attr test");
 
         let result = set(
             &path,
@@ -2710,7 +2721,7 @@ mod tests {
         let mut ids = Vec::new();
         for i in 0..5 {
             create_test_task(&path, &format!("Batch close test {i}"), 2);
-            ids.push(generate_task_id(&format!("Batch close test {i}")));
+            ids.push(task::generate_task_id(&format!("Batch close test {i}")));
         }
 
         // Close all 5 in one call
@@ -2745,7 +2756,7 @@ mod tests {
         crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         create_test_task(&path, "Priority persist test", 2);
-        let task_id = generate_task_id("Priority persist test");
+        let task_id = task::generate_task_id("Priority persist test");
 
         // Set priority to 0
         set(&path, &task_id, "priority", "0", "test", None).unwrap();
