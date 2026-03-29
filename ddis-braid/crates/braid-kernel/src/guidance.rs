@@ -3922,7 +3922,7 @@ mod tests {
             for d in datoms_down {
                 accumulated.insert(d);
             }
-            let down_entity = EntityId::from_ident(&format!(":task/{}", generate_task_id(&title)));
+            let down_entity = EntityId::from_ident(&format!(":task/{}", crate::task::generate_task_id_full(&title, None, 3, "task")));
             accumulated.insert(dep_add_datom(down_entity, hub_entity, tx));
         }
         let store = Store::from_datoms(accumulated);
