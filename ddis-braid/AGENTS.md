@@ -185,13 +185,20 @@ without going through policy/extractor pattern.
 
 ## Agent Launch Protocol (INV-TOPOLOGY-003)
 
-Prevents build-lock contention and file overwrites (learned from Session 025).
+Prevents build-lock contention, disk exhaustion, and file overwrites (learned from Sessions 025, 049).
 
 1. **Commit before launch.** Agents' `cargo fmt` will overwrite uncommitted edits.
 2. **Disjoint file sets.** Each agent edits DIFFERENT files. Same file = serialize, not parallelize.
-3. **Agents don't build.** Edit only — no `cargo fmt/clippy/test`. Orchestrator verifies after.
+3. **Agents MUST NOT run cargo commands.** No `cargo check`, `cargo clippy`, `cargo test`,
+   `cargo fmt`, or `cargo build`. The orchestrator runs these ONCE after all agents complete.
+   **Why**: Parallel cargo invocations fight over the build lock (serializing anyway) while
+   each compilation grows the incremental cache by ~2GB. Three agents = 6GB wasted + 15min
+   of lock contention. One orchestrator build = 3min, no waste.
 4. **No worktrees.** Launch without `isolation: "worktree"`.
 5. **Use `-q` flag.** `braid ... -q` suppresses guidance footer. Never `2>/dev/null`.
+6. **Agent verification is code-level only.** Agents verify their work by reading back the
+   files they wrote and checking logical correctness. They do NOT compile or run tests.
+   The orchestrator is the single point of build/test truth.
 
 ---
 
@@ -217,7 +224,20 @@ Prevents build-lock contention and file overwrites (learned from Session 025).
 
 ## Build Notes
 
-`CARGO_TARGET_DIR=/tmp/cargo-target` — must `cp` binary after `cargo build --release`.
+`CARGO_TARGET_DIR=/data/cargo-target` — persistent on real disk (529GB available),
+not tmpfs. Must `cp` binary after `cargo build --release`:
+```bash
+cp /data/cargo-target/release/braid ./target/release/braid
+```
+
+**Why /data, not /tmp**: `/tmp` is a 32GB tmpfs (RAM-backed). Cargo debug+test
+artifacts consume ~22GB. Parallel agent compilation fills it within one session.
+`/data` is the 581GB root partition — no size constraint.
+
+**Periodic cleanup** (between phases, not between tasks):
+```bash
+rm -rf /data/cargo-target/debug/incremental/  # ~8GB, rebuilt in ~60s
+```
 
 Stage 1 is ~85% complete. Stage 0 (spec, guide, gap analysis, kernel, CLI) is done.
 Details in SEED.md §10.
