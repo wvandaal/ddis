@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774759585/0/b810f8fe03fbad50116c67eab86b6853"
+ :tx/agent "b810f8fe03fbad50116c67eab86b6853"
+ :tx/provenance :observed
+ :tx/rationale "daemon routing test"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c3d4bde7b0d2a3e849f6b444e9f58d57cc255265e5f189ab26167b7077e65626" :a :db/doc :v "daemon routing test" :op :assert}
+   {:e #blake3 "c3d4bde7b0d2a3e849f6b444e9f58d57cc255265e5f189ab26167b7077e65626" :a :db/ident :v :observation/daemon-routing-test :op :assert}
+   {:e #blake3 "c3d4bde7b0d2a3e849f6b444e9f58d57cc255265e5f189ab26167b7077e65626" :a :exploration/body :v "daemon routing test" :op :assert}
+   {:e #blake3 "c3d4bde7b0d2a3e849f6b444e9f58d57cc255265e5f189ab26167b7077e65626" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "c3d4bde7b0d2a3e849f6b444e9f58d57cc255265e5f189ab26167b7077e65626" :a :exploration/confidence :v 0.5 :op :assert}
+   {:e #blake3 "c3d4bde7b0d2a3e849f6b444e9f58d57cc255265e5f189ab26167b7077e65626" :a :exploration/content-hash :v #bytes "941bdd288fab96b6919c744ee5a802a1c7bade1ca2bd9d2725b47f4ad35d8dae" :op :assert}
+   {:e #blake3 "c3d4bde7b0d2a3e849f6b444e9f58d57cc255265e5f189ab26167b7077e65626" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "c3d4bde7b0d2a3e849f6b444e9f58d57cc255265e5f189ab26167b7077e65626" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "c3d4bde7b0d2a3e849f6b444e9f58d57cc255265e5f189ab26167b7077e65626" :a :exploration/source-session :v #blake3 "f101d73ecdccc853dfd8302d1d4187af68ae82723160e1d32168e66ed5233471" :op :assert}
+ ]}

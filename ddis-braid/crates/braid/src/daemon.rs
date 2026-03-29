@@ -1205,24 +1205,14 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
         crate::live_store::LiveStore::open_with_wal(braid_dir).map_err(DaemonError::from)?;
 
     // 3. Install runtime schema (ADR-DAEMON-003).
+    //    This is fast (~1ms) and required before any tool dispatch.
     install_runtime_schema(&mut live)?;
 
-    // 3a. Capability census (PERF-4a): record compiled-in subsystems.
-    run_capability_census(&mut live)?;
-
-    // 3b. Reflexive FEGH (PERF-4b): bridge hypotheses on self-model.
-    run_reflexive_fegh(&mut live);
-
-    // INV-DAEMON-011: Idle timeout — daemon self-terminates after no requests.
-    // Default 300s (5 minutes). Configurable via :config/daemon-idle-timeout datom (C9).
-    // Read config BEFORE wrapping in RwLock (avoids lock acquisition at this point).
+    // Read config BEFORE wrapping in RwLock.
     let idle_timeout_secs: u64 =
         braid_kernel::config::get_config(live.store(), "daemon.idle-timeout-secs")
             .and_then(|v| v.parse().ok())
             .unwrap_or(300);
-
-    // DS3: Checkpoint interval — configurable via :config/checkpoint-interval-secs (C9).
-    // Read before wrapping in RwLock (same pattern as idle timeout above).
     let checkpoint_interval_secs: u64 =
         braid_kernel::config::get_config(live.store(), "checkpoint-interval-secs")
             .and_then(|v| v.parse().ok())
@@ -1284,6 +1274,20 @@ pub fn serve_daemon(braid_dir: &Path) -> Result<(), DaemonError> {
         sock_path.path().display(),
         std::process::id()
     );
+
+    // 5b. Deferred enrichment — runs AFTER socket is bound so auto-start
+    //     clients don't timeout waiting for these non-critical operations.
+    //     Capability census and FEGH are store enrichment, not prerequisites.
+    {
+        let shared_enrich = Arc::clone(&shared);
+        let builder = std::thread::Builder::new().name("braid-enrich".to_string());
+        let _ = builder.spawn(move || {
+            if let Ok(mut live) = shared_enrich.write() {
+                let _ = run_capability_census(&mut live);
+                run_reflexive_fegh(&mut live);
+            }
+        });
+    }
 
     // 6. Install signal handlers.
     // Reset any stale shutdown flag from a previous daemon run (or test).
