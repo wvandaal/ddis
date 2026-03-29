@@ -1,0 +1,15 @@
+{:tx/id #hlc "1774753720/0/8c6035425945a448a9e1c0e730e08400"
+ :tx/agent "8c6035425945a448a9e1c0e730e08400"
+ :tx/provenance :derived
+ :tx/rationale "ST-1: auto-detected session start"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5478bb6f7f6f6708e828ad80ba4cb0b7fbcb211d5e2b2bcd6bb31d533f1d2d25" :a :db/ident :v :session/s-1774753719 :op :assert}
+   {:e #blake3 "5478bb6f7f6f6708e828ad80ba4cb0b7fbcb211d5e2b2bcd6bb31d533f1d2d25" :a :session/agent :v #blake3 "604d4d9a499af21f594b9ae8855bfabfeeae05d03cef2fdc9f374eab2277c2de" :op :assert}
+   {:e #blake3 "5478bb6f7f6f6708e828ad80ba4cb0b7fbcb211d5e2b2bcd6bb31d533f1d2d25" :a :session/current :v #blake3 "5478bb6f7f6f6708e828ad80ba4cb0b7fbcb211d5e2b2bcd6bb31d533f1d2d25" :op :assert}
+   {:e #blake3 "5478bb6f7f6f6708e828ad80ba4cb0b7fbcb211d5e2b2bcd6bb31d533f1d2d25" :a :session/start-datom-count :v 180957 :op :assert}
+   {:e #blake3 "5478bb6f7f6f6708e828ad80ba4cb0b7fbcb211d5e2b2bcd6bb31d533f1d2d25" :a :session/start-fitness :v 0.6136435876252354 :op :assert}
+   {:e #blake3 "5478bb6f7f6f6708e828ad80ba4cb0b7fbcb211d5e2b2bcd6bb31d533f1d2d25" :a :session/start-time :v "2026-03-29T03:08:39Z" :op :assert}
+   {:e #blake3 "5478bb6f7f6f6708e828ad80ba4cb0b7fbcb211d5e2b2bcd6bb31d533f1d2d25" :a :session/started-at :v 1774753719 :op :assert}
+   {:e #blake3 "5478bb6f7f6f6708e828ad80ba4cb0b7fbcb211d5e2b2bcd6bb31d533f1d2d25" :a :session/status :v :session.status/active :op :assert}
+ ]}
