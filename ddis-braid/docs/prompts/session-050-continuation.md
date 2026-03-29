@@ -68,6 +68,51 @@
 - BUT: braid_status computation inside the daemon takes ~10s at 181K datoms (O(N) scans in guidance, bilateral, methodology). The read timeout is 10s (daemon.rs:1124). The response times out. try_route_through_daemon returns None. CLI falls through to direct mode (6.7s user CPU, 430MB RSS). The daemon infrastructure delivers zero benefit for the most common command.
 - Root cause: O(N) full datom scans in the status pipeline. Wave 3 is the fix.
 
+### Known debt and architectural concerns
+
+**1. WRITER abstraction is wrong.** `pre_opened: Option<&mut LiveStore>` on 40+
+function signatures is mechanical plumbing that makes every function harder to
+read without providing encapsulation. A `CommandContext` struct that owns the
+store lifecycle would be cleaner. We followed the spec literally instead of
+improving the design. This doesn't block anything but makes the command layer
+harder to maintain and extend. Future refactor target.
+
+**2. Daemon infrastructure is operationally unproven.** WAL works (21 tests),
+group commit works (runtime datoms flow through it), checkpoint converts WAL to
+EDN, crash recovery works (3-level), read/write lock split works. But we have
+zero performance measurements. The spec says P99 < 50ms at 50 agents — we
+cannot confirm or deny. BENCH-1/BENCH-2 are designed to prove these claims but
+have not been run.
+
+**3. Guidance is the weakest subsystem.** M(t) scoring works but the feedback
+loop — the thing that makes it a control system instead of a measurement system —
+has functions defined but not wired. Guidance recommendations are ephemeral (only
+in footer text, not persisted as datoms). The system detects drift but cannot
+learn from whether recommendations were followed. Directly undermines
+ADR-FOUNDATION-014 (close every loop). This is the last open formal model violation.
+
+**4. C8 substrate independence is partially delivered.** PolicyConfig has
+configurable weights, namespace attributes, element types, harvest categories.
+But we have never tested it on a non-DDIS project. Session 047 external readiness
+scored 6.75/10 — concept clustering tuned to DDIS vocabulary, guidance recommends
+spec-language on Go projects, seed shows irrelevant DDIS constraints. We did not
+improve that score. A true 10/10 requires an E2E test on a React or Go project.
+
+**5. Session 049 process failures to avoid repeating:**
+- Parallel agent disk exhaustion: concurrent cargo builds filled 32GB tmpfs.
+  Fixed by moving to /data/cargo-target + agents don't build rule.
+- Agent file conflicts: 3 agents touched store.rs simultaneously, creating
+  hard-to-detect merge issues. Mitigated by disjoint-file-set rule but
+  store.rs is a frequent target — consider splitting it.
+- Claimed completion without evidence: the guidance feedback loop was "done"
+  per agent report but code was lost to disk pressure. Declared Wave 2
+  complete without verifying the functions existed in the working tree.
+  **Rule: every completion claim must be verified against primary source
+  (grep for function name in the actual file) before marking done.**
+- store.rs is 6,700+ LOC and touched by nearly every subsystem. It is the
+  highest-contention file in the project. Consider splitting into store.rs
+  (core), store_views.rs (MaterializedViews), store_live.rs (LIVE index).
+
 ### Risks
 - CARGO_TARGET_DIR is now /data/cargo-target (real disk, 529GB). cargo-sweep cron runs daily at 4am removing artifacts >1 day old. /tmp is no longer used.
 - Agents MUST NOT run cargo commands (CLAUDE.md Agent Launch Protocol rule 3). Orchestrator is the single build/test authority.
