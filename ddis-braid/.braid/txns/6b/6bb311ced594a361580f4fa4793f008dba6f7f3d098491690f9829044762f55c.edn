@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774766346/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ISP-FIX-11: Align :spec/traces-to cardinality between spec and implementation. CONTEXT: spec/02-schema.md line 158 declares :spec/traces-to as String:Many:Multi (spec element can trace to multiple SEED sections). schema.rs line 1223 implements it as attr() (Cardinality::One). This is a second contradiction. APPROACH: Change from attr() to attr_multi() in schema.rs for :spec/traces-to, matching the spec. ACCEPTANCE: (A) :spec/traces-to has Cardinality::Many in genesis schema. (B) Spec and implementation agree on cardinality. (C) No test regressions. TRACES: INV-SCHEMA-004, spec/02-schema.md line 158. FILE: crates/braid-kernel/src/schema.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :db/ident :v :task/t-4fcac900 :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/acceptance :v "(A) :spec/traces-to has Cardinality::Many in genesis schema. (B) Spec and implementation agree on cardinality. (C) No test regressions. TRACES: INV-SCHEMA-004, spec/02-schema.md line 158." :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/approach :v "Change from attr() to attr_multi() in schema.rs for :spec/traces-to, matching the spec." :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/body :v "APPROACH: Change from attr() to attr_multi() in schema.rs for :spec/traces-to, matching the spec. ACCEPTANCE: (A) :spec/traces-to has Cardinality::Many in genesis schema. (B) Spec and implementation agree on cardinality. (C) No test regressions. TRACES: INV-SCHEMA-004, spec/02-schema.md line 158. FILE: crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/created-at :v 1774766345 :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/files :v "crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/id :v "t-4fcac900" :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/title :v "ISP-FIX-11: Align :spec/traces-to cardinality between spec and implementation. CONTEXT: spec/02-schema.md line 158 declares :spec/traces-to as String:Many:Multi (spec element can trace to multiple SEED sections). schema.rs line 1223 implements it as attr() (Cardinality::One). This is a second contradiction" :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/title-l0 :v "ISP-FIX-11" :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/title-l1 :v "ISP-FIX-11: Align :spec/traces-to cardinality between spec and implementation" :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/traces-to :v #blake3 "1e6cdcb23d6b2611ceac3550471a6fe6f3ceb9528929ffcbc0ac90765c7d9739" :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/type :v :task.type/task :op :assert}
+ ]}

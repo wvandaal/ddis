@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774766261/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ISP-FIX-5: Add dual-read for :spec/depends-on + legacy :spec/traces-to Ref datoms. CONTEXT: Existing stores contain ~113 :spec/traces-to Ref datoms from prior spec_dependency_datoms() calls. C1 (append-only) prohibits deletion. Two reader functions need to see both old and new edges. APPROACH: (1) compute_invariant_coupling (topology.rs:924): read both :spec/depends-on and :spec/traces-to, union the edge sets. (2) spec_graph_neighbors (context.rs:1997): same dual-read pattern. Comment clearly that :spec/traces-to Ref is legacy. ACCEPTANCE: (A) Topology coupling includes edges from both attributes. (B) Spec graph neighbors includes edges from both. (C) No functional regression for existing stores. DEPENDS-ON: ISP-FIX-1. TRACES: C1, INV-STORE-001. FILE: crates/braid-kernel/src/topology.rs, crates/braid-kernel/src/context.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :db/ident :v :task/t-8b748a48 :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/acceptance :v "(A) Topology coupling includes edges from both attributes. (B) Spec graph neighbors includes edges from both. (C) No functional regression for existing stores. DEPENDS-ON: ISP-FIX-1. TRACES: C1, INV-STORE-001." :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/approach :v "(1) compute_invariant_coupling (topology.rs:924): read both :spec/depends-on and :spec/traces-to, union the edge sets. (2) spec_graph_neighbors (context.rs:1997): same dual-read pattern. Comment clearly that :spec/traces-to Ref is legacy." :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/body :v "APPROACH: (1) compute_invariant_coupling (topology.rs:924): read both :spec/depends-on and :spec/traces-to, union the edge sets. (2) spec_graph_neighbors (context.rs:1997): same dual-read pattern. Comment clearly that :spec/traces-to Ref is legacy. ACCEPTANCE: (A) Topology coupling includes edges from both attributes. (B) Spec graph neighbors includes edges from both. (C) No functional regression for existing stores. DEPENDS-ON: ISP-FIX-1. TRACES: C1, INV-STORE-001. FILE: crates/braid-kernel/src/topology.rs, crates/braid-kernel/src/context.rs" :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/created-at :v 1774766260 :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/files :v "crates/braid-kernel/src/context.rs" :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/files :v "crates/braid-kernel/src/topology.rs" :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/id :v "t-8b748a48" :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/title :v "ISP-FIX-5: Add dual-read for :spec/depends-on + legacy :spec/traces-to Ref datoms. CONTEXT: Existing stores contain ~113 :spec/traces-to Ref datoms from prior spec_dependency_datoms() calls. C1 (append-only) prohibits deletion. Two reader functions need to see both old and new edges" :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/title-l0 :v "ISP-FIX-5" :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/title-l1 :v "ISP-FIX-5: Add dual-read for :spec/depends-on + legacy :spec/traces-to Ref da..." :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/traces-to :v #blake3 "e28e7edc1de3fd309bdb24646b12535d322634aa0f3488861155aaade266b8c3" :op :assert}
+   {:e #blake3 "6b97a219dcad03517b9ef82fa79a97060404e2b23f128a94250e921cf454123b" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774766197/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: ISP-FIX — Resolve ISP traceability model contradiction + close detection loop"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "090e5547481e122fc0cdf9671aec3b2dd24cbc11dafd513eabea465793f99f77" :a :db/ident :v :task/t-e3d71d31 :op :assert}
+   {:e #blake3 "090e5547481e122fc0cdf9671aec3b2dd24cbc11dafd513eabea465793f99f77" :a :task/created-at :v 1774766196 :op :assert}
+   {:e #blake3 "090e5547481e122fc0cdf9671aec3b2dd24cbc11dafd513eabea465793f99f77" :a :task/id :v "t-e3d71d31" :op :assert}
+   {:e #blake3 "090e5547481e122fc0cdf9671aec3b2dd24cbc11dafd513eabea465793f99f77" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "090e5547481e122fc0cdf9671aec3b2dd24cbc11dafd513eabea465793f99f77" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "090e5547481e122fc0cdf9671aec3b2dd24cbc11dafd513eabea465793f99f77" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "090e5547481e122fc0cdf9671aec3b2dd24cbc11dafd513eabea465793f99f77" :a :task/title :v "EPIC: ISP-FIX — Resolve ISP traceability model contradiction + close detection loop" :op :assert}
+   {:e #blake3 "090e5547481e122fc0cdf9671aec3b2dd24cbc11dafd513eabea465793f99f77" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "090e5547481e122fc0cdf9671aec3b2dd24cbc11dafd513eabea465793f99f77" :a :task/title-l1 :v "EPIC: ISP-FIX — Resolve ISP traceability model contradiction + close detect..." :op :assert}
+   {:e #blake3 "090e5547481e122fc0cdf9671aec3b2dd24cbc11dafd513eabea465793f99f77" :a :task/type :v :task.type/epic :op :assert}
+ ]}

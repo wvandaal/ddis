@@ -827,7 +827,7 @@ pub fn emit_seed_for_agent(
 // TOPO-SPEC-DEPS: Spec dependency edge transaction (INV-TOPOLOGY-004)
 // ---------------------------------------------------------------------------
 
-/// Parse `:element/traces-to` strings into `:spec/traces-to` Ref datoms.
+/// Parse `:element/traces-to` strings into `:spec/depends-on` Ref datoms.
 ///
 /// Iterates all spec entities with `:element/traces-to`, extracts spec IDs
 /// (INV-*, ADR-*, NEG-*) via `parse_spec_refs`, resolves them to store entities
@@ -841,7 +841,7 @@ pub fn spec_dependency_datoms(
     use crate::datom::*;
 
     let traces_attr = Attribute::from_keyword(":element/traces-to");
-    let spec_traces_attr = Attribute::from_keyword(":spec/traces-to");
+    let spec_depends_attr = Attribute::from_keyword(":spec/depends-on");
 
     let mut datoms = Vec::new();
     let mut resolved = 0usize;
@@ -871,7 +871,7 @@ pub fn spec_dependency_datoms(
                 if target_exists {
                     datoms.push(Datom::new(
                         source_entity,
-                        spec_traces_attr.clone(),
+                        spec_depends_attr.clone(),
                         Value::Ref(target_entity),
                         tx,
                         Op::Assert,
@@ -921,16 +921,21 @@ pub fn compute_invariant_coupling(
         return coupling;
     }
 
-    // Step 1: Build spec dependency DiGraph from :spec/traces-to Ref datoms.
-    let spec_traces_attr = crate::datom::Attribute::from_keyword(":spec/traces-to");
+    // Step 1: Build spec dependency DiGraph from :spec/depends-on Ref datoms.
+    // Dual-read: also include legacy :spec/traces-to Ref datoms (C1: append-only,
+    // old stores have ~113 Ref datoms under :spec/traces-to from prior sessions).
+    let spec_depends_attr = crate::datom::Attribute::from_keyword(":spec/depends-on");
+    let spec_traces_legacy = crate::datom::Attribute::from_keyword(":spec/traces-to");
     let mut adjacency: BTreeMap<EntityId, BTreeSet<EntityId>> = BTreeMap::new();
 
-    for datom in store.attribute_datoms(&spec_traces_attr) {
-        if datom.op != crate::datom::Op::Assert {
-            continue;
-        }
-        if let crate::datom::Value::Ref(target) = &datom.value {
-            adjacency.entry(datom.entity).or_default().insert(*target);
+    for attr in [&spec_depends_attr, &spec_traces_legacy] {
+        for datom in store.attribute_datoms(attr) {
+            if datom.op != crate::datom::Op::Assert {
+                continue;
+            }
+            if let crate::datom::Value::Ref(target) = &datom.value {
+                adjacency.entry(datom.entity).or_default().insert(*target);
+            }
         }
     }
 
@@ -2317,14 +2322,14 @@ mod tests {
             datoms.insert(d);
         }
 
-        let spec_traces_attr = Attribute::from_keyword(":spec/traces-to");
+        let spec_depends_attr = Attribute::from_keyword(":spec/depends-on");
 
         for (src, tgt) in edges {
             let src_e = EntityId::from_ident(src);
             let tgt_e = EntityId::from_ident(tgt);
             datoms.insert(Datom::new(
                 src_e,
-                spec_traces_attr.clone(),
+                spec_depends_attr.clone(),
                 Value::Ref(tgt_e),
                 tx,
                 Op::Assert,

@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774788246/0/1241d52916e2c38c1dd4577d8590e13c"
+ :tx/agent "1241d52916e2c38c1dd4577d8590e13c"
+ :tx/provenance :observed
+ :tx/rationale "PERFORMANCE: formality_level O(N)->O(entity) fix reduced braid status from 5.95s to 3.58s user CPU (40% reduction). Single line change: store.datoms().filter(entity==) to store.entity_datoms(entity). Remaining 3.5s still dominated by boundary evaluation. Next targets: forward_scan/backward_scan redundant live_projections calls, observation_boundary datom scan."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "473fc4e6a257e1c2927d47ecda5c0a47c3496702fb6e39c5742655b1d7ea4582" :a :db/ident :v :task/t-45fdd5ed :op :assert}
+   {:e #blake3 "473fc4e6a257e1c2927d47ecda5c0a47c3496702fb6e39c5742655b1d7ea4582" :a :task/body :v "PERFORMANCE: formality_level O(N)->O(entity) fix reduced braid status from 5.95s to 3.58s user CPU (40% reduction). Single line change: store.datoms().filter(entity==) to store.entity_datoms(entity). Remaining 3.5s still dominated by boundary evaluation. Next targets: forward_scan/backward_scan redundant live_projections calls, observation_boundary datom scan." :op :assert}
+   {:e #blake3 "473fc4e6a257e1c2927d47ecda5c0a47c3496702fb6e39c5742655b1d7ea4582" :a :task/created-at :v 1774788245 :op :assert}
+   {:e #blake3 "473fc4e6a257e1c2927d47ecda5c0a47c3496702fb6e39c5742655b1d7ea4582" :a :task/id :v "t-45fdd5ed" :op :assert}
+   {:e #blake3 "473fc4e6a257e1c2927d47ecda5c0a47c3496702fb6e39c5742655b1d7ea4582" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "473fc4e6a257e1c2927d47ecda5c0a47c3496702fb6e39c5742655b1d7ea4582" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "473fc4e6a257e1c2927d47ecda5c0a47c3496702fb6e39c5742655b1d7ea4582" :a :task/title :v "PERFORMANCE: formality_level O(N)->O(entity) fix reduced braid status from" :op :assert}
+   {:e #blake3 "473fc4e6a257e1c2927d47ecda5c0a47c3496702fb6e39c5742655b1d7ea4582" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "eced1439e2266c42937e43ac9890dfcdf399d0aba1d230b231e6d47a7a9bd6da" :a :db/doc :v "PERFORMANCE: formality_level O(N)->O(entity) fix reduced braid status from 5.95s to 3.58s user CPU (40% reduction). Single line change: store.datoms().filter(entity==) to store.entity_datoms(entity). Remaining 3.5s still dominated by boundary evaluation. Next targets: forward_scan/backward_scan redundant live_projections calls, observation_boundary datom scan." :op :assert}
+   {:e #blake3 "eced1439e2266c42937e43ac9890dfcdf399d0aba1d230b231e6d47a7a9bd6da" :a :db/ident :v :observation/performance-formality-level-on-oentity-fix-reduced-bra :op :assert}
+   {:e #blake3 "eced1439e2266c42937e43ac9890dfcdf399d0aba1d230b231e6d47a7a9bd6da" :a :exploration/body :v "PERFORMANCE: formality_level O(N)->O(entity) fix reduced braid status from 5.95s to 3.58s user CPU (40% reduction). Single line change: store.datoms().filter(entity==) to store.entity_datoms(entity). Remaining 3.5s still dominated by boundary evaluation. Next targets: forward_scan/backward_scan redundant live_projections calls, observation_boundary datom scan." :op :assert}
+   {:e #blake3 "eced1439e2266c42937e43ac9890dfcdf399d0aba1d230b231e6d47a7a9bd6da" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "eced1439e2266c42937e43ac9890dfcdf399d0aba1d230b231e6d47a7a9bd6da" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "eced1439e2266c42937e43ac9890dfcdf399d0aba1d230b231e6d47a7a9bd6da" :a :exploration/content-hash :v #bytes "c16b8b8abfda913bcb2d8abbf6b0c08ba34735f2c877f422e8cd7f7f41b6a74a" :op :assert}
+   {:e #blake3 "eced1439e2266c42937e43ac9890dfcdf399d0aba1d230b231e6d47a7a9bd6da" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "eced1439e2266c42937e43ac9890dfcdf399d0aba1d230b231e6d47a7a9bd6da" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "eced1439e2266c42937e43ac9890dfcdf399d0aba1d230b231e6d47a7a9bd6da" :a :exploration/source-session :v #blake3 "92ef31606d12e9dab56bb218201a04c41e6df4a228ecb229fd354dc6f3af0471" :op :assert}
+ ]}

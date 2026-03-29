@@ -1,0 +1,15 @@
+{:tx/id #hlc "1774766139/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "58149e1c207bc766b7447e1e3c27bcdc8bf1b60e6fceb21003b0e6bdaa6df775" :a :db/ident :v :recon/trace-6a15f112c793f798 :op :assert}
+   {:e #blake3 "58149e1c207bc766b7447e1e3c27bcdc8bf1b60e6fceb21003b0e6bdaa6df775" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "58149e1c207bc766b7447e1e3c27bcdc8bf1b60e6fceb21003b0e6bdaa6df775" :a :recon/trace-neighborhood :v "TRILATERAL" :op :assert}
+   {:e #blake3 "58149e1c207bc766b7447e1e3c27bcdc8bf1b60e6fceb21003b0e6bdaa6df775" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.promote.inv-trilateral-002" :op :assert}
+   {:e #blake3 "58149e1c207bc766b7447e1e3c27bcdc8bf1b60e6fceb21003b0e6bdaa6df775" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.trilateral.inv-trilateral-002" :op :assert}
+   {:e #blake3 "58149e1c207bc766b7447e1e3c27bcdc8bf1b60e6fceb21003b0e6bdaa6df775" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-trilateral-002" :op :assert}
+   {:e #blake3 "58149e1c207bc766b7447e1e3c27bcdc8bf1b60e6fceb21003b0e6bdaa6df775" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.harvest_seed_cycle.inv-trilateral-002" :op :assert}
+   {:e #blake3 "58149e1c207bc766b7447e1e3c27bcdc8bf1b60e6fceb21003b0e6bdaa6df775" :a :recon/trace-refs :v "INV-TRILATERAL-002" :op :assert}
+ ]}

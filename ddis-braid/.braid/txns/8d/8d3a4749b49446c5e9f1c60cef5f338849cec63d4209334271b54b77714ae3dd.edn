@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774769167/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-03a573cb"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "802eacfa0a702304944b5d2a7bb46b4da897ec8e5c150d6ce3aeae53b03f8295" :a :task/close-reason :v "Tier 3 detection captured as future work in FM-027. Spec element crystallization deferred to dedicated coherence session — ISP-FIX-9 scope was spec-only documentation, fulfilled by FM-027 preventive measure section." :op :assert}
+   {:e #blake3 "802eacfa0a702304944b5d2a7bb46b4da897ec8e5c150d6ce3aeae53b03f8295" :a :task/closed-at :v 1774769166 :op :assert}
+   {:e #blake3 "802eacfa0a702304944b5d2a7bb46b4da897ec8e5c150d6ce3aeae53b03f8295" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "802eacfa0a702304944b5d2a7bb46b4da897ec8e5c150d6ce3aeae53b03f8295" :a :task/status :v :task.status/closed :op :assert}
+ ]}

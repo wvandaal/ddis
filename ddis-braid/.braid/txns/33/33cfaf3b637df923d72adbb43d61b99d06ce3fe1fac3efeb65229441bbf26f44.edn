@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774766862/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-4fcac900"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/close-reason :v "Cardinality fixed as part of ISP-FIX-1 commit — changed attr() to attr_multi() for :spec/traces-to." :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/closed-at :v 1774766861 :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "15aefb355d6bed3b1c01ffd37320733f547c3f805fcf1bf89d4482ed58126b5c" :a :task/status :v :task.status/closed :op :assert}
+ ]}

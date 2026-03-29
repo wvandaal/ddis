@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774766176/0/d3e9e4a36399c9d5af317fc531d9cdda"
+ :tx/agent "d3e9e4a36399c9d5af317fc531d9cdda"
+ :tx/provenance :observed
+ :tx/rationale "LEGACY COMPATIBILITY: Existing stores contain ~113 :spec/traces-to Ref datoms created by prior spec_dependency_datoms() calls. C1 (append-only) means these cannot be deleted. Strategy: dual-read in topology coupling and spec_graph_neighbors reads both :spec/depends-on AND legacy :spec/traces-to Ref datoms. compute_beta_1 reads only :spec/depends-on (losing legacy edges temporarily until next braid topology deps run generates equivalent edges). No migration needed — legacy datoms are technically schema-violating (String type has Ref value) but the append-only store tolerates them."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "73fd8f213dfef303a9770046bacc81d131fe108b2d020895c48348b6f6732d7c" :a :db/doc :v "LEGACY COMPATIBILITY: Existing stores contain ~113 :spec/traces-to Ref datoms created by prior spec_dependency_datoms() calls. C1 (append-only) means these cannot be deleted. Strategy: dual-read in topology coupling and spec_graph_neighbors reads both :spec/depends-on AND legacy :spec/traces-to Ref datoms. compute_beta_1 reads only :spec/depends-on (losing legacy edges temporarily until next braid topology deps run generates equivalent edges). No migration needed — legacy datoms are technically schema-violating (String type has Ref value) but the append-only store tolerates them." :op :assert}
+   {:e #blake3 "73fd8f213dfef303a9770046bacc81d131fe108b2d020895c48348b6f6732d7c" :a :db/ident :v :observation/legacy-compatibility-existing-stores-contain-113-spectra :op :assert}
+   {:e #blake3 "73fd8f213dfef303a9770046bacc81d131fe108b2d020895c48348b6f6732d7c" :a :exploration/body :v "LEGACY COMPATIBILITY: Existing stores contain ~113 :spec/traces-to Ref datoms created by prior spec_dependency_datoms() calls. C1 (append-only) means these cannot be deleted. Strategy: dual-read in topology coupling and spec_graph_neighbors reads both :spec/depends-on AND legacy :spec/traces-to Ref datoms. compute_beta_1 reads only :spec/depends-on (losing legacy edges temporarily until next braid topology deps run generates equivalent edges). No migration needed — legacy datoms are technically schema-violating (String type has Ref value) but the append-only store tolerates them." :op :assert}
+   {:e #blake3 "73fd8f213dfef303a9770046bacc81d131fe108b2d020895c48348b6f6732d7c" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "73fd8f213dfef303a9770046bacc81d131fe108b2d020895c48348b6f6732d7c" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "73fd8f213dfef303a9770046bacc81d131fe108b2d020895c48348b6f6732d7c" :a :exploration/content-hash :v #bytes "1129cb738328fccbbc5fdf91b8060ba4e07c99b65bae419a7dc29c266b7c5785" :op :assert}
+   {:e #blake3 "73fd8f213dfef303a9770046bacc81d131fe108b2d020895c48348b6f6732d7c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "73fd8f213dfef303a9770046bacc81d131fe108b2d020895c48348b6f6732d7c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "73fd8f213dfef303a9770046bacc81d131fe108b2d020895c48348b6f6732d7c" :a :exploration/source-session :v #blake3 "c9d616e825ea671ac869257a24fb4f76830de6cd733be41fab87939fe74da565" :op :assert}
+ ]}

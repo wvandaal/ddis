@@ -1219,11 +1219,17 @@ pub fn layer_1_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Falsification condition: how to violate this invariant",
         ),
-        attr(
+        attr_multi(
             ":spec/traces-to",
             ValueType::String,
-            Cardinality::One,
-            "SEED.md section reference that motivates this element",
+            Cardinality::Many,
+            "SEED.md section reference(s) that motivate this element",
+        ),
+        attr_multi(
+            ":spec/depends-on",
+            ValueType::Ref,
+            Cardinality::Many,
+            "Ref to spec element(s) this depends on (sequencing constraint)",
         ),
         attr(
             ":spec/verification",

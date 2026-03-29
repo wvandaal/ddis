@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774770934/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e3d71d31"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "090e5547481e122fc0cdf9671aec3b2dd24cbc11dafd513eabea465793f99f77" :a :task/close-reason :v "ISP-FIX EPIC complete. 11/11 tasks closed. Layer A: schema, compute_phi, topology, beta_1, legacy compat, tests. Layer B: FM-027. Layer C: hypothesis test, Tier 3 spec element. Layer D: spec formula, cardinality. 1790 kernel tests, 0 failures, clippy clean." :op :assert}
+   {:e #blake3 "090e5547481e122fc0cdf9671aec3b2dd24cbc11dafd513eabea465793f99f77" :a :task/closed-at :v 1774770932 :op :assert}
+   {:e #blake3 "090e5547481e122fc0cdf9671aec3b2dd24cbc11dafd513eabea465793f99f77" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "090e5547481e122fc0cdf9671aec3b2dd24cbc11dafd513eabea465793f99f77" :a :task/status :v :task.status/closed :op :assert}
+ ]}

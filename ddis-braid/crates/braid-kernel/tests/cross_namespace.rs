@@ -237,32 +237,29 @@ fn store_query_trilateral_coherence() {
         other => panic!("Expected Rel result, got {other:?}"),
     }
 
-    // Trilateral: Phi uses link-based reachability (WAVE2-PHI).
-    // D_IS > 0: No :spec/traces-to Ref link targets the intent entity.
-    // D_SP > 0: No :impl/implements Ref link targets the spec entity.
-    // (This test's schema registers all attrs as :db.type/string, so no Ref links.)
+    // Trilateral: Phi uses entity set membership — entity spanning all three
+    // ISP boundaries has d_is = 0, d_sp = 0, phi = 0.
     let (phi, components) = compute_phi_default(&store);
     assert_eq!(
-        components.d_is, 1,
-        "Intent not covered by :spec/traces-to Ref link"
+        components.d_is, 0,
+        "Entity with intent+spec attrs has d_is=0"
     );
     assert_eq!(
-        components.d_sp, 1,
-        "Spec not covered by :impl/implements Ref link"
+        components.d_sp, 0,
+        "Entity with spec+impl attrs has d_sp=0"
     );
-    assert!(phi > 0.0, "Phi > 0: no cross-boundary Ref links");
+    assert_eq!(phi, 0.0, "Fully covered entity produces phi=0");
 
-    // ISP check should still be coherent (isp_check uses entity-attribute presence,
-    // not link-based reachability)
+    // ISP check: entity with all three ISP layers is Coherent
     assert_eq!(
         isp_check(&store, inv_entity),
         IspResult::Coherent,
         "Entity with all three ISP layers must be Coherent"
     );
 
-    // Coherence report: GapsOnly (Phi > 0, beta_1 = 0 for acyclic)
+    // Coherence report: Coherent (Phi = 0, beta_1 = 0)
     let report = check_coherence(&store);
-    assert_eq!(report.quadrant, CoherenceQuadrant::GapsOnly);
+    assert_eq!(report.quadrant, CoherenceQuadrant::Coherent);
     assert_eq!(report.isp_bypasses, 0);
 }
 

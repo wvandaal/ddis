@@ -1960,7 +1960,9 @@ pub fn spec_graph_neighbors(store: &Store, spec_ref_ids: &[String]) -> Vec<(Enti
 
     let traces_to_attr = Attribute::from_keyword(":task/traces-to");
     let implements_attr = Attribute::from_keyword(":impl/implements");
-    let spec_traces_attr = Attribute::from_keyword(":spec/traces-to");
+    let spec_depends_attr = Attribute::from_keyword(":spec/depends-on");
+    // Legacy: also check :spec/traces-to for Ref datoms from prior sessions (C1).
+    let spec_traces_legacy = Attribute::from_keyword(":spec/traces-to");
 
     // Accumulate scores per entity (max of all paths)
     let mut scores: BTreeMap<EntityId, f64> = BTreeMap::new();
@@ -1994,10 +1996,15 @@ pub fn spec_graph_neighbors(store: &Store, spec_ref_ids: &[String]) -> Vec<(Enti
             }
         }
 
-        // 1-hop: follow :spec/traces-to from spec entity to neighbor specs,
-        // then find entities referencing those neighbors
+        // 1-hop: follow :spec/depends-on (and legacy :spec/traces-to Ref)
+        // from spec entity to neighbor specs, then find entities referencing those neighbors
         for spec_datom in store.entity_datoms(spec_entity) {
-            if spec_datom.op != Op::Assert || spec_datom.attribute != spec_traces_attr {
+            if spec_datom.op != Op::Assert {
+                continue;
+            }
+            if spec_datom.attribute != spec_depends_attr
+                && spec_datom.attribute != spec_traces_legacy
+            {
                 continue;
             }
             let neighbor_spec = match &spec_datom.value {

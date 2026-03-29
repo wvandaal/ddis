@@ -1545,11 +1545,47 @@ each task, run `braid seed`, compare output against ground truth.
 
 ---
 
+### FM-027: Spec Formula Type Mismatch (Phi Assumed Ref for String Attribute)
+
+**Discovered**: Session 050, 2026-03-29 (first-principles ISP model review)
+**Cross-References**: ISP-FIX EPIC (t-e3d71d31); spec/18-trilateral.md line 74; spec/02-schema.md line 158
+**Trigger**: During Phase 0 context recovery, the `full_end_to_end_pipeline` cross_namespace test failed. Investigation revealed compute_phi could never reach Coherent quadrant because D_IS was structurally always positive.
+**Status**: TESTABLE (fixed in Session 050)
+**Severity**: S0 — Structural
+**Divergence Type**: LO (Logical) + ST (Structural)
+**Formal violation predicate**: `∀ formula F referencing attribute A: assumed_type(F, A) = schema_type(A)` — a spec formula's type assumptions about an attribute must match the schema's declared ValueType for that attribute.
+
+**What happened**: INV-TRILATERAL-002 (spec/18-trilateral.md line 74) defined D_IS using `link.v = e` — matching a `:spec/traces-to` value to an EntityId, requiring Ref semantics. But spec/02-schema.md line 158 declares `:spec/traces-to` as ValueType::String (textual provenance to SEED.md sections). The formula was not mechanizable given the schema. `compute_phi` implemented the formula (scanning for Ref values), but Transaction::commit enforces schema types — no Ref values could ever exist for this String attribute in production. D_IS always equaled |LIVE_I|. Φ was positive for all stores with intent entities, regardless of formalization status. The bug persisted for 10+ sessions.
+
+**Why this is a hard problem for agents**: The formula and the schema live in different spec documents (18-trilateral.md vs 02-schema.md), written during different sessions, in different cognitive modes. The formula-writer assumed Ref because the ISP model conceptually links entities across boundaries. The schema-writer correctly declared String because `:spec/traces-to` stores textual references ("SEED §4", "C1"). Neither author cross-verified the type assumption. The commentary at lines 81-84 tried to reconcile ("String presence, not Ref entity resolution") but contradicted the formula it was annotating. Additionally, three other ISP functions (`check_coherence_fast`, `isp_check`, `formality_level`) correctly used entity set membership — the 3/4 correct implementations masked the 1/4 broken one.
+
+**Root cause**: Tier 3 (Semantic) contradiction detection is designed in SEED.md §3 but not implemented. Tiers 1-2 in coherence.rs only catch exact value conflicts and polarity/numeric contradictions. A Tier 3 rule ("formula references attribute X with assumed type T, but schema declares U") would have caught this. Additionally, the bilateral K (Contradiction) component (weight 0.13 in F(S)) only runs Tiers 1-2, making F(S) insensitive to semantic contradictions.
+
+**DDIS/Braid mechanism**: Three mechanisms should have caught this: (1) Tier 3 semantic detection — designed but unimplemented; (2) Hypothesis-ledger sanity test "Φ(entity with I+S+P attrs) = 0" — the discriminating test that would have failed; (3) `braid challenge INV-TRILATERAL-002` with falsification condition "Φ reports non-zero for fully formalized entity."
+
+**Resolution (Session 050)**:
+- Separated three conflated traceability levels: entity coverage (set membership), textual provenance (`:spec/traces-to` String), structural dependency (`:spec/depends-on` Ref — added to schema)
+- Aligned `compute_phi` with `check_coherence_fast` (entity set membership)
+- Updated `spec_dependency_datoms()` to write `:spec/depends-on`
+- Fixed `:spec/traces-to` cardinality (One → Many, matching spec)
+- Added hypothesis-ledger tests for Φ against known-good stores
+- Updated spec/18-trilateral.md formula to match implementation
+
+**Acceptance criterion**: (A) compute_phi and check_coherence_fast produce identical Φ for any store. (B) No attribute type-punning — `:spec/traces-to` holds only String, `:spec/depends-on` holds only Ref. (C) Hypothesis "Φ(I+S+P entity) = 0" passes. (D) FM-027 documented.
+
+**Observations**:
+- 10+ sessions with structurally broken Φ, undetected
+- 3/4 ISP functions used the correct model, masking the broken one
+- The spec contained the contradiction since trilateral spec was written
+- Existing stores have ~113 legacy `:spec/traces-to` Ref datoms (schema-violating but tolerated by C1 append-only)
+
+---
+
 ## Statistics
 
 | Metric | Value |
 |--------|-------|
-| Total failure modes | 26 |
+| Total failure modes | 27 |
 | OBSERVED | 1 (FM-026) |
 | MAPPED | 1 (FM-003) |
 | TESTABLE | 23 (FM-001, FM-002, FM-004–FM-024) |

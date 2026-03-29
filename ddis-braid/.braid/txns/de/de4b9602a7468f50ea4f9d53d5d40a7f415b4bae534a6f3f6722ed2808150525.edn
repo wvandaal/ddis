@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774769163/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-d2c9a35f"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5ed1b3731896689f7298187211d773a748d3e28c10e03b20c024ec7df1cfcdae" :a :task/close-reason :v "spec/18-trilateral.md D_IS formula updated to entity set membership. Contradictory type commentary removed. :spec/depends-on and :spec/traces-to roles documented." :op :assert}
+   {:e #blake3 "5ed1b3731896689f7298187211d773a748d3e28c10e03b20c024ec7df1cfcdae" :a :task/closed-at :v 1774769162 :op :assert}
+   {:e #blake3 "5ed1b3731896689f7298187211d773a748d3e28c10e03b20c024ec7df1cfcdae" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "5ed1b3731896689f7298187211d773a748d3e28c10e03b20c024ec7df1cfcdae" :a :task/status :v :task.status/closed :op :assert}
+ ]}

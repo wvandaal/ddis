@@ -68,30 +68,33 @@ S₁ ⊆ S₂ ⟹ LIVE_X(S₁) ⊆ LIVE_X(S₂)   for X ∈ {I, S, P}
 #### Divergence as Live Metric
 
 ```
-Φ(S) = w₁ × D_IS(S) + w₂ × D_SP(S)
+Φ(S) = (w₁ × D_IS(S) + w₂ × D_SP(S)) / n_max
 
 where:
-  D_IS(S) = |{e ∈ LIVE_I(S) | ¬∃ link: link.a = :spec/traces-to ∧ link.v = e}|
-           + |{e ∈ LIVE_S(S) | ¬∃ link: link.a = :spec/traces-to ∧ link.e ∈ LIVE_I(S) ∧ link.v = e}|
+  D_IS(S) = |{e ∈ LIVE_I(S) | e ∉ LIVE_S(S)}|
+  D_SP(S) = |{e ∈ LIVE_S(S) | e ∉ LIVE_P(S)}|
 
-  D_SP(S) = |{e ∈ LIVE_S(S) | ¬∃ link: link.a = :spec/implements ∧ link.v = e}|
-           + |{e ∈ LIVE_P(S) | ¬∃ link: link.a = :spec/implements ∧ link.e = e}|
+  n_max = max(|LIVE_I(S)| + |LIVE_S(S)| + |LIVE_P(S)|, 1)
 
-  Type semantics for cross-boundary links:
-  - D_IS uses String-valued :spec/traces-to links (spec/02-schema.md line 143):
-    an intent entity is "linked" if ANY spec entity has a :spec/traces-to String
-    value referencing it (e.g., "SEED §4 Axiom 2"). String presence, not Ref
-    entity resolution — traceability to SEED.md sections is inherently textual.
-  - D_SP uses Ref-valued :spec/implements links (spec/02-schema.md line 191):
-    a spec entity is "implemented" if ANY impl entity has a :spec/implements Ref
-    pointing to its entity ID. Ref resolution, not String matching.
+  Coverage is determined by entity set membership: an entity in both LIVE_I
+  and LIVE_S is "covered" — the intent has been formalized into a spec on
+  the same entity. An entity in both LIVE_S and LIVE_P is "implemented."
+  This follows from ADR-TRILATERAL-001 (unified store with three LIVE views):
+  entities naturally span ISP boundaries rather than being linked across
+  boundaries by separate entities.
 
-  w₁, w₂ = boundary weights (configurable as datoms, default: w₁ = w₂ = 0.5)
+  Structural dependencies between spec entities (ordering, coupling, cycles)
+  use :spec/depends-on (Ref, spec/02-schema.md line 159), which is orthogonal
+  to ISP coverage. Textual provenance uses :spec/traces-to (String), recording
+  SEED.md section references that motivate a spec element.
+
+  w₁, w₂ = boundary weights (configurable as datoms, default: w₁ = 0.4, w₂ = 0.6)
 ```
 
-Φ is a live counter computed from the store at any instant. Every transaction
-that adds a `:spec/traces-to` or `:spec/implements` link decreases Φ. Every transaction
-that adds an unlinked intent decision or unlinked code function increases Φ.
+Φ is a live counter computed from the store at any instant, normalized to [0, 1].
+Every transaction that adds a spec attribute to an intent entity decreases D_IS.
+Every transaction that adds an impl attribute to a spec entity decreases D_SP.
+Adding an unlinked intent decision or unlinked code function increases Φ.
 
 Generalized form (ADR-TRILATERAL-004):
 ```

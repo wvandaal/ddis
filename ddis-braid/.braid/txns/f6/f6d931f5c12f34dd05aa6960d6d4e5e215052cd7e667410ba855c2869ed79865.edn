@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774770931/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8ad5f6e6"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7e5dbece07769eb7438b82b02dc8efe9a66a49d99f56214cbc3bd889463dffa3" :a :task/close-reason :v "Added phi_consistency_compute_vs_coherence_fast test (FM-027 regression guard). Tests 3 known-good stores: genesis (phi=0), I+S+P entity (phi=0), I-only entity (phi>0). Verifies compute_phi and check_coherence_fast produce identical Phi. 1790 kernel tests pass." :op :assert}
+   {:e #blake3 "7e5dbece07769eb7438b82b02dc8efe9a66a49d99f56214cbc3bd889463dffa3" :a :task/closed-at :v 1774770930 :op :assert}
+   {:e #blake3 "7e5dbece07769eb7438b82b02dc8efe9a66a49d99f56214cbc3bd889463dffa3" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "7e5dbece07769eb7438b82b02dc8efe9a66a49d99f56214cbc3bd889463dffa3" :a :task/status :v :task.status/closed :op :assert}
+ ]}

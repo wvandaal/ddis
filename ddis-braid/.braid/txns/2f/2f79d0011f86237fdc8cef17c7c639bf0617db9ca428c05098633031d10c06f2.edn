@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774766859/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-cc37d5db"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "67848a0f1e426f58675eb0f5d638efb37a36aa5bf16e27ca07889aab02aba593" :a :task/close-reason :v "Added :spec/depends-on attr_multi(Ref, Many) to schema.rs and SPEC_ATTRS in trilateral.rs. Also fixed :spec/traces-to cardinality from One to Many (ISP-FIX-11)." :op :assert}
+   {:e #blake3 "67848a0f1e426f58675eb0f5d638efb37a36aa5bf16e27ca07889aab02aba593" :a :task/closed-at :v 1774766858 :op :assert}
+   {:e #blake3 "67848a0f1e426f58675eb0f5d638efb37a36aa5bf16e27ca07889aab02aba593" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "67848a0f1e426f58675eb0f5d638efb37a36aa5bf16e27ca07889aab02aba593" :a :task/status :v :task.status/closed :op :assert}
+ ]}

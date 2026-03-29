@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774766249/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ISP-FIX-4: Replace :spec/traces-to with :spec/depends-on in compute_beta_1 REF_EDGE_ATTRS. CONTEXT: compute_beta_1 (trilateral.rs:414) scans REF_EDGE_ATTRS for Ref-valued datoms to build the entity graph for cycle detection. :spec/traces-to is listed but is a String attribute — only works because spec_dependency_datoms() type-punned Ref into it. After ISP-FIX-3, new dependency edges use :spec/depends-on. APPROACH: Replace ':spec/traces-to' with ':spec/depends-on' in REF_EDGE_ATTRS array at line 420. ACCEPTANCE: (A) beta_1 computation uses :spec/depends-on edges. (B) beta_1_zero_for_acyclic_refs test passes with :spec/depends-on edges. (C) beta_1_positive_for_cycle test passes. DEPENDS-ON: ISP-FIX-1, ISP-FIX-3. TRACES: INV-TRILATERAL-009 (Phi-beta_1 duality). FILE: crates/braid-kernel/src/trilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :db/ident :v :task/t-32d5c980 :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/acceptance :v "(A) beta_1 computation uses :spec/depends-on edges. (B) beta_1_zero_for_acyclic_refs test passes with :spec/depends-on edges. (C) beta_1_positive_for_cycle test passes. DEPENDS-ON: ISP-FIX-1, ISP-FIX-3. TRACES: INV-TRILATERAL-009 (Phi-beta_1 duality)." :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/approach :v "Replace ':spec/traces-to' with ':spec/depends-on' in REF_EDGE_ATTRS array at line 420." :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/body :v "APPROACH: Replace ':spec/traces-to' with ':spec/depends-on' in REF_EDGE_ATTRS array at line 420. ACCEPTANCE: (A) beta_1 computation uses :spec/depends-on edges. (B) beta_1_zero_for_acyclic_refs test passes with :spec/depends-on edges. (C) beta_1_positive_for_cycle test passes. DEPENDS-ON: ISP-FIX-1, ISP-FIX-3. TRACES: INV-TRILATERAL-009 (Phi-beta_1 duality). FILE: crates/braid-kernel/src/trilateral.rs" :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/created-at :v 1774766248 :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/files :v "crates/braid-kernel/src/trilateral.rs" :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/id :v "t-32d5c980" :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/title :v "ISP-FIX-4: Replace :spec/traces-to with :spec/depends-on in compute_beta_1 REF_EDGE_ATTRS. CONTEXT: compute_beta_1 (trilateral.rs:414) scans REF_EDGE_ATTRS for Ref-valued datoms to build the entity graph for cycle detection. :spec/traces-to is listed but is a String attribute — only works because spec_dependency_datoms() type-punned Ref into it. After ISP-FIX-3, new dependency edges use :spec/depends-on" :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/title-l0 :v "ISP-FIX-4" :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/title-l1 :v "ISP-FIX-4: Replace :spec/traces-to with :spec/depends-on in compute_beta_1 RE..." :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/traces-to :v #blake3 "6d58c884b413722c81c6b46dd366ee17a07675756f823af83cc87e6c79d060d9" :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/type :v :task.type/task :op :assert}
+ ]}

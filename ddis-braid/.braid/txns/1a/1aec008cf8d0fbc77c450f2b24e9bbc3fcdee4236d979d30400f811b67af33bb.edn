@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774766175/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "765c7f24036100157bb06548b5b9a458c3b2b159cb394e40b2d4624104e356f7" :a :db/ident :v :recon/trace-2a88d279a1b21de2 :op :assert}
+   {:e #blake3 "765c7f24036100157bb06548b5b9a458c3b2b159cb394e40b2d4624104e356f7" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "765c7f24036100157bb06548b5b9a458c3b2b159cb394e40b2d4624104e356f7" :a :recon/trace-neighborhood :v "TRILATERAL" :op :assert}
+   {:e #blake3 "765c7f24036100157bb06548b5b9a458c3b2b159cb394e40b2d4624104e356f7" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.query.evaluator.inv-store-012" :op :assert}
+   {:e #blake3 "765c7f24036100157bb06548b5b9a458c3b2b159cb394e40b2d4624104e356f7" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-store-012" :op :assert}
+   {:e #blake3 "765c7f24036100157bb06548b5b9a458c3b2b159cb394e40b2d4624104e356f7" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.task.inv-store-012" :op :assert}
+   {:e #blake3 "765c7f24036100157bb06548b5b9a458c3b2b159cb394e40b2d4624104e356f7" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.trilateral.adr-trilateral-001" :op :assert}
+   {:e #blake3 "765c7f24036100157bb06548b5b9a458c3b2b159cb394e40b2d4624104e356f7" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.adr-trilateral-001" :op :assert}
+   {:e #blake3 "765c7f24036100157bb06548b5b9a458c3b2b159cb394e40b2d4624104e356f7" :a :recon/trace-neighbors :v ":task/t-0ce58460" :op :assert}
+   {:e #blake3 "765c7f24036100157bb06548b5b9a458c3b2b159cb394e40b2d4624104e356f7" :a :recon/trace-neighbors :v ":task/t-28e0b1aa" :op :assert}
+   {:e #blake3 "765c7f24036100157bb06548b5b9a458c3b2b159cb394e40b2d4624104e356f7" :a :recon/trace-neighbors :v ":task/t-2dc2e39d" :op :assert}
+   {:e #blake3 "765c7f24036100157bb06548b5b9a458c3b2b159cb394e40b2d4624104e356f7" :a :recon/trace-neighbors :v ":task/t-7714a430" :op :assert}
+   {:e #blake3 "765c7f24036100157bb06548b5b9a458c3b2b159cb394e40b2d4624104e356f7" :a :recon/trace-neighbors :v ":task/t-c2bbcda9" :op :assert}
+   {:e #blake3 "765c7f24036100157bb06548b5b9a458c3b2b159cb394e40b2d4624104e356f7" :a :recon/trace-refs :v "ADR-TRILATERAL-001" :op :assert}
+ ]}

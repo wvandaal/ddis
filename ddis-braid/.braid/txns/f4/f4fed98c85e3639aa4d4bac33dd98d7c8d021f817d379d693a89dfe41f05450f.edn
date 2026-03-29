@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774766223/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ISP-FIX-2: Align compute_phi with check_coherence_fast using entity set membership. CONTEXT: compute_phi (trilateral.rs:234) tried to read :spec/traces-to as Ref for D_IS — structurally broken because schema declares String. check_coherence_fast already uses the correct model: D_IS = |intent entities not in spec set|, D_SP = |spec entities not in impl set|. APPROACH: Already partially implemented. compute_phi now uses live_projections entity sets with set membership. Both D_IS and D_SP use the same model. Phi normalized by n_max = max(|I|+|S|+|P|, 1). ACCEPTANCE: (A) compute_phi and check_coherence_fast produce identical Phi for any store. (B) Phi(genesis) = 0. (C) Phi(entity with I+S+P) = 0. (D) Phi(entity with I only) > 0. (E) All phi_lyapunov tests pass. TRACES: INV-TRILATERAL-002. FILE: crates/braid-kernel/src/trilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :db/ident :v :task/t-6fb2708f :op :assert}
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :task/acceptance :v "(A) compute_phi and check_coherence_fast produce identical Phi for any store. (B) Phi(genesis) = 0. (C) Phi(entity with I+S+P) = 0. (D) Phi(entity with I only) > 0. (E) All phi_lyapunov tests pass. TRACES: INV-TRILATERAL-002." :op :assert}
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :task/approach :v "Already partially implemented. compute_phi now uses live_projections entity sets with set membership. Both D_IS and D_SP use the same model. Phi normalized by n_max = max(|I|+|S|+|P|, 1)." :op :assert}
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :task/body :v "APPROACH: Already partially implemented. compute_phi now uses live_projections entity sets with set membership. Both D_IS and D_SP use the same model. Phi normalized by n_max = max(|I|+|S|+|P|, 1). ACCEPTANCE: (A) compute_phi and check_coherence_fast produce identical Phi for any store. (B) Phi(genesis) = 0. (C) Phi(entity with I+S+P) = 0. (D) Phi(entity with I only) > 0. (E) All phi_lyapunov tests pass. TRACES: INV-TRILATERAL-002. FILE: crates/braid-kernel/src/trilateral.rs" :op :assert}
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :task/created-at :v 1774766222 :op :assert}
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :task/files :v "crates/braid-kernel/src/trilateral.rs" :op :assert}
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :task/id :v "t-6fb2708f" :op :assert}
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :task/title :v "ISP-FIX-2: Align compute_phi with check_coherence_fast using entity set membership. CONTEXT: compute_phi (trilateral.rs:234) tried to read :spec/traces-to as Ref for D_IS — structurally broken because schema declares String. check_coherence_fast already uses the correct model: D_IS = |intent entities not in spec set|, D_SP = |spec entities not in impl set|" :op :assert}
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :task/title-l0 :v "ISP-FIX-2" :op :assert}
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :task/title-l1 :v "ISP-FIX-2: Align compute_phi with check_coherence_fast using entity set membe..." :op :assert}
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :task/traces-to :v #blake3 "a1a370f415cc769dcf14b1f438183b366bb43052bc230dda81522a79d0fa8b25" :op :assert}
+   {:e #blake3 "0d75e92d9e411dbf28293088b66166c5991f3768afe3b736274f1ef7661f8324" :a :task/type :v :task.type/task :op :assert}
+ ]}

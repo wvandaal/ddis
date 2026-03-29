@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774769036/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b3873e87"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ce83d1da3bf99082ce4a24ac5d42c9fedcec3e3859f37ea586cdef0a292c2636" :a :task/close-reason :v "All affected tests updated. 1789 kernel tests pass (0 failures). 2 braid CLI failures are pre-existing (DEFECT-049-1). Clippy clean." :op :assert}
+   {:e #blake3 "ce83d1da3bf99082ce4a24ac5d42c9fedcec3e3859f37ea586cdef0a292c2636" :a :task/closed-at :v 1774769035 :op :assert}
+   {:e #blake3 "ce83d1da3bf99082ce4a24ac5d42c9fedcec3e3859f37ea586cdef0a292c2636" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "ce83d1da3bf99082ce4a24ac5d42c9fedcec3e3859f37ea586cdef0a292c2636" :a :task/status :v :task.status/closed :op :assert}
+ ]}

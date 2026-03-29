@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774787907/0/ae3ee9b538b11d5d241a03d198c66e24"
+ :tx/agent "ae3ee9b538b11d5d241a03d198c66e24"
+ :tx/provenance :observed
+ :tx/rationale "PROFILING RESULT: braid status at 183K datoms takes 3.1s in release. Breakdown: routing=155ms, snapshot=184ms, projection=2557ms. Within projection: boundaries=2407ms (94%), concepts=57ms, FEGH=41ms, methodology=37ms, action=12ms. Root cause: formality_level() in trilateral.rs:282 uses store.datoms().filter(entity==) — O(N) per entity, called per boundary gap (~170 gaps). 170 * 183K = 31M iterations. Fix: use store.entity_datoms(entity) (EAVT-indexed, O(entity_datoms)). This is Phase A task A2."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "06fa31f816f6a9b8f767725a754523f824241d0b863c7054aef8532379414c13" :a :db/doc :v "PROFILING RESULT: braid status at 183K datoms takes 3.1s in release. Breakdown: routing=155ms, snapshot=184ms, projection=2557ms. Within projection: boundaries=2407ms (94%), concepts=57ms, FEGH=41ms, methodology=37ms, action=12ms. Root cause: formality_level() in trilateral.rs:282 uses store.datoms().filter(entity==) — O(N) per entity, called per boundary gap (~170 gaps). 170 * 183K = 31M iterations. Fix: use store.entity_datoms(entity) (EAVT-indexed, O(entity_datoms)). This is Phase A task A2." :op :assert}
+   {:e #blake3 "06fa31f816f6a9b8f767725a754523f824241d0b863c7054aef8532379414c13" :a :db/ident :v :observation/profiling-result-braid-status-at-183k-datoms-takes-31s-in :op :assert}
+   {:e #blake3 "06fa31f816f6a9b8f767725a754523f824241d0b863c7054aef8532379414c13" :a :exploration/body :v "PROFILING RESULT: braid status at 183K datoms takes 3.1s in release. Breakdown: routing=155ms, snapshot=184ms, projection=2557ms. Within projection: boundaries=2407ms (94%), concepts=57ms, FEGH=41ms, methodology=37ms, action=12ms. Root cause: formality_level() in trilateral.rs:282 uses store.datoms().filter(entity==) — O(N) per entity, called per boundary gap (~170 gaps). 170 * 183K = 31M iterations. Fix: use store.entity_datoms(entity) (EAVT-indexed, O(entity_datoms)). This is Phase A task A2." :op :assert}
+   {:e #blake3 "06fa31f816f6a9b8f767725a754523f824241d0b863c7054aef8532379414c13" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "06fa31f816f6a9b8f767725a754523f824241d0b863c7054aef8532379414c13" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "06fa31f816f6a9b8f767725a754523f824241d0b863c7054aef8532379414c13" :a :exploration/content-hash :v #bytes "d1f6ed5041a1bb3a849c7aa95ba663e3a63c8ef78058d27a74b583822ce7acc9" :op :assert}
+   {:e #blake3 "06fa31f816f6a9b8f767725a754523f824241d0b863c7054aef8532379414c13" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "06fa31f816f6a9b8f767725a754523f824241d0b863c7054aef8532379414c13" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "06fa31f816f6a9b8f767725a754523f824241d0b863c7054aef8532379414c13" :a :exploration/source-session :v #blake3 "92ef31606d12e9dab56bb218201a04c41e6df4a228ecb229fd354dc6f3af0471" :op :assert}
+ ]}

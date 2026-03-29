@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774769018/0/3fcaa7d59634e88e7b0cb9f34b52e2ce"
+ :tx/agent "3fcaa7d59634e88e7b0cb9f34b52e2ce"
+ :tx/provenance :observed
+ :tx/rationale "PRE-EXISTING BUG: 2 braid CLI tests fail on clean main (before ISP-FIX): ready_excludes_blocked and create_task_with_valid_spec_ref_produces_traces_to. Root cause: Session 049 introduced generate_task_id_full (content-addressed from title+description+priority+type) but tests use generate_task_id (which defaults priority=2) while creating tasks with different priorities (0, 1). ID mismatch → task not found. Fix: use generate_task_id_full with matching parameters in tests."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "95f21c7151b4751bc8fe914bccd7e8ca80dc82a841ef72555e0666bfb013338f" :a :db/doc :v "PRE-EXISTING BUG: 2 braid CLI tests fail on clean main (before ISP-FIX): ready_excludes_blocked and create_task_with_valid_spec_ref_produces_traces_to. Root cause: Session 049 introduced generate_task_id_full (content-addressed from title+description+priority+type) but tests use generate_task_id (which defaults priority=2) while creating tasks with different priorities (0, 1). ID mismatch → task not found. Fix: use generate_task_id_full with matching parameters in tests." :op :assert}
+   {:e #blake3 "95f21c7151b4751bc8fe914bccd7e8ca80dc82a841ef72555e0666bfb013338f" :a :db/ident :v :observation/pre-existing-bug-2-braid-cli-tests-fail-on-clean-main-befo :op :assert}
+   {:e #blake3 "95f21c7151b4751bc8fe914bccd7e8ca80dc82a841ef72555e0666bfb013338f" :a :exploration/body :v "PRE-EXISTING BUG: 2 braid CLI tests fail on clean main (before ISP-FIX): ready_excludes_blocked and create_task_with_valid_spec_ref_produces_traces_to. Root cause: Session 049 introduced generate_task_id_full (content-addressed from title+description+priority+type) but tests use generate_task_id (which defaults priority=2) while creating tasks with different priorities (0, 1). ID mismatch → task not found. Fix: use generate_task_id_full with matching parameters in tests." :op :assert}
+   {:e #blake3 "95f21c7151b4751bc8fe914bccd7e8ca80dc82a841ef72555e0666bfb013338f" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "95f21c7151b4751bc8fe914bccd7e8ca80dc82a841ef72555e0666bfb013338f" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "95f21c7151b4751bc8fe914bccd7e8ca80dc82a841ef72555e0666bfb013338f" :a :exploration/content-hash :v #bytes "7ec9de9ef529c66b2bc698d8495941c8abc04c7a3ff439ac7b138654d23bc5b4" :op :assert}
+   {:e #blake3 "95f21c7151b4751bc8fe914bccd7e8ca80dc82a841ef72555e0666bfb013338f" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "95f21c7151b4751bc8fe914bccd7e8ca80dc82a841ef72555e0666bfb013338f" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "95f21c7151b4751bc8fe914bccd7e8ca80dc82a841ef72555e0666bfb013338f" :a :exploration/source-session :v #blake3 "6e1a4edb17be09a406ffba61219d1acb5ad288d336c0235663721580186bfae7" :op :assert}
+ ]}

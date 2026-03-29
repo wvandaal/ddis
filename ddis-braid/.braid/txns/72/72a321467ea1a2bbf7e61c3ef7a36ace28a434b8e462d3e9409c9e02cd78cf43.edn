@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774766237/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ISP-FIX-3: Update spec_dependency_datoms() to write :spec/depends-on instead of :spec/traces-to. CONTEXT: topology.rs:830 spec_dependency_datoms() parses :element/traces-to String values, extracts spec IDs, resolves to EntityIds, creates Ref datoms. Currently writes to :spec/traces-to (String attr) with Value::Ref — type-punning that bypasses schema. Should write :spec/depends-on (Ref attr, added by ISP-FIX-1). APPROACH: (1) Change output attribute from :spec/traces-to to :spec/depends-on at ~line 844. (2) Update doc comment at line 830. (3) Update callers if any check return attribute. ACCEPTANCE: (A) After spec_dependency_datoms(), new datoms use :spec/depends-on. (B) No new :spec/traces-to Ref datoms created anywhere. (C) Topology coupling still resolves spec dependencies. DEPENDS-ON: ISP-FIX-1. TRACES: INV-SCHEMA-004, spec/02-schema.md line 159. FILE: crates/braid-kernel/src/topology.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :db/ident :v :task/t-73fe63c2 :op :assert}
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :task/acceptance :v "(A) After spec_dependency_datoms(), new datoms use :spec/depends-on. (B) No new :spec/traces-to Ref datoms created anywhere. (C) Topology coupling still resolves spec dependencies. DEPENDS-ON: ISP-FIX-1. TRACES: INV-SCHEMA-004, spec/02-schema.md line 159." :op :assert}
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :task/approach :v "(1) Change output attribute from :spec/traces-to to :spec/depends-on at ~line 844. (2) Update doc comment at line 830. (3) Update callers if any check return attribute." :op :assert}
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :task/body :v "APPROACH: (1) Change output attribute from :spec/traces-to to :spec/depends-on at ~line 844. (2) Update doc comment at line 830. (3) Update callers if any check return attribute. ACCEPTANCE: (A) After spec_dependency_datoms(), new datoms use :spec/depends-on. (B) No new :spec/traces-to Ref datoms created anywhere. (C) Topology coupling still resolves spec dependencies. DEPENDS-ON: ISP-FIX-1. TRACES: INV-SCHEMA-004, spec/02-schema.md line 159. FILE: crates/braid-kernel/src/topology.rs" :op :assert}
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :task/created-at :v 1774766236 :op :assert}
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :task/files :v "crates/braid-kernel/src/topology.rs" :op :assert}
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :task/id :v "t-73fe63c2" :op :assert}
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :task/title :v "ISP-FIX-3: Update spec_dependency_datoms() to write :spec/depends-on instead of :spec/traces-to. CONTEXT: topology.rs:830 spec_dependency_datoms() parses :element/traces-to String values, extracts spec IDs, resolves to EntityIds, creates Ref datoms. Currently writes to :spec/traces-to (String attr) with Value::Ref — type-punning that bypasses schema. Should write :spec/depends-on (Ref attr, added by ISP-FIX-1)" :op :assert}
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :task/title-l0 :v "ISP-FIX-3" :op :assert}
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :task/title-l1 :v "ISP-FIX-3: Update spec_dependency_datoms() to write :spec/depends-on instead..." :op :assert}
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :task/traces-to :v #blake3 "1e6cdcb23d6b2611ceac3550471a6fe6f3ceb9528929ffcbc0ac90765c7d9739" :op :assert}
+   {:e #blake3 "3acec48c9f649fa9c22cd43aec21ec1a513e18ec419c9522683ba0511ff19da1" :a :task/type :v :task.type/task :op :assert}
+ ]}

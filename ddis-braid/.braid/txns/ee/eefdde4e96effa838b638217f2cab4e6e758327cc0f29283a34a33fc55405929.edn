@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774769026/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DEFECT-049-1: Fix 2 pre-existing task test failures from session 049. ready_excludes_blocked and create_task_with_valid_spec_ref use generate_task_id (default priority=2) but create tasks with priority 0/1. Fix: use generate_task_id_full with matching parameters. Non-blocking — pre-existing on main."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e1c67aa3b7ef17cc0b9f746334a6c32cfd327cea1e754ffb2c39f96e758a805b" :a :db/ident :v :task/t-1d8338a1 :op :assert}
+   {:e #blake3 "e1c67aa3b7ef17cc0b9f746334a6c32cfd327cea1e754ffb2c39f96e758a805b" :a :task/created-at :v 1774769025 :op :assert}
+   {:e #blake3 "e1c67aa3b7ef17cc0b9f746334a6c32cfd327cea1e754ffb2c39f96e758a805b" :a :task/id :v "t-1d8338a1" :op :assert}
+   {:e #blake3 "e1c67aa3b7ef17cc0b9f746334a6c32cfd327cea1e754ffb2c39f96e758a805b" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e1c67aa3b7ef17cc0b9f746334a6c32cfd327cea1e754ffb2c39f96e758a805b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e1c67aa3b7ef17cc0b9f746334a6c32cfd327cea1e754ffb2c39f96e758a805b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e1c67aa3b7ef17cc0b9f746334a6c32cfd327cea1e754ffb2c39f96e758a805b" :a :task/title :v "DEFECT-049-1: Fix 2 pre-existing task test failures from session 049. ready_excludes_blocked and create_task_with_valid_spec_ref use generate_task_id (default priority=2) but create tasks with priority 0/1. Fix: use generate_task_id_full with matching parameters. Non-blocking — pre-existing on main." :op :assert}
+   {:e #blake3 "e1c67aa3b7ef17cc0b9f746334a6c32cfd327cea1e754ffb2c39f96e758a805b" :a :task/title-l0 :v "DEFECT-049-1" :op :assert}
+   {:e #blake3 "e1c67aa3b7ef17cc0b9f746334a6c32cfd327cea1e754ffb2c39f96e758a805b" :a :task/title-l1 :v "DEFECT-049-1: Fix 2 pre-existing task test failures from session 049" :op :assert}
+   {:e #blake3 "e1c67aa3b7ef17cc0b9f746334a6c32cfd327cea1e754ffb2c39f96e758a805b" :a :task/type :v :task.type/bug :op :assert}
+ ]}

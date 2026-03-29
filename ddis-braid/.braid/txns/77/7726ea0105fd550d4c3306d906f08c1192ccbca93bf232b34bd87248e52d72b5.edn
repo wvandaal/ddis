@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774766146/0/a7a9dca01e7ab0bf9ce6efc8ee958917"
+ :tx/agent "a7a9dca01e7ab0bf9ce6efc8ee958917"
+ :tx/provenance :observed
+ :tx/rationale "SCHEMA CARDINALITY MISMATCH: spec/02-schema.md line 158 declares :spec/traces-to as String :many multi. But schema.rs line 1223 implements it as attr() (Cardinality::One), not attr_multi(). The spec says a spec element can trace to multiple SEED sections; the implementation allows only one. This is a second contradiction within the same attribute — type AND cardinality are both misaligned between spec and implementation."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7623f2dbc7eb2e912ea4339f6a74b58a5e57c21c24d883588de57545e0c956b9" :a :db/doc :v "SCHEMA CARDINALITY MISMATCH: spec/02-schema.md line 158 declares :spec/traces-to as String :many multi. But schema.rs line 1223 implements it as attr() (Cardinality::One), not attr_multi(). The spec says a spec element can trace to multiple SEED sections; the implementation allows only one. This is a second contradiction within the same attribute — type AND cardinality are both misaligned between spec and implementation." :op :assert}
+   {:e #blake3 "7623f2dbc7eb2e912ea4339f6a74b58a5e57c21c24d883588de57545e0c956b9" :a :db/ident :v :observation/schema-cardinality-mismatch-spec02-schemamd-line-158-decl :op :assert}
+   {:e #blake3 "7623f2dbc7eb2e912ea4339f6a74b58a5e57c21c24d883588de57545e0c956b9" :a :exploration/body :v "SCHEMA CARDINALITY MISMATCH: spec/02-schema.md line 158 declares :spec/traces-to as String :many multi. But schema.rs line 1223 implements it as attr() (Cardinality::One), not attr_multi(). The spec says a spec element can trace to multiple SEED sections; the implementation allows only one. This is a second contradiction within the same attribute — type AND cardinality are both misaligned between spec and implementation." :op :assert}
+   {:e #blake3 "7623f2dbc7eb2e912ea4339f6a74b58a5e57c21c24d883588de57545e0c956b9" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "7623f2dbc7eb2e912ea4339f6a74b58a5e57c21c24d883588de57545e0c956b9" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "7623f2dbc7eb2e912ea4339f6a74b58a5e57c21c24d883588de57545e0c956b9" :a :exploration/content-hash :v #bytes "be50b5bf2bb36db2f4bc01bba8d72be9c750a45885b987b9924645f6ad7f90a2" :op :assert}
+   {:e #blake3 "7623f2dbc7eb2e912ea4339f6a74b58a5e57c21c24d883588de57545e0c956b9" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7623f2dbc7eb2e912ea4339f6a74b58a5e57c21c24d883588de57545e0c956b9" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7623f2dbc7eb2e912ea4339f6a74b58a5e57c21c24d883588de57545e0c956b9" :a :exploration/source-session :v #blake3 "c9d616e825ea671ac869257a24fb4f76830de6cd733be41fab87939fe74da565" :op :assert}
+ ]}

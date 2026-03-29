@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774766996/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-32d5c980"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/close-reason :v "REF_EDGE_ATTRS updated: :spec/traces-to replaced with :spec/depends-on." :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/closed-at :v 1774766995 :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "07559dd36f9188acafc3f297ecc565350d85c6dc511c2594bbc4364a77eeb208" :a :task/status :v :task.status/closed :op :assert}
+ ]}

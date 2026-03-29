@@ -3841,7 +3841,7 @@ mod tests {
     fn routing_from_store_graph_impact_beats_priority() {
         use crate::datom::AgentId;
         use crate::task::{
-            create_task_datoms, dep_add_datom, find_task_by_id, generate_task_id, CreateTaskParams,
+            create_task_datoms, dep_add_datom, find_task_by_id, CreateTaskParams,
             TaskType,
         };
 
@@ -6818,7 +6818,7 @@ mod tests {
             ),
             Datom::new(
                 spec_a,
-                Attribute::from_keyword(":spec/traces-to"),
+                Attribute::from_keyword(":spec/depends-on"),
                 Value::Ref(spec_b),
                 tx,
                 Op::Assert,

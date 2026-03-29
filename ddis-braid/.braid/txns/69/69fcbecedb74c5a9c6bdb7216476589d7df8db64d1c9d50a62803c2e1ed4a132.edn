@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774789452/0/d6bfc94e7ed3562a230b62306180a6f6"
+ :tx/agent "d6bfc94e7ed3562a230b62306180a6f6"
+ :tx/provenance :observed
+ :tx/rationale "Phase A computation target MET: routing=155ms + snapshot=184ms + projection=500ms = 840ms total computation. Under 1s target. Wall clock 3.06s dominated by store loading (~2s bincode). Daemon amortizes store loading — daemon response should be well under 1s. Key fix: formality_level O(N)->O(entity_datoms) reduced boundaries from 2407ms to 11ms. Single highest-impact optimization in the session."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "68d7067ff1df03218e9348f5776a951b635ee9bb71693b570f71ad51ab6dbe3b" :a :db/doc :v "Phase A computation target MET: routing=155ms + snapshot=184ms + projection=500ms = 840ms total computation. Under 1s target. Wall clock 3.06s dominated by store loading (~2s bincode). Daemon amortizes store loading — daemon response should be well under 1s. Key fix: formality_level O(N)->O(entity_datoms) reduced boundaries from 2407ms to 11ms. Single highest-impact optimization in the session." :op :assert}
+   {:e #blake3 "68d7067ff1df03218e9348f5776a951b635ee9bb71693b570f71ad51ab6dbe3b" :a :db/ident :v :observation/phase-a-computation-target-met-routing155ms-snapshot184 :op :assert}
+   {:e #blake3 "68d7067ff1df03218e9348f5776a951b635ee9bb71693b570f71ad51ab6dbe3b" :a :exploration/body :v "Phase A computation target MET: routing=155ms + snapshot=184ms + projection=500ms = 840ms total computation. Under 1s target. Wall clock 3.06s dominated by store loading (~2s bincode). Daemon amortizes store loading — daemon response should be well under 1s. Key fix: formality_level O(N)->O(entity_datoms) reduced boundaries from 2407ms to 11ms. Single highest-impact optimization in the session." :op :assert}
+   {:e #blake3 "68d7067ff1df03218e9348f5776a951b635ee9bb71693b570f71ad51ab6dbe3b" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "68d7067ff1df03218e9348f5776a951b635ee9bb71693b570f71ad51ab6dbe3b" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "68d7067ff1df03218e9348f5776a951b635ee9bb71693b570f71ad51ab6dbe3b" :a :exploration/content-hash :v #bytes "52addd40f75f172ba324ba27e9a468a20aa20a284770ad569830b36efc3c9d8b" :op :assert}
+   {:e #blake3 "68d7067ff1df03218e9348f5776a951b635ee9bb71693b570f71ad51ab6dbe3b" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "68d7067ff1df03218e9348f5776a951b635ee9bb71693b570f71ad51ab6dbe3b" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "68d7067ff1df03218e9348f5776a951b635ee9bb71693b570f71ad51ab6dbe3b" :a :exploration/source-session :v #blake3 "92ef31606d12e9dab56bb218201a04c41e6df4a228ecb229fd354dc6f3af0471" :op :assert}
+ ]}
