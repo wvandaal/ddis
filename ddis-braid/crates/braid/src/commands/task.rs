@@ -2463,8 +2463,10 @@ mod tests {
         create_test_task(&path, "Task A", 1);
         create_test_task(&path, "Task B", 0);
 
-        let id_a = task::generate_task_id("Task A");
-        let id_b = task::generate_task_id("Task B");
+        // generate_task_id_full: must match the priority used in create_test_task.
+        // generate_task_id defaults to priority=2, causing ID mismatch.
+        let id_a = task::generate_task_id_full("Task A", None, 1, "task");
+        let id_b = task::generate_task_id_full("Task B", None, 0, "task");
 
         dep_add(&path, &id_b, &id_a, "test", None).unwrap();
 
@@ -2549,7 +2551,7 @@ mod tests {
 
         // Verify the store has :task/traces-to datom
         let store = layout.load_store().unwrap();
-        let task_id = task::generate_task_id("Fix INV-STORE-001 violation");
+        let task_id = task::generate_task_id_full("Fix INV-STORE-001 violation", None, 1, "bug");
         let task_entity = find_task_by_id(&store, &task_id).expect("task should exist");
         let task_datoms = store.entity_datoms(task_entity);
         let has_traces_to = task_datoms.iter().any(|d| {

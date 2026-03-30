@@ -113,8 +113,8 @@ pub fn find_nearest_concept(store: &Store, embedding: &[f32]) -> Option<(EntityI
     // Phase 1: Collect latest embedding per entity.
     // In EAVT-ordered iteration, later assertions overwrite earlier ones.
     let mut latest: BTreeMap<EntityId, Vec<f32>> = BTreeMap::new();
-    for d in store.datoms() {
-        if d.op == Op::Assert && d.attribute == concept_attr {
+    for d in store.attribute_datoms(&concept_attr) {
+        if d.op == Op::Assert {
             if let Value::Bytes(ref bytes) = d.value {
                 latest.insert(d.entity, bytes_to_embedding(bytes));
             }
@@ -2329,9 +2329,8 @@ pub fn innate_concept_datoms_typed(
 /// Reads `:concept/innate` from the store for the given entity.
 pub fn is_innate(store: &Store, entity: EntityId) -> bool {
     let attr = Attribute::from_keyword(":concept/innate");
-    store.datoms().any(|d| {
-        d.entity == entity
-            && d.attribute == attr
+    store.entity_datoms(entity).iter().any(|d| {
+        d.attribute == attr
             && d.op == Op::Assert
             && d.value == Value::Boolean(true)
     })

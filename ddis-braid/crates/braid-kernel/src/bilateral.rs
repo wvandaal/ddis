@@ -1568,8 +1568,9 @@ pub fn evaluate_conditions(
     // Suppress when no :impl/implements datoms exist — vacuously true (Wave 4.3: C3)
     let cc2 = {
         let has_impl_datoms = store
-            .datoms()
-            .any(|d| d.attribute.as_str() == ":impl/implements" && d.op == Op::Assert);
+            .attribute_datoms(&Attribute::from_keyword(":impl/implements"))
+            .iter()
+            .any(|d| d.op == Op::Assert);
         if !has_impl_datoms {
             ConditionResult {
                 satisfied: true,

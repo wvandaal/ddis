@@ -29,7 +29,12 @@ use serde_json::{json, Value as JsonValue};
 /// Path to the braid binary.
 #[allow(deprecated)]
 fn braid_cmd() -> Command {
-    Command::cargo_bin("braid").unwrap()
+    let mut cmd = Command::cargo_bin("braid").unwrap();
+    // Prevent daemon auto-start in CLI subprocesses — the test manages
+    // its own daemon lifecycle via start_daemon(). Without this, the CLI
+    // auto-starts a daemon that conflicts with the test-managed one.
+    cmd.env("BRAID_NO_DAEMON", "1");
+    cmd
 }
 
 /// Initialize a braid store at `braid_dir` using the CLI.
@@ -3201,7 +3206,7 @@ fn cache_fingerprint_mismatch_triggers_rebuild() {
     let entity = EntityId::from_ident(":test/fingerprint-mismatch");
     let datom = Datom::new(
         entity,
-        Attribute::from_keyword(":db/doc"),
+        Attribute::from_keyword(":exploration/body"),
         Value::String("fingerprint mismatch trigger".into()),
         tx_id,
         Op::Assert,
@@ -3224,6 +3229,8 @@ fn cache_fingerprint_mismatch_triggers_rebuild() {
     assert_eq!(count_edn_files(&braid_dir), initial_edn + 1);
 
     // CLI should detect fingerprint mismatch and rebuild, seeing the new datom.
+    // Query by :exploration/body (few datoms in fresh store) rather than :db/doc
+    // (hundreds of genesis datoms cause budget truncation in query output).
     let output = braid_cmd()
         .args([
             "query",
@@ -3231,14 +3238,14 @@ fn cache_fingerprint_mismatch_triggers_rebuild() {
             &braid_dir.to_string_lossy(),
             "-q",
             "--attribute",
-            ":db/doc",
+            ":exploration/body",
         ])
         .output()
         .unwrap();
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
         stdout.contains("fingerprint mismatch trigger"),
-        "CLI must see external write after fingerprint mismatch rebuild"
+        "CLI must see external write after fingerprint mismatch rebuild.\nstdout: {stdout}"
     );
 }
 

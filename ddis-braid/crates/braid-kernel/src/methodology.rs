@@ -654,11 +654,11 @@ pub fn tx_velocity_at(store: &Store, now: u64) -> f64 {
     let window: u64 = 300; // 5 minutes
     let cutoff = now.saturating_sub(window);
 
+    let tx_agent_attr = Attribute::from_keyword(":tx/agent");
     let recent_walls: BTreeSet<u64> = store
-        .datoms()
-        .filter(|d| {
-            d.tx.wall_time() > cutoff && d.attribute.as_str() == ":tx/agent" && d.op == Op::Assert
-        })
+        .attribute_datoms(&tx_agent_attr)
+        .iter()
+        .filter(|d| d.tx.wall_time() > cutoff && d.op == Op::Assert)
         .map(|d| d.tx.wall_time())
         .collect();
 
@@ -838,35 +838,37 @@ pub fn observation_staleness(store: &Store) -> Vec<(EntityId, f64)> {
     let conf_attr = Attribute::from_keyword(":exploration/confidence");
     let source_attr = Attribute::from_keyword(":exploration/source");
 
-    let mut entity_confidence: BTreeMap<EntityId, f64> = BTreeMap::new();
-    let mut entity_wall_time: BTreeMap<EntityId, u64> = BTreeMap::new();
+    // L2-TELEMETRY (INV-PERF-001): Use attribute_datoms index instead of full scan.
+    // Step 1: Find observation entities via :exploration/source index.
     let mut observation_entities: std::collections::BTreeSet<EntityId> =
         std::collections::BTreeSet::new();
+    for datom in store.attribute_datoms(&source_attr) {
+        if let Value::String(ref s) = datom.value {
+            if s == "braid:observe" || s == "braid:harvest" {
+                observation_entities.insert(datom.entity);
+            }
+        }
+    }
 
-    for datom in store.datoms() {
-        if datom.attribute == source_attr {
-            if let Value::String(ref s) = datom.value {
-                if s == "braid:observe" || s == "braid:harvest" {
-                    observation_entities.insert(datom.entity);
-                }
-            }
+    // Step 2: Build confidence map via :exploration/confidence index.
+    let mut entity_confidence: BTreeMap<EntityId, f64> = BTreeMap::new();
+    for datom in store.attribute_datoms(&conf_attr) {
+        if let Value::Double(f) = datom.value {
+            entity_confidence.insert(datom.entity, f.into_inner());
         }
-        if datom.attribute == conf_attr {
-            if let Value::Double(f) = datom.value {
-                entity_confidence.insert(datom.entity, f.into_inner());
-            }
-        }
-        // Track the wall_time of the tx that asserted each entity's datoms.
-        // Use the max wall_time across all datoms for that entity.
-        let wall = datom.tx.wall_time();
-        entity_wall_time
-            .entry(datom.entity)
-            .and_modify(|w| {
-                if wall > *w {
-                    *w = wall;
-                }
-            })
-            .or_insert(wall);
+    }
+
+    // Step 3: For each observation entity, find max wall_time via entity index.
+    // Only queries entities we actually need, not the entire store.
+    let mut entity_wall_time: BTreeMap<EntityId, u64> = BTreeMap::new();
+    for entity in &observation_entities {
+        let max_wall_for_entity = store
+            .entity_datoms(*entity)
+            .iter()
+            .map(|d| d.tx.wall_time())
+            .max()
+            .unwrap_or(0);
+        entity_wall_time.insert(*entity, max_wall_for_entity);
     }
 
     let mut results = Vec::new();

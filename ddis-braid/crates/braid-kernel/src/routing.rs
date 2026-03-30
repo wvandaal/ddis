@@ -878,8 +878,8 @@ fn concept_observation_coverage(store: &Store) -> BTreeMap<EntityId, usize> {
     let concept_attr = Attribute::from_keyword(":exploration/concept");
     let mut coverage: BTreeMap<EntityId, usize> = BTreeMap::new();
 
-    for d in store.datoms() {
-        if d.op != Op::Assert || d.attribute != concept_attr {
+    for d in store.attribute_datoms(&concept_attr) {
+        if d.op != Op::Assert {
             continue;
         }
         if d.tx.wall_time() <= boundary {
@@ -1067,8 +1067,8 @@ fn compute_routing_from_store_inner(store: &Store, now: u64) -> Vec<TaskRouting>
         // Find the nearest concept for each task by embedding similarity.
         let concept_emb_attr = Attribute::from_keyword(":concept/embedding");
         let mut latest_concept_embs: BTreeMap<EntityId, Vec<f32>> = BTreeMap::new();
-        for d in store.datoms() {
-            if d.op == Op::Assert && d.attribute == concept_emb_attr {
+        for d in store.attribute_datoms(&concept_emb_attr) {
+            if d.op == Op::Assert {
                 if let Value::Bytes(ref b) = d.value {
                     latest_concept_embs.insert(d.entity, crate::embedding::bytes_to_embedding(b));
                 }
