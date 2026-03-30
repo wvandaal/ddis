@@ -1,0 +1,1 @@
+../../ferratomic/docs/design/FERRATOMIC_ARCHITECTURE.md
