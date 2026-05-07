@@ -30,9 +30,25 @@ type ManifestData struct {
 		Domains map[string]string `yaml:"domains,omitempty"`
 	} `yaml:"constitution"`
 
+	// Namespaces declares additional registries (beyond APP) whose invariants and
+	// ADRs participate in cross-reference resolution. Each entry's constitution
+	// file is parsed into the same spec_id so that refs like CMP-INV-NNN resolve
+	// without parent-spec fallback. The namespace key (e.g. "CMP") is the
+	// 2-5 uppercase prefix that must match XRefInvRe / XRefADRRe captures.
+	Namespaces map[string]NamespaceDecl `yaml:"namespaces,omitempty"`
+
 	Modules map[string]ModuleDecl `yaml:"modules"`
 
 	InvariantRegistry map[string]InvRegistryEntry `yaml:"invariant_registry"`
+}
+
+// NamespaceDecl declares one additional namespace beyond APP. The Constitution
+// path is resolved relative to the manifest directory and parsed via the same
+// pipeline as the system constitution; its invariants and ADRs land in the
+// shared spec_id so that cross-references resolve in a single pass.
+type NamespaceDecl struct {
+	Constitution string `yaml:"constitution"`
+	Description  string `yaml:"description,omitempty"`
 }
 
 // ModuleDecl represents one module entry in the manifest.
@@ -170,6 +186,34 @@ func parseModularSpecVisited(manifestPath string, db storage.DB, visited map[str
 		totalLines += len(lines)
 		if err := extractElementsFromFile(lines, specID, sfID, db); err != nil {
 			return 0, fmt.Errorf("extract constitution elements: %w", err)
+		}
+	}
+
+	// Parse namespace constitutions (e.g. CMP, DOM). Each is parsed into the
+	// same spec_id so its invariants and ADRs are visible to cross-reference
+	// resolution in a single pass — no parent-spec fallback needed.
+	// Namespace keys are validated against the regex shape we'll match in
+	// XRefInvRe / XRefADRRe ([A-Z]{2,5}); reject anything else loudly.
+	for nsKey, nsDecl := range manifest.Namespaces {
+		if !validNamespaceKey(nsKey) {
+			return 0, fmt.Errorf("invalid namespace key %q: must be 2-5 uppercase letters",
+				nsKey)
+		}
+		if nsDecl.Constitution == "" {
+			return 0, fmt.Errorf("namespace %q: constitution path is required", nsKey)
+		}
+		nsPath := filepath.Join(manifestDir, nsDecl.Constitution)
+		// Reuse the existing domain_constitution file_role; the namespace key
+		// in the module_name column distinguishes namespace constitutions
+		// from other domain constitutions.
+		sfID, lines, err := parseAndInsertFile(db, specID, nsPath,
+			nsDecl.Constitution, "domain_constitution", nsKey)
+		if err != nil {
+			return 0, fmt.Errorf("parse namespace constitution %q: %w", nsKey, err)
+		}
+		totalLines += len(lines)
+		if err := extractElementsFromFile(lines, specID, sfID, db); err != nil {
+			return 0, fmt.Errorf("extract namespace %q elements: %w", nsKey, err)
 		}
 	}
 
@@ -337,6 +381,20 @@ func parseAndInsertFile(db storage.DB, specID int64, fullPath, relPath, role, mo
 	}
 
 	return sfID, lines, nil
+}
+
+// validNamespaceKey enforces the 2-5 uppercase letter shape that
+// XRefInvRe / XRefADRRe will match. Keep this in sync with patterns.go.
+func validNamespaceKey(s string) bool {
+	if len(s) < 2 || len(s) > 5 {
+		return false
+	}
+	for _, c := range s {
+		if c < 'A' || c > 'Z' {
+			return false
+		}
+	}
+	return true
 }
 
 func countLines(s string) int {

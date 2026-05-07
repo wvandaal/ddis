@@ -39,6 +39,12 @@ func (c *checkXRefIntegrity) Run(db *sql.DB, specID int64) CheckResult {
 		return result
 	}
 
+	// Pre-compute namespace registry and file-path lookup once per Run so each
+	// finding can carry file:line context plus a useful "did you mean" hint
+	// when the ref's namespace prefix isn't in the registry.
+	registeredNS := registeredNamespaces(db, specID)
+	filePathByID := sourceFilePaths(db, specID)
+
 	if len(unresolved) > 0 {
 		// Categorize: template/example refs are warnings, others are errors
 		hasErrors := false
@@ -51,10 +57,21 @@ func (c *checkXRefIntegrity) Run(db *sql.DB, specID int64) CheckResult {
 				sev = SeverityError
 				hasErrors = true
 			}
+
+			location := fmt.Sprintf("line %d", xr.SourceLine)
+			if path, ok := filePathByID[xr.SourceFileID]; ok {
+				location = fmt.Sprintf("%s:%d", path, xr.SourceLine)
+			}
+
+			msg := fmt.Sprintf("unresolved %s reference: %s", xr.RefType, xr.RefTarget)
+			if hint := namespaceHint(xr.RefTarget, registeredNS); hint != "" {
+				msg += " — " + hint
+			}
+
 			result.Findings = append(result.Findings, Finding{
 				CheckID: c.ID(), CheckName: c.Name(), Severity: sev,
-				Message:  fmt.Sprintf("unresolved %s reference: %s", xr.RefType, xr.RefTarget),
-				Location: fmt.Sprintf("line %d", xr.SourceLine),
+				Message:  msg,
+				Location: location,
 			})
 		}
 		if hasErrors {
@@ -64,6 +81,90 @@ func (c *checkXRefIntegrity) Run(db *sql.DB, specID int64) CheckResult {
 
 	result.Summary = fmt.Sprintf("%d unresolved references", len(unresolved))
 	return result
+}
+
+// registeredNamespaces returns the set of namespace prefixes for which the
+// spec has invariants or ADRs in the database. Used by Check 1 to enrich
+// unresolved-reference errors with a "did you mean" hint.
+func registeredNamespaces(db *sql.DB, specID int64) []string {
+	seen := map[string]struct{}{}
+	rows, err := db.Query(`
+		SELECT DISTINCT substr(invariant_id, 1, instr(invariant_id, '-INV-') - 1) AS ns
+		FROM invariants WHERE spec_id = ? AND invariant_id LIKE '%-INV-%'
+		UNION
+		SELECT DISTINCT substr(adr_id, 1, instr(adr_id, '-ADR-') - 1) AS ns
+		FROM adrs WHERE spec_id = ? AND adr_id LIKE '%-ADR-%'
+		ORDER BY ns`, specID, specID)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var ns string
+		if err := rows.Scan(&ns); err != nil || ns == "" {
+			continue
+		}
+		seen[ns] = struct{}{}
+	}
+	if len(seen) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(seen))
+	for ns := range seen {
+		out = append(out, ns)
+	}
+	// Sort deterministically for stable error messages.
+	for i := 1; i < len(out); i++ {
+		for j := i; j > 0 && out[j-1] > out[j]; j-- {
+			out[j-1], out[j] = out[j], out[j-1]
+		}
+	}
+	return out
+}
+
+// sourceFilePaths returns a sourceFileID → file_path map for the spec.
+func sourceFilePaths(db *sql.DB, specID int64) map[int64]string {
+	out := make(map[int64]string)
+	rows, err := db.Query(
+		`SELECT id, file_path FROM source_files WHERE spec_id = ?`, specID)
+	if err != nil {
+		return out
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id int64
+		var path string
+		if err := rows.Scan(&id, &path); err != nil {
+			continue
+		}
+		out[id] = path
+	}
+	return out
+}
+
+// namespaceHint returns a fix-pointer string when refTarget carries a
+// namespace prefix that isn't in the registry. Returns "" when the prefix
+// is registered or the target has no recognizable namespace.
+func namespaceHint(refTarget string, registered []string) string {
+	// Strip the trailing -INV-NNN or -ADR-NNN suffix.
+	idx := strings.LastIndex(refTarget, "-INV-")
+	if idx < 0 {
+		idx = strings.LastIndex(refTarget, "-ADR-")
+	}
+	if idx <= 0 {
+		return "" // bare INV-NNN or non-invariant ref
+	}
+	ns := refTarget[:idx]
+	for _, r := range registered {
+		if r == ns {
+			return "" // registered — silent
+		}
+	}
+	if len(registered) == 0 {
+		return fmt.Sprintf("namespace %q not registered; declare it in manifest.yaml namespaces:", ns)
+	}
+	return fmt.Sprintf("namespace %q not registered (known: %s); declare it in manifest.yaml namespaces:",
+		ns, strings.Join(registered, ", "))
 }
 
 func isTemplateRef(target string) bool {

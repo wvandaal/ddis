@@ -50,14 +50,17 @@ func ExtractCrossReferences(lines []string, sections []*SectionNode, specID, sou
 			}
 		}
 
-		// Invariant references: INV-NNN or APP-INV-NNN
+		// Invariant references: INV-NNN, APP-INV-NNN, CMP-INV-NNN, etc.
+		// Any 2-5 letter uppercase namespace prefix is treated as a namespaced
+		// reference; bare INV-NNN remains the legacy "invariant" class.
 		for _, m := range XRefInvRe.FindAllStringSubmatch(line, -1) {
-			// Skip if this is the definition line itself (invariant header)
-			if InvHeaderRe.MatchString(trimmed) {
+			// Skip if this is the definition line itself (invariant header) —
+			// covers both the canonical bold form and the CMP h3+em-dash form.
+			if InvHeaderRe.MatchString(trimmed) || InvHeaderH3Re.MatchString(trimmed) {
 				continue
 			}
 			refType := "invariant"
-			if strings.HasPrefix(m[1], "APP-") {
+			if !strings.HasPrefix(m[1], "INV-") {
 				refType = "app_invariant"
 			}
 			xr := &storage.CrossReference{
@@ -74,14 +77,14 @@ func ExtractCrossReferences(lines []string, sections []*SectionNode, specID, sou
 			}
 		}
 
-		// ADR references: ADR-NNN or APP-ADR-NNN
+		// ADR references: ADR-NNN, APP-ADR-NNN, CMP-ADR-NNN, etc.
 		for _, m := range XRefADRRe.FindAllStringSubmatch(line, -1) {
 			// Skip ADR definition headers
 			if ADRHeaderRe.MatchString(trimmed) {
 				continue
 			}
 			refType := "adr"
-			if strings.HasPrefix(m[1], "APP-") {
+			if !strings.HasPrefix(m[1], "ADR-") {
 				refType = "app_adr"
 			}
 			xr := &storage.CrossReference{

@@ -7,20 +7,30 @@ var (
 	// Heading: # through ######
 	HeadingRe = regexp.MustCompile(`^(#{1,6})\s+(.+)$`)
 
-	// **INV-NNN: Title** or **INV-NNN: Title** [Conditional — ...]
+	// Canonical invariant header: **NS-INV-NNN: Title** with optional
+	// [Conditional] tag and an optional (Key: Value) parenthetical suffix
+	// (e.g. (Owner: foo) — convention shared with constitution registry entries).
 	InvHeaderRe = regexp.MustCompile(
-		`^\*\*(?P<id>(?:APP-)?INV-\d{3}):\s+(?P<title>[^*]+?)\*\*(?:\s*\[(?P<cond>[^\]]+)\])?$`)
+		`^\*\*(?P<id>(?:[A-Z]{2,5}-)?INV-\d{3}):\s+(?P<title>[^*]+?)\*\*(?:\s*\[(?P<cond>[^\]]+)\])?(?:\s*\([^)]+\))?\s*$`)
+
+	// CMP-dialect invariant header: ### NS-INV-NNN — Title (h3, em-dash
+	// or hyphen separator). Used by packages/components/docs/prompts/
+	// CMP-constitution.md and any other namespace adopting the same form.
+	InvHeaderH3Re = regexp.MustCompile(
+		`^###\s+(?P<id>(?:[A-Z]{2,5}-)?INV-\d{3})\s+[—–-]\s+(?P<title>.+?)(?:\s*\[(?P<cond>[^\]]+)\])?(?:\s*\([^)]+\))?\s*$`)
 
 	// *Italic statement*
 	InvStatementRe = regexp.MustCompile(`^\*(.+)\*$`)
 
-	// ### ADR-NNN: Title  or  ### ADR-NNN: Title [Conditional — ...]
+	// ADR header — accepts colon (canonical) or em-dash/hyphen (CMP dialect)
+	// as the ID/title separator. Optional [Conditional] tag and trailing
+	// (Implements: x) parenthetical suffix.
 	ADRHeaderRe = regexp.MustCompile(
-		`^###\s+(?P<id>(?:APP-)?ADR-\d{3}):\s+(?P<title>.+?)(?:\s*\[(?P<cond>[^\]]+)\])?\s*$`)
+		`^###\s+(?P<id>(?:[A-Z]{2,5}-)?ADR-\d{3})(?:\s*:\s*|\s+[—–-]\s+)(?P<title>.+?)(?:\s*\[(?P<cond>[^\]]+)\])?(?:\s*\([^)]+\))?\s*$`)
 
 	// **ADR-NNN: Title** — bold format (used in constitution declarations and legacy skeletons)
 	ADRBoldHeaderRe = regexp.MustCompile(
-		`^\*\*(?P<id>(?:APP-)?ADR-\d{3}):\s+(?P<title>[^*]+?)\*\*`)
+		`^\*\*(?P<id>(?:[A-Z]{2,5}-)?ADR-\d{3}):\s+(?P<title>[^*]+?)\*\*`)
 
 	// #### Problem / #### Options / #### Decision / #### Consequences / #### Tests
 	ADRSubheadingRe = regexp.MustCompile(`^####\s+(?P<heading>Problem|Options|Decision|Consequences|Tests)\s*$`)
@@ -54,11 +64,13 @@ var (
 	// // WHY THIS MATTERS: explanation
 	WhyMattersRe = regexp.MustCompile(`^//\s*WHY THIS MATTERS:\s*(?P<exp>.+)$`)
 
-	// Violation scenario: ...
-	ViolationRe = regexp.MustCompile(`^Violation scenario:\s*(?P<text>.+)$`)
+	// Violation prefix — accepts: "Violation scenario:", "Violation:" (synonym),
+	// or any of those wrapped in **bold** (CMP dialect convention).
+	ViolationRe = regexp.MustCompile(`^(?:\*\*)?Violation(?:\s+scenario)?(?:\*\*)?:\s*(?P<text>.+)$`)
 
-	// Validation: ...
-	ValidationRe = regexp.MustCompile(`^Validation:\s*(?P<text>.+)$`)
+	// Validation prefix — accepts: "Validation:", "Validation strategy:" (synonym),
+	// or any of those wrapped in **bold** (CMP dialect convention).
+	ValidationRe = regexp.MustCompile(`^(?:\*\*)?Validation(?:\s+strategy)?(?:\*\*)?:\s*(?P<text>.+)$`)
 
 	// ### Verification Prompt for [Chapter]
 	VerifPromptRe = regexp.MustCompile(
@@ -85,9 +97,12 @@ var (
 	TableRowRe = regexp.MustCompile(`^\|(.+)\|$`)
 
 	// Cross-reference patterns
+	// XRefInvRe / XRefADRRe accept any 2-5 uppercase letter namespace prefix
+	// (APP, CMP, DOM, …) plus the legacy bare form. Single capture group is
+	// preserved (m[1] = full ID); namespace can be derived via NamespaceOf().
 	XRefSectionRe = regexp.MustCompile(`§(\d+(?:\.\d+)*)`)
-	XRefInvRe     = regexp.MustCompile(`((?:APP-)?INV-\d{3})`)
-	XRefADRRe     = regexp.MustCompile(`((?:APP-)?ADR-\d{3})`)
+	XRefInvRe     = regexp.MustCompile(`((?:[A-Z]{2,5}-)?INV-\d{3})`)
+	XRefADRRe     = regexp.MustCompile(`((?:[A-Z]{2,5}-)?ADR-\d{3})`)
 	XRefGateRe    = regexp.MustCompile(`Gate\s+((?:M-)?[1-9]\d*)`)
 
 	// Confidence level in ADR decisions

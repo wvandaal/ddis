@@ -1,4 +1,4 @@
-description: "Error reporting: XYZ-INV-001 reference must produce an error mentioning the XYZ namespace explicitly (not silently resolve to APP-INV-001)."
+description: "Error reporting: XYZ-INV-001 reference must produce an error message that names the XYZ namespace explicitly, lists the registered namespaces, and points to the manifest.yaml namespaces: section (the phase-6 uplift)."
 expect:
   invariants:
     count: 1
@@ -6,3 +6,5 @@ expect:
   validation:
     error_must_contain:
       - "XYZ"
+      - "not registered"
+      - "manifest.yaml namespaces:"
