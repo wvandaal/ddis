@@ -90,6 +90,13 @@ var (
 	// Code fence
 	CodeFenceRe = regexp.MustCompile("^(`{3,})")
 
+	// Inline code span — single-backtick-delimited content on a single line.
+	// Used by ExtractCrossReferences to skip refs inside `inline code` (e.g.
+	// `docs/foo.md §3.2` mentions a section in another doc, not in our spec).
+	// Multi-backtick spans (``foo``) are rare in spec prose; covered well
+	// enough by the simple form for our purpose.
+	InlineCodeRe = regexp.MustCompile("`[^`\n]*`")
+
 	// Table separator: |---|...|
 	TableSepRe = regexp.MustCompile(`^\|[\s-]+\|`)
 

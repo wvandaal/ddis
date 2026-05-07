@@ -11,6 +11,17 @@ import (
 
 // ddis:maintains APP-INV-003 (cross-reference integrity)
 
+// maskInlineCode replaces every inline-code span (`...`) with spaces of
+// equal length so cross-reference regexes don't match references that
+// appear inside code spans (e.g. a path like `docs/foo.md §3.2` mentions
+// a section in another doc, not in our spec). Length preservation keeps
+// column positions stable for callers that care about location.
+func maskInlineCode(line string) string {
+	return InlineCodeRe.ReplaceAllStringFunc(line, func(match string) string {
+		return strings.Repeat(" ", len(match))
+	})
+}
+
 // ExtractCrossReferences finds all cross-references in the document.
 func ExtractCrossReferences(lines []string, sections []*SectionNode, specID, sourceFileID int64, db storage.DB) error {
 	inCodeBlock := false
@@ -18,7 +29,7 @@ func ExtractCrossReferences(lines []string, sections []*SectionNode, specID, sou
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
 
-		// Skip code blocks
+		// Skip fenced code blocks (``` ... ```)
 		if CodeFenceRe.MatchString(trimmed) {
 			inCodeBlock = !inCodeBlock
 			continue
@@ -26,6 +37,12 @@ func ExtractCrossReferences(lines []string, sections []*SectionNode, specID, sou
 		if inCodeBlock {
 			continue
 		}
+
+		// Mask out inline code spans (`...`) so refs inside them aren't
+		// extracted (e.g. a path like `docs/foo.md §3.2` is prose, not a
+		// resolvable section reference). Replace the span with spaces of
+		// equal length so column positions and line lengths are preserved.
+		scanLine := maskInlineCode(line)
 
 		sec := FindSectionForLine(sections, i)
 		var sectionID *int64
@@ -35,7 +52,7 @@ func ExtractCrossReferences(lines []string, sections []*SectionNode, specID, sou
 		}
 
 		// Section references: §N.M
-		for _, m := range XRefSectionRe.FindAllStringSubmatch(line, -1) {
+		for _, m := range XRefSectionRe.FindAllStringSubmatch(scanLine, -1) {
 			xr := &storage.CrossReference{
 				SpecID:          specID,
 				SourceFileID:    sourceFileID,
@@ -53,7 +70,7 @@ func ExtractCrossReferences(lines []string, sections []*SectionNode, specID, sou
 		// Invariant references: INV-NNN, APP-INV-NNN, CMP-INV-NNN, etc.
 		// Any 2-5 letter uppercase namespace prefix is treated as a namespaced
 		// reference; bare INV-NNN remains the legacy "invariant" class.
-		for _, m := range XRefInvRe.FindAllStringSubmatch(line, -1) {
+		for _, m := range XRefInvRe.FindAllStringSubmatch(scanLine, -1) {
 			// Skip if this is the definition line itself (invariant header) —
 			// covers both the canonical bold form and the CMP h3+em-dash form.
 			if InvHeaderRe.MatchString(trimmed) || InvHeaderH3Re.MatchString(trimmed) {
@@ -78,7 +95,7 @@ func ExtractCrossReferences(lines []string, sections []*SectionNode, specID, sou
 		}
 
 		// ADR references: ADR-NNN, APP-ADR-NNN, CMP-ADR-NNN, etc.
-		for _, m := range XRefADRRe.FindAllStringSubmatch(line, -1) {
+		for _, m := range XRefADRRe.FindAllStringSubmatch(scanLine, -1) {
 			// Skip ADR definition headers
 			if ADRHeaderRe.MatchString(trimmed) {
 				continue
@@ -102,7 +119,7 @@ func ExtractCrossReferences(lines []string, sections []*SectionNode, specID, sou
 		}
 
 		// Gate references: Gate N or Gate M-N
-		for _, m := range XRefGateRe.FindAllStringSubmatch(line, -1) {
+		for _, m := range XRefGateRe.FindAllStringSubmatch(scanLine, -1) {
 			// Skip gate definition lines
 			if GateRe.MatchString(trimmed) {
 				continue

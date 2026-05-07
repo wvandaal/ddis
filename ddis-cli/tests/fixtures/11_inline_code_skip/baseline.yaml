@@ -1,0 +1,9 @@
+description: "Inline-code tolerance: cross-ref regexes must not match text inside `inline code spans`. Pins the fix that brought rr-edge gate:fast to 8/8."
+expect:
+  invariants:
+    count: 1
+    ids: [APP-INV-001]
+  cross_refs:
+    unresolved: 0
+  validation:
+    errors: 0

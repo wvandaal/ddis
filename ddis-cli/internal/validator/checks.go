@@ -122,6 +122,29 @@ func registeredNamespaces(db *sql.DB, specID int64) []string {
 	return out
 }
 
+// constitutionSourceFileIDs returns the IDs of source files whose role is a
+// constitution (system or namespace/domain). Constitutions carry registry
+// catalogs whose sizes are inherently uneven (registry vs. glossary), so
+// proportionality checks should exclude them.
+func constitutionSourceFileIDs(db *sql.DB, specID int64) map[int64]struct{} {
+	out := make(map[int64]struct{})
+	rows, err := db.Query(`
+		SELECT id FROM source_files
+		WHERE spec_id = ? AND file_role IN ('system_constitution', 'domain_constitution')`,
+		specID)
+	if err != nil {
+		return out
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err == nil {
+			out[id] = struct{}{}
+		}
+	}
+	return out
+}
+
 // sourceFilePaths returns a sourceFileID → file_path map for the spec.
 func sourceFilePaths(db *sql.DB, specID int64) map[int64]string {
 	out := make(map[int64]string)
@@ -966,6 +989,12 @@ func (c *checkProportionalWeight) Run(db *sql.DB, specID int64) CheckResult {
 		return result
 	}
 
+	// Constitution files (system + namespace) carry registry catalogs that
+	// are inherently uneven: an invariant registry section is much larger
+	// than a glossary. Skip them so Check 11 only enforces proportionality
+	// across implementation/module chapters.
+	excluded := constitutionSourceFileIDs(db, specID)
+
 	// Find implementation chapters (top-level §N where N >= 1, or Chapter-N)
 	type chapter struct {
 		path  string
@@ -975,6 +1004,9 @@ func (c *checkProportionalWeight) Run(db *sql.DB, specID int64) CheckResult {
 	var chapters []chapter
 
 	for _, sec := range sections {
+		if _, skip := excluded[sec.SourceFileID]; skip {
+			continue
+		}
 		isImplChapter := false
 		if strings.HasPrefix(sec.SectionPath, "§") && sec.HeadingLevel <= 2 {
 			num := strings.TrimPrefix(sec.SectionPath, "§")
