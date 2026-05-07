@@ -1,0 +1,10 @@
+description: "Bidirectional cross-references: APP→CMP and CMP→APP both resolve symmetrically."
+expect:
+  invariants:
+    count: 2
+    ids: [APP-INV-001, CMP-INV-010]
+  cross_refs:
+    unresolved: 0
+    targets: [APP-INV-001, CMP-INV-010]
+  validation:
+    errors: 0

@@ -1,0 +1,8 @@
+description: "Error reporting: XYZ-INV-001 reference must produce an error mentioning the XYZ namespace explicitly (not silently resolve to APP-INV-001)."
+expect:
+  invariants:
+    count: 1
+    ids: [APP-INV-001]
+  validation:
+    error_must_contain:
+      - "XYZ"

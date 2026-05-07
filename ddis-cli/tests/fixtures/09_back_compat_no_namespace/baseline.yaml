@@ -1,0 +1,7 @@
+description: "Back-compat: bare INV-001 (no namespace prefix) continues to parse — defaults to APP for legacy specs."
+expect:
+  invariants:
+    count: 1
+    ids: [INV-001]
+  validation:
+    errors: 0

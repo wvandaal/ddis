@@ -1,0 +1,14 @@
+description: "Multi-namespace canary: APP module references CMP namespace; both must resolve."
+expect:
+  invariants:
+    count: 2
+    ids: [APP-INV-001, CMP-INV-010]
+  adrs:
+    count: 2
+    ids: [APP-ADR-001, CMP-ADR-005]
+  cross_refs:
+    unresolved: 0
+    targets: [APP-INV-001, APP-ADR-001, CMP-INV-010, CMP-ADR-005]
+  validation:
+    errors: 0
+    error_must_contain: []

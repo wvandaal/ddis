@@ -1,0 +1,10 @@
+description: "Namespace isolation: APP-INV-001 and CMP-INV-001 are distinct rows; cross-refs route to the correct namespace."
+expect:
+  invariants:
+    count: 2
+    ids: [APP-INV-001, CMP-INV-001]
+  cross_refs:
+    unresolved: 0
+    targets: [APP-INV-001, CMP-INV-001]
+  validation:
+    errors: 0

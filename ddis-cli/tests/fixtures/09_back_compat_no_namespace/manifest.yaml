@@ -1,0 +1,26 @@
+ddis_version: "3.0"
+spec_name: "Back-Compat No Namespace Prefix"
+tier_mode: "two-tier"
+
+context_budget:
+  target_lines: 4000
+  hard_ceiling_lines: 5000
+  reasoning_reserve: 0.25
+
+constitution:
+  system: "constitution/system.md"
+
+modules:
+  main:
+    file: "modules/main.md"
+    domain: main
+    maintains:
+      - INV-001
+    interfaces: []
+    implements: []
+    adjacent: []
+    deep_context: null
+    negative_specs: []
+
+invariant_registry:
+  INV-001: { owner: main, domain: main, description: "No-prefix invariant defaults to APP namespace" }

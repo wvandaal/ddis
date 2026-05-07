@@ -1,0 +1,34 @@
+ddis_version: "3.0"
+spec_name: "Three Namespaces"
+tier_mode: "two-tier"
+
+context_budget:
+  target_lines: 4000
+  hard_ceiling_lines: 5000
+  reasoning_reserve: 0.25
+
+constitution:
+  system: "constitution/system.md"
+
+namespaces:
+  CMP:
+    constitution: "constitution/cmp-system.md"
+    description: "Component layer"
+  DOM:
+    constitution: "constitution/dom-system.md"
+    description: "Domain logic layer"
+
+modules:
+  main:
+    file: "modules/main.md"
+    domain: main
+    maintains:
+      - APP-INV-001
+    interfaces: [CMP-INV-010, DOM-INV-100]
+    implements: []
+    adjacent: []
+    deep_context: null
+    negative_specs: []
+
+invariant_registry:
+  APP-INV-001: { owner: main, domain: main, description: "Coordinates across CMP and DOM" }

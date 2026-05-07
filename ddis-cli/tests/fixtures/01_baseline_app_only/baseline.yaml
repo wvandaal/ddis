@@ -1,0 +1,14 @@
+description: "Baseline: pure APP namespace, single invariant + ADR. Smoke test for harness — must pass against the current parser."
+expect:
+  invariants:
+    count: 1
+    ids: [APP-INV-001]
+  adrs:
+    count: 1
+    ids: [APP-ADR-001]
+  cross_refs:
+    unresolved: 0
+    targets: [APP-INV-001, APP-ADR-001]
+  validation:
+    errors: 0
+    error_must_contain: []

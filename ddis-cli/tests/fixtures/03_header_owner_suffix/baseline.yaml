@@ -1,0 +1,7 @@
+description: "Format tolerance: trailing (Owner: x) suffix on module-definition headers must parse."
+expect:
+  invariants:
+    count: 1
+    ids: [APP-INV-001]
+  validation:
+    errors: 0

@@ -1,0 +1,7 @@
+description: "Format tolerance: italic statement spanning multiple lines must parse as one statement."
+expect:
+  invariants:
+    count: 1
+    ids: [APP-INV-001]
+  validation:
+    errors: 0

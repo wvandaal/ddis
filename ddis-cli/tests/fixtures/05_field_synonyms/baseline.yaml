@@ -1,0 +1,8 @@
+description: "Format tolerance: 'Violation:' / 'Validation strategy:' synonyms parse equivalently — both columns must be populated."
+expect:
+  invariants:
+    count: 1
+    ids: [APP-INV-001]
+    must_populate_fields: [violation_scenario, validation_method]
+  validation:
+    errors: 0

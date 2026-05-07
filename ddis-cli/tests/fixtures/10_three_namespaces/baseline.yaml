@@ -1,0 +1,10 @@
+description: "Three-way namespace coordination: APP, CMP, DOM all coexist with cross-refs that resolve."
+expect:
+  invariants:
+    count: 3
+    ids: [APP-INV-001, CMP-INV-010, DOM-INV-100]
+  cross_refs:
+    unresolved: 0
+    targets: [APP-INV-001, CMP-INV-010, DOM-INV-100]
+  validation:
+    errors: 0
